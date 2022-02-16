@@ -1,0 +1,243 @@
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <style>
+            @font-face {
+                font-family: dosvga;
+                src: url(lp-dosvga.ttf);
+            }   
+            body { 
+                background-color: rgb(0, 0, 39); 
+                font-family: dosvga, Arial, Helvetica, sans-serif;
+                color: #999;
+            }
+            a, a:link, a:visited {
+                text-decoration: none;
+                color: #ccc;
+            }
+            a:hover { color: #fff;  }
+            a:before { content: "< "; }
+            a:after { content: " >"; }
+
+            #code-container {
+                position: absolute;
+                left: 10px;
+                top: 10px;
+            }
+            #code {
+                width: 600px;
+                margin-bottom: 5px;
+                border: 1px solid #666;
+            }
+            #game-container {
+                position: absolute;
+                left: 620px;
+                top: 10px;
+            }
+            #gx-container {
+                border: 1px solid #666;
+                text-align: center; 
+                background-color: #000;
+            }
+            #gx-canvas {
+                border: 1px solid #222; 
+                background-color: #000;
+            }
+            #output-container {
+                position: absolute;
+                color: #ccc;
+                display: none;
+                border: 1px solid #666;
+                overflow: scroll;
+                height: 150px;
+            }
+            #js-code {
+                font-size: 14px;
+                font-family: courier;
+                white-space: pre;
+            }
+            #show-js-container {
+                color: #666;
+                position: absolute;
+            }
+            #warning-container {
+                white-space: pre;
+                font-family: dosvga;
+                color: #999;
+                padding: 4px;
+            }
+            #share-button {
+                float: right;
+            }
+        </style>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/codemirror.min.css"></link>
+        <link rel="stylesheet" href="codemirror/qb-ide.css"></link>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/codemirror.min.js"></script>
+        <script type="text/javascript" src="codemirror/qb-lang.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/addon/selection/active-line.js"></script>
+        <script type="text/javascript" src="util/shorty.min.js"></script>
+    </head>
+    <body>
+        <div id="code-container">
+            <div id="code"></div>
+            <a id="run-button" href="javascript:runProgram()">Run Program</a>
+            <a id="stop-button" href="javascript:stopProgram()">Stop</a>
+            <a id="share-button" href="javascript:shareProgram()">Share</a>
+        </div>
+        <div id="game-container">
+            <div id="gx-container"></div>
+            <div id="output-container">
+                <div id="warning-container"></div>
+                <div id="js-code"></div>
+            </div>
+            <div id="show-js-container"><input type="checkbox" id="show-js" onclick="window.onresize()"/> Show Javascript</div>
+        </div>
+        <div id="gx-footer"></div>
+    </body>
+    <script language="javascript" src="gx/gx.js"></script>
+    <script language="javascript" src="qb.js"></script>
+    <script language="javascript" src="qb2js.js"></script>
+    <script language="javascript">
+        // if code has been passed on the query string load it into the editor
+        var qbcode = "";
+        var url = location.href;
+ 
+        if (url && url.indexOf("?")) {
+            var queryString = url.substring(url.indexOf("?")+1);
+            var nvpairs = queryString.split("&");
+            for (var i = 0; i < nvpairs.length; i++) {
+                var nv = nvpairs[i].split("=");
+                if (nv[0] == "qbcode") {
+                    var zin = new Shorty();
+                    qbcode = zin.inflate(atob(nv[1]));
+                    break;
+                }
+            }
+        }
+
+        // initialize the code editor
+        var editor = CodeMirror(document.querySelector("#code"), {
+            lineNumbers: true,
+            tabSize: 4,
+            indentUnit: 4,
+            value: qbcode,
+            module: "vbscript",
+            theme: "lesser-dark",
+            height: "auto",
+            styleActiveLine: true,
+            extraKeys: {
+                "Tab": function(cm) {
+                    cm.replaceSelection("    ", "end");
+                }
+            }
+        });
+        editor.setSize(600, 600);
+        editor.on("beforeChange", (cm, change) => {
+            if (change.origin === "paste") {
+                const newText = change.text.map(line => line.replace(/\t/g, "    "));
+                change.update(null, null, newText);
+            }
+        });
+
+        var warnCount = 0;
+
+        async function runProgram() {
+            GX.reset();
+            QB.start();
+            var qbCode = editor.getValue();
+            var jsCode = QBCompiler.compile(qbCode);
+
+            displayWarnings();
+            //displayTypes();
+
+            var jsDiv = document.getElementById("js-code");
+            jsDiv.innerHTML = jsCode;
+            window.onresize();
+
+            try {
+                const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+                var codeFn = new AsyncFunction(jsCode);
+                await codeFn();
+            }
+            catch (error) {
+                console.error(error);
+            }
+            document.getElementById("gx-container").focus();
+        }
+
+        function stopProgram() {
+            QB.halt();
+            GX.sceneStop();
+        }
+
+        function shareProgram() {
+            var zout = new Shorty();
+            var wdiv = document.getElementById("warning-container");
+            var b64 = btoa(zout.deflate(editor.getValue()));
+            var baseUrl = location.href.split('?')[0];
+            wdiv.innerHTML = baseUrl + "?qbcode=" + b64;
+            warnCount = 1;
+            window.onresize();
+        }
+
+        function displayWarnings() {
+            var wstr = "";
+            var w = QBCompiler.getWarnings();
+            warnCount = w.length;
+            for (var i=0; i < w.length; i++) {
+                wstr += w[i].line + ": " + w[i].text + "\n";
+            }
+            var wdiv = document.getElementById("warning-container");
+            wdiv.innerHTML = wstr;
+        }
+
+        function displayTypes() {
+            var tstr = "";
+            var t = QBCompiler.getTypes();
+            for (var i=0; i < t.length; i++) {
+                tstr += t[i].name
+            }
+            var wdiv = document.getElementById("warning-container");
+            wdiv.innerHTML = tstr;
+        }
+
+        window.onresize = function() {
+            var f = document.getElementById("gx-container");
+            var jsDiv = document.getElementById("output-container");
+
+            f.style.width = (window.innerWidth - 635) + "px";
+            jsDiv.style.width = f.style.width;            
+
+            if (document.getElementById("show-js").checked || warnCount > 0) {
+                f.style.height = (window.innerHeight - 210) + "px";
+                jsDiv.style.display = "block";
+                jsDiv.style.top = (window.innerHeight - 200) + "px";
+            }
+            else {
+                f.style.height = (window.innerHeight - 50) + "px";
+                jsDiv.style.display = "none";
+            }
+            document.getElementById("show-js-container").style.top = (window.innerHeight - 45) + "px";
+            document.getElementById("show-js-container").style.right = "5px";
+            
+            document.getElementById("js-code").style.display = document.getElementById("show-js").checked ? "block" : "none";
+
+            editor.setSize(600, window.innerHeight - 50);
+        }
+        window.onresize();
+
+        function checkButtonState() {
+            var stopButton = document.getElementById("stop-button");
+            if (GX.sceneActive() || QB.running()) {
+                stopButton.style.display = "inline";
+            }
+            else {
+                stopButton.style.display = "none";
+            }
+
+            setTimeout(checkButtonState, 100);
+        }
+        checkButtonState();
+        
+    </script>
+</html>
