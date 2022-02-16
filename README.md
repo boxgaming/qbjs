@@ -1,3 +1,3 @@
 # QBJS
 
-QBasic for the modern web. 
+QBasic for the web. 
