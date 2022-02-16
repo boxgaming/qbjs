@@ -1,3 +1,3 @@
-# qbjs
+# QBJS
 
-Coming soon...
+QBJS is QBasic for the modern web. 
