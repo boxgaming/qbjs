@@ -1,16 +1,7 @@
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: https://codemirror.net/LICENSE
 
-/*
-For extra ASP classic objects, initialize CodeMirror instance with this option:
-    isASP: true
-
-E.G.:
-    var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-        lineNumbers: true,
-        isASP: true
-      });
-*/
+// TODO: remove vestiges of vbscript
 
 (function(mod) {
   if (typeof exports == "object" && typeof module == "object") // CommonJS
@@ -22,7 +13,7 @@ E.G.:
 })(function(CodeMirror) {
 "use strict";
 
-CodeMirror.defineMode("vbscript", function(conf, parserConf) {
+CodeMirror.defineMode("qbjs", function(conf, parserConf) {
     var ERRORCLASS = 'error';
 
     function wordRegexp(words) {
@@ -367,6 +358,6 @@ CodeMirror.defineMode("vbscript", function(conf, parserConf) {
     return external;
 });
 
-CodeMirror.defineMIME("text/vbscript", "vbscript");
+CodeMirror.defineMIME("text/qbjs", "qbjs");
 
 });

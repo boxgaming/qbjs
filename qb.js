@@ -7,7 +7,6 @@ var QB = new function() {
     var _bgColor = null; 
     var _lastX = 0;
     var _lastY = 0;
-    //var _fntDefault = null;
     var _locX = 0;
     var _locY = 0;
     var _lastKey = null;
@@ -58,10 +57,6 @@ var QB = new function() {
             value = value[indexes[i]];
         }
 
-        // added to treat regular objects and qb hashtable/arrays the same
-        if (value.value == undefined) {
-            value = { value: value };
-        }
         return value;
     };
 
@@ -71,33 +66,7 @@ var QB = new function() {
             f();
         });
     };
-/*
-    this.byRef = function(v) {
-        if (v != undefined && v.value == undefined) {
-            return { value: v };
-        }
-        return v;
-    };
 
-    this.byValue = function(v) {
-        if (v !== undefined && v.value != undefined) {
-            return v.value;
-        }
-        return v;
-    };
-
-    this.$var = function(varname) {
-        return window[varname];
-    };
-
-    this.$func = function(methodName) {
-        var func = window["sub_" + methodName];
-        if (func == undefined) {
-            func = window["func_" + methodName]
-        }
-        return func;
-    }
-*/
     // Process control methods
     // -------------------------------------------
     this.halt = function() {
@@ -154,12 +123,10 @@ var QB = new function() {
     };
 
     this.func__FontHeight = function(fnt) {
-        //return GX.fontHeight(_fntDefault) + GX.fontLineSpacing(_fntDefault);
         return 16;
     };
 
     this.func__FontWidth = function(fnt) {
-        //return GX.fontWidth(_fntDefault);
         return 8;
     };
 
@@ -199,6 +166,7 @@ var QB = new function() {
         //       this is here just to allow converted programs to compile
         return GX.keyDown(keyCode) ? -1 : 0;
     };
+
     this.func__KeyHit = function() {
         // TODO: actual implementation (maybe)
         //       this is here just to support rendering loops that are using _KeyHit as the exit criteria
@@ -206,9 +174,7 @@ var QB = new function() {
     };
 
     this.sub__Limit = async function(fps) {
-        // TODO: limit based on frame rate
-        //       need to incorporate time elapsed from last loop invocation
-
+        // TODO: need to incorporate time elapsed from last loop invocation
         await GX.sleep(1000/fps);
     };
 
@@ -242,7 +208,8 @@ var QB = new function() {
         ctx.beginPath();
         ctx.fillStyle = _bgColor.rgba();
         ctx.fillRect(x, y, QB.func__FontWidth(), QB.func__FontHeight());
-        //GX.drawText(_fntDefault, x, y, s);
+
+        // Draw the string
         ctx.font = "16px dosvga";
         ctx.fillStyle = _fgColor.rgba();
         ctx.fillText(s, x, y+QB.func__FontHeight()-6);
@@ -334,6 +301,10 @@ var QB = new function() {
 
     // QB45 Keywords
     // --------------------------------------------
+    this.func_Abs = function(value) {
+        return Math.abs(value);
+    };
+
     this.func_Asc = function(value, pos) {
         if (pos == undefined) {
             pos = 0;
@@ -343,8 +314,8 @@ var QB = new function() {
         return String(value).charCodeAt(pos);
     }
 
-    this.func_Abs = function(value) {
-        return Math.abs(value);
+    this.func_Atn = function(value) {
+        return Math.atan(value);
     };
 
     this.func_Chr = function(charCode) {
@@ -420,8 +391,7 @@ var QB = new function() {
                 await _printScroll();
             _locY = _textRows()-1;
         }
-        //QB.sub__PrintString(_locX * QB.func__FontWidth(), _locY * QB.func__FontHeight(), "? ");
-        //_locX += 2;
+
         while (_lastKey != "Enter") {
 
             if (_lastKey == "Backspace" && str.length > 0) {
@@ -465,9 +435,6 @@ var QB = new function() {
             return "";
         }
         return _keyBuffer.shift();
-//        var temp = _lastKey;
-//        _lastKey = "";
-//        return temp;
     }
 
     this.func_InStr = function(arg1, arg2, arg3) {
@@ -625,7 +592,7 @@ var QB = new function() {
                 // ignore as we will just concatenate the next arg
             }
             else if (args[ai] == QB.COLUMN_ADVANCE) {
-                // TODO: advance to the next column offset
+                // advance to the next column offset
                 _locX += 14 - _locX % 13;
             }
             else {
@@ -638,11 +605,8 @@ var QB = new function() {
                     // scroll the screen
                     if (_locY < _textRows()-1) {
                         y = _locY * QB.func__FontHeight();
-                        //_locY = _locY + 1;
                     }
                     else {
-                        //await _printScroll();
-        
                         y = (_locY) * QB.func__FontHeight();
                     }
         
@@ -652,7 +616,6 @@ var QB = new function() {
                     ctx.fillStyle = _bgColor.rgba();
                     ctx.fillRect(x, y, QB.func__FontWidth() * lines[i].length, QB.func__FontHeight());
         
-                    //GX.drawText(_fntDefault, x, y, lines[i]);
                     ctx.font = "16px dosvga";
                     ctx.fillStyle = _fgColor.rgba();
                     ctx.fillText(lines[i], x, y+QB.func__FontHeight()-6);
@@ -683,39 +646,6 @@ var QB = new function() {
         }
     };
 
-/*
-    this.sub_Print = async function(str) {
-        if (str == undefined || str == null) {
-            str = "";
-        }
-        var ctx = GX.ctx();
-        var lines = String(str).split("\n");
-        for (var i=0; i < lines.length; i++) {
-            var x = _locX * QB.func__FontWidth();
-            var y = -1;
-
-            // scroll the screen
-            if (_locY < _textRows()) {
-                y = _locY * QB.func__FontHeight();
-                _locY = _locY + 1;
-            }
-            else {
-                await _printScroll();
-
-                y = (_locY-1) * QB.func__FontHeight();
-            }
-
-            // TODO: check the background opacity mode
-            // Draw the text background
-            ctx.beginPath();
-            ctx.fillStyle = _bgColor.rgba();
-            ctx.fillRect(x, y, QB.func__FontWidth() * lines[0].length, QB.func__FontHeight());
-
-            GX.drawText(_fntDefault, x, y, lines[i]);
-        }
-        _locX = 0;
-    };
-*/
     async function _printScroll() {
         var img = new Image();
         img.src = GX.canvas().toDataURL("image/png");
@@ -852,10 +782,6 @@ var QB = new function() {
         return ((new Date()).getTime() - midnight.getTime()) / 1000;
     };
 
-    this.func_Atn = function(value) {
-        return Math.atan(value);
-    };
-
     this.func_UBound = function(a, dimension) {
         if (dimension == undefined) {
             dimension = 1;
@@ -896,14 +822,6 @@ var QB = new function() {
 
 
     function _init() {
-        // initialize the fonts
-        /*if (!_fntDefault) {
-            _fntDefault = GX.fontCreate("./qb/font.png", 8, 14,
-                "`1234567890-=~!@#$%^&*()_+\n" + 
-                "qwertyuiop[]\\QWERTYUIOP{}|\n" + 
-                "asdfghjkl;'ASDFGHJKL:\"\n" + 
-                "zxcvbnm,./ZXCVBNM<>?");    
-        }*/
 
         addEventListener("keydown", function(event) { 
             if (_inputMode) {
