@@ -1,3 +1,3 @@
-# qbjs
+# QBJS
 
-Coming soon...
+QBasic for the web. 
