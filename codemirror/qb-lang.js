@@ -1,6 +1,3 @@
-// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: https://codemirror.net/LICENSE
-
 // TODO: remove vestiges of vbscript
 
 (function(mod) {
@@ -31,34 +28,49 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
     var endKeywords = ['next','loop','wend'];
 
     var wordOperators = wordRegexp(['and', 'or', 'not', 'xor', 'is', 'mod', 'eqv', 'imp']);
-    var commonkeywords = ['dim', 'as', 'redim', 'then', 'until', 'randomize',
-                          'byval','byref','new','property', 'exit', 'in',
-                          'const', 'integer', 'single', 'double', '_unsigned', 'string', '_byte',
-                          'let', 'option explicit', 'call'];
+    var commonkeywords = ['dim', 'as', 'redim', 'then', 'until', 'exit', 'in', 'to',
+                          'const', 'integer', 'single', 'double', 'long', '_unsigned', 'string', '_byte',
+                          'option explicit', 'call', 'step'];
 
-    //This list was from: http://msdn.microsoft.com/en-us/library/f8tbc79x(v=vs.84).aspx
+    // TODO: adjust for QB
     var atomWords = ['true', 'false', 'nothing', 'empty', 'null'];
 
-    // QB64 Keywords
-    var builtinFuncsWords = ['_delay', '_fontwidth', '_height', '_limit', '_keyhit', '_newimage', '_pi', '_printstring', '_printwidth', '_rgb',
-                            '_rgb32', '_round', '_title', '_trim', '_width', 'abs', 'asc', 'atn', 'chr\\$', 'cls', 'color', 'cos', 'fix', 'input',
-                            'instr', 'int', 'left\\$', 'lcase\\$', 'len', 'line', 'locate', 'ltrim\\$', 'mid\\$', 'print', 'right\\$', 'rtrim\\$', 'rnd',
-                            'screen', 'sgn', 'sin', 'sleep', 'sqr', 'str\\$', 'tan', 'ubound', 'ucase\\$', 'val', '_screenexists', 'exp', 'timer',
-                            'pset', '_red32', '_green32', '_blue32', '_red', '_green', '_blue', 'circle', '_alpha32', '_keydown', 'swap', '_instrrev',
-                            'command\\$', '_mouseinput', '_mousex', '_mousey', '_mousebutton', 'log', '_atan2', 'inkey\\$'];
+    var builtinFuncsWords = ['_alpha', '_alpha32', '_atan2', '_blue', '_blue32', '_copyimage', '_delay', '_dest', '_dest', '_display', '_fontwidth',
+                             '_freeimage', '_green', '_green32', '_height', '_instrrev', '_limit', '_keyclear', '_keydown', '_keyhit', '_loadimage',
+                             '_mousebutton', '_mouseinput', '_mousex', '_mousey', '_newimage', '_pi', '_printstring', '_printwidth', '_putimage',
+                             '_red', '_red32', '_rgb', '_rgba', '_rgb32', '_rgba32', '_round', '_screenexists', '_title', '_trim', '_width', 'abs',
+                             'asc', 'atn', 'chr', 'circle', 'cls', 'color', 'command', 'cos', 'exp', 'fix', 'input', 'inkey', 'instr', 'int',
+                             'lbound', 'left', 'lcase', 'len', 'line', 'locate', 'log', 'ltrim', 'mid', 'print', 'pset', 'right', 'rtrim', 'rnd',
+                             'screen', 'sgn', 'sin', 'sleep', 'sqr', 'str', 'swap', 'tan', 'timer', 'ubound', 'ucase', 'val'];
 
-    //This list was from: http://msdn.microsoft.com/en-us/library/ydz4cfk3(v=vs.84).aspx
-    var builtinConsts = ['gx_true','vbBlack', 'vbRed', 'vbGreen', 'vbYellow', 'vbBlue', 'vbMagenta', 'vbCyan', 'vbWhite', 'vbBinaryCompare', 'vbTextCompare',
-                         'vbSunday', 'vbMonday', 'vbTuesday', 'vbWednesday', 'vbThursday', 'vbFriday', 'vbSaturday', 'vbUseSystemDayOfWeek', 'vbFirstJan1', 'vbFirstFourDays', 'vbFirstFullWeek',
-                         'vbGeneralDate', 'vbLongDate', 'vbShortDate', 'vbLongTime', 'vbShortTime', 'vbObjectError',
-                         'vbOKOnly', 'vbOKCancel', 'vbAbortRetryIgnore', 'vbYesNoCancel', 'vbYesNo', 'vbRetryCancel', 'vbCritical', 'vbQuestion', 'vbExclamation', 'vbInformation', 'vbDefaultButton1', 'vbDefaultButton2',
-                         'vbDefaultButton3', 'vbDefaultButton4', 'vbApplicationModal', 'vbSystemModal', 'vbOK', 'vbCancel', 'vbAbort', 'vbRetry', 'vbIgnore', 'vbYes', 'vbNo',
-                         'vbCr', 'VbCrLf', 'vbFormFeed', 'vbLf', 'vbNewLine', 'vbNullChar', 'vbNullString', 'vbTab', 'vbVerticalTab', 'vbUseDefault', 'vbTrue', 'vbFalse',
-                         'vbEmpty', 'vbNull', 'vbInteger', 'vbLong', 'vbSingle', 'vbDouble', 'vbCurrency', 'vbDate', 'vbString', 'vbObject', 'vbError', 'vbBoolean', 'vbVariant', 'vbDataObject', 'vbDecimal', 'vbByte', 'vbArray'];
-    //This list was from: http://msdn.microsoft.com/en-us/library/hkc375ea(v=vs.84).aspx
-    var builtinObjsWords = ['WScript', 'err', 'debug', 'RegExp', '\\$if', '\\$end if'];
+    var builtinConsts = ['gx_true', 'gx_false', 'gxevent_init', 'gxevent_update', 'gxevent_drawbg', 'gxevent_drawmap', 'gxevent_drawscreen',
+                         'gxevent_mouseinput', 'gxevent_paintbefore', 'gxevent_paintafter', 'gxevent_collision_tile', 'gxevent_collision_entity',
+                         'gxevent_player_action', 'gxevent_animate_complete', 'gxanimate_loop', 'gxanimate_single', 'gxbg_stretch',
+                         'gxbg_scroll', 'gxbg_wrap', 'gxkey_esc', 'gxkey_1', 'gxkey_2', 'gxkey_3', 'gxkey_4', 'gxkey_5', 'gxkey_6', 'gxkey_7',
+                         'gxkey_8', 'gxkey_9', 'gxkey_0', 'gxkey_dash', 'gxkey_equals', 'gxkey_backspace', 'gxkey_tab', 'gxkey_q', 'gxkey_w',
+                         'gxkey_e', 'gxkey_r', 'gxkey_t', 'gxkey_y', 'gxkey_u', 'gxkey_i', 'gxkey_o', 'gxkey_p', 'gxkey_lbracket',
+                         'gxkey_rbracket', 'gxkey_enter', 'gxkey_lctrl', 'gxkey_a', 'gxkey_s', 'gxkey_d', 'gxkey_f', 'gxkey_g', 'gxkey_h',
+                         'gxkey_j', 'gxkey_k', 'gxkey_l', 'gxkey_semicolon', 'gxkey_quote', 'gxkey_backquote', 'gxkey_lshift', 'gxkey_backslash',
+                         'gxkey_z', 'gxkey_x', 'gxkey_c', 'gxkey_v', 'gxkey_b', 'gxkey_n', 'gxkey_m', 'gxkey_comma', 'gxkey_period',
+                         'gxkey_slash', 'gxkey_rshift', 'gxkey_numpad_multiply', 'gxkey_spacebar', 'gxkey_capslock', 'gxkey_f1', 'gxkey_f2',
+                         'gxkey_f3', 'gxkey_f4', 'gxkey_f5', 'gxkey_f6', 'gxkey_f7', 'gxkey_f8', 'gxkey_f9', 'gxkey_f9', 'gxkey_pause',
+                         'gxkey_scrlk', 'gxkey_numpad_7', 'gxkey_numpad_8', 'gxkey_numpad_9', 'gxkey_numpad_minus', 'gxkey_numpad_4',
+                         'gxkey_numpad_5', 'gxkey_numpad_6', 'gxkey_numpad_plus', 'gxkey_numpad_1', 'gxkey_numpad_2', 'gxkey_numpad_3',
+                         'gxkey_numpad_0', 'gxkey_numpad_period', 'gxkey_f11', 'gxkey_f12', 'gxkey_numpad_enter', 'gxkey_rctrl',
+                         'gxkey_numpad_divide', 'gxkey_numlock', 'gxkey_home', 'gxkey_up', 'gxkey_pageup', 'gxkey_left', 'gxkey_right',
+                         'gxkey_end', 'gxkey_down', 'gxkey_pagedown', 'gxkey_insert', 'gxkey_delete', 'gxkey_lwin', 'gxkey_rwin', 'gxkey_menu',
+                         'gxaction_move_left', 'gxaction_move_right', 'gxaction_move_up', 'gxaction_move_down', 'gxaction_jump',
+                         'gxaction_jump_right', 'gxaction_jump_left', 'gxscene_follow_none', 'gxscene_follow_entity_center',
+                         'gxscene_follow_entity_center_x', 'gxscene_follow_entity_center_y', 'gxscene_follow_entity_center_x_pos',
+                         'gxscene_follow_entity_center_x_neg', 'gxscene_constrain_none', 'gxscene_constrain_to_map', 'gxfont_default',
+                         'gxfont_default_black', 'gxdevice_keyboard', 'gxdevice_mouse', 'gxdevice_controller', 'gxdevice_button',
+                         'gxdevice_axis', 'gxdevice_wheel', 'gxtype_entity', 'gxtype_font', 'gx_cr', 'gx_lf', 'gx_crlf'];
+
+    var builtinObjsWords = ['\\$if', '\\$end if'];
+
+    // TODO: adjust for QB
     var knownProperties = ['description', 'firstindex', 'global', 'helpcontext', 'helpfile', 'ignorecase', 'length', 'number', 'pattern', 'source', 'value', 'count'];
-    //var knownMethods = ['clear', 'execute', 'raise', 'replace', 'test', 'write', 'writeline', 'close', 'open', 'state', 'eof', 'update', 'addnew', 'end', 'createobject', 'quit', 'gxscenecreate'];
+
     var knownMethods = ['gxongameevent', 'gxmousex', 'gxmousey', 'gxsoundload', 'gxsoundplay', 'gxsoundrepeat', 'gxsoundvolume', 'gxsoundpause', 'gxsoundstop',
                         'gxsoundmuted', 'gxsoundmuted', 'gxentityanimate', 'gxentityanimatestop', 'gxentityanimatemode', 'gxentityanimatemode',
                         'gxscreenentitycreate', 'gxentitycreate', 'gxentityvisible', 'gxentitymove', 'gxentitypos', 'gxentityvx', 'gxentityvy',
@@ -81,26 +93,9 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                         'gxdebugentitybordercolor', 'gxdebugentitycollisioncolor', 'gxkeyinput', 'gxkeydown', 'gxdeviceinputdetect',
                         'gxdeviceinputtest', 'gxdevicename', 'gxdevicetypename', 'gxinputtypename', 'gxkeybuttonname'];
 
-    var aspBuiltinObjsWords = ['server', 'response', 'request', 'session', 'application'];
-    var aspKnownProperties = ['buffer', 'cachecontrol', 'charset', 'contenttype', 'expires', 'expiresabsolute', 'isclientconnected', 'pics', 'status', //response
-                              'clientcertificate', 'cookies', 'form', 'querystring', 'servervariables', 'totalbytes', //request
-                              'contents', 'staticobjects', //application
-                              'codepage', 'lcid', 'sessionid', 'timeout', //session
-                              'scripttimeout']; //server
-    var aspKnownMethods = ['addheader', 'appendtolog', 'binarywrite', 'end', 'flush', 'redirect', //response
-                           'binaryread', //request
-                           'remove', 'removeall', 'lock', 'unlock', //application
-                           'abandon', //session
-                           'getlasterror', 'htmlencode', 'mappath', 'transfer', 'urlencode']; //server
-
     var knownWords = knownMethods.concat(knownProperties);
 
     builtinObjsWords = builtinObjsWords.concat(builtinConsts);
-
-    if (conf.isASP){
-        builtinObjsWords = builtinObjsWords.concat(aspBuiltinObjsWords);
-        knownWords = knownWords.concat(aspKnownMethods, aspKnownProperties);
-    };
 
     var keywords = wordRegexp(commonkeywords);
     var atoms = wordRegexp(atomWords);

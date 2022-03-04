@@ -42,7 +42,8 @@
 .cm-s-lesser-dark span.cm-attribute { color: #81a4d5; }
 .cm-s-lesser-dark span.cm-hr { color: #999; }
 .cm-s-lesser-dark span.cm-link { color: #7070E6; }
-.cm-s-lesser-dark span.cm-error { color: #9d1e15; }
+/*.cm-s-lesser-dark span.cm-error { color: #9d1e15; }*/
+.cm-s-lesser-dark span.cm-error { color: #999; }
 
 .cm-s-lesser-dark .CodeMirror-activeline-background { background: rgb(0, 49, 78); }
 .cm-s-lesser-dark .CodeMirror-matchingbracket { outline:1px solid grey; color:white !important; }

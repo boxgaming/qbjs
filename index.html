@@ -161,6 +161,7 @@
     <script language="javascript" src="qb.js"></script>
     <script language="javascript" src="qb2js.js"></script>
     <script language="javascript">
+        var QBCompiler = null; 
         // if code has been passed on the query string load it into the editor
         var qbcode = "";
         var url = location.href;
@@ -214,9 +215,10 @@
             GX.reset();
             QB.start();
             var qbCode = editor.getValue();
-            var jsCode = QBCompiler.compile(qbCode);
+            if (!QBCompiler) { QBCompiler = await _QBCompiler(); }
+            var jsCode = await QBCompiler.compile(qbCode);
 
-            displayWarnings();
+            await displayWarnings();
             //displayTypes();
 
             var jsDiv = document.getElementById("js-code");
@@ -230,6 +232,16 @@
             }
             catch (error) {
                 console.error(error);
+                var wdiv = document.getElementById("warning-container");
+                var html = wdiv.innerHTML;
+                if (html != "") { html += "\n" };
+                html += error.name + ": " + error.message + "\n";
+                html += error.stack;
+                wdiv.innerHTML = html;
+                consoleVisible = true;
+                window.onresize();
+                QB.halt();
+                GX.sceneStop();
             }
             document.getElementById("gx-container").focus();
         }
@@ -249,9 +261,9 @@
             Dialog.template(document.getElementById("share-dialog"), "Copy the link below to share your code!");
         }
 
-        function displayWarnings() {
+        async function displayWarnings() {
             var wstr = "";
-            var w = QBCompiler.getWarnings();
+            var w = await QBCompiler.getWarnings();
             warnCount = w.length;
             for (var i=0; i < w.length; i++) {
                 wstr += w[i].line + ": " + w[i].text + "\n";

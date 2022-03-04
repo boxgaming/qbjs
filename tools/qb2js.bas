@@ -21,6 +21,7 @@ Type Method
     argc As Integer
     args As String
     jsname As String
+    sync As Integer
 End Type
 
 Type Argument
@@ -56,6 +57,24 @@ ReDim Shared As CodeLine warnings(0)
 Dim Shared As String currentMethod
 Dim Shared As Integer programMethods
 
+
+'Print ConvertCoordParam("(10, 20)-(15, 18)", True)
+'Print ConvertCoordParam("(10, 20)", True)
+'Print ConvertCoordParam("-(15, 18)", True)
+'Print ConvertCoordParam("STEP(10, 20)-(15, 18)", True)
+'Print ConvertCoordParam("(10, 20)-STEP(15, 18)", True)
+'Print ConvertCoordParam("STEP(10, 20)-STEP(15, 18)", True)
+'Print ConvertCoordParam("STEP(10, 20)", True)
+'Print ConvertCoordParam("STEP(15, 18)", True)
+'Print ConvertCoordParam("(10, 20)", False)
+'Print ConvertCoordParam("STEP(10, 20)", False)
+
+'Print ConvertPutImage(", myImage")
+'Print ConvertPutImage(", myImage, 0")
+'Print ConvertPutImage("(100,200), myImage")
+'Print ConvertPutImage("(100,200), myImage, , (200, 300)")
+'Print ConvertPutImage(", myImage, 0, _SMOOTH")
+'End
 
 ' Only execute the conversion from the native version if we have been passed the
 ' source file to convert on the command line
@@ -99,7 +118,7 @@ Sub QBToJS (source As String, sourceType As Integer)
     If sourceType = FILE Then selfConvert = EndsWith(source, "qb2js.bas")
 
     If selfConvert Then
-        AddJSLine 0, "var QBCompiler = new function() {"
+        AddJSLine 0, "async function _QBCompiler() {"
 
     ElseIf sourceType = FILE Then
         AddJSLine 0, "async function init() {"
@@ -125,8 +144,8 @@ Sub QBToJS (source As String, sourceType As Integer)
 
 
     If selfConvert Then
-        AddJSLine 0, "this.compile = function(src) {"
-        AddJSLine 0, "   sub_QBToJS(src, TEXT);"
+        AddJSLine 0, "this.compile = async function(src) {"
+        AddJSLine 0, "   await sub_QBToJS(src, TEXT);"
         AddJSLine 0, "   var js = '';"
         AddJSLine 0, "   for (var i=1; i<= QB.func_UBound(jsLines); i++) {"
         AddJSLine 0, "      js += QB.arrayValue(jsLines, [i]).value.text + '\n';"
@@ -143,7 +162,8 @@ Sub QBToJS (source As String, sourceType As Integer)
         AddJSLine 0, "   }"
         AddJSLine 0, "   return w;"
         AddJSLine 0, "};"
-        AddJSLine 0, "};"
+        AddJSLine 0, "return this;"
+        AddJSLine 0, "}"
     ElseIf sourceType = FILE Then
         AddJSLine 0, "};"
     End If
@@ -459,6 +479,7 @@ Function ConvertSub$ (m As Method, args As String)
     Dim js As String
 
     ' Let's handle the weirdo Line Input command which has a space
+    ' TODO: this may have issues if used in combination with Input
     If m.name = "Line" Then
         Dim parts(0) As String
         Dim plen As Integer
@@ -466,7 +487,8 @@ Function ConvertSub$ (m As Method, args As String)
         If plen > 0 Then
             If UCase$(parts(1)) = "INPUT" Then
                 m.name = "Line Input"
-                m.jsname = "await QB.sub_LineInput"
+                'm.jsname = "await QB.sub_LineInput"
+                m.jsname = "QB.sub_LineInput"
                 args = Join(parts(), 2, -1, " ")
             End If
         End If
@@ -474,16 +496,16 @@ Function ConvertSub$ (m As Method, args As String)
 
     ' Handle special cases for methods which take ranges and optional parameters
     If m.name = "Line" Then
-        js = m.jsname + "(" + ConvertLine(args) + ");"
+        js = CallMethod(m) + "(" + ConvertLine(args) + ");"
 
     ElseIf m.name = "PSet" Or m.name = "Circle" Then
-        js = m.jsname + "(" + ConvertPSet(args) + ");"
+        js = CallMethod(m) + "(" + ConvertPSet(args) + ");"
 
     ElseIf m.name = "_PrintString" Then
-        js = m.jsname + "(" + ConvertPrintString(args) + ");"
+        js = CallMethod(m) + "(" + ConvertPrintString(args) + ");"
 
     ElseIf m.name = "Print" Then
-        js = m.jsname + "(" + ConvertPrint(args) + ");"
+        js = CallMethod(m) + "(" + ConvertPrint(args) + ");"
 
     ElseIf m.name = "Input" Or m.name = "Line Input" Then
         js = ConvertInput(m, args)
@@ -491,8 +513,11 @@ Function ConvertSub$ (m As Method, args As String)
     ElseIf m.name = "Swap" Then
         js = ConvertSwap(m, args)
 
+    ElseIf m.name = "_PutImage" Then
+        js = CallMethod(m) + "(" + ConvertPutImage(args) + ");"
+
     Else
-        js = m.jsname + "(" + ConvertExpression(args) + ");"
+        js = CallMethod(m) + "(" + ConvertExpression(args) + ");"
     End If
 
     ConvertSub = js
@@ -552,6 +577,93 @@ Function ConvertLine$ (args As String)
     theRest = GXSTR_Replace(theRest, " B", " " + Chr$(34) + "B" + Chr$(34))
 
     ConvertLine = sstep + ", " + startCord + ", " + estep + ", " + endCord + ", " + theRest
+End Function
+
+Function ConvertPutImage$ (args As String)
+    Dim argc As Integer
+    ReDim parts(0) As String
+    Dim As String startCoord, sourceImage, destImage, destCoord, doSmooth
+    startCoord = ConvertCoordParam("", True)
+    destCoord = ConvertCoordParam("", True)
+    sourceImage = "undefined"
+    destImage = "undefined"
+
+    doSmooth = "false"
+    If EndsWith(_Trim$(UCase$(args)), "_SMOOTH") Then
+        doSmooth = "true"
+        args = Left$(_Trim$(args), Len(_Trim$(args)) - 7)
+    End If
+
+    argc = ListSplit(args, parts())
+    If argc >= 1 Then startCoord = ConvertCoordParam(parts(1), True)
+    If argc >= 2 Then sourceImage = ConvertExpression(parts(2))
+    If argc >= 3 Then
+        If _Trim$(parts(3)) <> "" Then destImage = ConvertExpression(parts(3))
+    End If
+    If argc >= 4 Then destCoord = ConvertCoordParam(parts(4), True)
+    If argc >= 5 Then
+        If _Trim$(UCase$(parts(5))) = "_SMOOTH" Then doSmooth = "true"
+    End If
+
+    ConvertPutImage = startCoord + ", " + sourceImage + ", " + destImage + ", " + destCoord + ", " + doSmooth
+End Function
+
+Function ConvertCoordParam$ (param As String, hasEndCoord As Integer)
+    If _Trim$(param) = "" Then
+        If hasEndCoord Then
+            ConvertCoordParam = "false, undefined, undefined, false, undefined, undefined"
+        Else
+            ConvertCoordParam = "false, undefined, undefined"
+        End If
+    Else
+        Dim As String js, startCoord, endCoord, sstep, estep
+        Dim As Integer idx
+        sstep = "false"
+        estep = "false"
+
+        'If hasEndCoord Then
+        idx = FindParamChar(param, "-")
+        If idx = -1 Then
+            'endCoord = param
+            startCoord = param
+            endCoord = ""
+        Else
+            startCoord = Left$(param, idx - 1)
+            endCoord = Right$(param, Len(param) - idx)
+        End If
+        'Else
+        '    startCoord = param
+        '    endCoord = ""
+        'End If
+
+        If UCase$(_Trim$(Left$(startCoord, 4))) = "STEP" Then
+            sstep = "true"
+        End If
+        If UCase$(_Trim$(Left$(endCoord, 4))) = "STEP" Then
+            estep = "true"
+        End If
+
+        idx = InStr(startCoord, "(")
+        startCoord = Right$(startCoord, Len(startCoord) - idx)
+        idx = _InStrRev(startCoord, ")")
+        startCoord = Left$(startCoord, idx - 1)
+        startCoord = ConvertExpression(startCoord)
+        If (_Trim$(startCoord) = "") Then startCoord = "undefined, undefined"
+
+        If hasEndCoord Then
+            idx = InStr(endCoord, "(")
+            endCoord = Right$(endCoord, Len(endCoord) - idx)
+            idx = _InStrRev(endCoord, ")")
+            endCoord = Left$(endCoord, idx - 1)
+            endCoord = ConvertExpression(endCoord)
+            If (_Trim$(endCoord) = "") Then endCoord = "undefined, undefined"
+
+            ConvertCoordParam$ = sstep + ", " + startCoord + ", " + estep + ", " + endCoord
+        Else
+            ConvertCoordParam$ = sstep + ", " + startCoord
+        End If
+
+    End If
 End Function
 
 Function ConvertPSet$ (args As String)
@@ -634,16 +746,6 @@ Function ConvertPrintString$ (args As String)
     ConvertPrintString = ConvertExpression(firstParam) + ", " + ConvertExpression(theRest)
 End Function
 
-'Function ConvertInput$ (m As Method, args As String)
-'    Dim js As String
-'    Dim vname As String
-'    vname = GenJSVar '"___i" + _Trim$(Str$(_Round(Rnd * 10000000)))
-'    js = "var " + vname + " = new Array(1);" + GX_LF
-'    js = js + m.jsname + "(" + vname + ");" + GX_LF
-'    js = js + ConvertExpression(args) + " = " + vname + "[0];"
-'    ConvertInput = js
-'End Function
-
 Function ConvertInput$ (m As Method, args As String)
     Dim js As String
     Dim vname As String
@@ -679,7 +781,7 @@ Function ConvertInput$ (m As Method, args As String)
 
     vname = GenJSVar '"___i" + _Trim$(Str$(_Round(Rnd * 10000000)))
     js = "var " + vname + " = new Array(" + Str$(UBound(vars)) + ");" + GX_LF
-    js = js + m.jsname + "(" + vname + ", " + preventNewline + ", " + addQuestionPrompt + ", " + prompt + ");" + GX_LF
+    js = js + CallMethod(m) + "(" + vname + ", " + preventNewline + ", " + addQuestionPrompt + ", " + prompt + ");" + GX_LF
     For i = 1 To UBound(vars)
         js = js + ConvertExpression(vars(i)) + " = " + vname + "[" + Str$(i - 1) + "];" + GX_LF
     Next i
@@ -698,7 +800,7 @@ Function ConvertSwap$ (m As Method, args As String)
     var1 = ConvertExpression(swapArgs(1))
     var2 = ConvertExpression(swapArgs(2))
     js = "var " + swapArray + " = [" + var1 + "," + var2 + "];" + GX_LF
-    js = js + m.jsname + "(" + swapArray + ");" + GX_LF
+    js = js + CallMethod(m) + "(" + swapArray + ");" + GX_LF
     js = js + var1 + " = " + swapArray + "[0];" + GX_LF
     js = js + var2 + " = " + swapArray + "[1];"
     ConvertSwap = js
@@ -793,9 +895,9 @@ Function DeclareVar$ (parts() As String)
 
             Else
                 If FindVariable(bvar.name, findVar, True) Then
-                    js = js + "QB.resizeArray(" + bvar.name + ", [" + arraySize + "], " + InitTypeValue(bvar.type) + ", " + preserve + ");"
+                    js = js + "QB.resizeArray(" + bvar.name + ", [" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ", " + preserve + ");"
                 Else
-                    js = js + "var " + bvar.name + " = QB.initArray([" + arraySize + "], " + InitTypeValue(bvar.type) + ");"
+                    js = js + "var " + bvar.name + " = QB.initArray([" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ");"
                 End If
             End If
 
@@ -812,6 +914,7 @@ Function DeclareVar$ (parts() As String)
 
 
     Else
+        'Handle traditional syntax
         Dim vpartcount As Integer
         Dim vparts(0) As String
         nextIdx = 0
@@ -826,18 +929,7 @@ Function DeclareVar$ (parts() As String)
         vnamecount = ListSplit(Join(parts(), nextIdx, -1, " "), varnames())
         For i = 1 To vnamecount
 
-            'Handle traditional syntax
-
-            ''If UCase$(parts(2)) = "SHARED" Then
-            ''    isGlobal = True
-            ''    vname = Join(parts(), 3, asIdx - 1, " ")
-            ''    vtype = ""
-            ''    vtypeIndex = 5
-            ''Else
-            ''    vname = Join(parts(), 2, asIdx - 1, " ")
-            ''    vtype = ""
-            ''End If
-            vpartcount = SLSplit(varnames(i), vparts())
+            vpartcount = SLSplit2(varnames(i), vparts())
             bvar.name = RemoveSuffix(vparts(1))
             If vpartcount = 1 Then
                 bvar.type = DataTypeFromName(bvar.name)
@@ -850,12 +942,6 @@ Function DeclareVar$ (parts() As String)
             End If
             bvar.typeId = FindTypeId(bvar.type)
 
-            ''pstart = InStr(vname, "(")
-            ''If pstart > 0 Then
-            ''    isArray = True
-            ''    arraySize = ConvertExpression(Mid$(vname, pstart + 1, Len(vname) - pstart - 2))
-            ''    vname = Left$(vname, pstart - 1)
-            ''End If
 
             pstart = InStr(bvar.name, "(")
             If pstart > 0 Then
@@ -870,53 +956,15 @@ Function DeclareVar$ (parts() As String)
             bvar.jsname = ""
 
 
-            ''If UBound(parts) = vtypeIndex Then
-            ''    vtype = UCase$(parts(vtypeIndex))
-            ''    If vtype = "_UNSIGNED" Then vtype = vtype + " " + UCase$(parts(vtypeIndex))
-            ''Else
-            ''    vtype = DataTypeFromName(vname)
-            ''End If
-
-            ' TODO: need to move this to later in the function so we can check to see whether
-            '       the variable has already been defined, this is particulary important
-            '       for handling REDIM _PRESERVE scenarios
-            ''bvar.name = RemoveSuffix(vname)
-            ''bvar.type = vtype
-            ''bvar.isArray = isArray
-            ''bvar.typeId = FindTypeId(bvar.type)
-            ''bvar.jsname = ""
-            '''var.arraySize = arraySize
-            ''If isGlobal Then
-            ''    AddVariable bvar, globalVars()
-            ''Else
-            ''    AddVariable bvar, localVars()
-            ''End If
-
-
-            'Dim js As String
-            ''If Not bvar.isArray Then
-            ''    js = "var " + bvar.name + " = " + InitTypeValue(bvar.type) + ";"
-
-            ''Else
-            ''    ' TODO: if this is a REDIM, make sure we are not declaring the variable twice
-            ''    '       if this is an array with _PRESERVE specified, then enlarge or shrink the existing array
-            ''    'js = "var " + var.name + " = [];" 'new Array(" + Str$(var.arraySize + 1) + ");"
-            ''    'If arraySize <> "" Then
-            ''    '    js = js + " QB.initArray(" + var.name + ", [" + arraySize + "], " + InitTypeValue(var.type) + ");"
-            ''    'End If
-            ''    js = js + "var " + bvar.name + " = QB.initArray([" + arraySize + "], " + InitTypeValue(bvar.type) + ");"
-            ''End If
-
-            ''js = js + " // " + bvar.type
             ' TODO: this code is in two places - refactor into a separate function
             If Not bvar.isArray Then
                 js = js + "var " + bvar.name + " = " + InitTypeValue(bvar.type) + ";"
 
             Else
                 If FindVariable(bvar.name, findVar, True) Then
-                    js = js + "QB.resizeArray(" + bvar.name + ", [" + arraySize + "], " + InitTypeValue(bvar.type) + ", " + preserve + ");"
+                    js = js + "QB.resizeArray(" + bvar.name + ", [" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ", " + preserve + ");"
                 Else
-                    js = js + "var " + bvar.name + " = QB.initArray([" + arraySize + "], " + InitTypeValue(bvar.type) + ");"
+                    js = js + "var " + bvar.name + " = QB.initArray([" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ");"
                 End If
             End If
 
@@ -933,6 +981,28 @@ Function DeclareVar$ (parts() As String)
     End If
 
     DeclareVar = js
+End Function
+
+Function FormatArraySize$ (sizeString As String)
+    Dim sizeParams As String: sizeParams = ""
+    ReDim parts(0) As String
+    Dim pcount As Integer
+    pcount = ListSplit(sizeString, parts())
+    Dim i As Integer
+    For i = 1 To pcount
+        ReDim subparts(0) As String
+        Dim scount As Integer
+        scount = SLSplit2(parts(i), subparts())
+
+        If i > 1 Then sizeParams = sizeParams + ","
+
+        If scount = 1 Then
+            sizeParams = sizeParams + "{l:1,u:" + subparts(1) + "}"
+        Else
+            sizeParams = sizeParams + "{l:" + subparts(1) + ",u:" + subparts(3) + "}"
+        End If
+    Next i
+    FormatArraySize = sizeParams
 End Function
 
 Function InitTypeValue$ (vtype As String)
@@ -1022,7 +1092,7 @@ Function ConvertExpression$ (ex As String)
                         '       Currently, this does not support recursive calls.
                         If FindMethod(word, m, "FUNCTION") Then
                             If m.name <> currentMethod Then
-                                js = js + " " + m.jsname + "()"
+                                js = js + CallMethod$(m) + "()"
                             Else
                                 js = js + " " + word
                             End If
@@ -1083,7 +1153,7 @@ Function ConvertExpression$ (ex As String)
                         'If bvar.typeId < 1 Then js = js + ".value"
                     End If
                 ElseIf FindMethod(word, m, "FUNCTION") Then
-                    js = js + fneg + m.jsname + "(" + ConvertExpression(ex2) + ")"
+                    js = js + fneg + "(" + CallMethod(m) + "(" + ConvertExpression(ex2) + "))"
                 Else
                     'If _Trim$(word) <> "" Then AddJSLine 0, "//// MISSING FUNCTION? [" + word + "]" '*Print "//// MISSING FUNCTION? [" + word + "]"
                     If _Trim$(word) <> "" Then AddWarning i, "Missing function or array [" + word + "]"
@@ -1099,6 +1169,13 @@ Function ConvertExpression$ (ex As String)
         i = i + 1
     Wend
     ConvertExpression = js
+End Function
+
+Function CallMethod$ (m As Method)
+    Dim js As String
+    If m.sync Then js = "await "
+    js = js + m.jsname
+    CallMethod = js
 End Function
 
 Function FindVariable (varname As String, bvar As Variable, isArray As Integer)
@@ -1161,6 +1238,7 @@ Function FindMethod (mname As String, m As Method, t As String)
             m.uname = methods(i).uname
             m.argc = methods(i).argc
             m.args = methods(i).args
+            m.sync = methods(i).sync
             Exit For
         End If
     Next i
@@ -1182,11 +1260,11 @@ Sub ConvertMethods ()
             ' TODO: figure out how to make needed functions have the async modifier
             '       at the moment just applying it to all subs
             Dim asyncModifier As String
-            If methods(i).type = "SUB" Then
-                asyncModifier = "async "
-            Else
-                asyncModifier = ""
-            End If
+            'If methods(i).type = "SUB" Then
+            asyncModifier = "async "
+            'Else
+            'asyncModifier = ""
+            'End If
             Dim methodDec As String
             methodDec = asyncModifier + "function " + methods(i).jsname + "("
             If methods(i).argc > 0 Then
@@ -1372,7 +1450,7 @@ Sub FindMethods
                 m.args = args
             End If
 
-            AddMethod m, ""
+            AddMethod m, "", True
         End If
     Next i
 End Sub
@@ -1471,6 +1549,79 @@ Function SLSplit (sourceString As String, results() As String)
 
     SLSplit = UBound(results)
 End Function
+
+' String literal-aware split - copy
+Function SLSplit2 (sourceString As String, results() As String)
+    Dim cstr As String
+    Dim As Long p, curpos, arrpos, dpos
+
+    cstr = _Trim$(sourceString)
+
+    ReDim As String results(0)
+
+    Dim lastChar As String
+    Dim quoteMode As Integer
+    Dim result As String
+    Dim paren As Integer
+    Dim count As Integer
+    Dim i As Integer
+    For i = 1 To Len(cstr)
+        Dim c As String
+        c = Mid$(cstr, i, 1)
+
+        If c = Chr$(34) Then
+            quoteMode = Not quoteMode
+            result = result + c
+
+            ' This is not the most intuitive place for this...
+            ' If we find a string then escape any backslashes
+            'If Not quoteMode Then
+            '    result = GXSTR_Replace(result, "\", "\\")
+            'End If
+        ElseIf quoteMode Then
+            result = result + c
+
+        ElseIf c = "(" Then
+            paren = paren + 1
+            result = result + c
+
+        ElseIf c = ")" Then
+            paren = paren - 1
+            result = result + c
+
+        ElseIf paren > 0 Then
+            result = result + c
+
+        ElseIf c = " " Then
+            'If quoteMode Then
+            '    result = result + c
+
+            If lastChar = " " Then
+                ' extra space, move along
+
+            Else
+                count = UBound(results) + 1
+                ReDim _Preserve As String results(count)
+                results(count) = result
+                result = ""
+            End If
+        Else
+            result = result + c
+        End If
+
+        lastChar = c
+    Next i
+
+    ' add the leftover last segment
+    If result <> "" Then
+        count = UBound(results) + 1
+        ReDim _Preserve As String results(count)
+        results(count) = result
+    End If
+
+    SLSplit2 = UBound(results)
+End Function
+
 
 Function ListSplit (sourceString As String, results() As String)
     Dim cstr As String
@@ -1629,7 +1780,7 @@ Sub PrintTypes
 End Sub
 
 
-Sub AddMethod (m As Method, prefix As String)
+Sub AddMethod (m As Method, prefix As String, sync As Integer)
     Dim mcount: mcount = UBound(methods) + 1
     ReDim _Preserve As Method methods(mcount)
     If m.type = "FUNCTION" Then
@@ -1637,16 +1788,18 @@ Sub AddMethod (m As Method, prefix As String)
     End If
     m.uname = UCase$(RemoveSuffix(m.name))
     m.jsname = MethodJS(m, prefix)
+    m.sync = sync
     methods(mcount) = m
 End Sub
 
-Sub AddGXMethod (mtype As String, mname As String)
+Sub AddGXMethod (mtype As String, mname As String, sync As Integer)
     Dim mcount: mcount = UBound(methods) + 1
     ReDim _Preserve As Method methods(mcount)
     Dim m As Method
     m.type = mtype
     m.name = mname
     m.uname = UCase$(m.name)
+    m.sync = sync
     m.jsname = GXMethodJS(RemoveSuffix(mname))
     If mtype = "FUNCTION" Then
         m.returnType = DataTypeFromName(mname)
@@ -1654,11 +1807,11 @@ Sub AddGXMethod (mtype As String, mname As String)
     methods(mcount) = m
 End Sub
 
-Sub AddQBMethod (mtype As String, mname As String)
+Sub AddQBMethod (mtype As String, mname As String, sync As Integer)
     Dim m As Method
     m.type = mtype
     m.name = mname
-    AddMethod m, "QB."
+    AddMethod m, "QB.", sync
 End Sub
 
 
@@ -1773,8 +1926,17 @@ End Sub
 Sub AddVariable (bvar As Variable, vlist() As Variable)
     Dim vcount: vcount = UBound(vlist) + 1
     ReDim _Preserve As Variable vlist(vcount)
-    If bvar.jsname = "" Then bvar.jsname = RemoveSuffix(bvar.name)
-    vlist(vcount) = bvar
+    Dim nvar As Variable
+    nvar.type = bvar.type
+    nvar.name = bvar.name
+    nvar.jsname = bvar.jsname
+    nvar.isConst = bvar.isConst
+    nvar.isArray = bvar.isArray
+    nvar.arraySize = bvar.arraySize
+    nvar.typeId = bvar.typeId
+
+    If nvar.jsname = "" Then nvar.jsname = RemoveSuffix(nvar.name)
+    vlist(vcount) = nvar
 End Sub
 
 Sub AddType (t As QBType)
@@ -1929,9 +2091,9 @@ Function MethodJS$ (m As Method, prefix As String)
         End If
     Next i
 
-    If m.name = "_Limit" Or m.name = "_Delay" Or m.name = "Sleep" Or m.name = "Input" Or m.name = "Print" Or m.name = "Fetch" Then
-        jsname = "await " + jsname
-    End If
+    'If m.name = "_Limit" Or m.name = "_Delay" Or m.name = "Sleep" Or m.name = "Input" Or m.name = "Print" Or m.name = "Fetch" Then
+    'jsname = "await " + jsname
+    'End If
 
     MethodJS = jsname
 End Function
@@ -2119,160 +2281,160 @@ Sub InitGX
     AddGXConst "GXTYPE_ENTITY"
     AddGXConst "GXTYPE_FONT"
 
-    AddGXMethod "SUB", "GXSleep"
-    AddGXMethod "FUNCTION", "GXMouseX"
-    AddGXMethod "FUNCTION", "GXMouseY"
-    AddGXMethod "FUNCTION", "GXSoundLoad"
-    AddGXMethod "SUB", "GXSoundPlay"
-    AddGXMethod "SUB", "GXSoundRepeat"
-    AddGXMethod "SUB", "GXSoundVolume"
-    AddGXMethod "SUB", "GXSoundPause"
-    AddGXMethod "SUB", "GXSoundStop"
-    AddGXMethod "SUB", "GXSoundMuted"
-    AddGXMethod "FUNCTION", "GXSoundMuted"
-    AddGXMethod "SUB", "GXEntityAnimate"
-    AddGXMethod "SUB", "GXEntityAnimateStop"
-    AddGXMethod "SUB", "GXEntityAnimateMode"
-    AddGXMethod "FUNCTION", "GXEntityAnimateMode"
-    AddGXMethod "FUNCTION", "GXScreenEntityCreate"
-    AddGXMethod "FUNCTION", "GXEntityCreate"
-    AddGXMethod "SUB", "GXEntityCreate"
-    AddGXMethod "SUB", "GXEntityVisible"
-    AddGXMethod "SUB", "GXEntityMove"
-    AddGXMethod "SUB", "GXEntityPos"
-    AddGXMethod "SUB", "GXEntityVX"
-    AddGXMethod "FUNCTION", "GXEntityVX"
-    AddGXMethod "SUB", "GXEntityVY"
-    AddGXMethod "FUNCTION", "GXEntityVY"
-    AddGXMethod "FUNCTION", "GXEntityX"
-    AddGXMethod "FUNCTION", "GXEntityY"
-    AddGXMethod "FUNCTION", "GXEntityWidth"
-    AddGXMethod "FUNCTION", "GXEntityHeight"
-    AddGXMethod "SUB", "GXEntityFrameNext"
-    AddGXMethod "SUB", "GXEntityFrameSet"
-    AddGXMethod "SUB", "GXEntityType"
-    AddGXMethod "FUNCTION", "GXEntityType"
-    AddGXMethod "FUNCTION", "GXEntityUID$"
-    AddGXMethod "FUNCTION", "GXFontUID$"
-    AddGXMethod "FUNCTION", "GX"
-    AddGXMethod "SUB", "GXEntityApplyGravity"
-    AddGXMethod "FUNCTION", "GXEntityApplyGravity"
-    AddGXMethod "SUB", "GXEntityCollisionOffset"
-    AddGXMethod "FUNCTION", "GXEntityCollisionOffsetLeft"
-    AddGXMethod "FUNCTION", "GXEntityCollisionOffsetTop"
-    AddGXMethod "FUNCTION", "GXEntityCollisionOffsetRight"
-    AddGXMethod "FUNCTION", "GXEntityCollisionOffsetBottom"
-    AddGXMethod "SUB", "GXFullScreen"
-    AddGXMethod "FUNCTION", "GXFullScreen"
-    AddGXMethod "FUNCTION", "GXBackgroundAdd"
-    AddGXMethod "SUB", "GXBackgroundY"
-    AddGXMethod "SUB", "GXBackgroundHeight"
-    AddGXMethod "SUB", "GXBackgroundClear"
-    AddGXMethod "SUB", "GXSceneEmbedded"
-    AddGXMethod "FUNCTION", "GXSceneEmbedded"
-    AddGXMethod "SUB", "GXSceneCreate"
-    AddGXMethod "SUB", "GXSceneWindowSize"
-    AddGXMethod "SUB", "GXSceneScale"
-    AddGXMethod "SUB", "GXSceneResize"
-    AddGXMethod "SUB", "GXSceneDestroy"
-    AddGXMethod "SUB", "GXCustomDraw"
-    AddGXMethod "FUNCTION", "GXCustomDraw"
-    AddGXMethod "SUB", "GXFrameRate"
-    AddGXMethod "FUNCTION", "GXFrameRate"
-    AddGXMethod "FUNCTION", "GXFrame"
-    AddGXMethod "SUB", "GXSceneDraw"
-    AddGXMethod "SUB", "GXSceneMove"
-    AddGXMethod "SUB", "GXScenePos"
-    AddGXMethod "FUNCTION", "GXSceneX"
-    AddGXMethod "FUNCTION", "GXSceneY"
-    AddGXMethod "FUNCTION", "GXSceneWidth"
-    AddGXMethod "FUNCTION", "GXSceneHeight"
-    AddGXMethod "FUNCTION", "GXSceneColumns"
-    AddGXMethod "FUNCTION", "GXSceneRows"
-    AddGXMethod "SUB", "GXSceneStart"
-    AddGXMethod "SUB", "GXSceneUpdate"
-    AddGXMethod "SUB", "GXSceneFollowEntity"
-    AddGXMethod "SUB", "GXSceneConstrain"
-    AddGXMethod "SUB", "GXSceneStop"
-    AddGXMethod "SUB", "GXMapCreate"
-    AddGXMethod "FUNCTION", "GXMapColumns"
-    AddGXMethod "FUNCTION", "GXMapRows"
-    AddGXMethod "FUNCTION", "GXMapLayers"
-    AddGXMethod "SUB", "GXMapLayerVisible"
-    AddGXMethod "FUNCTION", "GXMapLayerVisible"
-    AddGXMethod "SUB", "GXMapLayerAdd"
-    AddGXMethod "SUB", "GXMapLayerInsert"
-    AddGXMethod "SUB", "GXMapLayerRemove"
-    AddGXMethod "SUB", "GXMapResize"
-    AddGXMethod "SUB", "GXMapDraw"
-    AddGXMethod "SUB", "GXMapTilePosAt"
-    AddGXMethod "SUB", "GXMapTile"
-    AddGXMethod "FUNCTION", "GXMapTile"
-    AddGXMethod "FUNCTION", "GXMapTileDepth"
-    AddGXMethod "SUB", "GXMapTileAdd"
-    AddGXMethod "SUB", "GXMapTileRemove"
-    AddGXMethod "FUNCTION", "GXMapVersion"
-    AddGXMethod "SUB", "GXMapSave"
-    AddGXMethod "SUB", "GXMapLoad"
-    AddGXMethod "FUNCTION", "GXMapIsometric"
-    AddGXMethod "SUB", "GXMapIsometric"
-    AddGXMethod "SUB", "GXSpriteDraw"
-    AddGXMethod "SUB", "GXSpriteDrawScaled"
-    AddGXMethod "SUB", "GXTilesetCreate"
-    AddGXMethod "SUB", "GXTilesetReplaceImage"
-    AddGXMethod "SUB", "GXTilesetLoad"
-    AddGXMethod "SUB", "GXTilesetSave"
-    AddGXMethod "SUB", "GXTilesetPos"
-    AddGXMethod "FUNCTION", "GXTilesetWidth"
-    AddGXMethod "FUNCTION", "GXTilesetHeight"
-    AddGXMethod "FUNCTION", "GXTilesetColumns"
-    AddGXMethod "FUNCTION", "GXTilesetRows"
-    AddGXMethod "FUNCTION", "GXTilesetFilename"
-    AddGXMethod "FUNCTION", "GXTilesetImage"
-    AddGXMethod "SUB", "GXTilesetAnimationCreate"
-    AddGXMethod "SUB", "GXTilesetAnimationAdd"
-    AddGXMethod "SUB", "GXTilesetAnimationRemove"
-    AddGXMethod "FUNCTION", "GXTilesetAnimationFrames"
-    AddGXMethod "FUNCTION", "GXTilesetAnimationSpeed"
-    AddGXMethod "SUB", "GXTilesetAnimationSpeed"
-    AddGXMethod "FUNCTION", "GXFontCreate"
-    AddGXMethod "SUB", "GXFontCreate"
-    AddGXMethod "FUNCTION", "GXFontWidth"
-    AddGXMethod "FUNCTION", "GXFontHeight"
-    AddGXMethod "FUNCTION", "GXFontCharSpacing"
-    AddGXMethod "SUB", "GXFontCharSpacing"
-    AddGXMethod "FUNCTION", "GXFontLineSpacing"
-    AddGXMethod "SUB", "GXFontLineSpacing"
-    AddGXMethod "SUB", "GXDrawText"
-    AddGXMethod "FUNCTION", "GXDebug"
-    AddGXMethod "SUB", "GXDebug"
-    AddGXMethod "FUNCTION", "GXDebugScreenEntities"
-    AddGXMethod "SUB", "GXDebugScreenEntities"
-    AddGXMethod "FUNCTION", "GXDebugFont"
-    AddGXMethod "SUB", "GXDebugFont"
-    AddGXMethod "FUNCTION", "GXDebugTileBorderColor"
-    AddGXMethod "SUB", "GXDebugTileBorderColor"
-    AddGXMethod "FUNCTION", "GXDebugEntityBorderColor"
-    AddGXMethod "SUB", "GXDebugEntityBorderColor"
-    AddGXMethod "FUNCTION", "GXDebugEntityCollisionColor"
-    AddGXMethod "SUB", "GXDebugEntityCollisionColor"
-    AddGXMethod "SUB", "GXKeyInput"
-    AddGXMethod "FUNCTION", "GXKeyDown"
-    AddGXMethod "SUB", "GXDeviceInputDetect"
-    AddGXMethod "FUNCTION", "GXDeviceInputTest"
-    AddGXMethod "FUNCTION", "GXDeviceName"
-    AddGXMethod "FUNCTION", "GXDeviceTypeName"
-    AddGXMethod "FUNCTION", "GXInputTypeName"
-    AddGXMethod "FUNCTION", "GXKeyButtonName"
+    AddGXMethod "SUB", "GXSleep", True
+    AddGXMethod "FUNCTION", "GXMouseX", False
+    AddGXMethod "FUNCTION", "GXMouseY", False
+    AddGXMethod "FUNCTION", "GXSoundLoad", False
+    AddGXMethod "SUB", "GXSoundPlay", False
+    AddGXMethod "SUB", "GXSoundRepeat", False
+    AddGXMethod "SUB", "GXSoundVolume", False
+    AddGXMethod "SUB", "GXSoundPause", False
+    AddGXMethod "SUB", "GXSoundStop", False
+    AddGXMethod "SUB", "GXSoundMuted", False
+    AddGXMethod "FUNCTION", "GXSoundMuted", False
+    AddGXMethod "SUB", "GXEntityAnimate", False
+    AddGXMethod "SUB", "GXEntityAnimateStop", False
+    AddGXMethod "SUB", "GXEntityAnimateMode", False
+    AddGXMethod "FUNCTION", "GXEntityAnimateMode", False
+    AddGXMethod "FUNCTION", "GXScreenEntityCreate", False
+    AddGXMethod "FUNCTION", "GXEntityCreate", False
+    AddGXMethod "SUB", "GXEntityCreate", False
+    AddGXMethod "SUB", "GXEntityVisible", False
+    AddGXMethod "SUB", "GXEntityMove", False
+    AddGXMethod "SUB", "GXEntityPos", False
+    AddGXMethod "SUB", "GXEntityVX", False
+    AddGXMethod "FUNCTION", "GXEntityVX", False
+    AddGXMethod "SUB", "GXEntityVY", False
+    AddGXMethod "FUNCTION", "GXEntityVY", False
+    AddGXMethod "FUNCTION", "GXEntityX", False
+    AddGXMethod "FUNCTION", "GXEntityY", False
+    AddGXMethod "FUNCTION", "GXEntityWidth", False
+    AddGXMethod "FUNCTION", "GXEntityHeight", False
+    AddGXMethod "SUB", "GXEntityFrameNext", False
+    AddGXMethod "SUB", "GXEntityFrameSet", False
+    AddGXMethod "SUB", "GXEntityType", False
+    AddGXMethod "FUNCTION", "GXEntityType", False
+    AddGXMethod "FUNCTION", "GXEntityUID$", False
+    AddGXMethod "FUNCTION", "GXFontUID$", False
+    'AddGXMethod "FUNCTION", "GX", False
+    AddGXMethod "SUB", "GXEntityApplyGravity", False
+    AddGXMethod "FUNCTION", "GXEntityApplyGravity", False
+    AddGXMethod "SUB", "GXEntityCollisionOffset", False
+    AddGXMethod "FUNCTION", "GXEntityCollisionOffsetLeft", False
+    AddGXMethod "FUNCTION", "GXEntityCollisionOffsetTop", False
+    AddGXMethod "FUNCTION", "GXEntityCollisionOffsetRight", False
+    AddGXMethod "FUNCTION", "GXEntityCollisionOffsetBottom", False
+    AddGXMethod "SUB", "GXFullScreen", False
+    AddGXMethod "FUNCTION", "GXFullScreen", False
+    AddGXMethod "FUNCTION", "GXBackgroundAdd", False
+    AddGXMethod "SUB", "GXBackgroundY", False
+    AddGXMethod "SUB", "GXBackgroundHeight", False
+    AddGXMethod "SUB", "GXBackgroundClear", False
+    AddGXMethod "SUB", "GXSceneEmbedded", False
+    AddGXMethod "FUNCTION", "GXSceneEmbedded", False
+    AddGXMethod "SUB", "GXSceneCreate", False
+    AddGXMethod "SUB", "GXSceneWindowSize", False
+    AddGXMethod "SUB", "GXSceneScale", False
+    AddGXMethod "SUB", "GXSceneResize", False
+    AddGXMethod "SUB", "GXSceneDestroy", False
+    AddGXMethod "SUB", "GXCustomDraw", False
+    AddGXMethod "FUNCTION", "GXCustomDraw", False
+    AddGXMethod "SUB", "GXFrameRate", False
+    AddGXMethod "FUNCTION", "GXFrameRate", False
+    AddGXMethod "FUNCTION", "GXFrame", False
+    AddGXMethod "SUB", "GXSceneDraw", False
+    AddGXMethod "SUB", "GXSceneMove", False
+    AddGXMethod "SUB", "GXScenePos", False
+    AddGXMethod "FUNCTION", "GXSceneX", False
+    AddGXMethod "FUNCTION", "GXSceneY", False
+    AddGXMethod "FUNCTION", "GXSceneWidth", False
+    AddGXMethod "FUNCTION", "GXSceneHeight", False
+    AddGXMethod "FUNCTION", "GXSceneColumns", False
+    AddGXMethod "FUNCTION", "GXSceneRows", False
+    AddGXMethod "SUB", "GXSceneStart", True
+    AddGXMethod "SUB", "GXSceneUpdate", False
+    AddGXMethod "SUB", "GXSceneFollowEntity", False
+    AddGXMethod "SUB", "GXSceneConstrain", False
+    AddGXMethod "SUB", "GXSceneStop", False
+    AddGXMethod "SUB", "GXMapCreate", False
+    AddGXMethod "FUNCTION", "GXMapColumns", False
+    AddGXMethod "FUNCTION", "GXMapRows", False
+    AddGXMethod "FUNCTION", "GXMapLayers", False
+    AddGXMethod "SUB", "GXMapLayerVisible", False
+    AddGXMethod "FUNCTION", "GXMapLayerVisible", False
+    AddGXMethod "SUB", "GXMapLayerAdd", False
+    AddGXMethod "SUB", "GXMapLayerInsert", False
+    AddGXMethod "SUB", "GXMapLayerRemove", False
+    AddGXMethod "SUB", "GXMapResize", False
+    AddGXMethod "SUB", "GXMapDraw", False
+    AddGXMethod "SUB", "GXMapTilePosAt", False
+    AddGXMethod "SUB", "GXMapTile", False
+    AddGXMethod "FUNCTION", "GXMapTile", False
+    AddGXMethod "FUNCTION", "GXMapTileDepth", False
+    AddGXMethod "SUB", "GXMapTileAdd", False
+    AddGXMethod "SUB", "GXMapTileRemove", False
+    AddGXMethod "FUNCTION", "GXMapVersion", False
+    AddGXMethod "SUB", "GXMapSave", False
+    AddGXMethod "SUB", "GXMapLoad", True
+    AddGXMethod "FUNCTION", "GXMapIsometric", False
+    AddGXMethod "SUB", "GXMapIsometric", False
+    AddGXMethod "SUB", "GXSpriteDraw", False
+    AddGXMethod "SUB", "GXSpriteDrawScaled", False
+    AddGXMethod "SUB", "GXTilesetCreate", False
+    AddGXMethod "SUB", "GXTilesetReplaceImage", False
+    AddGXMethod "SUB", "GXTilesetLoad", False
+    AddGXMethod "SUB", "GXTilesetSave", False
+    AddGXMethod "SUB", "GXTilesetPos", False
+    AddGXMethod "FUNCTION", "GXTilesetWidth", False
+    AddGXMethod "FUNCTION", "GXTilesetHeight", False
+    AddGXMethod "FUNCTION", "GXTilesetColumns", False
+    AddGXMethod "FUNCTION", "GXTilesetRows", False
+    AddGXMethod "FUNCTION", "GXTilesetFilename", False
+    AddGXMethod "FUNCTION", "GXTilesetImage", False
+    AddGXMethod "SUB", "GXTilesetAnimationCreate", False
+    AddGXMethod "SUB", "GXTilesetAnimationAdd", False
+    AddGXMethod "SUB", "GXTilesetAnimationRemove", False
+    AddGXMethod "FUNCTION", "GXTilesetAnimationFrames", False
+    AddGXMethod "FUNCTION", "GXTilesetAnimationSpeed", False
+    AddGXMethod "SUB", "GXTilesetAnimationSpeed", False
+    AddGXMethod "FUNCTION", "GXFontCreate", False
+    AddGXMethod "SUB", "GXFontCreate", False
+    AddGXMethod "FUNCTION", "GXFontWidth", False
+    AddGXMethod "FUNCTION", "GXFontHeight", False
+    AddGXMethod "FUNCTION", "GXFontCharSpacing", False
+    AddGXMethod "SUB", "GXFontCharSpacing", False
+    AddGXMethod "FUNCTION", "GXFontLineSpacing", False
+    AddGXMethod "SUB", "GXFontLineSpacing", False
+    AddGXMethod "SUB", "GXDrawText", False
+    AddGXMethod "FUNCTION", "GXDebug", False
+    AddGXMethod "SUB", "GXDebug", False
+    AddGXMethod "FUNCTION", "GXDebugScreenEntities", False
+    AddGXMethod "SUB", "GXDebugScreenEntities", False
+    AddGXMethod "FUNCTION", "GXDebugFont", False
+    AddGXMethod "SUB", "GXDebugFont", False
+    AddGXMethod "FUNCTION", "GXDebugTileBorderColor", False
+    AddGXMethod "SUB", "GXDebugTileBorderColor", False
+    AddGXMethod "FUNCTION", "GXDebugEntityBorderColor", False
+    AddGXMethod "SUB", "GXDebugEntityBorderColor", False
+    AddGXMethod "FUNCTION", "GXDebugEntityCollisionColor", False
+    AddGXMethod "SUB", "GXDebugEntityCollisionColor", False
+    AddGXMethod "SUB", "GXKeyInput", False
+    AddGXMethod "FUNCTION", "GXKeyDown", False
+    AddGXMethod "SUB", "GXDeviceInputDetect", False
+    AddGXMethod "FUNCTION", "GXDeviceInputTest", False
+    AddGXMethod "FUNCTION", "GXDeviceName", False
+    AddGXMethod "FUNCTION", "GXDeviceTypeName", False
+    AddGXMethod "FUNCTION", "GXInputTypeName", False
+    AddGXMethod "FUNCTION", "GXKeyButtonName", False
 
     ' Supporting Libraries
     AddGXConst "GX_CR"
     AddGXConst "GX_LF"
     AddGXConst "GX_CRLF"
 
-    AddGXMethod "FUNCTION", "GXSTR_LPad"
-    AddGXMethod "FUNCTION", "GXSTR_RPad"
-    AddGXMethod "FUNCTION", "GXSTR_Replace"
+    AddGXMethod "FUNCTION", "GXSTR_LPad", False
+    AddGXMethod "FUNCTION", "GXSTR_RPad", False
+    AddGXMethod "FUNCTION", "GXSTR_Replace", False
     '    AddGXMethod "FUNCTION", "GXSTR_Split"
 
 End Sub
@@ -2280,86 +2442,98 @@ End Sub
 Sub InitQBMethods
     ' QB64 Methods
     ' ----------------------------------------------------------
-    AddQBMethod "FUNCTION", "_Alpha32"
-    AddQBMethod "FUNCTION", "_Atan2"
-    AddQBMethod "FUNCTION", "_Blue"
-    AddQBMethod "FUNCTION", "_Blue32"
-    AddQBMethod "SUB", "_Delay"
-    AddQBMethod "FUNCTION", "_FontWidth"
-    AddQBMethod "FUNCTION", "_Green"
-    AddQBMethod "FUNCTION", "_Green32"
-    AddQBMethod "FUNCTION", "_Height"
-    AddQBMethod "FUNCTION", "_InStrRev"
-    AddQBMethod "SUB", "_Limit"
-    AddQBMethod "FUNCTION", "_KeyDown"
-    AddQBMethod "FUNCTION", "_KeyHit"
-    AddQBMethod "FUNCTION", "_MouseButton"
-    AddQBMethod "FUNCTION", "_MouseInput"
-    AddQBMethod "FUNCTION", "_MouseX"
-    AddQBMethod "FUNCTION", "_MouseY"
-    AddQBMethod "FUNCTION", "_NewImage"
-    AddQBMethod "FUNCTION", "_Pi"
-    AddQBMethod "SUB", "_PrintString"
-    AddQBMethod "FUNCTION", "_PrintWidth"
-    AddQBMethod "FUNCTION", "_Red"
-    AddQBMethod "FUNCTION", "_Red32"
-    AddQBMethod "FUNCTION", "_RGB"
-    AddQBMethod "FUNCTION", "_RGB32"
-    AddQBMethod "FUNCTION", "_Round"
-    AddQBMethod "FUNCTION", "_ScreenExists"
-    AddQBMethod "SUB", "_Title"
-    AddQBMethod "FUNCTION", "_Trim"
-    AddQBMethod "FUNCTION", "_Width"
+    AddQBMethod "FUNCTION", "_Alpha", False
+    AddQBMethod "FUNCTION", "_Alpha32", False
+    AddQBMethod "FUNCTION", "_Atan2", False
+    AddQBMethod "FUNCTION", "_Blue", False
+    AddQBMethod "FUNCTION", "_Blue32", False
+    AddQBMethod "FUNCTION", "_CopyImage", False
+    AddQBMethod "SUB", "_Delay", True
+    AddQBMethod "FUNCTION", "_Dest", True
+    AddQBMethod "SUB", "_Dest", True
+    AddQBMethod "SUB", "_Display", False
+    AddQBMethod "FUNCTION", "_FontWidth", False
+    AddQBMethod "FUNCTION", "_FreeImage", False
+    AddQBMethod "FUNCTION", "_Green", False
+    AddQBMethod "FUNCTION", "_Green32", False
+    AddQBMethod "FUNCTION", "_Height", False
+    AddQBMethod "FUNCTION", "_InStrRev", False
+    AddQBMethod "SUB", "_Limit", True
+    AddQBMethod "SUB", "_KeyClear", False
+    AddQBMethod "FUNCTION", "_KeyDown", False
+    AddQBMethod "FUNCTION", "_KeyHit", False
+    AddQBMethod "FUNCTION", "_LoadImage", True
+    AddQBMethod "FUNCTION", "_MouseButton", False
+    AddQBMethod "FUNCTION", "_MouseInput", False
+    AddQBMethod "FUNCTION", "_MouseX", False
+    AddQBMethod "FUNCTION", "_MouseY", False
+    AddQBMethod "FUNCTION", "_NewImage", False
+    AddQBMethod "FUNCTION", "_Pi", False
+    AddQBMethod "SUB", "_PrintString", False
+    AddQBMethod "FUNCTION", "_PrintWidth", False
+    AddQBMethod "SUB", "_PutImage", False
+    AddQBMethod "FUNCTION", "_Red", False
+    AddQBMethod "FUNCTION", "_Red32", False
+    AddQBMethod "FUNCTION", "_RGB", False
+    AddQBMethod "FUNCTION", "_RGBA", False
+    AddQBMethod "FUNCTION", "_RGB32", False
+    AddQBMethod "FUNCTION", "_RGBA32", False
+    AddQBMethod "FUNCTION", "_Round", False
+    AddQBMethod "FUNCTION", "_ScreenExists", False
+    AddQBMethod "SUB", "_Title", False
+    AddQBMethod "FUNCTION", "_Trim", False
+    AddQBMethod "FUNCTION", "_Width", False
 
     ' QB 4.5 Methods
     ' ---------------------------------------------------------------------------
-    AddQBMethod "FUNCTION", "Abs"
-    AddQBMethod "FUNCTION", "Asc"
-    AddQBMethod "FUNCTION", "Atn"
-    AddQBMethod "FUNCTION", "Chr$"
-    AddQBMethod "SUB", "Circle"
-    AddQBMethod "SUB", "Cls"
-    AddQBMethod "SUB", "Color"
-    AddQBMethod "FUNCTION", "Command$"
-    AddQBMethod "FUNCTION", "Cos"
-    AddQBMethod "FUNCTION", "Exp"
-    AddQBMethod "FUNCTION", "Fix"
-    AddQBMethod "SUB", "Input"
-    AddQBMethod "FUNCTION", "InKey$"
-    AddQBMethod "FUNCTION", "InStr"
-    AddQBMethod "FUNCTION", "Int"
-    AddQBMethod "FUNCTION", "Left$"
-    AddQBMethod "FUNCTION", "LCase$"
-    AddQBMethod "FUNCTION", "Len"
-    AddQBMethod "SUB", "Line"
-    AddQBMethod "SUB", "Locate"
-    AddQBMethod "FUNCTION", "Log"
-    AddQBMethod "FUNCTION", "LTrim$"
-    AddQBMethod "FUNCTION", "Mid$"
-    AddQBMethod "SUB", "Print"
-    AddQBMethod "SUB", "PSet"
-    AddQBMethod "FUNCTION", "Right$"
-    AddQBMethod "FUNCTION", "RTrim$"
-    AddQBMethod "FUNCTION", "Rnd"
-    AddQBMethod "SUB", "Screen"
-    AddQBMethod "FUNCTION", "Sgn"
-    AddQBMethod "FUNCTION", "Sin"
-    AddQBMethod "SUB", "Sleep"
-    AddQBMethod "FUNCTION", "Sqr"
-    AddQBMethod "FUNCTION", "Str$"
-    AddQBMethod "SUB", "Swap"
-    AddQBMethod "FUNCTION", "Tan"
-    AddQBMethod "FUNCTION", "Timer"
-    AddQBMethod "FUNCTION", "UBound"
-    AddQBMethod "FUNCTION", "UCase$"
-    AddQBMethod "FUNCTION", "Val"
+    AddQBMethod "FUNCTION", "Abs", False
+    AddQBMethod "FUNCTION", "Asc", False
+    AddQBMethod "FUNCTION", "Atn", False
+    AddQBMethod "FUNCTION", "Chr$", False
+    AddQBMethod "SUB", "Circle", False
+    AddQBMethod "SUB", "Cls", False
+    AddQBMethod "SUB", "Color", False
+    AddQBMethod "FUNCTION", "Command$", False
+    AddQBMethod "FUNCTION", "Cos", False
+    AddQBMethod "FUNCTION", "Exp", False
+    AddQBMethod "FUNCTION", "Fix", False
+    AddQBMethod "SUB", "Input", True
+    AddQBMethod "FUNCTION", "InKey$", False
+    AddQBMethod "FUNCTION", "InStr", False
+    AddQBMethod "FUNCTION", "Int", False
+    AddQBMethod "FUNCTION", "LBound", False
+    AddQBMethod "FUNCTION", "Left$", False
+    AddQBMethod "FUNCTION", "LCase$", False
+    AddQBMethod "FUNCTION", "Len", False
+    AddQBMethod "SUB", "Line", False
+    AddQBMethod "SUB", "Locate", False
+    AddQBMethod "FUNCTION", "Log", False
+    AddQBMethod "FUNCTION", "LTrim$", False
+    AddQBMethod "FUNCTION", "Mid$", False
+    AddQBMethod "SUB", "Print", True
+    AddQBMethod "SUB", "PSet", False
+    AddQBMethod "FUNCTION", "Right$", False
+    AddQBMethod "FUNCTION", "RTrim$", False
+    AddQBMethod "FUNCTION", "Rnd", False
+    AddQBMethod "SUB", "Screen", False
+    AddQBMethod "FUNCTION", "Sgn", False
+    AddQBMethod "FUNCTION", "Sin", False
+    AddQBMethod "SUB", "Sleep", True
+    AddQBMethod "FUNCTION", "Sqr", False
+    AddQBMethod "FUNCTION", "Str$", False
+    AddQBMethod "SUB", "Swap", False
+    AddQBMethod "FUNCTION", "Tan", False
+    AddQBMethod "FUNCTION", "Timer", False
+    AddQBMethod "FUNCTION", "UBound", False
+    AddQBMethod "FUNCTION", "UCase$", False
+    AddQBMethod "FUNCTION", "Val", False
 
     ' QBJS-only language features
     ' --------------------------------------------------------------------------------
     AddSystemType "FETCHRESPONSE", "ok:INTEGER,status:INTEGER,statusText:STRING,text:STRING"
-    AddQBMethod "FUNCTION", "Fetch"
-    AddQBMethod "FUNCTION", "FromJSON"
-    AddQBMethod "FUNCTION", "ToJSON"
+    AddQBMethod "FUNCTION", "Fetch", True
+    AddQBMethod "FUNCTION", "FromJSON", False
+    AddQBMethod "FUNCTION", "ToJSON", False
 End Sub
 
 '$include: '../../gx/gx/gx_str.bm'
