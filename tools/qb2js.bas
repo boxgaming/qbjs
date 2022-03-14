@@ -58,24 +58,6 @@ Dim Shared As String currentMethod
 Dim Shared As Integer programMethods
 
 
-'Print ConvertCoordParam("(10, 20)-(15, 18)", True)
-'Print ConvertCoordParam("(10, 20)", True)
-'Print ConvertCoordParam("-(15, 18)", True)
-'Print ConvertCoordParam("STEP(10, 20)-(15, 18)", True)
-'Print ConvertCoordParam("(10, 20)-STEP(15, 18)", True)
-'Print ConvertCoordParam("STEP(10, 20)-STEP(15, 18)", True)
-'Print ConvertCoordParam("STEP(10, 20)", True)
-'Print ConvertCoordParam("STEP(15, 18)", True)
-'Print ConvertCoordParam("(10, 20)", False)
-'Print ConvertCoordParam("STEP(10, 20)", False)
-
-'Print ConvertPutImage(", myImage")
-'Print ConvertPutImage(", myImage, 0")
-'Print ConvertPutImage("(100,200), myImage")
-'Print ConvertPutImage("(100,200), myImage, , (200, 300)")
-'Print ConvertPutImage(", myImage, 0, _SMOOTH")
-'End
-
 ' Only execute the conversion from the native version if we have been passed the
 ' source file to convert on the command line
 If Command$ <> "" Then
@@ -198,7 +180,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
         l = _Trim$(lines(i).text)
         ReDim As String parts(0)
         Dim c As Integer
-        c = SLSplit(l, parts())
+        c = SLSplit(l, parts(), True)
 
         Dim js As String
         js = ""
@@ -237,7 +219,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
 
             ElseIf first = "SELECT" Then
-                caseVar = GenJSVar '"___c" + _Trim$(Str$(_Round(Rnd * 10000000)))
+                caseVar = GenJSVar
                 js = "var " + caseVar + " = " + ConvertExpression(Join(parts(), 3, -1, " ")) + ";" + GX_CRLF
                 js = js + "switch (" + caseVar + ") {"
                 indent = 1
@@ -250,7 +232,6 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 ElseIf UCase$(parts(2)) = "IS" Then
                     js = js + "case " + caseVar + " " + ConvertExpression(Join(parts(), 3, -1, " ")) + ":"
                 Else
-                    'js = js + "case " + ConvertExpression(parts(2)) + ":"
                     ReDim As String caseParts(0)
                     Dim cscount As Integer
                     cscount = ListSplit(Join(parts(), 2, -1, " "), caseParts())
@@ -289,7 +270,6 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 Dim uval As String
                 uval = ConvertExpression(Join(parts(), toIdx + 1, stepIdx - 1, " "))
 
-                'If Val(fstep) < 0 Then fcond = " >= "
                 If Left$(_Trim$(fstep), 1) = "-" Then fcond = " >= "
 
                 js = "for (" + fvar + "=" + sval + "; " + fvar + fcond + uval + "; " + fvar + "=" + fvar + " + " + fstep + ") {"
@@ -323,9 +303,6 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
             ElseIf first = "END" Then
                 If UBound(parts) = 1 Then
                     js = "QB.halt(); return;"
-
-                    'js = "// END"
-                    'AddWarning i, "End is not currently supported in this context, ignoring."
                 Else
                     If UCase$(parts(2)) = "SELECT" Then js = "break;"
                     js = js + "}"
@@ -425,7 +402,6 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     subargs = Mid$(subline, Len(subname) + 2, Len(subline) - Len(subname) - 2)
                     js = ConvertSub(m, subargs)
                 Else
-                    'js = "// " + l
                     AddWarning i, "Missing Sub [" + subname + "], ignoring Call command"
                 End If
 
@@ -464,7 +440,6 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
             End If
 
             If (indent < 0) Then totalIndent = totalIndent + indent
-            '*Print GXSTR_LPad("", " ", (totalIndent + tempIndent) * 3) + js
             AddJSLine i, GXSTR_LPad("", " ", (totalIndent + tempIndent) * 3) + js
             If (indent > 0) Then totalIndent = totalIndent + indent
 
@@ -483,7 +458,7 @@ Function ConvertSub$ (m As Method, args As String)
     If m.name = "Line" Then
         Dim parts(0) As String
         Dim plen As Integer
-        plen = SLSplit(args, parts())
+        plen = SLSplit(args, parts(), False)
         If plen > 0 Then
             If UCase$(parts(1)) = "INPUT" Then
                 m.name = "Line Input"
@@ -573,8 +548,13 @@ Function ConvertLine$ (args As String)
     endCord = ConvertExpression(endCord)
 
     theRest = ConvertExpression(theRest)
+    ' TODO: fix this nonsense
     theRest = GXSTR_Replace(theRest, " BF", " " + Chr$(34) + "BF" + Chr$(34))
+    theRest = GXSTR_Replace(theRest, " bf", " " + Chr$(34) + "BF" + Chr$(34))
+    theRest = GXSTR_Replace(theRest, " bF", " " + Chr$(34) + "BF" + Chr$(34))
+    theRest = GXSTR_Replace(theRest, " Bf", " " + Chr$(34) + "BF" + Chr$(34))
     theRest = GXSTR_Replace(theRest, " B", " " + Chr$(34) + "B" + Chr$(34))
+    theRest = GXSTR_Replace(theRest, " b", " " + Chr$(34) + "B" + Chr$(34))
 
     ConvertLine = sstep + ", " + startCord + ", " + estep + ", " + endCord + ", " + theRest
 End Function
@@ -621,20 +601,14 @@ Function ConvertCoordParam$ (param As String, hasEndCoord As Integer)
         sstep = "false"
         estep = "false"
 
-        'If hasEndCoord Then
         idx = FindParamChar(param, "-")
         If idx = -1 Then
-            'endCoord = param
             startCoord = param
             endCoord = ""
         Else
             startCoord = Left$(param, idx - 1)
             endCoord = Right$(param, Len(param) - idx)
         End If
-        'Else
-        '    startCoord = param
-        '    endCoord = ""
-        'End If
 
         If UCase$(_Trim$(Left$(startCoord, 4))) = "STEP" Then
             sstep = "true"
@@ -864,6 +838,7 @@ Function DeclareVar$ (parts() As String)
     If asIdx = 2 Or _
        (asIdx = 3 And (isGlobal Or preserve = "true")) Or _
        (asIdx = 4 And isGlobal And preserve = "true") Then
+
         ' Handle Dim As syntax
         bvar.type = UCase$(parts(asIdx + 1))
         Dim nextIdx As Integer
@@ -1150,12 +1125,10 @@ Function ConvertExpression$ (ex As String)
                     Else
                         ' This is the case where a dimension is specified in order to retrieve or set a value in the array
                         js = js + fneg + "QB.arrayValue(" + bvar.jsname + ", [" + ConvertExpression(ex2) + "]).value"
-                        'If bvar.typeId < 1 Then js = js + ".value"
                     End If
                 ElseIf FindMethod(word, m, "FUNCTION") Then
                     js = js + fneg + "(" + CallMethod(m) + "(" + ConvertExpression(ex2) + "))"
                 Else
-                    'If _Trim$(word) <> "" Then AddJSLine 0, "//// MISSING FUNCTION? [" + word + "]" '*Print "//// MISSING FUNCTION? [" + word + "]"
                     If _Trim$(word) <> "" Then AddWarning i, "Missing function or array [" + word + "]"
                     ' nested condition
                     js = js + fneg + "(" + ConvertExpression(ex2) + ")"
@@ -1186,9 +1159,6 @@ Function FindVariable (varname As String, bvar As Variable, isArray As Integer)
     For i = 1 To UBound(localVars)
         If localVars(i).isArray = isArray And UCase$(localVars(i).name) = fvarname Then
             found = True
-            'bvar = localVars(i)
-            ' TODO: This is a work around for the pass by reference issue.
-            '       Once corrected, the code above can be used instead
             bvar.type = localVars(i).type
             bvar.name = localVars(i).name
             bvar.jsname = localVars(i).jsname
@@ -1203,9 +1173,6 @@ Function FindVariable (varname As String, bvar As Variable, isArray As Integer)
         For i = 1 To UBound(globalVars)
             If globalVars(i).isArray = isArray And UCase$(globalVars(i).name) = fvarname Then
                 found = True
-                'bvar = globalVars(i)
-                ' TODO: This is a work around for the pass by reference issue.
-                '       Once corrected, the code above can be used instead
                 bvar.type = globalVars(i).type
                 bvar.name = globalVars(i).name
                 bvar.jsname = globalVars(i).jsname
@@ -1227,9 +1194,6 @@ Function FindMethod (mname As String, m As Method, t As String)
     For i = 1 To UBound(methods)
         If methods(i).uname = _Trim$(UCase$(RemoveSuffix(mname))) And methods(i).type = t Then
             found = True
-            'm = methods(i)
-            ' TODO: This is a work around for the pass by reference issue.
-            '       Once corrected, the code above can be used instead
             m.line = methods(i).line
             m.type = methods(i).type
             m.returnType = methods(i).returnType
@@ -1360,6 +1324,7 @@ Sub ReadLinesFromText (sourceText As String)
 End Sub
 
 Sub ReadLine (lineIndex As Integer, fline As String)
+    ' Step 1: Remove any comments from the line
     Dim quoteDepth As Integer
     quoteDepth = 0
     Dim i As Integer
@@ -1377,6 +1342,56 @@ Sub ReadLine (lineIndex As Integer, fline As String)
             fline = Left$(fline, i - 1)
             Exit For
         End If
+    Next i
+
+    If _Trim$(fline) = "" Then Exit Sub
+
+    ' Step 2: Determine whether this line contains a single line if/then or if/then/else statement
+    Dim word As String
+    Dim words(0) As String
+    Dim wcount As Integer
+    wcount = SLSplit(fline, words(), False)
+    Dim As Integer ifIdx, thenIdx, elseIdx
+    For i = 1 To wcount
+        word = UCase$(words(i))
+        If word = "IF" Then
+            ifIdx = i
+        ElseIf word = "THEN" Then
+            thenIdx = i
+        ElseIf word = "ELSE" Then
+            elseIdx = i
+        End If
+    Next i
+
+    If thenIdx > 0 And thenIdx < wcount Then
+        AddLine lineIndex, Join(words(), 1, thenIdx, " ")
+        If elseIdx > 0 Then
+            AddSubLines lineIndex, Join(words(), thenIdx + 1, elseIdx - 1, " ")
+            AddLine lineIndex, "Else"
+            AddSubLines lineIndex, Join(words(), elseIdx + 1, -1, " ")
+        Else
+            AddSubLines lineIndex, Join(words(), thenIdx + 1, -1, " ")
+        End If
+        AddLine lineIndex, "End If"
+    Else
+        AddSubLines lineIndex, fline
+    End If
+End Sub
+
+Sub AddSubLines (lineIndex As Integer, fline As String)
+    Dim quoteDepth As Integer
+    quoteDepth = 0
+    Dim i As Integer
+    For i = 1 To Len(fline)
+        Dim c As String
+        c = Mid$(fline, i, 1)
+        If c = Chr$(34) Then
+            If quoteDepth = 0 Then
+                quoteDepth = 1
+            Else
+                quoteDepth = 0
+            End If
+        End If
         If quoteDepth = 0 And c = ":" Then
             AddLine lineIndex, Left$(fline, i - 1)
             fline = Right$(fline, Len(fline) - i)
@@ -1384,11 +1399,9 @@ Sub ReadLine (lineIndex As Integer, fline As String)
         End If
     Next i
 
-    ' If once we have removed the comments the line is empty do not add it
-    If _Trim$(fline) <> "" Then
-        AddLine lineIndex, fline
-    End If
+    AddLine lineIndex, fline
 End Sub
+
 
 Sub FindMethods
     Dim i As Integer
@@ -1415,32 +1428,24 @@ Sub FindMethods
                 For a = 3 To UBound(parts)
                     args = args + parts(a) + " "
                 Next a
-                'Print "---> " + args
-                'args = _Trim$(GXSTR_Replace(GXSTR_Replace(args, "(", ""), ")", ""))
                 args = Mid$(_Trim$(args), 2, Len(_Trim$(args)) - 2)
-                'Print "---< " + args
                 ReDim As String arga(0)
-                'm.argc = GXSTR_Split(args, ",", arga())
                 m.argc = ListSplit(args, arga())
                 args = ""
                 For a = 1 To m.argc
-                    'Dim arg As String
                     ReDim As String aparts(0)
                     Dim apcount As Integer
                     Dim argname As String
                     Dim isArray As String: isArray = "false"
                     apcount = Split(arga(a), " ", aparts())
                     argname = aparts(1)
-                    'Print "---: " + argname
                     If EndsWith(argname, "()") Then
                         isArray = "true"
                         argname = Left$(argname, Len(argname) - 2)
                     End If
                     If apcount = 3 Then
-                        'args = args + aparts(1) + ":" + UCase$(aparts(3))
                         args = args + argname + ":" + UCase$(aparts(3)) + ":" + isArray
                     Else
-                        'args = args + aparts(1) + ":" + DataTypeFromName(aparts(1))
                         args = args + argname + ":" + DataTypeFromName(aparts(1)) + ":" + isArray
                     End If
                     If a <> m.argc Then
@@ -1493,7 +1498,7 @@ End Function
 
 
 ' String literal-aware split
-Function SLSplit (sourceString As String, results() As String)
+Function SLSplit (sourceString As String, results() As String, escapeStrings As Integer)
     Dim cstr As String
     Dim As Long p, curpos, arrpos, dpos
 
@@ -1516,7 +1521,7 @@ Function SLSplit (sourceString As String, results() As String)
 
             ' This is not the most intuitive place for this...
             ' If we find a string then escape any backslashes
-            If Not quoteMode Then
+            If Not quoteMode And escapeStrings Then
                 result = GXSTR_Replace(result, "\", "\\")
             End If
 
@@ -1573,11 +1578,6 @@ Function SLSplit2 (sourceString As String, results() As String)
             quoteMode = Not quoteMode
             result = result + c
 
-            ' This is not the most intuitive place for this...
-            ' If we find a string then escape any backslashes
-            'If Not quoteMode Then
-            '    result = GXSTR_Replace(result, "\", "\\")
-            'End If
         ElseIf quoteMode Then
             result = result + c
 
@@ -1593,9 +1593,6 @@ Function SLSplit2 (sourceString As String, results() As String)
             result = result + c
 
         ElseIf c = " " Then
-            'If quoteMode Then
-            '    result = result + c
-
             If lastChar = " " Then
                 ' extra space, move along
 
@@ -1816,41 +1813,12 @@ End Sub
 
 
 Sub AddLine (lineIndex As Integer, fline As String)
-    ' check for single line if statements
-    Dim parts(0) As String
-    Dim c As Integer
-    c = Split(fline, " ", parts())
-
-    If UCase$(parts(1)) = "IF" Then
-        Dim thenIndex As Integer
-        thenIndex = 0
-        Dim i As Integer
-        For i = 1 To c
-            If UCase$(parts(i)) = "THEN" Then
-                thenIndex = i
-                Exit For
-            End If
-        Next i
-
-        If thenIndex <> c Then
-            __AddLine lineIndex, Join(parts(), 1, thenIndex, " ")
-            __AddLine lineIndex, Join(parts(), thenIndex + 1, c, " ")
-            __AddLine lineIndex, "End If"
-        Else
-            __AddLine lineIndex, fline
-        End If
-    Else
-        __AddLine lineIndex, fline
-    End If
+    __AddLine lineIndex, fline
 End Sub
 
 Sub __AddLine (lineIndex As Integer, fline As String)
     Dim lcount As Integer: lcount = UBound(lines) + 1
     ReDim _Preserve As CodeLine lines(lcount)
-    'Dim cline As CodeLine
-    'cline.line = lineIndex
-    'cline.text = fline
-    'lines(lcount) = cline
     lines(lcount).line = lineIndex
     lines(lcount).text = fline
 End Sub
@@ -1858,10 +1826,6 @@ End Sub
 Sub AddJSLine (sourceLine As Integer, jsline As String)
     Dim lcount As Integer: lcount = UBound(jsLines) + 1
     ReDim _Preserve As CodeLine jsLines(lcount)
-    'Dim cline As CodeLine
-    'cline.line = sourceLine
-    'cline.text = jsline
-    'jsLines(lcount) = cline
     jsLines(lcount).line = sourceLine
     jsLines(lcount).text = jsline
 End Sub
@@ -1948,8 +1912,6 @@ End Sub
 Sub AddSystemType (tname As String, args As String)
     Dim t As QBType
     t.name = tname
-    't.argc = argc
-    't.args = args
     AddType t
     Dim typeId As Integer
     typeId = UBound(types)
@@ -2090,10 +2052,6 @@ Function MethodJS$ (m As Method, prefix As String)
             jsname = jsname + c
         End If
     Next i
-
-    'If m.name = "_Limit" Or m.name = "_Delay" Or m.name = "Sleep" Or m.name = "Input" Or m.name = "Print" Or m.name = "Fetch" Then
-    'jsname = "await " + jsname
-    'End If
 
     MethodJS = jsname
 End Function

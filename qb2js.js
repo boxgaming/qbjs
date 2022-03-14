@@ -135,7 +135,7 @@ if (QB.halted()) { return; }
       l = (QB.func__Trim(QB.arrayValue(lines, [ i]).value .text));
       var parts = QB.initArray([{l:1,u:0}], ''); // STRING
       var c = 0; // INTEGER
-      c = (await func_SLSplit( l, parts));
+      c = (await func_SLSplit( l, parts ,  True));
       var js = ''; // STRING
       js = "";
       var first = ''; // STRING
@@ -386,7 +386,7 @@ var ConvertSub = null;
    if ( m.name == "Line" ) {
       var parts = QB.initArray([{l:1,u:0}], ''); // STRING
       var plen = 0; // INTEGER
-      plen = (await func_SLSplit( args, parts));
+      plen = (await func_SLSplit( args, parts ,  False));
       if ( plen >  0) {
          if ((QB.func_UCase(QB.arrayValue(parts, [ 1]).value))  == "INPUT" ) {
             m.name = "Line Input";
@@ -463,7 +463,11 @@ var ConvertLine = null;
    endCord = (await func_ConvertExpression( endCord));
    theRest = (await func_ConvertExpression( theRest));
    theRest = (GXSTR.replace( theRest, " BF" , " "  +(QB.func_Chr( 34))  +"BF"  +(QB.func_Chr( 34))));
+   theRest = (GXSTR.replace( theRest, " bf" , " "  +(QB.func_Chr( 34))  +"BF"  +(QB.func_Chr( 34))));
+   theRest = (GXSTR.replace( theRest, " bF" , " "  +(QB.func_Chr( 34))  +"BF"  +(QB.func_Chr( 34))));
+   theRest = (GXSTR.replace( theRest, " Bf" , " "  +(QB.func_Chr( 34))  +"BF"  +(QB.func_Chr( 34))));
    theRest = (GXSTR.replace( theRest, " B" , " "  +(QB.func_Chr( 34))  +"B"  +(QB.func_Chr( 34))));
+   theRest = (GXSTR.replace( theRest, " b" , " "  +(QB.func_Chr( 34))  +"B"  +(QB.func_Chr( 34))));
    ConvertLine =  sstep +", "  + startCord +", "  + estep +", "  + endCord +", "  + theRest;
 return ConvertLine;
 }
@@ -1255,15 +1259,63 @@ if (QB.halted()) { return; }
          fline = (QB.func_Left( fline,  i - 1));
          break;
       }
+   }
+   if ((QB.func__Trim( fline))  == "" ) {
+      return;
+   }
+   var word = ''; // STRING
+   var words = QB.initArray([{l:1,u:0}], ''); // STRING
+   var wcount = 0; // INTEGER
+   wcount = (await func_SLSplit( fline, words ,  False));
+   var ifIdx = 0; // INTEGER
+var thenIdx = 0; // INTEGER
+var elseIdx = 0; // INTEGER
+   for ( i= 1;  i <=  wcount;  i= i + 1) {  if (QB.halted()) { return; }
+      word = (QB.func_UCase(QB.arrayValue(words, [ i]).value));
+      if ( word == "IF" ) {
+         ifIdx =  i;
+      } else if ( word == "THEN" ) {
+         thenIdx =  i;
+      } else if ( word == "ELSE" ) {
+         elseIdx =  i;
+      }
+   }
+   if ( thenIdx >  0 &&  thenIdx <  wcount) {
+      await sub_AddLine( lineIndex, (await func_Join(words ,  1,  thenIdx, " ")));
+      if ( elseIdx >  0) {
+         await sub_AddSubLines( lineIndex, (await func_Join(words ,  thenIdx + 1,  elseIdx - 1, " ")));
+         await sub_AddLine( lineIndex, "Else");
+         await sub_AddSubLines( lineIndex, (await func_Join(words ,  elseIdx + 1,  -1, " ")));
+      } else {
+         await sub_AddSubLines( lineIndex, (await func_Join(words ,  thenIdx + 1,  -1, " ")));
+      }
+      await sub_AddLine( lineIndex, "End If");
+   } else {
+      await sub_AddSubLines( lineIndex,  fline);
+   }
+}
+async function sub_AddSubLines(lineIndex/*INTEGER*/,fline/*STRING*/) {
+if (QB.halted()) { return; }
+   var quoteDepth = 0; // INTEGER
+   quoteDepth =  0;
+   var i = 0; // INTEGER
+   for ( i= 1;  i <= (QB.func_Len( fline));  i= i + 1) {  if (QB.halted()) { return; }
+      var c = ''; // STRING
+      c = (QB.func_Mid( fline,  i,  1));
+      if ( c == (QB.func_Chr( 34)) ) {
+         if ( quoteDepth ==  0) {
+            quoteDepth =  1;
+         } else {
+            quoteDepth =  0;
+         }
+      }
       if ( quoteDepth ==  0 &&  c == ":" ) {
          await sub_AddLine( lineIndex, (QB.func_Left( fline,  i - 1)));
          fline = (QB.func_Right( fline, (QB.func_Len( fline))  - i));
          i =  0;
       }
    }
-   if ((QB.func__Trim( fline))  != "" ) {
-      await sub_AddLine( lineIndex,  fline);
-   }
+   await sub_AddLine( lineIndex,  fline);
 }
 async function sub_FindMethods() {
 if (QB.halted()) { return; }
@@ -1353,7 +1405,7 @@ var dpos = 0; // LONG
    Split =  arrpos;
 return Split;
 }
-async function func_SLSplit(sourceString/*STRING*/,results/*STRING*/) {
+async function func_SLSplit(sourceString/*STRING*/,results/*STRING*/,escapeStrings/*INTEGER*/) {
 if (QB.halted()) { return; }
 var SLSplit = null;
    var cstr = ''; // STRING
@@ -1374,7 +1426,7 @@ var dpos = 0; // LONG
       if ( c == (QB.func_Chr( 34)) ) {
          quoteMode = ! quoteMode;
          result =  result + c;
-         if (! quoteMode) {
+         if (! quoteMode &&  escapeStrings) {
             result = (GXSTR.replace( result, "\\" , "\\\\"));
          }
       } else if ( c == " " ) {
@@ -1622,29 +1674,7 @@ if (QB.halted()) { return; }
 }
 async function sub_AddLine(lineIndex/*INTEGER*/,fline/*STRING*/) {
 if (QB.halted()) { return; }
-   var parts = QB.initArray([{l:1,u:0}], ''); // STRING
-   var c = 0; // INTEGER
-   c = (await func_Split( fline, " " , parts));
-   if ((QB.func_UCase(QB.arrayValue(parts, [ 1]).value))  == "IF" ) {
-      var thenIndex = 0; // INTEGER
-      thenIndex =  0;
-      var i = 0; // INTEGER
-      for ( i= 1;  i <=  c;  i= i + 1) {  if (QB.halted()) { return; }
-         if ((QB.func_UCase(QB.arrayValue(parts, [ i]).value))  == "THEN" ) {
-            thenIndex =  i;
-            break;
-         }
-      }
-      if ( thenIndex !=  c) {
-         await sub___AddLine( lineIndex, (await func_Join(parts ,  1,  thenIndex, " ")));
-         await sub___AddLine( lineIndex, (await func_Join(parts ,  thenIndex + 1,  c, " ")));
-         await sub___AddLine( lineIndex, "End If");
-      } else {
-         await sub___AddLine( lineIndex,  fline);
-      }
-   } else {
-      await sub___AddLine( lineIndex,  fline);
-   }
+   await sub___AddLine( lineIndex,  fline);
 }
 async function sub___AddLine(lineIndex/*INTEGER*/,fline/*STRING*/) {
 if (QB.halted()) { return; }

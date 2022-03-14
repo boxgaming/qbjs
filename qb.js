@@ -6,8 +6,6 @@ var QB = new function() {
     var _fgColor = null; 
     var _bgColor = null; 
     var _colormap = [];
-    var _lastX = 0;
-    var _lastY = 0;
     var _locX = 0;
     var _locY = 0;
     var _lastKey = null;
@@ -262,7 +260,7 @@ var QB = new function() {
         canvas.height = iheight;
         ctx = canvas.getContext("2d");
 
-        _images[_nextImageId] = { canvas: canvas, ctx: ctx };
+        _images[_nextImageId] = { canvas: canvas, ctx: ctx, lastX: 0, lastY: 0 };
         var tmpId = _nextImageId;
         _nextImageId++;
         return tmpId;
@@ -601,6 +599,8 @@ var QB = new function() {
 
     this.sub_Circle = function(step, x, y, radius, color, startAngle, endAngle, aspect) {
         // TODO: implement aspect parameter
+
+        var screen = _images[_activeImage];
         if (color == undefined) {
             color = _fgColor;
         }
@@ -612,13 +612,13 @@ var QB = new function() {
         if (endAngle == undefined) { endAngle = 2 * Math.PI; }
         
         if (step) {
-            x = _lastX + x;
-            y = _lastY + y;
+            x = screen.lastX + x;
+            y = screen.lastY + y;
         }
-        _lastX = x;
-        _lastY = y;
+        screen.lastX = x;
+        screen.lastY = y;
 
-        var ctx = _images[_activeImage].ctx;
+        var ctx = screen.ctx;
         ctx.strokeStyle = color.rgba();
         ctx.beginPath();
         ctx.arc(x, y, radius, startAngle, endAngle);
@@ -626,6 +626,8 @@ var QB = new function() {
     };
 
     this.sub_Line = function(sstep, sx, sy, estep, ex, ey, color, style, pattern) {
+        var screen = _images[_activeImage];
+
         if (color == undefined) {
             if (style == "BF") {
                 color = _bgColor;
@@ -639,24 +641,24 @@ var QB = new function() {
         }
         
         if (sstep) {
-            sx = _lastX + sx;
-            sy = _lastY + sy;
+            sx = screen.lastX + sx;
+            sy = screen.lastY + sy;
         }
         if (sx == undefined) {
-            sx = _lastX;
-            sy = _lastY;
+            sx = screen.lastX;
+            sy = screen.lastY;
         }
-        _lastX = sx;
-        _lastY = sy;
+        screen.lastX = sx;
+        screen.lastY = sy;
 
         if (estep) {
-            ex = _lastX + ex;
-            ey = _lastY + ey;
+            ex = screen.lastX + ex;
+            ey = screen.lastY + ey;
         }
-        _lastX = ex;
-        _lastY = ey;
+        screen.lastX = ex;
+        screen.lastY = ey;
 
-        var ctx = _images[_activeImage].ctx;
+        var ctx = screen.ctx;
 
         if (style == "B") {
             ctx.strokeStyle = color.rgba();
@@ -787,6 +789,8 @@ var QB = new function() {
     }
 
     this.sub_PSet = function(sstep, x, y, color) {
+        var screen = _images[_activeImage];
+
         if (color == undefined) {
             color = _fgColor;
         }
@@ -794,13 +798,13 @@ var QB = new function() {
             color = _color(color);
         }
         if (sstep) {
-            x = _lastX + x;
-            y = _lastY + y;
+            x = screen.lastX + x;
+            y = screen.lastY + y;
         }
-        _lastX = x;
-        _lastY = y;
+        screen.lastX = x;
+        screen.lastY = y;
 
-        var ctx = _images[_activeImage].ctx;
+        var ctx = screen.ctx;
         ctx.fillStyle = color.rgba();
         ctx.beginPath();
         ctx.fillRect(x, y, 1, 1);
@@ -847,13 +851,11 @@ var QB = new function() {
                 GX.sceneCreate(img.canvas.width, img.canvas.height);
             }
         }
-        _images[0] = { canvas: GX.canvas(), ctx: GX.ctx() };
+        _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0 };
 
         // initialize the graphics
         _fgColor = _color(7); 
         _bgColor = _color(0);
-        _lastX = 0;
-        _lastY = 0;
         _locX = 0;
         _locY = 0;
 
@@ -861,6 +863,7 @@ var QB = new function() {
         _inputMode = false;
         _inkeyBuffer = [];
         _keyHitBuffer = [];
+        _keyDownMap = {};
     };
 
     this.func_Sgn = function(value) {
