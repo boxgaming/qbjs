@@ -499,7 +499,7 @@ var QB = new function() {
             return c;
         }
         else if (!isNaN(c) && c >= 0 && c <= 255) {
-            return _colormap[c];
+            return _colormap[parseInt(c)];
         }
         return QB.func__RGB(0,0,0);
     }
