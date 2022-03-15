@@ -407,6 +407,8 @@ var ConvertSub = null;
       js = (await func_ConvertInput( m,  args));
    } else if ( m.name == "Swap" ) {
       js = (await func_ConvertSwap( m,  args));
+   } else if ( m.name == "Cls" ) {
+      js = (await func_CallMethod( m))  +"("  +(await func_ConvertCls( args))  +");";
    } else if ( m.name == "_PutImage" ) {
       js = (await func_CallMethod( m))  +"("  +(await func_ConvertPutImage( args))  +");";
    } else {
@@ -512,6 +514,27 @@ var doSmooth = ''; // STRING
    }
    ConvertPutImage =  startCoord +", "  + sourceImage +", "  + destImage +", "  + destCoord +", "  + doSmooth;
 return ConvertPutImage;
+}
+async function func_ConvertCls(args/*STRING*/) {
+if (QB.halted()) { return; }
+var ConvertCls = null;
+   var argc = 0; // INTEGER
+   var parts = QB.initArray([{l:1,u:0}], ''); // STRING
+   argc = (await func_ListSplit( args, parts));
+   var method = ''; // STRING
+var bgcolor = ''; // STRING
+   method = "undefined";
+   bgcolor = "undefined";
+   if ( argc >=  1) {
+      if ((QB.func__Trim(QB.arrayValue(parts, [ 1]).value))  != "" ) {
+         method = (await func_ConvertExpression(QB.arrayValue(parts, [ 1]).value));
+      }
+   }
+   if ( argc >=  2) {
+      bgcolor = (await func_ConvertExpression(QB.arrayValue(parts, [ 2]).value));
+   }
+   ConvertCls =  method +", "  + bgcolor;
+return ConvertCls;
 }
 async function func_ConvertCoordParam(param/*STRING*/,hasEndCoord/*INTEGER*/) {
 if (QB.halted()) { return; }
@@ -2264,12 +2287,15 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod("FUNCTION" , "_Alpha" ,  False);
    await sub_AddQBMethod("FUNCTION" , "_Alpha32" ,  False);
    await sub_AddQBMethod("FUNCTION" , "_Atan2" ,  False);
+   await sub_AddQBMethod("FUNCTION" , "_AutoDisplay" ,  False);
+   await sub_AddQBMethod("SUB" , "_AutoDisplay" ,  False);
    await sub_AddQBMethod("FUNCTION" , "_Blue" ,  False);
    await sub_AddQBMethod("FUNCTION" , "_Blue32" ,  False);
    await sub_AddQBMethod("FUNCTION" , "_CopyImage" ,  False);
    await sub_AddQBMethod("SUB" , "_Delay" ,  True);
-   await sub_AddQBMethod("FUNCTION" , "_Dest" ,  True);
-   await sub_AddQBMethod("SUB" , "_Dest" ,  True);
+   await sub_AddQBMethod("FUNCTION" , "_Dest" ,  False);
+   await sub_AddQBMethod("SUB" , "_Dest" ,  False);
+   await sub_AddQBMethod("FUNCTION" , "_Display" ,  False);
    await sub_AddQBMethod("SUB" , "_Display" ,  False);
    await sub_AddQBMethod("FUNCTION" , "_FontWidth" ,  False);
    await sub_AddQBMethod("FUNCTION" , "_FreeImage" ,  False);

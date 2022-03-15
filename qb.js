@@ -21,6 +21,7 @@ var QB = new function() {
     var _images = {};
     var _activeImage = 0;
     var _nextImageId = 1000;
+    var _lastLimitTime = 0;
 
     // Array handling methods
     // ----------------------------------------------------
@@ -124,6 +125,11 @@ var QB = new function() {
         return Math.atan2(y, x);
     };
 
+    // the canvas handles the display for us, there is effectively no difference
+    // between _display and _autodisplay, included here for compatibility
+    this.func__AutoDisplay = function() { return -1; }
+    this.sub__AutoDisplay = function() {}
+
     this.func__Blue = function(rgb, imageHandle) {
         // TODO: implement corresponding logic when an image handle is supplied (maybe)
         return _color(rgb).b;
@@ -147,8 +153,16 @@ var QB = new function() {
         await GX.sleep(seconds*1000);
     };
 
+    this.func__Dest = function() {
+        return _activeImage;
+    }
+
     this.sub__Dest = function(imageId) {
         _activeImage = imageId;
+    }
+
+    this.func__Display = function() {
+        return 0;
     }
 
     this.sub__Display = function() {
@@ -309,6 +323,11 @@ var QB = new function() {
             dy1 = 0;
             dxu = true;
         }
+        else if (dstep1) {
+            dx1 = destImage.lastX + dx1;
+            dy1 = destImage.lastY + dy1;
+        }
+
         if (dx2 == undefined) {
             if (dxu) {
                 dw = destImage.canvas.width;
@@ -320,6 +339,10 @@ var QB = new function() {
             }
         }
         else {
+            if (dstep2) {
+                dx2 = destImage.lastX + dx2;
+                dy2 = destImage.lastY + dy2;
+            }
             dw = dx2-dx1;
             dh = dy2-dy1;
         }
@@ -328,14 +351,28 @@ var QB = new function() {
             sx1 = 0;
             sy1 = 0;
         }
+        else if (sstep1) {
+            sx1 = sourceImage.lastX + sx1;
+            sy1 = sourceImage.lastY + sy1;
+        }
+
         if (sx2 == undefined) {
             sw = sourceImage.canvas.width;
             sh = sourceImage.canvas.height;
         }
         else {
+            if (sstep2) {
+                sx2 = sourceImage.lastX + sx2;
+                sy2 = sourceImage.lastY + sy2;
+            }
             sw = sx2-sx1;
             sh = sy2-sy1;
         }
+
+        destImage.lastX = dx1 + dw;
+        destImage.lastY = dy1 + dh;
+        sourceImage.lastX = sx1 + sw;
+        sourceImage.lastY = sy2 + sh;
 
         destImage.ctx.drawImage(sourceImage.canvas, sx1, sy1, sw, sh, dx1, dy1, dw, dh);
     }
@@ -443,11 +480,17 @@ var QB = new function() {
         return String.fromCharCode(charCode);
     };
 
-    this.sub_Cls = function() {
+    this.sub_Cls = function(method, bgColor) {
+        // method parameter is ignored, there is no separate view port for text and graphics
+
+        var color = _bgColor;
+        if (bgColor != undefined) {
+            color = _color(bgColor);
+        }
         // TODO: parameter variants
         ctx = _images[_activeImage].ctx;
         ctx.beginPath();
-        ctx.fillStyle = _bgColor.rgba();
+        ctx.fillStyle = color.rgba();
         ctx.fillRect(0, 0, QB.func__Width() , QB.func__Height());
     };
 

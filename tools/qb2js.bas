@@ -488,6 +488,9 @@ Function ConvertSub$ (m As Method, args As String)
     ElseIf m.name = "Swap" Then
         js = ConvertSwap(m, args)
 
+    ElseIf m.name = "Cls" Then
+        js = CallMethod(m) + "(" + ConvertCls(args) + ");"
+
     ElseIf m.name = "_PutImage" Then
         js = CallMethod(m) + "(" + ConvertPutImage(args) + ");"
 
@@ -586,6 +589,23 @@ Function ConvertPutImage$ (args As String)
     End If
 
     ConvertPutImage = startCoord + ", " + sourceImage + ", " + destImage + ", " + destCoord + ", " + doSmooth
+End Function
+
+Function ConvertCls$ (args As String)
+    Dim argc As Integer
+    ReDim parts(0) As String
+    argc = ListSplit(args, parts())
+
+    Dim As String method, bgcolor
+    method = "undefined"
+    bgcolor = "undefined"
+
+    If argc >= 1 Then
+        If _Trim$(parts(1)) <> "" Then method = ConvertExpression(parts(1))
+    End If
+    If argc >= 2 Then bgcolor = ConvertExpression(parts(2))
+
+    ConvertCls$ = method + ", " + bgcolor
 End Function
 
 Function ConvertCoordParam$ (param As String, hasEndCoord As Integer)
@@ -2274,7 +2294,6 @@ Sub InitGX
     AddGXMethod "FUNCTION", "GXEntityType", False
     AddGXMethod "FUNCTION", "GXEntityUID$", False
     AddGXMethod "FUNCTION", "GXFontUID$", False
-    'AddGXMethod "FUNCTION", "GX", False
     AddGXMethod "SUB", "GXEntityApplyGravity", False
     AddGXMethod "FUNCTION", "GXEntityApplyGravity", False
     AddGXMethod "SUB", "GXEntityCollisionOffset", False
@@ -2403,12 +2422,15 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Alpha", False
     AddQBMethod "FUNCTION", "_Alpha32", False
     AddQBMethod "FUNCTION", "_Atan2", False
+    AddQBMethod "FUNCTION", "_AutoDisplay", False
+    AddQBMethod "SUB", "_AutoDisplay", False
     AddQBMethod "FUNCTION", "_Blue", False
     AddQBMethod "FUNCTION", "_Blue32", False
     AddQBMethod "FUNCTION", "_CopyImage", False
     AddQBMethod "SUB", "_Delay", True
-    AddQBMethod "FUNCTION", "_Dest", True
-    AddQBMethod "SUB", "_Dest", True
+    AddQBMethod "FUNCTION", "_Dest", False
+    AddQBMethod "SUB", "_Dest", False
+    AddQBMethod "FUNCTION", "_Display", False
     AddQBMethod "SUB", "_Display", False
     AddQBMethod "FUNCTION", "_FontWidth", False
     AddQBMethod "FUNCTION", "_FreeImage", False

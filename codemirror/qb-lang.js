@@ -35,7 +35,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
     // TODO: adjust for QB
     var atomWords = ['true', 'false', 'nothing', 'empty', 'null'];
 
-    var builtinFuncsWords = ['_alpha', '_alpha32', '_atan2', '_blue', '_blue32', '_copyimage', '_delay', '_dest', '_dest', '_display', '_fontwidth',
+    var builtinFuncsWords = ['_alpha', '_alpha32', '_atan2', '_autodisplay', '_blue', '_blue32', '_copyimage', '_delay', '_dest', '_dest', '_display', '_fontwidth',
                              '_freeimage', '_green', '_green32', '_height', '_instrrev', '_limit', '_keyclear', '_keydown', '_keyhit', '_loadimage',
                              '_mousebutton', '_mouseinput', '_mousex', '_mousey', '_newimage', '_pi', '_printstring', '_printwidth', '_putimage',
                              '_red', '_red32', '_rgb', '_rgba', '_rgb32', '_rgba32', '_round', '_screenexists', '_title', '_trim', '_width', 'abs',
