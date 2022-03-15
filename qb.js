@@ -1555,6 +1555,7 @@ var QB = new function() {
             if (!_inputMode) {
                 var kh = _getKeyHit(event);
                 if (kh) {
+                    _keyHitBuffer.push(kh);
                     _keyDownMap[kh] = true;
                 }
             }
@@ -1568,7 +1569,7 @@ var QB = new function() {
                 _addInkeyPress(event);
                 var kh = _getKeyHit(event);
                 if (kh) {
-                    _keyHitBuffer.push(kh);
+                    _keyHitBuffer.push(kh * -1);
                     _keyDownMap[kh] = false;
                 }
             }
