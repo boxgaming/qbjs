@@ -116,16 +116,60 @@
                 background-color: transparent;
                 color: #ccc;
             }
+            #gx-load-screen {
+                display: none;
+                text-align: center;
+                margin: auto;
+                width: 600px;
+                height: 360px;
+                font-size: 24px;
+                color: #ccc;
+                border: 1px solid #000;
+                text-decoration: none;
+                background-position: center center;
+                background-image: url('play.png');
+                background-repeat: no-repeat;
+                background-color: #444;
+            }
+            #gx-load-screen:hover {
+                background-color: #555;
+            }
+            #gx-load-screen:before { content: ""; }
+            #gx-load-screen:after { content: ""; }
+
+            #gx-container a, #gx-container a:link, #gx-container a:visited {
+                color: rgb(69, 118, 147);
+            }
+            #gx-container a:hover { 
+                color: rgb(69, 118, 147);
+                text-decoration: underline;
+            }
+            #gx-container a:before { content: ""; }
+            #gx-container a:after { content: ""; }
+
+            #gx-container, #gx-container table {
+                font-family: arial, helvetica, sans-serif;
+                font-size: 14px;
+            }
+
+            #share-dialog {
+                background-color:#ddd;
+            }
+            #share-dialog textarea {
+                font-family: dosvga;
+                font-size: 1em;
+                background-color: #efefef;
+            }
+            #share-dialog a { color: #333; }
+            #share-dialog a:hover { color: #000; }
+
         </style>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/codemirror.min.css"></link>
         <link rel="stylesheet" href="codemirror/qb-ide.css"></link>
-        <link rel="stylesheet" href="dialog/dialog.css"></link>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/codemirror.min.js"></script>
         <script type="text/javascript" src="codemirror/qb-lang.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/addon/selection/active-line.js"></script>
         <script type="text/javascript" src="util/shorty.min.js"></script>
-        <script type="text/javascript" src="dialog/dialog.js"></script>
-        <script type="text/javascript" src="dialog/dialog-polyfill.js"></script>
     </head>
     <body>
         <div id="code-container">
@@ -139,7 +183,9 @@
             <div id="slider-right" class="slider-button" onclick="slideRight()">&gt;</div>
         </div>
         <div id="game-container">
-            <div id="gx-container"></div>
+            <div id="gx-container">
+                <a href="javascript:runProgram()" id="gx-load-screen">&nbsp;</a>
+            </div>
             <div id="output-container">
                 <div id="tabs">
                     <div id="tab-console" class="tab active" onclick="changeTab('console')">Console</div><div id="tab-js" class="tab" onclick="changeTab('js')">Javascript</div>
@@ -153,9 +199,19 @@
         </div>
         <div id="gx-footer"></div>
 
-        <div style="display:none" id="share-dialog">
-            <textarea id="share-code" rows="15" cols="80" readonly></textarea>
-        </div>
+        <dialog id="share-dialog">
+            <div style="margin-bottom:5px">Copy the link below to share your code:</div>
+            <div><textarea id="share-code" rows="15" cols="80" readonly></textarea></div>
+            <div style="margin-top: 5px; float:left">Launch Mode:
+                <select id="share-mode" onchange="shareProgram()">
+                    <option value="">IDE (Default)</option>
+                    <option value="play">Play</option>
+                    <option value="auto">Auto</option>
+                </select>
+            </div>
+            <a href="javascript:closeDialog()" style="display:block; float:right; margin-top: 5px">Close</a>
+            <a href="javascript:testShare()" style="display: block; float:right; margin-top: 5px; margin-right: 10px">Test</a>
+        </dialog>
     </body>
     <script language="javascript" src="gx/gx.js"></script>
     <script language="javascript" src="qb.js"></script>
@@ -166,6 +222,7 @@
         var qbcode = "";
         var url = location.href;
         var sizeMode = "normal";
+        var appMode = "ide";
         var consoleVisible = false;
         var currTab = "console";
  
@@ -179,7 +236,13 @@
                     qbcode = zin.inflate(atob(nv[1]));
                     break;
                 }
+                else if (nv[0] == "mode") {
+                    appMode = nv[1];
+                }
             }
+        }
+        if (appMode == "play") {
+            document.getElementById("gx-load-screen").style.display = "block";
         }
 
         // initialize the code editor
@@ -209,6 +272,8 @@
         var warnCount = 0;
 
         async function runProgram() {
+            document.getElementById("gx-load-screen").style.display = "none";
+
             if (sizeMode == "max") {
                 slideLeft();
             }
@@ -219,7 +284,6 @@
             var jsCode = await QBCompiler.compile(qbCode);
 
             await displayWarnings();
-            //displayTypes();
 
             var jsDiv = document.getElementById("js-code");
             jsDiv.innerHTML = jsCode;
@@ -244,6 +308,8 @@
                 GX.sceneStop();
             }
             document.getElementById("gx-container").focus();
+
+            return false;
         }
 
         function stopProgram() {
@@ -256,9 +322,26 @@
             var b64 = btoa(zout.deflate(editor.getValue()));
             var baseUrl = location.href.split('?')[0];
 
+            var mode = document.getElementById("share-mode").value;
             var codeShare = document.getElementById("share-code");
-            codeShare.innerHTML = baseUrl + "?qbcode=" + b64;
-            Dialog.template(document.getElementById("share-dialog"), "Copy the link below to share your code!");
+            var url = baseUrl + "?";
+            if (mode) {
+                url += "mode=" + mode + "&";
+            }
+            url += "qbcode=" + b64;
+            codeShare.value = url;
+            document.getElementById("share-dialog").showModal();
+            codeShare.focus();
+            codeShare.select();
+        }
+
+        function testShare() {
+            var url = document.getElementById("share-code").value;
+            open(url, "_blank");
+        }
+
+        function closeDialog() {
+            document.getElementById("share-dialog").close();
         }
 
         async function displayWarnings() {
@@ -277,7 +360,8 @@
 
         function showConsole() {
             consoleVisible = !consoleVisible;
-            window.onresize();
+            window.dispatchEvent(new Event('resize'));
+            //window.onresize();
         }
 
         function changeTab(tabName) {
@@ -315,7 +399,8 @@
                 sizeMode = "min"
                 document.getElementById("slider-left").style.display = "none";
             }
-            window.onresize();
+            //window.onresize();
+            window.dispatchEvent(new Event('resize'));
         }
 
         function slideRight() {
@@ -327,65 +412,81 @@
                 sizeMode = "max"
                 document.getElementById("slider-right").style.display = "none";
             }
-            window.onresize();
+            //window.onresize();
+            window.dispatchEvent(new Event('resize'));
         }
 
         window.onresize = function() {
             var f = document.getElementById("gx-container");
             var jsDiv = document.getElementById("output-container");
 
-            var cmwidth = 600;
-            if (sizeMode == "min") {
-                cmwidth = 0;
-                editor.getWrapperElement().style.display = "none";
-                document.getElementById("code").style.borderRight = "0";
-            }
-            else if (sizeMode == "max") {
-                cmwidth = window.innerWidth - 25;
-                document.getElementById("game-container").style.display = "none";
-                document.getElementById("slider").style.border = "1px solid #666";
-                document.getElementById("slider").style.borderLeft = "0";
+            if (appMode == "play" || appMode == "auto") {
+                f.style.left = "0px";
+                f.style.top = "0px";
+                f.style.width = window.innerWidth;
+                f.style.height = window.innerHeight;
+                f.style.border = "0px";
+                document.getElementById("code-container").style.display = "none";
+                document.getElementById("slider").style.display = "none";
+                document.getElementById("show-js-container").style.display = "none";
+                document.getElementById("game-container").style.left = "0px";
+                document.getElementById("game-container").style.top = "0px";
+                jsDiv.style.display = "none";
             }
             else {
-                editor.getWrapperElement().style.display = "block";
-                document.getElementById("game-container").style.display = "block";
-                document.getElementById("code").style.borderRight = "1px solid #666";
-                document.getElementById("slider").style.border = "0";
-            }
-
-            document.getElementById("game-container").style.left = (cmwidth + 20) + "px";
-            f.style.width = (window.innerWidth - (cmwidth + 35)) + "px";
-            jsDiv.style.width = f.style.width;            
-
-            document.getElementById("slider").style.left = (cmwidth + 12) + "px";
-
-            if (consoleVisible) { // /*document.getElementById("show-js").checked ||*/ warnCount > 0) {
-                f.style.height = (window.innerHeight - 237) + "px";
-                jsDiv.style.display = "block";
-                jsDiv.style.top = (window.innerHeight - 227) + "px";
-                document.getElementById("toggle-console").innerHTML = "Hide Console";
-                if (currTab == "console") {
-                    document.getElementById("warning-container").style.display = "block";
-                    document.getElementById("js-code").style.display = "none";
+                var cmwidth = 600;
+                if (sizeMode == "min") {
+                    cmwidth = 0;
+                    editor.getWrapperElement().style.display = "none";
+                    document.getElementById("code").style.borderRight = "0";
+                }
+                else if (sizeMode == "max") {
+                    cmwidth = window.innerWidth - 25;
+                    document.getElementById("game-container").style.display = "none";
+                    document.getElementById("slider").style.border = "1px solid #666";
+                    document.getElementById("slider").style.borderLeft = "0";
                 }
                 else {
-                    document.getElementById("warning-container").style.display = "none";
-                    document.getElementById("js-code").style.display = "block";
+                    editor.getWrapperElement().style.display = "block";
+                    document.getElementById("game-container").style.display = "block";
+                    document.getElementById("code").style.borderRight = "1px solid #666";
+                    document.getElementById("slider").style.border = "0";
                 }
-            }
-            else {
-                f.style.height = (window.innerHeight - 50) + "px";
-                jsDiv.style.display = "none";
-                document.getElementById("toggle-console").innerHTML = "Show Console";
-            }
-            document.getElementById("show-js-container").style.top = (window.innerHeight - 45) + "px";
-            document.getElementById("show-js-container").style.right = "5px";
-            
-            //document.getElementById("js-code").style.display = document.getElementById("show-js").checked ? "block" : "none";
 
-            editor.setSize(cmwidth, window.innerHeight - 50);
-            document.getElementById("code").style.height = (window.innerHeight - 50) + "px";
-            document.getElementById("slider").style.height = (window.innerHeight - 50) + "px";
+                document.getElementById("game-container").style.left = (cmwidth + 20) + "px";
+                f.style.width = (window.innerWidth - (cmwidth + 35)) + "px";
+                jsDiv.style.width = f.style.width;            
+
+                document.getElementById("slider").style.left = (cmwidth + 12) + "px";
+
+                if (consoleVisible) { 
+                    f.style.height = (window.innerHeight - 237) + "px";
+                    jsDiv.style.display = "block";
+                    jsDiv.style.top = (window.innerHeight - 227) + "px";
+                    document.getElementById("toggle-console").innerHTML = "Hide Console";
+                    if (currTab == "console") {
+                        document.getElementById("warning-container").style.display = "block";
+                        document.getElementById("js-code").style.display = "none";
+                    }
+                    else {
+                        document.getElementById("warning-container").style.display = "none";
+                        document.getElementById("js-code").style.display = "block";
+                    }
+                }
+                else {
+                    f.style.height = (window.innerHeight - 50) + "px";
+                    jsDiv.style.display = "none";
+                    document.getElementById("toggle-console").innerHTML = "Show Console";
+                }
+                document.getElementById("show-js-container").style.top = (window.innerHeight - 45) + "px";
+                document.getElementById("show-js-container").style.right = "5px";
+                
+                editor.setSize(cmwidth, window.innerHeight - 50);
+                document.getElementById("code").style.height = (window.innerHeight - 50) + "px";
+                document.getElementById("slider").style.height = (window.innerHeight - 50) + "px";
+            }
+            //QB.resize(f.style.width.replace("px", ""), f.style.height.replace("px", ""));
+            QB.resize(f.clientWidth, f.clientHeight);
         }
         window.onresize();
 
@@ -401,6 +502,10 @@
             setTimeout(checkButtonState, 100);
         }
         checkButtonState();
-        
+
+        if (appMode == "auto") {
+            runProgram();
+        }
+
     </script>
 </html>

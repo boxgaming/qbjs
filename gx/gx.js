@@ -572,6 +572,11 @@ var GX = new function() {
 
     // Sound Methods
     // ----------------------------------------------------------------------------
+    function _soundClose (sid) {
+        _sounds[sid-1].pause();
+        _sounds[sid-1] = undefined;
+    }
+
     function _soundLoad (filename) {
         var a = new Audio(filename);
         _sounds.push(a);
@@ -613,7 +618,6 @@ var GX = new function() {
         return _sound_muted;
     }
     
-
     // Entity Functions
     // -----------------------------------------------------------------------------
     function _entityCreate (imageFilename, ewidth, height, seqFrames, uid) {
@@ -2299,6 +2303,7 @@ var GX = new function() {
     this.backgroundHeight = _backgroundHeight;
     this.backgroundClear = _backgroundClear;
 
+    this.soundClose = _soundClose;
     this.soundLoad = _soundLoad;
     this.soundPlay = _soundPlay;
     this.soundRepeat = _soundRepeat;

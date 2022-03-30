@@ -35,13 +35,18 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
     // TODO: adjust for QB
     var atomWords = ['true', 'false', 'nothing', 'empty', 'null'];
 
-    var builtinFuncsWords = ['_alpha', '_alpha32', '_atan2', '_autodisplay', '_blue', '_blue32', '_copyimage', '_delay', '_dest', '_dest', '_display', '_fontwidth',
-                             '_freeimage', '_green', '_green32', '_height', '_instrrev', '_limit', '_keyclear', '_keydown', '_keyhit', '_loadimage',
-                             '_mousebutton', '_mouseinput', '_mousex', '_mousey', '_newimage', '_pi', '_printstring', '_printwidth', '_putimage',
-                             '_red', '_red32', '_rgb', '_rgba', '_rgb32', '_rgba32', '_round', '_screenexists', '_title', '_trim', '_width', 'abs',
-                             'asc', 'atn', 'chr', 'circle', 'cls', 'color', 'command', 'cos', 'exp', 'fix', 'input', 'inkey', 'instr', 'int',
-                             'lbound', 'left', 'lcase', 'len', 'line', 'locate', 'log', 'ltrim', 'mid', 'print', 'pset', 'right', 'rtrim', 'rnd',
-                             'screen', 'sgn', 'sin', 'sleep', 'sqr', 'str', 'swap', 'tan', 'timer', 'ubound', 'ucase', 'val'];
+    var builtinFuncsWords = ['_alpha', '_alpha32', '_atan2', '_autodisplay', '_blue', '_blue32', '_continue', '_copyimage', '_delay', '_dest', '_dest',
+                             '_display', '_fontwidth', '_freeimage', '_green', '_green32', '_height', '_instrrev', '_limit', '_keyclear', '_keydown',
+                             '_keyhit', '_loadimage', '_mousebutton', '_mouseinput', '_mousex', '_mousey', '_newimage', '_pi', '_printstring', '_printwidth',
+                             '_putimage', '_red', '_red32', '_resize', '_resizewidth', '_resizeheight', '_rgb', '_rgba', '_rgb32', '_rgba32', '_round',
+                             '_screenexists', '_sndclose', '_sndopen', '_sndplay', '_sndloop', '_sndpause', '_sndstop', '_sndvol', 
+                             '_title', '_trim', '_width', 'abs', 'asc', 'atn', 'chr', 'circle', 'cls', 'color', 'command', 'cos', 'cvi', 'cvl', 'exp',
+                             'fix', 'input', 'inkey', 'instr', 'int', 'lbound', 'left', 'lcase', 'len', 'line', 'locate', 'log', 'ltrim', 'mid', 'mki', 'mkl',
+                             'print', 'pset', 'right', 'rtrim', 'rnd', 'screen', 'shared', 'sgn', 'sin', 'sleep', 'space', 'sqr', 'str', 'swap', 'tan',
+                             'timer', 'ubound', 'ucase', 'val',
+                             // QBJS-specific
+                             'alert', 'confirm', 'domadd', 'domcontainer', 'domcreate', 'domevent','domget', 'domgetimage', 'domremove', 'prompt',
+                             'storageclear', 'storageget', 'storagekey', 'storagelength', 'storageset', 'storageremove'];
 
     var builtinConsts = ['gx_true', 'gx_false', 'gxevent_init', 'gxevent_update', 'gxevent_drawbg', 'gxevent_drawmap', 'gxevent_drawscreen',
                          'gxevent_mouseinput', 'gxevent_paintbefore', 'gxevent_paintafter', 'gxevent_collision_tile', 'gxevent_collision_entity',
@@ -64,7 +69,8 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                          'gxscene_follow_entity_center_x', 'gxscene_follow_entity_center_y', 'gxscene_follow_entity_center_x_pos',
                          'gxscene_follow_entity_center_x_neg', 'gxscene_constrain_none', 'gxscene_constrain_to_map', 'gxfont_default',
                          'gxfont_default_black', 'gxdevice_keyboard', 'gxdevice_mouse', 'gxdevice_controller', 'gxdevice_button',
-                         'gxdevice_axis', 'gxdevice_wheel', 'gxtype_entity', 'gxtype_font', 'gx_cr', 'gx_lf', 'gx_crlf'];
+                         'gxdevice_axis', 'gxdevice_wheel', 'gxtype_entity', 'gxtype_font', 'gx_cr', 'gx_lf', 'gx_crlf',
+                         'local', 'session'];
 
     var builtinObjsWords = ['\\$if', '\\$end if'];
 

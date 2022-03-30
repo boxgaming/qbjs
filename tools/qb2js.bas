@@ -399,7 +399,11 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
                 If FindMethod(subname, m, "SUB") Then
                     Dim subargs As String
-                    subargs = Mid$(subline, Len(subname) + 2, Len(subline) - Len(subname) - 2)
+                    If subname = subline Then
+                        subargs = ""
+                    Else
+                        subargs = Mid$(subline, Len(subname) + 2, Len(subline) - Len(subname) - 2)
+                    End If
                     js = ConvertSub(m, subargs)
                 Else
                     AddWarning i, "Missing Sub [" + subname + "], ignoring Call command"
@@ -495,7 +499,8 @@ Function ConvertSub$ (m As Method, args As String)
         js = CallMethod(m) + "(" + ConvertPutImage(args) + ");"
 
     Else
-        js = CallMethod(m) + "(" + ConvertExpression(args) + ");"
+        'js = CallMethod(m) + "(" + ConvertExpression(args) + ");"
+        js = CallMethod(m) + "(" + ConvertMethodParams(args) + ");"
     End If
 
     ConvertSub = js
@@ -1147,7 +1152,8 @@ Function ConvertExpression$ (ex As String)
                         js = js + fneg + "QB.arrayValue(" + bvar.jsname + ", [" + ConvertExpression(ex2) + "]).value"
                     End If
                 ElseIf FindMethod(word, m, "FUNCTION") Then
-                    js = js + fneg + "(" + CallMethod(m) + "(" + ConvertExpression(ex2) + "))"
+                    'js = js + fneg + "(" + CallMethod(m) + "(" + ConvertExpression(ex2) + "))"
+                    js = js + fneg + "(" + CallMethod(m) + "(" + ConvertMethodParams(ex2) + "))"
                 Else
                     If _Trim$(word) <> "" Then AddWarning i, "Missing function or array [" + word + "]"
                     ' nested condition
@@ -1162,6 +1168,24 @@ Function ConvertExpression$ (ex As String)
         i = i + 1
     Wend
     ConvertExpression = js
+End Function
+
+' Handle optional parameters
+Function ConvertMethodParams$ (args As String)
+    Dim js As String
+    ReDim params(0) As String
+    Dim argc As Integer
+    argc = ListSplit(args, params())
+    Dim i As Integer
+    For i = 1 To argc
+        If i > 1 Then js = js + ","
+        If _Trim$(params(i)) = "" Then
+            js = js + " undefined"
+        Else
+            js = js + " " + ConvertExpression(params(i))
+        End If
+    Next i
+    ConvertMethodParams = js
 End Function
 
 Function CallMethod$ (m As Method)
@@ -1889,6 +1913,15 @@ Sub AddGXConst (vname As String)
     AddVariable v, globalVars()
 End Sub
 
+Sub AddQBConst (vname As String)
+    Dim v As Variable
+    v.type = "CONST"
+    v.name = vname
+    v.jsname = "QB." + vname
+    v.isConst = True
+    AddVariable v, globalVars()
+End Sub
+
 Sub AddGlobal (vname As String, vtype As String, arraySize As Integer)
     Dim v As Variable
     v.type = vtype
@@ -2433,7 +2466,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Display", False
     AddQBMethod "SUB", "_Display", False
     AddQBMethod "FUNCTION", "_FontWidth", False
-    AddQBMethod "FUNCTION", "_FreeImage", False
+    AddQBMethod "SUB", "_FreeImage", False
     AddQBMethod "FUNCTION", "_Green", False
     AddQBMethod "FUNCTION", "_Green32", False
     AddQBMethod "FUNCTION", "_Height", False
@@ -2454,12 +2487,22 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_PutImage", False
     AddQBMethod "FUNCTION", "_Red", False
     AddQBMethod "FUNCTION", "_Red32", False
+    AddQBMethod "FUNCTION", "_Resize", False
+    AddQBMethod "FUNCTION", "_ResizeHeight", False
+    AddQBMethod "FUNCTION", "_ResizeWidth", False
     AddQBMethod "FUNCTION", "_RGB", False
     AddQBMethod "FUNCTION", "_RGBA", False
     AddQBMethod "FUNCTION", "_RGB32", False
     AddQBMethod "FUNCTION", "_RGBA32", False
     AddQBMethod "FUNCTION", "_Round", False
     AddQBMethod "FUNCTION", "_ScreenExists", False
+    AddQBMethod "SUB", "_SndClose", False
+    AddQBMethod "FUNCTION", "_SndOpen", False
+    AddQBMethod "SUB", "_SndPlay", False
+    AddQBMethod "SUB", "_SndLoop", False
+    AddQBMethod "SUB", "_SndPause", False
+    AddQBMethod "SUB", "_SndStop", False
+    AddQBMethod "SUB", "_SndVol", False
     AddQBMethod "SUB", "_Title", False
     AddQBMethod "FUNCTION", "_Trim", False
     AddQBMethod "FUNCTION", "_Width", False
@@ -2475,6 +2518,8 @@ Sub InitQBMethods
     AddQBMethod "SUB", "Color", False
     AddQBMethod "FUNCTION", "Command$", False
     AddQBMethod "FUNCTION", "Cos", False
+    AddQBMethod "FUNCTION", "Cvi", False
+    AddQBMethod "FUNCTION", "Cvl", False
     AddQBMethod "FUNCTION", "Exp", False
     AddQBMethod "FUNCTION", "Fix", False
     AddQBMethod "SUB", "Input", True
@@ -2490,6 +2535,8 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Log", False
     AddQBMethod "FUNCTION", "LTrim$", False
     AddQBMethod "FUNCTION", "Mid$", False
+    AddQBMethod "FUNCTION", "Mki$", False
+    AddQBMethod "FUNCTION", "Mkl$", False
     AddQBMethod "SUB", "Print", True
     AddQBMethod "SUB", "PSet", False
     AddQBMethod "FUNCTION", "Right$", False
@@ -2499,6 +2546,8 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Sgn", False
     AddQBMethod "FUNCTION", "Sin", False
     AddQBMethod "SUB", "Sleep", True
+    AddQBMethod "FUNCTION", "Space", False
+    AddQBMethod "FUNCTION", "String", False
     AddQBMethod "FUNCTION", "Sqr", False
     AddQBMethod "FUNCTION", "Str$", False
     AddQBMethod "SUB", "Swap", False
@@ -2508,12 +2557,34 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "UCase$", False
     AddQBMethod "FUNCTION", "Val", False
 
+
     ' QBJS-only language features
     ' --------------------------------------------------------------------------------
+    AddQBConst "LOCAL"
+    AddQBConst "SESSION"
+
     AddSystemType "FETCHRESPONSE", "ok:INTEGER,status:INTEGER,statusText:STRING,text:STRING"
     AddQBMethod "FUNCTION", "Fetch", True
     AddQBMethod "FUNCTION", "FromJSON", False
     AddQBMethod "FUNCTION", "ToJSON", False
+
+    AddQBMethod "SUB", "Alert", False
+    AddQBMethod "FUNCTION", "Confirm", False
+    AddQBMethod "SUB", "DomAdd", False
+    AddQBMethod "SUB", "DomCreate", False
+    AddQBMethod "FUNCTION", "DomContainer", False
+    AddQBMethod "FUNCTION", "DomCreate", False
+    AddQBMethod "SUB", "DomEvent", False
+    AddQBMethod "FUNCTION", "DomGet", False
+    AddQBMethod "FUNCTION", "DomGetImage", False
+    AddQBMethod "SUB", "DomRemove", False
+    AddQBMethod "FUNCTION", "Prompt", False
+    AddQBMethod "SUB", "StorageClear", False
+    AddQBMethod "FUNCTION", "StorageGet", False
+    AddQBMethod "FUNCTION", "StorageKey", False
+    AddQBMethod "FUNCTION", "StorageLength", False
+    AddQBMethod "SUB", "StorageSet", False
+    AddQBMethod "SUB", "StorageRemove", False
 End Sub
 
 '$include: '../../gx/gx/gx_str.bm'

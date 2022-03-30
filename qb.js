@@ -2,6 +2,9 @@ var QB = new function() {
     // QB constants
     this.COLUMN_ADVANCE = Symbol("COLUMN_ADVANCE");
     this.PREVENT_NEWLINE = Symbol("PREVENT_NEWLINE");
+    this.LOCAL = Symbol("LOCAL");
+    this.SESSION = Symbol("SESSION");
+
 
     var _fgColor = null; 
     var _bgColor = null; 
@@ -21,7 +24,12 @@ var QB = new function() {
     var _images = {};
     var _activeImage = 0;
     var _nextImageId = 1000;
-    var _lastLimitTime = 0;
+    //var _lastLimitTime = 0;
+    var _resize = false;
+    var _resizeWidth = 0;
+    var _resizeHeight = 0;
+    var _domElements = [];
+    var _domEvents = [];
 
     // Array handling methods
     // ----------------------------------------------------
@@ -75,12 +83,19 @@ var QB = new function() {
         return value;
     };
 
-    this.import = async function(url) {
+
+    this.resize = function(width, height) {
+        _resize = true;
+        _resizeWidth = width;
+        _resizeHeight = height;
+    }
+
+    /*this.import = async function(url) {
         await fetch(url).then(response => response.text()).then((response) => {
             var f = new Function(response);
             f();
         });
-    };
+    };*/
 
     // Process control methods
     // -------------------------------------------
@@ -102,6 +117,7 @@ var QB = new function() {
         _haltedFlag = false;
         _nextImageId = 1000;
         _activeImage = 0;
+        _domInit();
     }
 
     this.running = function() {
@@ -177,7 +193,7 @@ var QB = new function() {
         return 8;
     };
 
-    this.func__FreeImage = function(imageId) {
+    this.sub__FreeImage = function(imageId) {
         _images[imageId] = undefined;
     }
 
@@ -269,7 +285,7 @@ var QB = new function() {
 
     this.func__NewImage = function(iwidth, iheight) {
         var canvas = document.createElement("canvas");
-        canvas.id = "gx-canvas";
+        canvas.id = "qb-canvas-" + _nextImageId;
         canvas.width = iwidth;
         canvas.height = iheight;
         ctx = canvas.getContext("2d");
@@ -398,6 +414,20 @@ var QB = new function() {
         return _color(rgb).r;
     };
 
+    this.func__Resize = function() {
+        var tmp = _resize;
+        _resize = false;
+        return tmp ? -1 : 0;
+    }
+
+    this.func__ResizeHeight = function() {
+        return _resizeHeight;
+    };
+
+    this.func__ResizeWidth = function() {
+        return _resizeWidth;
+    };
+
     this.func__RGB = function(r, g, b) {
         return this.func__RGBA(r, g, b);
     };
@@ -441,7 +471,36 @@ var QB = new function() {
 
     this.func__ScreenExists = function() {
         return true;
-    }
+    };
+
+    this.sub__SndClose = function(sid) {
+        GX.soundClose(sid);
+    };
+
+    this.func__SndOpen = function(filename) {
+        return GX.soundLoad(filename);
+    };
+
+    this.sub__SndPlay = function(sid) {
+        GX.soundPlay(sid);
+    };
+
+    this.sub__SndLoop = function(sid) {
+        GX.soundRepeat(sid);
+    };
+
+    this.sub__SndPause = function(sid) {
+        GX.soundPause(sid);
+    };
+
+    this.sub__SndStop = function(sid) {
+        GX.soundStop(sid);
+    };
+
+    this.sub__SndVol = function(sid, v) {
+        GX.soundVolumne(sid, v);
+    };
+
 
     this.sub__Title = function(title) {
         document.title = title;
@@ -487,11 +546,15 @@ var QB = new function() {
         if (bgColor != undefined) {
             color = _color(bgColor);
         }
-        // TODO: parameter variants
+        
         ctx = _images[_activeImage].ctx;
         ctx.beginPath();
         ctx.fillStyle = color.rgba();
         ctx.fillRect(0, 0, QB.func__Width() , QB.func__Height());
+
+        // reset the text position
+        _locX = 0;
+        _locY = 0;
     };
 
     function _color(c) {
@@ -520,6 +583,24 @@ var QB = new function() {
     this.func_Cos = function(value) {
         return Math.cos(value);
     };
+
+    this.func_Cvi = function(numString) {
+        var result = 0;
+        numString = numString.split("").reverse().join("");
+        for (let i=1;i>=0;i--) {
+            result+=numString.charCodeAt(1-i)<<(8*i);
+        }
+        return result;
+    }
+
+    this.func_Cvl = function(numString) {
+        var result = 0;
+        numString = numString.split("").reverse().join("");
+        for (let i=3;i>=0;i--) {
+            result+=numString.charCodeAt(3-i)<<(8*i);
+        }
+        return result;
+    }
 
     this.func_Exp = function(value) {
         return Math.exp(value);
@@ -749,6 +830,22 @@ var QB = new function() {
       }
     };
 
+    this.func_Mki = function(num) {
+        var ascii = "";
+        for (var i=1; i >= 0; i--) {
+            ascii += String.fromCharCode((num>>(8*i))&255);
+        }
+        return ascii.split("").reverse().join("");
+    };
+
+    this.func_Mkl = function(num) {
+        var ascii = "";
+        for (var i=3; i >= 0; i--) {
+            ascii += String.fromCharCode((num>>(8*i))&255);
+        }
+        return ascii.split("").reverse().join("");
+    };
+
     this.sub_Print = async function(args) {
         // Print called with no arguments
         if (args == undefined || args == null || args.length < 1) {
@@ -892,6 +989,7 @@ var QB = new function() {
             var img = _images[mode];
             if (img && img.canvas) {
                 GX.sceneCreate(img.canvas.width, img.canvas.height);
+                this.sub__PutImage(undefined, undefined, undefined, undefined, undefined, undefined, mode);
             }
         }
         _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0 };
@@ -913,6 +1011,14 @@ var QB = new function() {
         if (value > 0) { return 1; }
         else if (value < 0) { return -1; }
         else { return 0; }
+    };
+
+    this.func_Space = function(ccount) {
+        return QB.func_String(ccount, " ");
+    }
+
+    this.func_String = function(ccount, s) {
+        return "".padStart(ccount, s);
     };
 
     this.func_Sin = function(value) {
@@ -1000,6 +1106,137 @@ var QB = new function() {
 
     this.func_ToJSON = function(a) {
         return JSON.stringify(a);
+    };
+
+    this.sub_Alert = function(text) {
+        alert(text);
+    }
+
+    this.func_Confirm = function(text) {
+        return confirm(text) ? -1 : 0;
+    }
+
+    this.sub_DomAdd = function(e, parent, beforeElement) {
+        if (typeof e == "string") {
+            e = document.getElementById(e);
+        }
+
+        if (parent == undefined || parent == "") {
+            parent = QB.func_DomContainer();    
+        }
+        else if (typeof parent == "string") {
+            parent = document.getElementById(parent);
+        }
+
+        if (beforeElement == undefined || beforeElement == "") {
+            beforeElement = null;
+        }
+        else if (typeof beforeElement == "string") {
+            beforeElement = document.getElementById(beforeElement);
+        }
+        
+        parent.insertBefore(e, beforeElement);
+    };
+
+    this.func_DomCreate = function(etype, parent, content, eid, beforeElement) {
+        var e = document.createElement(etype); 
+        if (eid != undefined && eid != "") {
+            e.id = eid;
+        }
+        e.className = "qbjs";
+        
+        if (content != undefined) {
+            if (e.value != undefined) {
+                e.value = content;
+            }
+            if (e.innerHTML != undefined) {
+                e.innerHTML = content;
+            }
+        }
+
+        _domElements.push(e);
+        QB.sub_DomAdd(e, parent, beforeElement);
+        return e;        
+    };
+
+    this.sub_DomCreate = function(etype, parent, content, eid, beforeElement) {
+        this.func_DomCreate(etype, parent, content, eid, beforeElement);
+    };
+
+    this.sub_DomEvent = function(target, eventType, callbackFn) {
+        if (typeof target == "string") {
+            target = document.getElementById(target);
+        }
+        target.addEventListener(eventType, callbackFn);
+        _domEvents.push({ target: target, eventType: eventType, callbackFn: callbackFn});
+    };
+
+    this.func_DomContainer = function() {
+        return document.getElementById("gx-container");
+    }
+
+    this.func_DomGet = function(eid) {
+        return document.getElementById(eid);
+    };
+
+    this.func_DomGetImage = function(imageId) {
+        return _images[imageId].canvas;
+    };
+
+    this.sub_DomRemove = function(e) {
+        if (typeof e == "string") {
+            e = document.getElementById(e);
+        }
+        if (e != undefined && e != null) {
+            e.remove();
+        }
+    }
+
+    this.func_Prompt = function(text, defaultValue) {
+        return prompt(text, defaultValue);
+    }
+
+    function _storage(stype) {
+        return (stype == QB.SESSION) ? sessionStorage : localStorage;
+    }
+
+    this.sub_StorageClear = function(stype) {
+        _storage(stype).clear();
+    }
+
+    this.func_StorageGet = function(key, stype) {
+        return _storage(stype).getItem(key);
+    }
+
+    this.func_StorageKey = function(idx, stype) {
+        return _storage(stype).key(idx);
+    }
+
+    this.func_StorageLength = function(stype) {
+        return _storage(stype).length;
+    }
+
+    this.sub_StorageSet = function(key, value, stype) {
+        _storage(stype).setItem(key, value);
+    }
+
+    this.sub_StorageRemove = function(key, stype) {
+        _storage(stype).removeItem(key);
+    }
+
+    function _domInit() {
+        //var elements = document.getElementsByClassName("qbjs");
+        //for (var i=0; i < elements.length; i++) {
+        //    elements[i].remove();
+        //}    
+        var e = null;    
+        while (e = _domElements.pop()) {
+            e.remove();
+        }
+
+        while (e = _domEvents.pop()) {
+            e.target.removeEventListener(e.eventType, e.callbackFn);
+        }
     }
 
     function _addInkeyPress(e) {
