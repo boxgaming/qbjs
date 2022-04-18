@@ -1,0 +1,47 @@
+@font-face {
+	font-family: dosvga;
+	src: url(lp-dosvga.ttf);
+}   
+body { 
+	background-color: #000; 
+	font-family: dosvga, Arial, Helvetica, sans-serif;
+	color: #999;
+}
+#gx-container {
+	text-align: center; 
+	position: absolute;
+	left: 0px;
+	top: 0px;
+}
+#gx-footer {
+	margin: 0 auto;
+	background-color: #666;
+	display: flex;
+	justify-content: space-between;
+	width: 600px;
+}
+#gx-link, #gx-fullscreen { 
+	margin: 1px;
+}
+#gx-canvas {
+	border: 1px solid #222;
+	background-color: #000;
+}
+#gx-load-screen {
+	display: block;
+	text-align: center;
+	margin: auto;
+	width: 600px;
+	height: 360px;
+	font-size: 24px;
+	color: #ccc;
+	border: 1px solid #000;
+	text-decoration: none;
+	background-position: center center;
+	background-image: url('play.png');
+	background-repeat: no-repeat;
+	background-color: #444;
+}
+#gx-load-screen:hover {
+	background-color: #555;
+}

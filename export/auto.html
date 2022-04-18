@@ -1,0 +1,25 @@
+<html>
+    <head>
+	    <link rel="stylesheet" href="qbjs.css"></link>
+    </head>
+    <body onload="startProgram()">
+        <div id="gx-container"></div>
+		<div id="gx-footer" style="display:none"></div>
+		&nbsp;
+    </body>
+    <script language="javascript" src="gx/gx.js"></script>
+    <script language="javascript" src="qb.js"></script>
+    <script language="javascript" src="program.js"></script>
+	<script language="javascript">
+		function startProgram() {
+			resizeScreen();
+            __qbjs_run();
+		}
+		function resizeScreen() {
+			var c = document.getElementById("gx-container");
+            c.style.width = window.innerWidth;
+            c.style.height = window.innerHeight;
+			QB.resize(c.clientWidth, c.clientHeight);
+		}
+    </script>
+</html>
