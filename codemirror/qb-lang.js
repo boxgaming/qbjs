@@ -23,8 +23,8 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
     var brakets = new RegExp('^[\\(\\)]');
     var identifiers = new RegExp("^[A-Za-z][_A-Za-z0-9]*");
 
-    var openingKeywords = ['sub','select','while','if','function', 'property', 'with', 'for', 'type'];
-    var middleKeywords = ['else','elseif','case'];
+    var openingKeywords = ['sub','select','while','if','function', 'property', 'with', 'for', 'type\\s'];
+    var middleKeywords = ['else','elseif','case','then'];
     var endKeywords = ['next','loop','wend'];
 
     var wordOperators = wordRegexp(['and', 'or', 'not', 'xor', 'is', 'mod', 'eqv', 'imp']);
@@ -45,8 +45,8 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              'print', 'pset', 'right', 'rtrim', 'rnd', 'screen', 'shared', 'sgn', 'sin', 'sleep', 'space', 'sqr', 'str', 'swap', 'tan',
                              'timer', 'ubound', 'ucase', 'val',
                              // QBJS-specific
-                             'alert', 'confirm', 'domadd', 'domcontainer', 'domcreate', 'domevent','domget', 'domgetimage', 'domremove', 'prompt',
-                             'storageclear', 'storageget', 'storagekey', 'storagelength', 'storageset', 'storageremove'];
+                             'alert', 'confirm', 'domadd', 'domcontainer', 'domcreate', 'domevent','domget', 'domgetimage', 'domremove', 'export', 
+                             'from', 'prompt', 'import', 'storageclear', 'storageget', 'storagekey', 'storagelength', 'storageset', 'storageremove'];
 
     var builtinConsts = ['gx_true', 'gx_false', 'gxevent_init', 'gxevent_update', 'gxevent_drawbg', 'gxevent_drawmap', 'gxevent_drawscreen',
                          'gxevent_mouseinput', 'gxevent_paintbefore', 'gxevent_paintafter', 'gxevent_collision_tile', 'gxevent_collision_entity',
@@ -72,7 +72,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                          'gxdevice_axis', 'gxdevice_wheel', 'gxtype_entity', 'gxtype_font', 'gx_cr', 'gx_lf', 'gx_crlf',
                          'local', 'session'];
 
-    var builtinObjsWords = ['\\$if', '\\$end if'];
+    var builtinObjsWords = ['\\$if', '\\$end if', '\\$touchmouse'];
 
     // TODO: adjust for QB
     var knownProperties = ['description', 'firstindex', 'global', 'helpcontext', 'helpfile', 'ignorecase', 'length', 'number', 'pattern', 'source', 'value', 'count'];

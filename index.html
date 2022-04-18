@@ -1,6 +1,7 @@
 <html>
     <head>
         <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
             @font-face {
                 font-family: dosvga;
@@ -25,7 +26,6 @@
                 top: 10px;
             }
             #code {
-                /*width: 600px;*/
                 margin-bottom: 5px;
                 border: 1px solid #666;
             }
@@ -163,13 +163,31 @@
             #share-dialog a { color: #333; }
             #share-dialog a:hover { color: #000; }
 
+            #logo {
+                position: absolute;
+                right: 1px;
+                top: 1px;
+                cursor: pointer;
+                opacity: 0.5;
+            }
+            #logo:hover { opacity: 1.0; }
         </style>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/codemirror.min.css"></link>
+        <link rel="stylesheet" href="codemirror/codemirror.min.css"></link>
+        <link rel="stylesheet" href="codemirror/dialog.css">
+        <link rel="stylesheet" href="codemirror/matchesonscrollbar.css">
         <link rel="stylesheet" href="codemirror/qb-ide.css"></link>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/codemirror.min.js"></script>
+
+        <script type="text/javascript" src="codemirror/codemirror.min.js"></script>
         <script type="text/javascript" src="codemirror/qb-lang.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/addon/selection/active-line.js"></script>
+        <script type="text/javascript" src="codemirror/active-line.js"></script>
         <script type="text/javascript" src="util/shorty.min.js"></script>
+        <script type="text/javascript" src="util/jszip.min.js"></script>
+        
+        <script type="text/javascript" src="codemirror/dialog.js"></script>
+        <script type="text/javascript" src="codemirror/searchcursor.js"></script>
+        <script type="text/javascript" src="codemirror/search.js"></script>
+        <script type="text/javascript" src="codemirror/annotatescrollbar.js"></script>
+        <script type="text/javascript" src="codemirror/matchesonscrollbar.js"></script>
     </head>
     <body>
         <div id="code-container">
@@ -185,6 +203,7 @@
         <div id="game-container">
             <div id="gx-container">
                 <a href="javascript:runProgram()" id="gx-load-screen">&nbsp;</a>
+                <img id="logo" src="logo.png" onclick="window.open('https://github.com/boxgaming/qbjs/wiki', '_blank')">
             </div>
             <div id="output-container">
                 <div id="tabs">
@@ -195,7 +214,9 @@
                     <div id="js-code"></div>
                 </div>
             </div>
-            <div id="show-js-container"><a id="toggle-console" href="javascript:showConsole()">Show Console</a></div> <!-- <input type="checkbox" id="show-js" onclick="window.onresize()"/> Show Javascript</div> -->
+            <div id="show-js-container">
+                <a id="toggle-console" href="javascript:showConsole()">Show Console</a>
+            </div> 
         </div>
         <div id="gx-footer"></div>
 
@@ -209,14 +230,16 @@
                     <option value="auto">Auto</option>
                 </select>
             </div>
-            <a href="javascript:closeDialog()" style="display:block; float:right; margin-top: 5px">Close</a>
-            <a href="javascript:testShare()" style="display: block; float:right; margin-top: 5px; margin-right: 10px">Test</a>
+            <a id="export-button" href="javascript:exportProgram()" style="display: none; float:left; margin-top: 7px; margin-left: 10px">Export</a>
+            <a href="javascript:closeDialog()" style="display:block; float:right; margin-top: 7px">Close</a>
+            <a href="javascript:testShare()" style="display: block; float:right; margin-top: 7px; margin-right: 10px">Test</a>
         </dialog>
     </body>
     <script language="javascript" src="gx/gx.js"></script>
     <script language="javascript" src="qb.js"></script>
     <script language="javascript" src="qb2js.js"></script>
     <script language="javascript">
+
         var QBCompiler = null; 
         // if code has been passed on the query string load it into the editor
         var qbcode = "";
@@ -236,6 +259,9 @@
                     qbcode = zin.inflate(atob(nv[1]));
                     break;
                 }
+                else if (nv[0] == "code") {
+                    qbcode = LZUTF8.decompress(nv[1], { inputEncoding: "Base64" });
+                }
                 else if (nv[0] == "mode") {
                     appMode = nv[1];
                 }
@@ -252,9 +278,10 @@
             indentUnit: 4,
             value: qbcode,
             module: "qbjs",
-            theme: "lesser-dark",
+            theme: "qbjs",
             height: "auto",
             styleActiveLine: true,
+            smartIndent: false,
             extraKeys: {
                 "Tab": function(cm) {
                     cm.replaceSelection("    ", "end");
@@ -319,7 +346,7 @@
 
         function shareProgram() {
             var zout = new Shorty();
-            var b64 = btoa(zout.deflate(editor.getValue()));
+            var b64 = LZUTF8.compress(editor.getValue(), { outputEncoding: "Base64" });
             var baseUrl = location.href.split('?')[0];
 
             var mode = document.getElementById("share-mode").value;
@@ -328,11 +355,57 @@
             if (mode) {
                 url += "mode=" + mode + "&";
             }
-            url += "qbcode=" + b64;
+            url += "code=" + b64;
             codeShare.value = url;
-            document.getElementById("share-dialog").showModal();
+            var shareDialog = document.getElementById("share-dialog");
+            if (!shareDialog.open) {
+                shareDialog.showModal();
+            }
             codeShare.focus();
             codeShare.select();
+
+            var exportVisible = (mode == "play" || mode == "auto");
+            document.getElementById("export-button").style.display = (exportVisible) ? "block" : "none";
+        }
+
+        async function exportProgram() {
+            var zip = new JSZip();
+
+            var qbCode = editor.getValue();
+            if (!QBCompiler) { QBCompiler = await _QBCompiler(); }
+            var jsCode = "async function __qbjs_run() {\n" + await QBCompiler.compile(qbCode) + "\n}";
+
+            var mode = document.getElementById("share-mode").value;
+            zip.file("index.html", await getFile("export/" + mode + ".html", "text"));
+            zip.file("program.js", jsCode);
+            zip.file("fullscreen.png", await getFile("export/fullscreen.png", "blob"));
+            zip.file("logo.png", await getFile("logo.png", "blob"));
+            zip.file("lp-dosvga.ttf", await getFile("lp-dosvga.ttf", "blob"));
+            zip.file("play.png", await getFile("play.png", "blob"));
+            zip.file("qbjs.css", await getFile("export/qbjs.css", "text"));
+            zip.file("qb.js", await getFile("qb.js", "text"));
+
+            zip.file("gx/gx.js", await getFile("gx/gx.js", "text"));
+            zip.file("gx/__gx_font_default.png", await getFile("gx/__gx_font_default.png", "blob"));
+            zip.file("gx/__gx_font_default_black.png", await getFile("gx/__gx_font_default_black.png", "blob"));
+
+            zip.generateAsync({type:"blob"}).then(function(content) {
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(content);
+                link.download = "program.zip";
+                link.click();
+                link.remove();
+            });
+        }
+
+        async function getFile(path, type, contentType) {
+            var file = await fetch(path);
+            if (type == "text") {
+                return await file.text();
+            }
+            else if (type == "blob") {
+                return await file.blob();
+            }
         }
 
         function testShare() {
@@ -432,6 +505,7 @@
                 document.getElementById("game-container").style.left = "0px";
                 document.getElementById("game-container").style.top = "0px";
                 jsDiv.style.display = "none";
+                document.getElementById("logo").style.display = "none";
             }
             else {
                 var cmwidth = 600;
