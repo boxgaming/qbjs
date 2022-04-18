@@ -90,13 +90,6 @@ var QB = new function() {
         _resizeHeight = height;
     }
 
-    /*this.import = async function(url) {
-        await fetch(url).then(response => response.text()).then((response) => {
-            var f = new Function(response);
-            f();
-        });
-    };*/
-
     // Process control methods
     // -------------------------------------------
     this.halt = function() {
@@ -117,6 +110,9 @@ var QB = new function() {
         _haltedFlag = false;
         _nextImageId = 1000;
         _activeImage = 0;
+        GX._enableTouchMouse(true);
+        GX.registerGameEvents(function(e){});
+        QB.sub_Screen(0);
         _domInit();
     }
 
@@ -549,8 +545,9 @@ var QB = new function() {
         
         ctx = _images[_activeImage].ctx;
         ctx.beginPath();
+        ctx.clearRect(0, 0, QB.func__Width(), QB.func__Height());
         ctx.fillStyle = color.rgba();
-        ctx.fillRect(0, 0, QB.func__Width() , QB.func__Height());
+        ctx.fillRect(0, 0, QB.func__Width(), QB.func__Height());
 
         // reset the text position
         _locX = 0;
@@ -1089,15 +1086,23 @@ var QB = new function() {
 
     // QBJS-only methods
     // ---------------------------------------------------------------------------------
-    this.func_Fetch = async function(url) {
+    this.sub_TouchMouse = function() {
+        GX._enableTouchMouse(true);
+    };
+
+    this.sub_Fetch = async function(url, fetchRes) {
         var response = await fetch(url);
         var responseText = await(response.text());
-        return {
-            ok: response.ok,
-            status: response.status,
-            statusText: response.statusText,
-            text: responseText
-        };
+        fetchRes.ok = response.ok;
+        fetchRes.status = response.status;
+        fetchRes.statusText = response.statusText;
+        fetchRes.text = responseText;
+    };
+
+    this.func_Fetch = async function(url) {
+        var fetchRes = {};
+        QB.fetch(url, fetchRes);
+        return fetchRes;
     };
 
     this.func_FromJSON = function(s) {
@@ -1304,7 +1309,7 @@ var QB = new function() {
                 keyCode = k.c;
             }
         }
-        else if (shift) {
+        else if (shift && (e.code != "ShiftLeft") && (e.code != "ShiftRight")) {
             keyCode = k.s;
         }
         else {
