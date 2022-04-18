@@ -54,30 +54,28 @@ ReDim Shared As Variable typeVars(0)
 ReDim Shared As Variable globalVars(0)
 ReDim Shared As Variable localVars(0)
 ReDim Shared As CodeLine warnings(0)
+ReDim Shared As String exportLines(0)
+ReDim Shared As Method exportMethods(0)
+Dim Shared modLevel As Integer
 Dim Shared As String currentMethod
+Dim Shared As String currentModule
 Dim Shared As Integer programMethods
-
 
 ' Only execute the conversion from the native version if we have been passed the
 ' source file to convert on the command line
 If Command$ <> "" Then
-    QBToJS Command$, FILE
+    QBToJS Command$, FILE, ""
     PrintJS
     System
 End If
 
-Sub QBToJS (source As String, sourceType As Integer)
-    ' Reset data structures
-    ReDim As CodeLine lines(0)
-    ReDim As CodeLine jsLines(0)
-    ReDim As Method methods(0)
-    ReDim As QBType types(0)
-    ReDim As Variable typeVars(0)
-    ReDim As Variable globalVars(0)
-    ReDim As Variable localVars(0)
-    ReDim As CodeLine warnings(0)
-    currentMethod = ""
-    programMethods = 0
+'$Include: 'qb2js.bi'
+
+Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
+    currentModule = moduleName
+
+    ResetDataStructures
+    If moduleName = "" Then ReDim As CodeLine jsLines(0)
 
     If sourceType = FILE Then
         ReadLinesFromFile source
@@ -102,13 +100,16 @@ Sub QBToJS (source As String, sourceType As Integer)
     If selfConvert Then
         AddJSLine 0, "async function _QBCompiler() {"
 
+    ElseIf moduleName <> "" Then
+        AddJSLine 0, "async function _" + moduleName + "() {"
+
     ElseIf sourceType = FILE Then
         AddJSLine 0, "async function init() {"
     End If
 
-    If Not selfConvert Then AddJSLine 0, "QB.start();"
+    If Not selfConvert And moduleName = "" Then AddJSLine 0, "QB.start();"
 
-    If Not selfConvert Then
+    If Not selfConvert And moduleName = "" Then
         Dim mtest As Method
         If FindMethod("GXOnGameEvent", mtest, "SUB") Then
             AddJSLine 0, "    await GX.registerGameEvents(sub_GXOnGameEvent);"
@@ -121,13 +122,14 @@ Sub QBToJS (source As String, sourceType As Integer)
     AddJSLine 0, ""
 
     ConvertLines 1, MainEnd, ""
-    If Not selfConvert And Not isGX Then AddJSLine 0, "QB.end();"
+    If Not selfConvert And Not isGX And moduleName = "" Then AddJSLine 0, "QB.end();"
+    'If Not selfConvert And moduleName = "" Then End
     ConvertMethods
 
 
     If selfConvert Then
         AddJSLine 0, "this.compile = async function(src) {"
-        AddJSLine 0, "   await sub_QBToJS(src, TEXT);"
+        AddJSLine 0, "   await sub_QBToJS(src, TEXT, '');"
         AddJSLine 0, "   var js = '';"
         AddJSLine 0, "   for (var i=1; i<= QB.func_UBound(jsLines); i++) {"
         AddJSLine 0, "      js += QB.arrayValue(jsLines, [i]).value.text + '\n';"
@@ -146,9 +148,28 @@ Sub QBToJS (source As String, sourceType As Integer)
         AddJSLine 0, "};"
         AddJSLine 0, "return this;"
         AddJSLine 0, "}"
+
+    ElseIf moduleName <> "" Then
+        AddJSLine 0, "return this;"
+        AddJSLine 0, "}"
+        AddJSLine 0, "const " + moduleName + " = await _" + moduleName + "();"
+
     ElseIf sourceType = FILE Then
         AddJSLine 0, "};"
     End If
+End Sub
+
+Sub ResetDataStructures
+    ReDim As CodeLine lines(0)
+    ReDim As Method methods(0)
+    ReDim As QBType types(0)
+    ReDim As Variable typeVars(0)
+    ReDim As Variable globalVars(0)
+    ReDim As Variable localVars(0)
+    ReDim As CodeLine warnings(0)
+    If modLevel = 0 Then ReDim As Method exportMethods(0)
+    currentMethod = ""
+    programMethods = 0
 End Sub
 
 Sub PrintJS
@@ -211,6 +232,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
             End If
         Else
             If first = "CONST" Then
+                ' TODO: add support for comma-separated list of constants
                 js = "const " + parts(2) + " = " + ConvertExpression(Join(parts(), 4, -1, " ")) + ";"
                 AddConst parts(2)
 
@@ -313,7 +335,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 js = "QB.halt(); return;"
 
             ElseIf first = "$IF" Then
-                If UBound(parts) = 2 Then
+                If UBound(parts) > 1 Then
                     If UCase$(parts(2)) = "JS" Or UCase$(parts(2)) = "JAVASCRIPT" Then
                         jsMode = True
                         js = "//-------- BEGIN JS native code block --------"
@@ -382,6 +404,53 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 qbtype.name = UCase$(parts(2))
                 AddType qbtype
                 currType = UBound(types)
+
+            ElseIf first = "EXPORT" Then
+                If c > 1 Then
+                    Dim exportedItem As String
+                    Dim em As Method
+                    Dim ev As Variable
+                    'Dim etype As String
+                    Dim exportName As String
+                    exportName = ""
+                    If c > 3 Then exportName = parts(4)
+
+                    If FindMethod(parts(2), em, "SUB") Then
+                        exportedItem = em.jsname
+                        If exportName = "" Then exportName = parts(2)
+                        em.name = exportName
+                        AddExportMethod em, currentModule + ".", True
+                        exportName = "sub_" + exportName
+
+                    ElseIf FindMethod(parts(2), em, "FUNCTION") Then
+                        exportedItem = em.jsname
+                        If exportName = "" Then exportName = parts(2)
+                        em.name = exportName
+                        AddExportMethod em, currentModule + ".", True
+                        exportName = "func_" + exportName
+
+                    ElseIf FindVariable(parts(2), ev, False) Then
+                        exportedItem = ev.jsname
+                        If exportName = "" Then exportName = parts(2)
+                        ev.name = exportName
+
+                    ElseIf FindVariable(parts(2), ev, True) Then
+                        exportedItem = ev.jsname
+                        If exportName = "" Then exportName = parts(2)
+                        ev.name = exportName
+                    Else
+                        ' TODO: add warning
+                        _Continue
+                    End If
+
+                    Dim esize
+                    esize = UBound(exportLines) + 1
+                    ReDim _Preserve exportLines(esize) As String
+                    exportLines(esize) = "this." + exportName + " = " + exportedItem + ";"
+                    _Continue
+                Else
+                    ' TODO: add syntax warning
+                End If
 
             ElseIf first = "CALL" Then
                 Dim subline As String
@@ -782,7 +851,9 @@ Function ConvertInput$ (m As Method, args As String)
     js = "var " + vname + " = new Array(" + Str$(UBound(vars)) + ");" + GX_LF
     js = js + CallMethod(m) + "(" + vname + ", " + preventNewline + ", " + addQuestionPrompt + ", " + prompt + ");" + GX_LF
     For i = 1 To UBound(vars)
-        js = js + ConvertExpression(vars(i)) + " = " + vname + "[" + Str$(i - 1) + "];" + GX_LF
+        If Not StartsWith(_Trim$(vars(i)), "#") Then ' special case to prevent file references from being output during self-compilation
+            js = js + ConvertExpression(vars(i)) + " = " + vname + "[" + Str$(i - 1) + "];" + GX_LF
+        End If
     Next i
     ConvertInput = js
 End Function
@@ -1250,6 +1321,24 @@ Function FindMethod (mname As String, m As Method, t As String)
             Exit For
         End If
     Next i
+    If Not found Then
+        For i = 1 To UBound(exportMethods)
+            If exportMethods(i).uname = _Trim$(UCase$(RemoveSuffix(mname))) And exportMethods(i).type = t Then
+                found = True
+                m.line = exportMethods(i).line
+                m.type = exportMethods(i).type
+                m.returnType = exportMethods(i).returnType
+                m.name = exportMethods(i).name
+                m.jsname = exportMethods(i).jsname
+                m.uname = exportMethods(i).uname
+                m.argc = exportMethods(i).argc
+                m.args = exportMethods(i).args
+                m.sync = exportMethods(i).sync
+                Exit For
+            End If
+        Next i
+
+    End If
     FindMethod = found
 End Function
 
@@ -1316,6 +1405,12 @@ Sub ConvertMethods ()
             AddJSLine lastLine, "}"
         End If
     Next i
+
+    ' Add the export lines
+    For i = 1 To UBound(exportLines)
+        AddJSLine i, exportLines(i)
+    Next i
+    ReDim exportLines(0) As String
 End Sub
 
 
@@ -1354,6 +1449,26 @@ Sub ReadLinesFromText (sourceText As String)
 
             Dim lineIndex As Integer
             lineIndex = i
+
+            If StartsWith(UCase$(fline), "IMPORT") Then
+                ReDim parts(0) As String
+                Dim pcount As Integer
+                pcount = SLSplit(fline, parts(), False)
+                If pcount = 4 Then
+                    Dim moduleName As String
+                    Dim sourceUrl As String
+                    Dim importRes As FetchResponse
+                    moduleName = parts(2)
+                    sourceUrl = Mid$(parts(4), 2, Len(parts(4)) - 2)
+                    Fetch sourceUrl, importRes
+                    modLevel = modLevel + 1
+                    QBToJS importRes.text, TEXT, moduleName
+                    ResetDataStructures
+                    modLevel = modLevel - 1
+
+                    _Continue
+                End If
+            End If
 
             While EndsWith(fline, "_")
                 i = i + 1
@@ -1820,6 +1935,10 @@ Sub PrintTypes
     Next i
 End Sub
 
+Function CopyMethod (fromMethod As Method, toMethod As Method)
+    toMethod.type = fromMethod.type
+    toMethod.name = fromMethod.name
+End Function
 
 Sub AddMethod (m As Method, prefix As String, sync As Integer)
     Dim mcount: mcount = UBound(methods) + 1
@@ -1831,6 +1950,22 @@ Sub AddMethod (m As Method, prefix As String, sync As Integer)
     m.jsname = MethodJS(m, prefix)
     m.sync = sync
     methods(mcount) = m
+End Sub
+
+Sub AddExportMethod (m As Method, prefix As String, sync As Integer)
+    Dim mcount: mcount = UBound(exportMethods) + 1
+    ReDim _Preserve As Method exportMethods(mcount)
+    If m.type = "FUNCTION" Then
+        m.returnType = DataTypeFromName(m.name)
+    End If
+    m.uname = UCase$(RemoveSuffix(m.name))
+    m.jsname = MethodJS(m, prefix)
+    m.uname = UCase$(prefix) + m.uname
+    m.name = prefix + m.name
+    m.sync = sync
+    exportMethods(mcount) = m
+
+    AddJSLine 0, "////: " + m.name + " : " + m.uname + " : " + m.jsname
 End Sub
 
 Sub AddGXMethod (mtype As String, mname As String, sync As Integer)
@@ -2565,8 +2700,11 @@ Sub InitQBMethods
 
     AddSystemType "FETCHRESPONSE", "ok:INTEGER,status:INTEGER,statusText:STRING,text:STRING"
     AddQBMethod "FUNCTION", "Fetch", True
+    AddQBMethod "SUB", "Fetch", True
     AddQBMethod "FUNCTION", "FromJSON", False
     AddQBMethod "FUNCTION", "ToJSON", False
+
+    AddQBMethod "SUB", "$TouchMouse", False
 
     AddQBMethod "SUB", "Alert", False
     AddQBMethod "FUNCTION", "Confirm", False
