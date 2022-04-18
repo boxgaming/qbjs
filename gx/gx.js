@@ -27,7 +27,9 @@ var GX = new function() {
     var _mouseButtons = [0,0,0];
     var _mousePos = { x:0, y:0 };
     var _mouseInputFlag = false;
-
+    var _touchInputFlag = false;
+    var _touchPos = { x:0, y:0 };
+    var _bindTouchToMouse = false;
 
     // javascript specific
     var _onGameEvent = null;
@@ -101,34 +103,63 @@ var GX = new function() {
     
             _canvas.addEventListener("mousedown", function(event) {
                 event.preventDefault();
-                if (event.button == 0) {
-                    _mouseButtons[0] = -1;
-                }
-                else if (event.button == 1) {
-                    _mouseButtons[2] = -1;
-                }
-                else if (event.button == 2) {
-                    _mouseButtons[1] = -1;
-                }
+                if (event.button == 0) { _mouseButtons[0] = -1; }
+                else if (event.button == 1) { _mouseButtons[2] = -1; }
+                else if (event.button == 2) { _mouseButtons[1] = -1; }
                 _mouseInputFlag = true;
             });
     
             _canvas.addEventListener("mouseup", function(event) {
-                if (event.button == 0) {
-                    _mouseButtons[0] = 0;
-                }
-                else if (event.button == 1) {
-                    _mouseButtons[2] = 0;
-                }
-                else if (event.button == 2) {
-                    _mouseButtons[1] = 0;
-                }
+                if (event.button == 0) { _mouseButtons[0] = 0; }
+                else if (event.button == 1) { _mouseButtons[2] = 0; }
+                else if (event.button == 2) { _mouseButtons[1] = 0; }
                 _mouseInputFlag = true;
             });
 
             _canvas.addEventListener("contextmenu", function(event) {
                 event.preventDefault();
             });
+
+            _canvas.addEventListener("touchmove", function(event) {
+                event.preventDefault();
+                var touch = event.touches[0];
+                var rect = event.target.getBoundingClientRect();
+                _touchPos.x = touch.pageX - rect.x;
+                _touchPos.y = touch.pageY - rect.y;
+                //alert(_touchPos.x + "," + _touchPos.y);
+                _touchInputFlag = true;
+                if (_bindTouchToMouse) {
+                    //_mousePos.x = event.offsetX;
+                    //_mousePos.y = event.offsetY;
+                    _mousePos = _touchPos;
+                    _mouseInputFlag = true;
+                }
+            });
+    
+            _canvas.addEventListener("touchstart", function(event) {
+                //alert("touchstart");
+                event.preventDefault();
+                var touch = event.touches[0];
+                var rect = event.target.getBoundingClientRect();
+                _touchPos.x = touch.pageX - rect.x;
+                _touchPos.y = touch.pageY - rect.y;
+                _touchInputFlag = true;
+                if (_bindTouchToMouse) {
+                    _mouseButtons[0] = -1;
+                    _mouseInputFlag = true;
+                    _mousePos = _touchPos;
+                }
+            });
+    
+            _canvas.addEventListener("touchend", function(event) {
+                event.preventDefault();
+                _touchInputFlag = false;
+                if (_bindTouchToMouse) {
+                    _mouseButtons[0] = 0;
+                    _mouseInputFlag = true;
+                }
+            });
+
 /*
             _canvas.addEventListener("keyup", function(event) { 
                 if (_scene.active) {
@@ -155,6 +186,8 @@ var GX = new function() {
         _scene.height = height;
         _scene.x = 0;
         _scene.y = 0;
+        _scene.scaleX = 1;
+        _scene.scaleY = 1;
         _scene.frame = 0;
         _scene.followMode = GX.SCENE_FOLLOW_NONE;
         _scene.followEntity = null;
@@ -163,6 +196,29 @@ var GX = new function() {
 
         _customEvent(GX.EVENT_INIT);
     }
+
+    // Resize the scene with the specified pixel width and height.
+    function _sceneResize(swidth, sheight) {
+        _scene.width = swidth;
+        _scene.height = sheight;
+        _canvas.width = _scene.width;
+        _canvas.height = _scene.height;
+        _updateSceneSize();
+    }
+
+    function _updateSceneSize() {
+        if (GX.tilesetWidth() < 1 || GX.tilesetHeight() < 1) { return; }
+    
+        if (GX.mapIsometric()) {
+            _scene.columns = Math.floor(GX.sceneWidth() / GX.tilesetWidth())
+            _scene.rows = GX.sceneHeight() / (GX.tilesetWidth() / 4)
+        }
+        else {
+            _scene.columns = Math.floor(GX.sceneWidth() / GX.tilesetWidth());
+            _scene.rows = Math.floor(GX.sceneHeight() / GX.tilesetHeight());
+        }
+    }
+
 
     // Scale the scene by the specified scale factor.
     function _sceneScale (scale) {
@@ -1790,11 +1846,11 @@ var GX = new function() {
     }
 
     function _mouseX() {
-        return _mousePos.x;
+        return Math.round(_mousePos.x / _scene.scaleX);
     }
 
     function _mouseY() {
-        return _mousePos.y;
+        return Math.round(_mousePos.y / _scene.scaleY);
     };
 
     function _mouseButton(button) {
@@ -1802,6 +1858,24 @@ var GX = new function() {
         //       it is not needed for GX - only to support QB64
         return _mouseButtons[button-1];
     };
+
+    function _touchInput() {
+        var ti = _touchInputFlag;
+        _touchInputFlag = false;
+        return ti;
+    }
+
+    function _touchX() {
+        return _touchPos.x;
+    }
+
+    function _touchY() {
+        return _touchPos.y;
+    }
+    
+    function _enableTouchMouse(enable) {
+        _bindTouchToMouse = enable;
+    }
 
     function _deviceInputTest(di) {
         if (di.deviceType = GX.DEVICE_KEYBOARD) {
@@ -2286,6 +2360,7 @@ var GX = new function() {
     this.sceneHeight = _sceneHeight;
     this.sceneMove = _sceneMove;
     this.scenePos = _scenePos;
+    this.sceneResize = _sceneResize;
     this.sceneRows = _sceneRows;
     this.sceneScale = _sceneScale;
     this.sceneStart = _sceneStart;
@@ -2372,6 +2447,10 @@ var GX = new function() {
     this.mouseY = _mouseY;
     this.mouseButton = _mouseButton;
     this._mouseInput = _mouseInput;
+    this.touchX = _touchX;
+    this.touchY = _touchY
+    this._touchInput = _touchInput;
+    this._enableTouchMouse = _enableTouchMouse;
 
     this.debug = _debug;
     this.debugFont = _debugFont;
