@@ -24,7 +24,7 @@ var QB = new function() {
     var _images = {};
     var _activeImage = 0;
     var _nextImageId = 1000;
-    //var _lastLimitTime = 0;
+    var _lastLimitTime = new Date();
     var _resize = false;
     var _resizeWidth = 0;
     var _resizeHeight = 0;
@@ -245,8 +245,8 @@ var QB = new function() {
     };
 
     this.sub__Limit = async function(fps) {
-        // TODO: need to incorporate time elapsed from last loop invocation
-        await GX.sleep(1000/fps);
+        await GX.sleep((1000 - (new Date() - _lastLimitTime))/fps);
+        _lastLimitTime = new Date();
     };
 
     this.func__LoadImage = async function(url) {
@@ -719,7 +719,6 @@ var QB = new function() {
     };
 
     this.sub_Circle = function(step, x, y, radius, color, startAngle, endAngle, aspect) {
-        // TODO: implement aspect parameter
 
         var screen = _images[_activeImage];
         if (color == undefined) {
@@ -742,7 +741,15 @@ var QB = new function() {
         var ctx = screen.ctx;
         ctx.strokeStyle = color.rgba();
         ctx.beginPath();
-        ctx.arc(x, y, radius, startAngle, endAngle);
+        if (aspect == undefined) {
+            ctx.arc(x, y, radius, -endAngle, -startAngle);
+        } else {
+            if (aspect < 1) {
+                ctx.ellipse(x, y, radius, radius * aspect, 0, -endAngle, -startAngle); 
+            } else {
+                ctx.ellipse(x, y, radius / aspect, radius, 0, -endAngle, -startAngle); 
+            }
+        }
         ctx.stroke();
     };
 
