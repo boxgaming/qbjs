@@ -719,7 +719,6 @@ var QB = new function() {
     };
 
     this.sub_Circle = function(step, x, y, radius, color, startAngle, endAngle, aspect) {
-        // TODO: implement aspect parameter
 
         var screen = _images[_activeImage];
         if (color == undefined) {
@@ -742,7 +741,15 @@ var QB = new function() {
         var ctx = screen.ctx;
         ctx.strokeStyle = color.rgba();
         ctx.beginPath();
-        ctx.arc(x, y, radius, startAngle, endAngle);
+        if (aspect == undefined) {
+            ctx.arc(x, y, radius, -endAngle, -startAngle);
+        } else {
+            if (aspect < 1) {
+                ctx.ellipse(x, y, radius, radius * aspect, 0, -endAngle, -startAngle); 
+            } else {
+                ctx.ellipse(x, y, radius / aspect, radius, 0, -endAngle, -startAngle); 
+            }
+        }
         ctx.stroke();
     };
 
