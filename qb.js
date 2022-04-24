@@ -1099,7 +1099,13 @@ var QB = new function() {
     };
 
     this.func_Val = function(value) {
-        return Number(value);
+        var ret;
+        if (value.substring(0, 2) != "&H") {
+            ret = Number(value);
+        } else {
+            ret = parseInt(value.slice(2), 16);
+        }
+        return ret;
     };
 
 
