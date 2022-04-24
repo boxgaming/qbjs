@@ -41,7 +41,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              '_putimage', '_red', '_red32', '_resize', '_resizewidth', '_resizeheight', '_rgb', '_rgba', '_rgb32', '_rgba32', '_round',
                              '_screenexists', '_sndclose', '_sndopen', '_sndplay', '_sndloop', '_sndpause', '_sndstop', '_sndvol', 
                              '_title', '_trim', '_width', 'abs', 'asc', 'atn', 'chr', 'circle', 'cls', 'color', 'command', 'cos', 'cvi', 'cvl', 'exp',
-                             'fix', 'input', 'inkey', 'instr', 'int', 'lbound', 'left', 'lcase', 'len', 'line', 'locate', 'log', 'ltrim', 'mid', 'mki', 'mkl',
+                             'fix', 'hex', 'input', 'inkey', 'instr', 'int', 'lbound', 'left', 'lcase', 'len', 'line', 'locate', 'log', 'ltrim', 'mid', 'mki', 'mkl',
                              'point', 'print', 'pset', 'right', 'rtrim', 'rnd', 'screen', 'shared', 'sgn', 'sin', 'sleep', 'space', 'sqr', 'str', 'swap', 'tan',
                              'timer', 'ubound', 'ucase', 'val',
                              // QBJS-specific

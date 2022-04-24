@@ -2515,6 +2515,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "Cvl",   False);
    await sub_AddQBMethod( "FUNCTION",  "Exp",   False);
    await sub_AddQBMethod( "FUNCTION",  "Fix",   False);
+   await sub_AddQBMethod( "FUNCTION",  "Hex$",   False);
    await sub_AddQBMethod( "SUB",  "Input",   True);
    await sub_AddQBMethod( "FUNCTION",  "InKey$",   False);
    await sub_AddQBMethod( "FUNCTION",  "InStr",   False);

@@ -620,6 +620,10 @@ var QB = new function() {
         return Math.floor(QB.func__Height() / QB.func__FontHeight());
     }
 
+    this.func_Hex = function(n) {
+        return n.toString(16).toUpperCase();
+    };
+
     this.sub_Input = async function(values, preventNewline, addQuestionPrompt, prompt) {
         _lastKey = null;
         var str = "";
