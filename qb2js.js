@@ -2530,6 +2530,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "Mid$",   False);
    await sub_AddQBMethod( "FUNCTION",  "Mki$",   False);
    await sub_AddQBMethod( "FUNCTION",  "Mkl$",   False);
+   await sub_AddQBMethod( "FUNCTION",  "Point",   False);
    await sub_AddQBMethod( "SUB",  "Print",   True);
    await sub_AddQBMethod( "SUB",  "PSet",   False);
    await sub_AddQBMethod( "FUNCTION",  "Right$",   False);

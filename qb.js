@@ -850,6 +850,14 @@ var QB = new function() {
         return ascii.split("").reverse().join("");
     };
 
+    this.func_Point = function(x, y) {
+        var screen = _images[_activeImage];
+        var ctx = screen.ctx;
+        var data = ctx.getImageData(x, y, 1, 1).data;
+        var ret = QB.func__RGBA(data[0],data[1],data[2],data[3]);
+        return ret;
+    };
+
     this.sub_Print = async function(args) {
         // Print called with no arguments
         if (args == undefined || args == null || args.length < 1) {
