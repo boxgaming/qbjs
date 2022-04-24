@@ -389,14 +389,21 @@ var QB = new function() {
         destImage.ctx.drawImage(sourceImage.canvas, sx1, sy1, sw, sh, dx1, dy1, dw, dh);
     }
 
-    function _rgb(r, g, b) {
+    function _rgb(r, g, b, a) {
+        if (a == undefined) { a = 1; }
         return {
             r: r,
             g: g,
             b: b,
-            a: 1,
-            rgb: function() { return "rgb(" + this.r + "," + this.g + "," + this.b + ")"; },
-            rgba: function() { return "rgba(" + this.r + "," + this.g + "," + this.b + "," + this.a + ")"; }
+            a: a,
+            rgba: function() { return "rgba(" + this.r + "," + this.g + "," + this.b + "," + this.a + ")"; },
+            toString: function() {
+                var hexrep = ("00" + r.toString(16)).slice(-2) +
+                             ("00" + g.toString(16)).slice(-2) +
+                             ("00" + b.toString(16)).slice(-2) +
+                             ("00" + a.toString(16)).slice(-2);
+                return parseInt(hexrep, 16).toString();
+            }
         }
     }
 
@@ -451,14 +458,7 @@ var QB = new function() {
         }
         a = a / 255;
 
-        return {
-            r: r,
-            g: g,
-            b: b,
-            a: a,
-            rgb: function() { return "rgb(" + this.r + "," + this.g + "," + this.b + ")"; },
-            rgba: function() { return "rgba(" + this.r + "," + this.g + "," + this.b + "," + this.a + ")"; }
-        }
+        return _rgb(r, g, b, a);
     }
 
     this.func__Round = function(value) {
