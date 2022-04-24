@@ -2515,6 +2515,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "Cvl",   False);
    await sub_AddQBMethod( "FUNCTION",  "Exp",   False);
    await sub_AddQBMethod( "FUNCTION",  "Fix",   False);
+   await sub_AddQBMethod( "FUNCTION",  "Hex$",   False);
    await sub_AddQBMethod( "SUB",  "Input",   True);
    await sub_AddQBMethod( "FUNCTION",  "InKey$",   False);
    await sub_AddQBMethod( "FUNCTION",  "InStr",   False);
@@ -2530,6 +2531,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "Mid$",   False);
    await sub_AddQBMethod( "FUNCTION",  "Mki$",   False);
    await sub_AddQBMethod( "FUNCTION",  "Mkl$",   False);
+   await sub_AddQBMethod( "FUNCTION",  "Point",   False);
    await sub_AddQBMethod( "SUB",  "Print",   True);
    await sub_AddQBMethod( "SUB",  "PSet",   False);
    await sub_AddQBMethod( "FUNCTION",  "Right$",   False);

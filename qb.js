@@ -620,6 +620,10 @@ var QB = new function() {
         return Math.floor(QB.func__Height() / QB.func__FontHeight());
     }
 
+    this.func_Hex = function(n) {
+        return n.toString(16).toUpperCase();
+    };
+
     this.sub_Input = async function(values, preventNewline, addQuestionPrompt, prompt) {
         _lastKey = null;
         var str = "";
@@ -848,6 +852,14 @@ var QB = new function() {
             ascii += String.fromCharCode((num>>(8*i))&255);
         }
         return ascii.split("").reverse().join("");
+    };
+
+    this.func_Point = function(x, y) {
+        var screen = _images[_activeImage];
+        var ctx = screen.ctx;
+        var data = ctx.getImageData(x, y, 1, 1).data;
+        var ret = QB.func__RGBA(data[0],data[1],data[2],data[3]);
+        return ret;
     };
 
     this.sub_Print = async function(args) {
@@ -1087,7 +1099,13 @@ var QB = new function() {
     };
 
     this.func_Val = function(value) {
-        return Number(value);
+        var ret;
+        if (value.substring(0, 2) == "&H") {
+            ret = parseInt(value.slice(2), 16);
+        } else {
+            ret = Number(value);
+        }
+        return ret;
     };
 
 

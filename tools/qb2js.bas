@@ -2657,6 +2657,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Cvl", False
     AddQBMethod "FUNCTION", "Exp", False
     AddQBMethod "FUNCTION", "Fix", False
+    AddQBMethod "FUNCTION", "Hex$", False
     AddQBMethod "SUB", "Input", True
     AddQBMethod "FUNCTION", "InKey$", False
     AddQBMethod "FUNCTION", "InStr", False
@@ -2672,6 +2673,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Mid$", False
     AddQBMethod "FUNCTION", "Mki$", False
     AddQBMethod "FUNCTION", "Mkl$", False
+    AddQBMethod "FUNCTION", "Point", False
     AddQBMethod "SUB", "Print", True
     AddQBMethod "SUB", "PSet", False
     AddQBMethod "FUNCTION", "Right$", False
