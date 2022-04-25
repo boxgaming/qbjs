@@ -469,7 +469,7 @@ var ConvertSub = null;
    }
    if ( m.name == "Line" ) {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertLine(  args))  +");";
-   } else if ( m.name == "PSet"  ||  m.name == "Circle" ) {
+   } else if ( m.name == "PSet"  ||  m.name == "Circle"  ||  m.name == "PReset" ) {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertPSet(  args))  +");";
    } else if ( m.name == "_PrintString" ) {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertPrintString(  args))  +");";

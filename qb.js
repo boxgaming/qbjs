@@ -860,9 +860,21 @@ var QB = new function() {
 
     this.func_Point = function(x, y) {
         var screen = _images[_activeImage];
-        var ctx = screen.ctx;
-        var data = ctx.getImageData(x, y, 1, 1).data;
-        var ret = QB.func__RGBA(data[0],data[1],data[2],data[3]);
+        if ( y == undefined ) {
+            if (x == 0) { 
+                ret = screen.lastX;
+            } else if (x == 1) {
+                ret = screen.lastY;
+            } else if (x == 2) { // until Window is implemented.
+                ret = screen.lastX;
+            } else if (x == 3) { // until Window is implemented.
+                ret = screen.lastY;
+            }
+        } else {
+            var ctx = screen.ctx;
+            var data = ctx.getImageData(x, y, 1, 1).data;
+            var ret = QB.func__RGBA(data[0],data[1],data[2],data[3]);
+        }
         return ret;
     };
 
