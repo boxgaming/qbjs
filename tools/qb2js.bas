@@ -2673,6 +2673,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Mid$", False
     AddQBMethod "FUNCTION", "Mki$", False
     AddQBMethod "FUNCTION", "Mkl$", False
+     AddQBMethod "FUNCTION", "Oct$", False
     AddQBMethod "FUNCTION", "Point", False
     AddQBMethod "SUB", "Print", True
     AddQBMethod "SUB", "PSet", False
