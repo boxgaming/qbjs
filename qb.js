@@ -860,6 +860,7 @@ var QB = new function() {
 
     this.func_Point = function(x, y) {
         var screen = _images[_activeImage];
+        var ret = 0;
         if ( y == undefined ) {
             if (x == 0) { 
                 ret = screen.lastX;
@@ -873,9 +874,25 @@ var QB = new function() {
         } else {
             var ctx = screen.ctx;
             var data = ctx.getImageData(x, y, 1, 1).data;
-            var ret = QB.func__RGBA(data[0],data[1],data[2],data[3]);
+            ret = QB.func__RGBA(data[0],data[1],data[2],data[3]);
         }
         return ret;
+    };
+
+    this.sub_PReset = function(sstep, x, y, color) {
+        var screen = _images[_activeImage];
+        if (color == undefined) {
+            color = _bgColor;
+        }
+        else {
+            color = _color(color);
+        }
+        if (sstep) {
+            x = screen.lastX + x;
+            y = screen.lastY + y;
+        }
+        screen.lastX = x;
+        screen.lastY = y;
     };
 
     this.sub_Print = async function(args) {
