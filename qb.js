@@ -1108,6 +1108,8 @@ var QB = new function() {
             ret = parseInt(value.slice(2), 16);
         } else if (value.substring(0, 2) == "&O") {
             ret = parseInt(value.slice(2), 8);
+        } else if (value.substring(0, 2) == "&B") {
+            ret = parseInt(value.slice(2), 2);
         } else {
             ret = Number(value);
         }
