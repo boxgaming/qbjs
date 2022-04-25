@@ -854,6 +854,10 @@ var QB = new function() {
         return ascii.split("").reverse().join("");
     };
 
+    this.func_Oct = function(n) {
+        return n.toString(8).toUpperCase();
+    };
+
     this.func_Point = function(x, y) {
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
@@ -1102,6 +1106,10 @@ var QB = new function() {
         var ret;
         if (value.substring(0, 2) == "&H") {
             ret = parseInt(value.slice(2), 16);
+        } else if (value.substring(0, 2) == "&O") {
+            ret = parseInt(value.slice(2), 8);
+        } else if (value.substring(0, 2) == "&B") {
+            ret = parseInt(value.slice(2), 2);
         } else {
             ret = Number(value);
         }
