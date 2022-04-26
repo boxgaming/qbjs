@@ -28,8 +28,6 @@ var QB = new function() {
     var _resize = false;
     var _resizeWidth = 0;
     var _resizeHeight = 0;
-    var _domElements = [];
-    var _domEvents = [];
 
     // Array handling methods
     // ----------------------------------------------------
@@ -113,13 +111,17 @@ var QB = new function() {
         GX._enableTouchMouse(true);
         GX.registerGameEvents(function(e){});
         QB.sub_Screen(0);
-        _domInit();
     }
 
     this.running = function() {
         return _runningFlag;
     };
 
+    // Access methods for std libraries
+    // --------------------------------------------
+    this.getImage = function(imageId) {
+        return _images[imageId];
+    };
 
     // Extended QB64 Keywords
     // --------------------------------------------
@@ -561,7 +563,15 @@ var QB = new function() {
         else if (!isNaN(c) && c >= 0 && c <= 255) {
             return _colormap[parseInt(c)];
         }
-        return QB.func__RGB(0,0,0);
+        else if (!isNaN(c) && c > 255) {
+            var hexstr = QB.func_Right('00000000' + c.toString(16), 8);
+            var a = hexstr.slice(0, 2);
+            var r = hexstr.slice(2, 4);
+            var g = hexstr.slice(4, 6);
+            var b = hexstr.slice(6, 8);
+            return _rgb(parseInt(r, 16), parseInt(g, 16), parseInt(b, 16), parseInt(a, 16)/255);
+        }
+        return _rgb(0,0,0);
     }
 
     this.sub_Color = function(fg, bg) {
@@ -1250,137 +1260,6 @@ var QB = new function() {
     this.func_ToJSON = function(a) {
         return JSON.stringify(a);
     };
-
-    this.sub_Alert = function(text) {
-        alert(text);
-    }
-
-    this.func_Confirm = function(text) {
-        return confirm(text) ? -1 : 0;
-    }
-
-    this.sub_DomAdd = function(e, parent, beforeElement) {
-        if (typeof e == "string") {
-            e = document.getElementById(e);
-        }
-
-        if (parent == undefined || parent == "") {
-            parent = QB.func_DomContainer();    
-        }
-        else if (typeof parent == "string") {
-            parent = document.getElementById(parent);
-        }
-
-        if (beforeElement == undefined || beforeElement == "") {
-            beforeElement = null;
-        }
-        else if (typeof beforeElement == "string") {
-            beforeElement = document.getElementById(beforeElement);
-        }
-        
-        parent.insertBefore(e, beforeElement);
-    };
-
-    this.func_DomCreate = function(etype, parent, content, eid, beforeElement) {
-        var e = document.createElement(etype); 
-        if (eid != undefined && eid != "") {
-            e.id = eid;
-        }
-        e.className = "qbjs";
-        
-        if (content != undefined) {
-            if (e.value != undefined) {
-                e.value = content;
-            }
-            if (e.innerHTML != undefined) {
-                e.innerHTML = content;
-            }
-        }
-
-        _domElements.push(e);
-        QB.sub_DomAdd(e, parent, beforeElement);
-        return e;        
-    };
-
-    this.sub_DomCreate = function(etype, parent, content, eid, beforeElement) {
-        this.func_DomCreate(etype, parent, content, eid, beforeElement);
-    };
-
-    this.sub_DomEvent = function(target, eventType, callbackFn) {
-        if (typeof target == "string") {
-            target = document.getElementById(target);
-        }
-        target.addEventListener(eventType, callbackFn);
-        _domEvents.push({ target: target, eventType: eventType, callbackFn: callbackFn});
-    };
-
-    this.func_DomContainer = function() {
-        return document.getElementById("gx-container");
-    }
-
-    this.func_DomGet = function(eid) {
-        return document.getElementById(eid);
-    };
-
-    this.func_DomGetImage = function(imageId) {
-        return _images[imageId].canvas;
-    };
-
-    this.sub_DomRemove = function(e) {
-        if (typeof e == "string") {
-            e = document.getElementById(e);
-        }
-        if (e != undefined && e != null) {
-            e.remove();
-        }
-    }
-
-    this.func_Prompt = function(text, defaultValue) {
-        return prompt(text, defaultValue);
-    }
-
-    function _storage(stype) {
-        return (stype == QB.SESSION) ? sessionStorage : localStorage;
-    }
-
-    this.sub_StorageClear = function(stype) {
-        _storage(stype).clear();
-    }
-
-    this.func_StorageGet = function(key, stype) {
-        return _storage(stype).getItem(key);
-    }
-
-    this.func_StorageKey = function(idx, stype) {
-        return _storage(stype).key(idx);
-    }
-
-    this.func_StorageLength = function(stype) {
-        return _storage(stype).length;
-    }
-
-    this.sub_StorageSet = function(key, value, stype) {
-        _storage(stype).setItem(key, value);
-    }
-
-    this.sub_StorageRemove = function(key, stype) {
-        _storage(stype).removeItem(key);
-    }
-
-    function _domInit() {
-        //var elements = document.getElementsByClassName("qbjs");
-        //for (var i=0; i < elements.length; i++) {
-        //    elements[i].remove();
-        //}    
-        var e = null;    
-        while (e = _domElements.pop()) {
-            e.remove();
-        }
-
-        while (e = _domEvents.pop()) {
-            e.target.removeEventListener(e.eventType, e.callbackFn);
-        }
-    }
 
     function _addInkeyPress(e) {
         var shift = e.getModifierState("Shift");

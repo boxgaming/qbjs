@@ -180,8 +180,9 @@
         <script type="text/javascript" src="codemirror/codemirror.min.js"></script>
         <script type="text/javascript" src="codemirror/qb-lang.js"></script>
         <script type="text/javascript" src="codemirror/active-line.js"></script>
-        <script type="text/javascript" src="util/shorty.min.js"></script>
         <script type="text/javascript" src="util/jszip.min.js"></script>
+        <script type="text/javascript" src="util/lzutf8.js"></script>
+        <script type="text/javascript" src="util/shorty.min.js"></script>
         
         <script type="text/javascript" src="codemirror/dialog.js"></script>
         <script type="text/javascript" src="codemirror/searchcursor.js"></script>
@@ -398,7 +399,7 @@
             });
         }
 
-        async function getFile(path, type, contentType) {
+        async function getFile(path, type) {
             var file = await fetch(path);
             if (type == "text") {
                 return await file.text();

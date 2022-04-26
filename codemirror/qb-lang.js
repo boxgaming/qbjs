@@ -45,8 +45,9 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              'oct', 'paint', 'point', 'preset', 'print', 'pset', 'right', 'rtrim', 'rnd', 'screen', 'shared', 'sgn', 'sin', 'sleep', 'space', 'sqr', 'str', 'swap', 'tan',
                              'timer', 'ubound', 'ucase', 'val',
                              // QBJS-specific
-                             'alert', 'confirm', 'domadd', 'domcontainer', 'domcreate', 'domevent','domget', 'domgetimage', 'domremove', 'export', 
-                             'from', 'prompt', 'import', 'storageclear', 'storageget', 'storagekey', 'storagelength', 'storageset', 'storageremove'];
+                             'export', 'import']
+                             //'alert', 'confirm', 'domadd', 'domcontainer', 'domcreate', 'domevent','domget', 'domgetimage', 'domremove', 'export', 
+                             //'from', 'prompt', 'import', 'storageclear', 'storageget', 'storagekey', 'storagelength', 'storageset', 'storageremove'];
 
     var builtinConsts = ['gx_true', 'gx_false', 'gxevent_init', 'gxevent_update', 'gxevent_drawbg', 'gxevent_drawmap', 'gxevent_drawscreen',
                          'gxevent_mouseinput', 'gxevent_paintbefore', 'gxevent_paintafter', 'gxevent_collision_tile', 'gxevent_collision_entity',
