@@ -868,12 +868,114 @@ var QB = new function() {
         return n.toString(8).toUpperCase();
     };
 
-    this.func_Point = function(x, y) {
+    this.sub_Paint = function(sstep, startX, startY, fillColor, borderColor) {
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
-        var data = ctx.getImageData(x, y, 1, 1).data;
-        var ret = QB.func__RGBA(data[0],data[1],data[2],data[3]);
+        var data = ctx.getImageData(0, 0, screen.canvas.width, screen.canvas.height).data;
+        ctx.beginPath();
+
+        var x0 = startX;
+        var y0 = startY;
+
+        if (sstep) {
+            x0 = screen.lastX + x0;
+            y0 = screen.lastY + y0;
+        }
+
+        var pixelStack = [[Math.floor(x0), Math.floor(y0)]];
+
+        while (pixelStack.length) {
+            var newPos, x, y, pixelIndex, flagLeft, flagRight;
+            newPos = pixelStack.pop();
+            x = newPos[0];
+            y = newPos[1];
+            pixelIndex = (y * screen.canvas.width + x) * 4;
+
+            while ((y-- >= 0) && checkPixel(data, pixelIndex, fillColor, borderColor)) {
+                pixelIndex -= screen.canvas.width * 4;
+            }
+            pixelIndex += screen.canvas.width * 4;
+            ++y;
+
+            flagLeft = false;
+            flagRight = false;
+            while ((y++ < screen.canvas.height - 1) && checkPixel(data, pixelIndex, fillColor, borderColor)) {
+                ctx.fillStyle = fillColor.rgba();
+                ctx.fillRect(x, y, 1, 1);
+                data[pixelIndex] = fillColor.r;
+                data[pixelIndex+1] = fillColor.g;
+                data[pixelIndex+2] = fillColor.b;
+                data[pixelIndex+3] = fillColor.a;
+                if (x > 0) {
+                    if (checkPixel(data, pixelIndex - 4, fillColor, borderColor)) {
+                        if (!flagLeft) {
+                            pixelStack.push([x - 1, y]);
+                            flagLeft = true;
+                        }
+                    } else if (flagLeft) {
+                        flagLeft = false;
+                    }
+                }
+                if (x < screen.canvas.width - 1) {
+                    if (checkPixel(data, pixelIndex + 4, fillColor, borderColor)) {
+                        if (!flagRight) {
+                            pixelStack.push([x + 1, y]);
+                            flagRight = true;
+                        }
+                    } else if (flagRight) {
+                        flagRight = false;
+                    }
+                }
+                pixelIndex += screen.canvas.width * 4;
+            }
+        }
+    };
+
+    function checkPixel(dat, p, c1, c2) {
+        var r = dat[p];
+        var g = dat[p+1];	
+        var b = dat[p+2];
+        //var a = dat[p+3];
+        if ((r == c1.r) && (g == c1.g) && (b == c1.b)) { return false; }
+        if ((r == c2.r) && (g == c2.g) && (b == c2.b)) { return false; }
+        return true;
+    }
+
+    this.func_Point = function(x, y) {
+        var screen = _images[_activeImage];
+        var ret = 0;
+        if ( y == undefined ) {
+            if (x == 0) { 
+                ret = screen.lastX;
+            } else if (x == 1) {
+                ret = screen.lastY;
+            } else if (x == 2) { // until Window is implemented.
+                ret = screen.lastX;
+            } else if (x == 3) { // until Window is implemented.
+                ret = screen.lastY;
+            }
+        } else {
+            var ctx = screen.ctx;
+            var data = ctx.getImageData(x, y, 1, 1).data;
+            ret = QB.func__RGBA(data[0],data[1],data[2],data[3]);
+        }
         return ret;
+    };
+
+    this.sub_PReset = function(sstep, x, y, color) {
+        var screen = _images[_activeImage];
+        if (color == undefined) {
+            color = _bgColor;
+        }
+        else {
+            color = _color(color);
+        }
+        if (sstep) {
+            x = screen.lastX + x;
+            y = screen.lastY + y;
+        }
+        screen.lastX = x;
+        screen.lastY = y;
     };
 
     this.sub_Print = async function(args) {
