@@ -563,7 +563,15 @@ var QB = new function() {
         else if (!isNaN(c) && c >= 0 && c <= 255) {
             return _colormap[parseInt(c)];
         }
-        return QB.func__RGB(0,0,0);
+        else if (!isNaN(c) && c > 255) {
+            var hexstr = QB.func_Right('00000000' + c.toString(16), 8);
+            var a = hexstr.slice(0, 2);
+            var r = hexstr.slice(2, 4);
+            var g = hexstr.slice(4, 6);
+            var b = hexstr.slice(6, 8);
+            return _rgb(parseInt(r, 16), parseInt(g, 16), parseInt(b, 16), parseInt(a, 16)/255);
+        }
+        return _rgb(0,0,0);
     }
 
     this.sub_Color = function(fg, bg) {
