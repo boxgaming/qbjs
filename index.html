@@ -399,7 +399,7 @@
             });
         }
 
-        async function getFile(path, type, contentType) {
+        async function getFile(path, type) {
             var file = await fetch(path);
             if (type == "text") {
                 return await file.text();
