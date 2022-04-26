@@ -1085,6 +1085,8 @@ var ConvertExpression = null;
                js =  js +" ** ";
             } else if ( word == ">"  ||  word == ">="  ||  word == "<"  ||  word == "<=" ) {
                js =  js +" "  + word +" ";
+            } else if ((await func_StartsWith(  word,  "&H"))  || (await func_StartsWith(  word,  "&O"))  || (await func_StartsWith(  word,  "&B")) ) {
+               js =  js +" QB.func_Val('"  + word +"') ";
             } else {
                if ((await func_FindVariable(  word,   bvar,   False)) ) {
                   js =  js +" "  + bvar.jsname;

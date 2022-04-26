@@ -1178,6 +1178,10 @@ Function ConvertExpression$ (ex As String)
                     js = js + " ** "
                 ElseIf word = ">" Or word = ">=" Or word = "<" Or word = "<=" Then
                     js = js + " " + word + " "
+
+                ElseIf StartsWith(word, "&H") Or StartsWith(word, "&O") Or StartsWith(word, "&B") Then
+                    js = js + " QB.func_Val('" + word + "') "
+
                 Else
                     If FindVariable(word, bvar, False) Then
                         js = js + " " + bvar.jsname
