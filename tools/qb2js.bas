@@ -336,7 +336,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
             ElseIf first = "$IF" Then
                 If UBound(parts) > 1 Then
-                    If UCase$(parts(2)) = "JS" Or UCase$(parts(2)) = "JAVASCRIPT" Then
+                    If UCase$(parts(2)) = "JAVASCRIPT" Then
                         jsMode = True
                         js = "//-------- BEGIN JS native code block --------"
                     End If
@@ -407,46 +407,14 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
             ElseIf first = "EXPORT" Then
                 If c > 1 Then
-                    Dim exportedItem As String
-                    Dim em As Method
-                    Dim ev As Variable
-                    'Dim etype As String
-                    Dim exportName As String
-                    exportName = ""
-                    If c > 3 Then exportName = parts(4)
+                    Dim exparts(0) As String
+                    Dim excount As Integer
+                    excount = ListSplit(Join(parts(), 2, -1, " "), exparts())
 
-                    If FindMethod(parts(2), em, "SUB") Then
-                        exportedItem = em.jsname
-                        If exportName = "" Then exportName = parts(2)
-                        em.name = exportName
-                        AddExportMethod em, currentModule + ".", True
-                        exportName = "sub_" + exportName
-
-                    ElseIf FindMethod(parts(2), em, "FUNCTION") Then
-                        exportedItem = em.jsname
-                        If exportName = "" Then exportName = parts(2)
-                        em.name = exportName
-                        AddExportMethod em, currentModule + ".", True
-                        exportName = "func_" + exportName
-
-                    ElseIf FindVariable(parts(2), ev, False) Then
-                        exportedItem = ev.jsname
-                        If exportName = "" Then exportName = parts(2)
-                        ev.name = exportName
-
-                    ElseIf FindVariable(parts(2), ev, True) Then
-                        exportedItem = ev.jsname
-                        If exportName = "" Then exportName = parts(2)
-                        ev.name = exportName
-                    Else
-                        ' TODO: add warning
-                        _Continue
-                    End If
-
-                    Dim esize
-                    esize = UBound(exportLines) + 1
-                    ReDim _Preserve exportLines(esize) As String
-                    exportLines(esize) = "this." + exportName + " = " + exportedItem + ";"
+                    Dim exi As Integer
+                    For exi = 1 To excount
+                        ParseExport exparts(exi)
+                    Next exi
                     _Continue
                 Else
                     ' TODO: add syntax warning
@@ -520,6 +488,62 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
     Next i
 
+End Sub
+
+Sub ParseExport (s As String)
+    Dim exportedItem As String
+    Dim ef As Method
+    Dim es As Method
+    Dim ev As Variable
+    Dim exportName As String
+    Dim c As Integer
+    Dim parts(0) As String
+    c = SLSplit(s, parts(), False)
+
+    If FindMethod(parts(1), es, "SUB") Then
+        If c > 2 Then
+            exportName = parts(3)
+        Else
+            exportName = parts(1)
+        End If
+        exportedItem = es.jsname
+        es.name = exportName
+        AddExportMethod es, currentModule + ".", True
+        exportName = "sub_" + exportName
+        RegisterExport exportName, exportedItem
+    End If
+
+    If FindMethod(parts(1), ef, "FUNCTION") Then
+        If c > 2 Then
+            exportName = parts(3)
+        Else
+            exportName = parts(1)
+        End If
+        exportedItem = ef.jsname
+        ef.name = exportName
+        AddExportMethod ef, currentModule + ".", True
+        exportName = "func_" + exportName
+        RegisterExport exportName, exportedItem
+    End If
+
+    'If FindVariable(parts(1), ev, False) Then
+    '    exportedItem = ev.jsname
+    '    If exportName = "" Then exportName = parts(1)
+    '    ev.name = exportName
+
+    'ElseIf FindVariable(parts(1), ev, True) Then
+    '    exportedItem = ev.jsname
+    '    If exportName = "" Then exportName = parts(1)
+    '    ev.name = exportName
+    'End If
+
+End Sub
+
+Sub RegisterExport (exportName As String, exportedItem As String)
+    Dim esize
+    esize = UBound(exportLines) + 1
+    ReDim _Preserve exportLines(esize) As String
+    exportLines(esize) = "this." + exportName + " = " + exportedItem + ";"
 End Sub
 
 Function ConvertSub$ (m As Method, args As String)
@@ -1417,6 +1441,7 @@ End Sub
 Sub ReadLinesFromFile (filename As String)
     Dim fline As String
     Dim lineIndex As Integer
+    Dim rawJS
     Open filename For Input As #1
     Do Until EOF(1)
         Line Input #1, fline
@@ -1430,7 +1455,7 @@ Sub ReadLinesFromFile (filename As String)
                 fline = Left$(fline, Len(fline) - 1) + nextLine
             Wend
 
-            ReadLine lineIndex, fline
+            rawJS = ReadLine(lineIndex, fline, rawJS)
         End If
     Loop
     Close #1
@@ -1438,6 +1463,7 @@ End Sub
 
 Sub ReadLinesFromText (sourceText As String)
     ReDim As String sourceLines(0)
+    Dim rawJS
     Dim lcount As Integer
     Dim i As Integer
     lcount = Split(sourceText, GX_LF, sourceLines())
@@ -1477,12 +1503,12 @@ Sub ReadLinesFromText (sourceText As String)
                 fline = Left$(fline, Len(fline) - 1) + nextLine
             Wend
 
-            ReadLine i, fline
+            rawJS = ReadLine(i, fline, rawJS)
         End If
     Next i
 End Sub
 
-Sub ReadLine (lineIndex As Integer, fline As String)
+Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
     ' Step 1: Remove any comments from the line
     Dim quoteDepth As Integer
     quoteDepth = 0
@@ -1503,13 +1529,37 @@ Sub ReadLine (lineIndex As Integer, fline As String)
         End If
     Next i
 
-    If _Trim$(fline) = "" Then Exit Sub
+    ReadLine = rawJS
 
-    ' Step 2: Determine whether this line contains a single line if/then or if/then/else statement
+    If _Trim$(fline) = "" Then Exit Function
+
+
     Dim word As String
     Dim words(0) As String
     Dim wcount As Integer
     wcount = SLSplit(fline, words(), False)
+
+    ' Step 2: Determine whether native js is being included
+    If rawJS Then
+        AddLine lineIndex, fline
+        Exit Function
+    End If
+    If UCase$(words(1)) = "$IF" And wcount > 1 Then
+        If UCase$(words(2)) = "JAVASCRIPT" Then
+            rawJS = True
+            AddLine lineIndex, fline
+            ReadLine = rawJS
+            Exit Function
+        End If
+    End If
+    If UCase$(words(1)) = "$END" Then
+        If rawJS Then rawJS = Not rawJS
+        AddLine lineIndex, fline
+        ReadLine = rawJS
+        Exit Function
+    End If
+
+    ' Step 3: Determine whether this line contains a single line if/then or if/then/else statement
     Dim As Integer ifIdx, thenIdx, elseIdx
     For i = 1 To wcount
         word = UCase$(words(i))
@@ -1532,10 +1582,11 @@ Sub ReadLine (lineIndex As Integer, fline As String)
             AddSubLines lineIndex, Join(words(), thenIdx + 1, -1, " ")
         End If
         AddLine lineIndex, "End If"
+
     Else
         AddSubLines lineIndex, fline
     End If
-End Sub
+End Function
 
 Sub AddSubLines (lineIndex As Integer, fline As String)
     Dim quoteDepth As Integer
@@ -1565,10 +1616,18 @@ End Sub
 Sub FindMethods
     Dim i As Integer
     Dim pcount As Integer
+    Dim rawJS As Integer
     ReDim As String parts(0)
     For i = 1 To UBound(lines)
         pcount = Split(lines(i).text, " ", parts())
         Dim word As String: word = UCase$(parts(1))
+
+
+        If word = "$IF" And pcount > 1 Then
+            If UCase$(parts(2)) = "JAVASCRIPT" Then rawJS = True
+        End If
+        If word = "$END" And rawJS Then rawJS = False
+        If rawJS Then _Continue
 
         If word = "FUNCTION" Or word = "SUB" Then
 
@@ -1965,7 +2024,7 @@ Sub AddExportMethod (m As Method, prefix As String, sync As Integer)
     m.sync = sync
     exportMethods(mcount) = m
 
-    AddJSLine 0, "////: " + m.name + " : " + m.uname + " : " + m.jsname
+    'AddJSLine 0, "////: " + m.name + " : " + m.uname + " : " + m.jsname
 End Sub
 
 Sub AddGXMethod (mtype As String, mname As String, sync As Integer)
@@ -2709,23 +2768,6 @@ Sub InitQBMethods
 
     AddQBMethod "SUB", "$TouchMouse", False
 
-    AddQBMethod "SUB", "Alert", False
-    AddQBMethod "FUNCTION", "Confirm", False
-    AddQBMethod "SUB", "DomAdd", False
-    AddQBMethod "SUB", "DomCreate", False
-    AddQBMethod "FUNCTION", "DomContainer", False
-    AddQBMethod "FUNCTION", "DomCreate", False
-    AddQBMethod "SUB", "DomEvent", False
-    AddQBMethod "FUNCTION", "DomGet", False
-    AddQBMethod "FUNCTION", "DomGetImage", False
-    AddQBMethod "SUB", "DomRemove", False
-    AddQBMethod "FUNCTION", "Prompt", False
-    AddQBMethod "SUB", "StorageClear", False
-    AddQBMethod "FUNCTION", "StorageGet", False
-    AddQBMethod "FUNCTION", "StorageKey", False
-    AddQBMethod "FUNCTION", "StorageLength", False
-    AddQBMethod "SUB", "StorageSet", False
-    AddQBMethod "SUB", "StorageRemove", False
 End Sub
 
 '$include: '../../gx/gx/gx_str.bm'
