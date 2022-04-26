@@ -906,7 +906,6 @@ var QB = new function() {
                 data[pixelIndex+1] = fillColor.g;
                 data[pixelIndex+2] = fillColor.b;
                 data[pixelIndex+3] = fillColor.a;
-
                 if (x > 0) {
                     if (checkPixel(data, pixelIndex - 4, fillColor, borderColor)) {
                         if (!flagLeft) {
@@ -917,7 +916,6 @@ var QB = new function() {
                         flagLeft = false;
                     }
                 }
-				
                 if (x < screen.canvas.width - 1) {
                     if (checkPixel(data, pixelIndex + 4, fillColor, borderColor)) {
                         if (!flagRight) {
@@ -928,7 +926,6 @@ var QB = new function() {
                         flagRight = false;
                     }
                 }
-				
                 pixelIndex += screen.canvas.width * 4;
             }
         }
@@ -939,8 +936,8 @@ var QB = new function() {
         var g = dat[p+1];	
         var b = dat[p+2];
         //var a = dat[p+3];
-		if ((r == c1.r) && (g == c1.g) && (b == c1.b)) { return false; }
-		if ((r == c2.r) && (g == c2.g) && (b == c2.b)) { return false; }
+        if ((r == c1.r) && (g == c1.g) && (b == c1.b)) { return false; }
+        if ((r == c2.r) && (g == c2.g) && (b == c2.b)) { return false; }
         return true;
     }
 
