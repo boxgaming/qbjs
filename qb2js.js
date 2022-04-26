@@ -469,7 +469,7 @@ var ConvertSub = null;
    }
    if ( m.name == "Line" ) {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertLine(  args))  +");";
-   } else if ( m.name == "PSet"  ||  m.name == "Circle"  ||  m.name == "PReset" ) {
+   } else if ( m.name == "PSet"  ||  m.name == "Circle"  ||  m.name == "PReset"  ||  m.name == "Paint" ) {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertPSet(  args))  +");";
    } else if ( m.name == "_PrintString" ) {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertPrintString(  args))  +");";
@@ -2532,6 +2532,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "Mki$",   False);
    await sub_AddQBMethod( "FUNCTION",  "Mkl$",   False);
    await sub_AddQBMethod( "FUNCTION",  "Oct$",   False);
+   await sub_AddQBMethod( "SUB",  "Paint",   False);
    await sub_AddQBMethod( "FUNCTION",  "Point",   False);
    await sub_AddQBMethod( "SUB",  "PReset",   False);
    await sub_AddQBMethod( "SUB",  "Print",   True);

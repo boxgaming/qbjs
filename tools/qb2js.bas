@@ -546,7 +546,7 @@ Function ConvertSub$ (m As Method, args As String)
     If m.name = "Line" Then
         js = CallMethod(m) + "(" + ConvertLine(args) + ");"
 
-    ElseIf m.name = "PSet" Or m.name = "Circle" Or m.name = "PReset" Then
+    ElseIf m.name = "PSet" Or m.name = "Circle" Or m.name = "PReset" Or m.name = "Paint" Then
         js = CallMethod(m) + "(" + ConvertPSet(args) + ");"
 
     ElseIf m.name = "_PrintString" Then
@@ -2674,6 +2674,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Mki$", False
     AddQBMethod "FUNCTION", "Mkl$", False
     AddQBMethod "FUNCTION", "Oct$", False
+    AddQBMethod "SUB", "Paint", False
     AddQBMethod "FUNCTION", "Point", False
     AddQBMethod "SUB", "PReset", False
     AddQBMethod "SUB", "Print", True
