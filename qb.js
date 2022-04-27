@@ -5,7 +5,7 @@ var QB = new function() {
     this.LOCAL = Symbol("LOCAL");
     this.SESSION = Symbol("SESSION");
 
-
+    var _strokeThickness = 2;
     var _fgColor = null; 
     var _bgColor = null; 
     var _colormap = [];
@@ -769,6 +769,7 @@ var QB = new function() {
         screen.lastY = y;
 
         var ctx = screen.ctx;
+        ctx.lineWidth = _strokeThickness;
         ctx.strokeStyle = color.rgba();
         ctx.beginPath();
         if (aspect == undefined) {
@@ -817,6 +818,7 @@ var QB = new function() {
         screen.lastY = ey;
 
         var ctx = screen.ctx;
+        ctx.lineWidth = _strokeThickness;
 
         if (style == "B") {
             ctx.strokeStyle = color.rgba();
@@ -956,8 +958,9 @@ var QB = new function() {
         var g = dat[p+1];	
         var b = dat[p+2];
         //var a = dat[p+3];
-        if ((r == c1.r) && (g == c1.g) && (b == c1.b)) { return false; }
-        if ((r == c2.r) && (g == c2.g) && (b == c2.b)) { return false; }
+        var thresh = 2;
+        if ((Math.abs(r - c1.r) < thresh) && (Math.abs(g - c1.g) < thresh) && (Math.abs(b - c1.b) < thresh)) { return false; }
+        if ((Math.abs(r - c2.r) < thresh) && (Math.abs(g - c2.g) < thresh) && (Math.abs(b - c2.b) < thresh)) { return false; }
         return true;
     }
 
