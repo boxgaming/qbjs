@@ -2500,6 +2500,8 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "_Blue",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Blue32",   False);
    await sub_AddQBMethod( "FUNCTION",  "_CopyImage",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Cosh",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_D2R",   False);
    await sub_AddQBMethod( "SUB",  "_Delay",   True);
    await sub_AddQBMethod( "FUNCTION",  "_Dest",   False);
    await sub_AddQBMethod( "SUB",  "_Dest",   False);
@@ -2525,6 +2527,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "SUB",  "_PrintString",   False);
    await sub_AddQBMethod( "FUNCTION",  "_PrintWidth",   False);
    await sub_AddQBMethod( "SUB",  "_PutImage",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_R2D",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Red",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Red32",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Resize",   False);
@@ -2536,6 +2539,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "_RGBA32",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Round",   False);
    await sub_AddQBMethod( "FUNCTION",  "_ScreenExists",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Sinh",   False);
    await sub_AddQBMethod( "SUB",  "_SndClose",   False);
    await sub_AddQBMethod( "FUNCTION",  "_SndOpen",   False);
    await sub_AddQBMethod( "SUB",  "_SndPlay",   False);
