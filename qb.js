@@ -163,6 +163,10 @@ var QB = new function() {
         return destImageId;
     };
 
+    this.func__Cosh = function(x) {
+        return (Math.exp(x)+Math.exp(-x))/2;
+    };
+
     this.sub__Delay = async function(seconds) {
         await GX.sleep(seconds*1000);
     };
@@ -469,6 +473,10 @@ var QB = new function() {
 
     this.func__ScreenExists = function() {
         return true;
+    };
+
+    this.func__Sinh = function(x) {
+        return (Math.exp(x)-Math.exp(-x))/2;
     };
 
     this.sub__SndClose = function(sid) {
@@ -880,6 +888,10 @@ var QB = new function() {
         if (sstep) {
             x0 = screen.lastX + x0;
             y0 = screen.lastY + y0;
+        }
+
+        if (borderColor == undefined) {
+            borderColor = fillColor;
         }
 
         var pixelStack = [[Math.floor(x0), Math.floor(y0)]];

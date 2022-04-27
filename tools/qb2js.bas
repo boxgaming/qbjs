@@ -2658,6 +2658,8 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Blue", False
     AddQBMethod "FUNCTION", "_Blue32", False
     AddQBMethod "FUNCTION", "_CopyImage", False
+    AddQBMethod "FUNCTION", "_Cosh", False
+    AddQBMethod "FUNCTION", "_D2R", False
     AddQBMethod "SUB", "_Delay", True
     AddQBMethod "FUNCTION", "_Dest", False
     AddQBMethod "SUB", "_Dest", False
@@ -2683,6 +2685,7 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_PrintString", False
     AddQBMethod "FUNCTION", "_PrintWidth", False
     AddQBMethod "SUB", "_PutImage", False
+    AddQBMethod "FUNCTION", "_R2D", False
     AddQBMethod "FUNCTION", "_Red", False
     AddQBMethod "FUNCTION", "_Red32", False
     AddQBMethod "FUNCTION", "_Resize", False
@@ -2694,6 +2697,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_RGBA32", False
     AddQBMethod "FUNCTION", "_Round", False
     AddQBMethod "FUNCTION", "_ScreenExists", False
+    AddQBMethod "FUNCTION", "_Sinh", False
     AddQBMethod "SUB", "_SndClose", False
     AddQBMethod "FUNCTION", "_SndOpen", False
     AddQBMethod "SUB", "_SndPlay", False
