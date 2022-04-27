@@ -167,6 +167,10 @@ var QB = new function() {
         return (Math.exp(x)+Math.exp(-x))/2;
     };
 
+    this.func__D2R = function(x) {
+        return x*Math.PI/180;
+    };
+
     this.sub__Delay = async function(seconds) {
         await GX.sleep(seconds*1000);
     };
@@ -412,6 +416,10 @@ var QB = new function() {
             }
         }
     }
+
+    this.func__R2D = function(x) {
+        return x*180/Math.PI;
+    };
 
     this.func__Red = function(rgb, imageHandle) {
         // TODO: implement corresponding logic when an image handle is supplied (maybe)
