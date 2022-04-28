@@ -549,6 +549,18 @@ var QB = new function() {
         return Math.atan(value);
     };
 
+    this.sub_Beep = function() {
+        var context = new AudioContext();
+        var oscillator = context.createOscillator();
+        oscillator.type = "square";
+        oscillator.frequency.value = 780;
+        oscillator.connect(context.destination);
+        oscillator.start(); 
+        setTimeout(function () {
+            oscillator.stop();
+        }, 200);  
+    };
+
     this.func_Chr = function(charCode) {
         return String.fromCharCode(charCode);
     };

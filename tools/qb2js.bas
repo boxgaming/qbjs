@@ -2714,6 +2714,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Abs", False
     AddQBMethod "FUNCTION", "Asc", False
     AddQBMethod "FUNCTION", "Atn", False
+    addqbmethod "SUB", "Beep", False
     AddQBMethod "FUNCTION", "Chr$", False
     AddQBMethod "SUB", "Circle", False
     AddQBMethod "SUB", "Cls", False

@@ -2553,6 +2553,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "Abs",   False);
    await sub_AddQBMethod( "FUNCTION",  "Asc",   False);
    await sub_AddQBMethod( "FUNCTION",  "Atn",   False);
+   await sub_AddQBMethod( "SUB",  "Beep",   False);
    await sub_AddQBMethod( "FUNCTION",  "Chr$",   False);
    await sub_AddQBMethod( "SUB",  "Circle",   False);
    await sub_AddQBMethod( "SUB",  "Cls",   False);
