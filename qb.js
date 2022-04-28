@@ -123,7 +123,7 @@ var QB = new function() {
     // Access methods for std libraries
     // --------------------------------------------
     this.getImage = function(imageId) {
-        return _images[imageId];
+        return _images[imageId].canvas;
     };
 
     // Extended QB64 Keywords
