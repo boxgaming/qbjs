@@ -4,6 +4,9 @@ var QB = new function() {
     this.PREVENT_NEWLINE = Symbol("PREVENT_NEWLINE");
     this.LOCAL = Symbol("LOCAL");
     this.SESSION = Symbol("SESSION");
+    this.STRETCH = Symbol("STRETCH");
+    this.SQUAREPIXELS = Symbol("SQUAREPIXELS");
+    this.OFF = Symbol("OFF");
 
     var _strokeThickness = 2;
     var _fgColor = null; 
@@ -201,6 +204,21 @@ var QB = new function() {
 
     this.sub__FreeImage = function(imageId) {
         _images[imageId] = undefined;
+    };
+
+    this.func__FullScreen = function() {
+        return GX.fullScreen();
+    };
+
+    this.sub__FullScreen = function(mode, smooth) {
+        if (mode == QB.OFF) {
+            GX.fullScreen(false);
+        }
+        else if (mode == QB.STRETCH || mode == QB.SQUAREPIXELS) {
+            // TODO: not making any distinction at present
+            GX.fullScreen(true);
+        }
+        // TODO: implement smooth option (maybe) - the canvas does smooth scaling by default
     }
 
     this.func__Green = function(rgb, imageHandle) {
@@ -911,9 +929,13 @@ var QB = new function() {
             x0 = screen.lastX + x0;
             y0 = screen.lastY + y0;
         }
-
+        
+        fillColor = _color(fillColor);
         if (borderColor == undefined) {
             borderColor = fillColor;
+        }
+        else {
+            borderColor = _color(borderColor);
         }
 
         var pixelStack = [[Math.floor(x0), Math.floor(y0)]];
