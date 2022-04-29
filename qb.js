@@ -657,12 +657,14 @@ var QB = new function() {
 
     this.sub_Draw = function(t) {
 
+        // Turn input string into array of characters.
         var u = t.toString();
         u = u.replace(" ","");
         u = u.replace("=","");
         u = u.toUpperCase();
         u = u.split("");
 
+        // Prime data prep loop.
         var ch;
         var elem;
         var flag;
@@ -676,6 +678,7 @@ var QB = new function() {
         }
         elem = ch;
 
+        // Turn character data into tokens.
         var v = [[]];
         v.shift();
         for (var i=1; i<u.length; i++) {
@@ -700,40 +703,29 @@ var QB = new function() {
         }
         v.push([elem,flag]);
 
-        var tok;
-        var tok1;
-        var tok2;
+        var color;
         var cursS = 4;
         var cursA = -Math.PI/2;
-        var cursX;
-        var cursY;
-        var cursX0;
-        var cursY0;
-        var cursXt;
-        var cursYt;
+        var cursX, cursY;
+        var cursX0, cursY0;
+        var cursXt, cursYt;
         var cursReturn = false;
         var cursSkipdraw = false;
-        var dx;
-        var dy;
-        var dlen;
+        var dx, dy, dlen;
         var multiplier;
-        var color;
+        var tok, tok1, tok2;
         var tmp = [[]];
-
         var lines = [["U",0],["E",Math.PI/4],["R",Math.PI/2],["F",Math.PI*(3/4)],["D",Math.PI],["G",Math.PI*(5/4)],["L",Math.PI*(3/2)],["H",Math.PI*(7/4)]];
 
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
         cursX = screen.lastX;
         cursY = screen.lastY;
-
         ctx.strokeStyle = _fgColor.rgba();
 
         while (v.length) {
             tok = v.shift();
-
             if (tok[1] == 1) { 
-
                 if (tok[0] == "C") {
                     if (v.length) {
                         tmp = v[0];
