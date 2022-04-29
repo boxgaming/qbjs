@@ -2722,6 +2722,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Cos", False
     AddQBMethod "FUNCTION", "Cvi", False
     AddQBMethod "FUNCTION", "Cvl", False
+    AddQBMethod "SUB", "Draw", False
     AddQBMethod "FUNCTION", "Exp", False
     AddQBMethod "FUNCTION", "Fix", False
     AddQBMethod "FUNCTION", "Hex$", False
@@ -2763,6 +2764,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "UBound", False
     AddQBMethod "FUNCTION", "UCase$", False
     AddQBMethod "FUNCTION", "Val", False
+    AddQBMethod "FUNCTION", "Varptr", False
 
 
     ' QBJS-only language features

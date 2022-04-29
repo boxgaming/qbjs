@@ -408,10 +408,10 @@ var QB = new function() {
             a: a,
             rgba: function() { return "rgba(" + this.r + "," + this.g + "," + this.b + "," + this.a + ")"; },
             toString: function() {
-                var hexrep = ("00" + r.toString(16)).slice(-2) +
+                var hexrep = ("00" + (255*a).toString(16)).slice(-2) +
+                             ("00" + r.toString(16)).slice(-2) +
                              ("00" + g.toString(16)).slice(-2) +
-                             ("00" + b.toString(16)).slice(-2) +
-                             ("00" + a.toString(16)).slice(-2);
+                             ("00" + b.toString(16)).slice(-2);
                 return parseInt(hexrep, 16).toString();
             }
         }
@@ -624,6 +624,253 @@ var QB = new function() {
         }
         return result;
     }
+
+    this.sub_Draw = function(t) {
+
+        var u;
+
+        u = t.replace("=","").toUpperCase();
+        u = u.split(" ").join("").split("");
+
+        var d;
+        var elem;
+        var flag;
+        d = u[0];
+        if (!isNaN(String(d) * 1)) {
+            flag = 0;  // number
+        } else if ((d >= 'A' && d <= 'Z') || (d >= 'a' && d <= 'z')) {
+            flag = 1;  // letter
+        } else {
+            flag = -1; // symbol
+        }
+        elem = d;
+
+        var v = [[]];
+        v.shift();
+        for (var i=1; i<u.length; i++) {
+            d = u[i];
+            if (!isNaN(String(d) * 1)) {
+                if (flag == 0) {
+                    elem += d;
+                } else {
+                    v.push([elem,flag]);
+                    elem = d;
+                    flag = 0;
+                }
+            } else if ((d >= 'A' && d <= 'Z') || (d >= 'a' && d <= 'z')) {
+                v.push([elem,flag]);
+                elem = d;
+                flag = 1;
+            } else {
+                if (flag == -1) {
+                    elem += d;
+                } else {
+                    v.push([elem,flag]);
+                    elem = d;
+                    flag = -1;
+                }
+            }
+        }
+        v.push([elem,flag]);
+
+        var cursS = 4;
+        var cursA = -Math.PI/2;
+        var tok;
+        var tok1;
+        var tok2;
+        var cursReturn = false;
+        var cursSkipdraw = false;
+        var cursX0;
+        var cursY0;
+        var cursXt;
+        var cursYt;
+        var dx;
+        var dy;
+        var dlen;
+        var tmp = [[]];
+        var fac;
+
+        var screen = _images[_activeImage];
+        var ctx = screen.ctx;
+        var cursX = screen.lastX;
+        var cursY = screen.lastY;
+        ctx.strokeStyle = _fgColor.rgba();
+
+        var lines = [["U",0],["E",Math.PI/4],["R",Math.PI/2],["F",Math.PI*(3/4)],["D",Math.PI],["G",Math.PI*(5/4)],["L",Math.PI*(3/2)],["H",Math.PI*(7/4)]];
+
+        while (v.length) {
+            tok = v.shift();
+
+            if (tok[1] == 1) { 
+
+                if (tok[0] == "C") {
+                    if (v.length) {
+                        tmp = v[0];
+                        if (tmp[1] == 0) {
+                            tok1 = v.shift();
+                            ctx.strokeStyle = _color(Math.floor(tok1[0])).rgba();
+                        }
+                    }
+
+                } else if (tok[0] == "S") {
+                    if (v.length) {
+                        tmp = v[0];
+                        if (tmp[1] == 0) {
+                            tok1 = v.shift();
+                            cursS = tok1[0];
+                        }
+                    }
+
+                } else if (tok[0] == "N") {
+                    cursX0 = cursX;
+                    cursY0 = cursY;
+                    cursReturn = true;
+
+                } else if (tok[0] == "B") {
+                    cursSkipdraw = true;
+
+                } else if (tok[0] == "A") {
+                    tok1 = v.shift();
+                    if (tok1[1] == 0) {
+                        if (tok1[0] == 1) {
+                            cursA = -Math.PI;
+                        } else if (tok1[0] == 2) {
+                            cursA = -Math.PI*(3/2);
+                        } else if (tok1[0] == 3) {
+                            cursA = 0;
+                        }
+                        if (cursA > Math.PI*2) { cursA -= Math.PI*2; }
+                        if (cursA < -Math.PI*2) { cursA += Math.PI*2; }
+                    }
+
+                } else if (tok[0] == "T") {
+                    if (v.length) {
+                        tmp = v[0];
+                        if (tmp[1] == 1) {
+                            tok1 = v.shift();
+                            if (tok1[0] == "A") {
+                                if (v.length) {
+                                    tmp = v[0];
+                                    if (tmp[1] == 0) {
+                                        tok2 = v.shift();
+                                        cursA = -Math.PI/2 - tok2[0]*Math.PI/180;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                } else if (tok[0] == "M") {
+                    if (v.length) {
+                        tmp = v[0];
+                        if (tmp[1] == -1) {
+                            tok1 = v.shift(); 
+                            if (tok1[0] == "+") {
+                                fac = 1;
+                            } else if (tok1[0] == "-") {
+                                fac = -1;
+                            }
+                            if (v.length) {
+                                tmp = v[0];
+                                if (tmp[1] == 0) {
+                                    tok2 = v.shift();
+                                    cursX = cursX + fac * tok2[0];
+                                }
+                            }
+                        } else if (tmp[1] == 0) {
+                            tok1 = v.shift();
+                            cursX = tok1[0];
+                        }
+                    }
+                    if (v.length) {
+                        tmp = v[0];
+                        if ((tmp[1] == -1) && (tmp[0] == ",")) {
+                            tmp = v.shift();
+                            if (v.length) {
+                                tmp = v[0];
+                                if (tmp[1] == -1) {
+                                    tok1 = v.shift(); 
+                                    if (tok1[0] == "+") {
+                                        fac = 1;
+                                    } else if (tok1[0] == "-") {
+                                        fac = -1;
+                                    }
+                                    if (v.length) {
+                                        tmp = v[0];
+                                        if (tmp[1] == 0) {
+                                            tok2 = v.shift();
+                                            cursX = cursY + fac * tok2[0];
+                                        }
+                                    }
+                                } else if (tmp[1] == 0) {
+                                    tok1 = v.shift();
+                                    cursY = tok1[0];
+                                }
+                            }
+                        }
+                    }
+
+                } else if (tok[0] == "P") {
+                    if (v.length) {
+                        tmp = v[0];
+                        if (tmp[1] == 0) {
+                            tok1 = v.shift();
+                            tok2 = tok1;
+                            if (v.length) {
+                                tmp = v[0];
+                                if ((tmp[1] == -1) && (tmp[0] == ",")) {
+                                    tmp = v.shift();
+                                    if (v.length) {
+                                        tmp = v[0];
+                                        if (tmp[1] == 0) {
+                                            tok2 = v.shift();
+                                        }
+                                    }
+                                }
+                            }
+                            this.sub_Paint(undefined, cursX, cursY, _color(Math.floor(tok1[0])), _color(Math.floor(tok2[0])));
+                        }
+                    }
+
+                } else { // "UERFDGLH"
+                    for (i=0 ; i<lines.length ; i++) {
+                        if (tok[0] == lines[i][0]) {
+                            if (v.length) {
+                                tmp = v[0];
+                                if (tmp[1] == 0) {
+                                    tok1 = v.shift();
+                                    dlen = tok1[0];
+                                } else {
+                                    dlen = cursS/4;
+                                }
+                            }
+                            dx = dlen * Math.cos(cursA + lines[i][1]);
+                            dy = dlen * Math.sin(cursA + lines[i][1]);
+                            cursXt = cursX + dx;
+                            cursYt = cursY + dy;
+                            if (cursSkipdraw == false) {
+                                ctx.beginPath();
+                                ctx.moveTo(cursX, cursY);
+                                ctx.lineTo(cursXt, cursYt);
+                                ctx.stroke();
+                            } else {
+                                cursSkipdraw = false;
+                            }
+                            cursX = cursXt;
+                            cursY = cursYt;
+                        }
+                    }
+                }     
+            }
+            if (cursReturn == true) {
+                cursX = cursX0;
+                cursY = cursY0;
+                cursReturn = false;
+            } 
+        }
+        screen.lastX = cursX;
+        screen.lastY = cursY;
+    };
 
     this.func_Exp = function(value) {
         return Math.exp(value);
@@ -1148,6 +1395,8 @@ var QB = new function() {
             }
         }
         _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0 };
+        _images[0].lastX = _images[0].canvas.width/2;
+        _images[0].lastY = _images[0].canvas.height/2;
 
         // initialize the graphics
         _fgColor = _color(7); 
@@ -1249,6 +1498,10 @@ var QB = new function() {
             ret = Number(value);
         }
         return ret;
+    };
+
+    this.func_Varptr = function(value) {
+        return String(value);
     };
 
 
