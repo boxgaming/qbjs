@@ -2750,6 +2750,7 @@ Sub InitQBMethods
     AddQBMethod "SUB", "Color", False
     AddQBMethod "FUNCTION", "Command$", False
     AddQBMethod "FUNCTION", "Cos", False
+    AddQBMethod "FUNCTION", "Csrlin", False
     AddQBMethod "FUNCTION", "Cvi", False
     AddQBMethod "FUNCTION", "Cvl", False
     AddQBMethod "FUNCTION", "Exp", False
@@ -2773,6 +2774,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Oct$", False
     AddQBMethod "SUB", "Paint", False
     AddQBMethod "FUNCTION", "Point", False
+    AddQBMethod "FUNCTION", "Pos", False
     AddQBMethod "SUB", "PReset", False
     AddQBMethod "SUB", "Print", True
     AddQBMethod "SUB", "PSet", False

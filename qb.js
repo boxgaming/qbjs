@@ -233,8 +233,16 @@ var QB = new function() {
 
     this.func__Height = function(imageId) {
         if (imageId == undefined) { imageId = _activeImage; }
-        return _images[imageId].canvas.height;
+        if (_images[imageId].charSizeMode) {
+            return _height(imageId) / this.func__FontWidth();
+        }
+        return _height(imageId);
     };
+
+    function _height(imageId) {
+        if (imageId == undefined) { imageId = _activeImage; }
+        return _images[imageId].canvas.height;
+    }
 
     this.func__InStrRev = function(arg1, arg2, arg3) {
       var startIndex = +Infinity;
@@ -307,14 +315,20 @@ var QB = new function() {
         return GX.mouseButton(button);
     };
 
-    this.func__NewImage = function(iwidth, iheight) {
+    this.func__NewImage = function(iwidth, iheight, mode) {
         var canvas = document.createElement("canvas");
         canvas.id = "qb-canvas-" + _nextImageId;
-        canvas.width = iwidth;
-        canvas.height = iheight;
+        if (mode == 0) {
+            canvas.width = this.func__FontWidth() * iwidth;
+            canvas.height = this.func__FontHeight() * iheight;
+        }
+        else {
+            canvas.width = iwidth;
+            canvas.height = iheight;
+        }
         ctx = canvas.getContext("2d");
 
-        _images[_nextImageId] = { canvas: canvas, ctx: ctx, lastX: 0, lastY: 0 };
+        _images[_nextImageId] = { canvas: canvas, ctx: ctx, lastX: 0, lastY: 0, charSizeMode: (mode == 0)};
         var tmpId = _nextImageId;
         _nextImageId++;
         return tmpId;
@@ -544,8 +558,16 @@ var QB = new function() {
 
     this.func__Width = function(imageId) {
         if (imageId == undefined) { imageId = _activeImage; }
-        return _images[imageId].canvas.width;
+        if (_images[imageId].charSizeMode) {
+            return _width(imageId) / this.func__FontWidth();
+        }
+        return _width(imageId);
     };
+
+    function _width (imageId) {
+        if (imageId == undefined) { imageId = _activeImage; }
+        return _images[imageId].canvas.width;
+    }
 
 
     // QB45 Keywords
@@ -593,9 +615,9 @@ var QB = new function() {
         
         ctx = _images[_activeImage].ctx;
         ctx.beginPath();
-        ctx.clearRect(0, 0, QB.func__Width(), QB.func__Height());
+        ctx.clearRect(0, 0, _width(), _height());
         ctx.fillStyle = color.rgba();
-        ctx.fillRect(0, 0, QB.func__Width(), QB.func__Height());
+        ctx.fillRect(0, 0, _width(), _height());
 
         // reset the text position
         _locX = 0;
@@ -637,6 +659,10 @@ var QB = new function() {
         return Math.cos(value);
     };
 
+    this.func_Csrlin = function() {
+        return _locY + 1;
+    }
+
     this.func_Cvi = function(numString) {
         var result = 0;
         numString = numString.split("").reverse().join("");
@@ -669,11 +695,11 @@ var QB = new function() {
     };
 
     function _textColumns() {
-        return Math.floor(QB.func__Width() / QB.func__FontWidth());
+        return Math.floor(_width() / QB.func__FontWidth());
     }
 
     function _textRows() {
-        return Math.floor(QB.func__Height() / QB.func__FontHeight());
+        return Math.floor(_height() / QB.func__FontHeight());
     }
 
     this.func_Hex = function(n) {
@@ -1019,6 +1045,10 @@ var QB = new function() {
         return ret;
     };
 
+    this.func_Pos = function() {
+        return _locX + 1;
+    };
+
     this.sub_PReset = function(sstep, x, y, color) {
         var screen = _images[_activeImage];
         if (color == undefined) {
@@ -1113,7 +1143,7 @@ var QB = new function() {
         var ctx = _images[_activeImage].ctx;
         ctx.beginPath();
         ctx.fillStyle = _bgColor.rgba();
-        ctx.fillRect(0, 0, QB.func__Width(), QB.func__Height());
+        ctx.fillRect(0, 0, _width(), _height());
         ctx.drawImage(img, 0, -QB.func__FontHeight());
     }
 
@@ -1158,6 +1188,7 @@ var QB = new function() {
 
     this.sub_Screen = async function(mode) {
         _activeImage = 0;
+        charSizeMode = false;
 
         if (mode == 0) {
             GX.sceneCreate(640, 400);
@@ -1174,14 +1205,18 @@ var QB = new function() {
         else if (mode == 11 || mode == 12) {
             GX.sceneCreate(640, 480);
         }
+        else if (mode == 13) {
+            GX.sceneCreate(320, 200);
+        }
         else if (mode >= 1000) {
             var img = _images[mode];
             if (img && img.canvas) {
                 GX.sceneCreate(img.canvas.width, img.canvas.height);
                 this.sub__PutImage(undefined, undefined, undefined, undefined, undefined, undefined, mode);
+                charSizeMode = img.charSizeMode;
             }
         }
-        _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0 };
+        _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0, charSizeMode: charSizeMode };
 
         // initialize the graphics
         _fgColor = _color(7); 
