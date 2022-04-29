@@ -2633,6 +2633,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "Str$",   False);
    await sub_AddQBMethod( "SUB",  "Swap",   False);
    await sub_AddQBMethod( "FUNCTION",  "Tan",   False);
+   await sub_AddQBMethod( "FUNCTION",  "Time$",   False);
    await sub_AddQBMethod( "FUNCTION",  "Timer",   False);
    await sub_AddQBMethod( "FUNCTION",  "UBound",   False);
    await sub_AddQBMethod( "FUNCTION",  "UCase$",   False);

@@ -657,76 +657,77 @@ var QB = new function() {
 
     this.sub_Draw = function(t) {
 
-        var u;
+        var u = t.toString();
+        u = u.replace(" ","");
+        u = u.replace("=","");
+        u = u.toUpperCase();
+        u = u.split("");
 
-        u = t.replace("=","").toUpperCase();
-        u = u.split(" ").join("").split("");
-
-        var d;
+        var ch;
         var elem;
         var flag;
-        d = u[0];
-        if (!isNaN(String(d) * 1)) {
+        ch = u[0];
+        if (!isNaN(String(ch) * 1)) {
             flag = 0;  // number
-        } else if ((d >= 'A' && d <= 'Z') || (d >= 'a' && d <= 'z')) {
+        } else if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
             flag = 1;  // letter
         } else {
             flag = -1; // symbol
         }
-        elem = d;
+        elem = ch;
 
         var v = [[]];
         v.shift();
         for (var i=1; i<u.length; i++) {
-            d = u[i];
-            if (!isNaN(String(d) * 1)) {
+            ch = u[i];
+            if (!isNaN(String(ch) * 1)) {
                 if (flag == 0) {
-                    elem += d;
+                    elem += ch;
                 } else {
                     v.push([elem,flag]);
-                    elem = d;
+                    elem = ch;
                     flag = 0;
                 }
-            } else if ((d >= 'A' && d <= 'Z') || (d >= 'a' && d <= 'z')) {
+            } else if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
                 v.push([elem,flag]);
-                elem = d;
+                elem = ch;
                 flag = 1;
             } else {
-                if (flag == -1) {
-                    elem += d;
-                } else {
-                    v.push([elem,flag]);
-                    elem = d;
-                    flag = -1;
-                }
+                v.push([elem,flag]);
+                elem = ch;
+                flag = -1;
             }
         }
         v.push([elem,flag]);
 
-        var cursS = 4;
-        var cursA = -Math.PI/2;
         var tok;
         var tok1;
         var tok2;
-        var cursReturn = false;
-        var cursSkipdraw = false;
+        var cursS = 4;
+        var cursA = -Math.PI/2;
+        var cursX;
+        var cursY;
         var cursX0;
         var cursY0;
         var cursXt;
         var cursYt;
+        var cursReturn = false;
+        var cursSkipdraw = false;
         var dx;
         var dy;
         var dlen;
+        var multiplier;
+        var color;
         var tmp = [[]];
-        var fac;
+
+        var lines = [["U",0],["E",Math.PI/4],["R",Math.PI/2],["F",Math.PI*(3/4)],["D",Math.PI],["G",Math.PI*(5/4)],["L",Math.PI*(3/2)],["H",Math.PI*(7/4)]];
 
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
-        var cursX = screen.lastX;
-        var cursY = screen.lastY;
-        ctx.strokeStyle = _fgColor.rgba();
+        cursX = screen.lastX;
+        cursY = screen.lastY;
 
-        var lines = [["U",0],["E",Math.PI/4],["R",Math.PI/2],["F",Math.PI*(3/4)],["D",Math.PI],["G",Math.PI*(5/4)],["L",Math.PI*(3/2)],["H",Math.PI*(7/4)]];
+        ctx.strokeStyle = _fgColor.rgba();
 
         while (v.length) {
             tok = v.shift();
@@ -738,7 +739,9 @@ var QB = new function() {
                         tmp = v[0];
                         if (tmp[1] == 0) {
                             tok1 = v.shift();
-                            ctx.strokeStyle = _color(Math.floor(tok1[0])).rgba();
+                            color = Math.floor(tok1[0]);
+                            ctx.strokeStyle = _color(color).rgba();
+                            _fgColor = _color(color);
                         }
                     }
 
@@ -796,20 +799,20 @@ var QB = new function() {
                         if (tmp[1] == -1) {
                             tok1 = v.shift(); 
                             if (tok1[0] == "+") {
-                                fac = 1;
+                                multiplier = 1;
                             } else if (tok1[0] == "-") {
-                                fac = -1;
+                                multiplier = -1;
                             }
                             if (v.length) {
                                 tmp = v[0];
                                 if (tmp[1] == 0) {
                                     tok2 = v.shift();
-                                    cursX = cursX + fac * tok2[0];
+                                    cursXt = cursX + multiplier * tok2[0];
                                 }
                             }
                         } else if (tmp[1] == 0) {
                             tok1 = v.shift();
-                            cursX = tok1[0];
+                            cursXt = tok1[0];
                         }
                     }
                     if (v.length) {
@@ -821,23 +824,33 @@ var QB = new function() {
                                 if (tmp[1] == -1) {
                                     tok1 = v.shift(); 
                                     if (tok1[0] == "+") {
-                                        fac = 1;
+                                        multiplier = 1;
                                     } else if (tok1[0] == "-") {
-                                        fac = -1;
+                                        multiplier = -1;
                                     }
                                     if (v.length) {
                                         tmp = v[0];
                                         if (tmp[1] == 0) {
                                             tok2 = v.shift();
-                                            cursX = cursY + fac * tok2[0];
+                                            cursYt = cursY + multiplier * tok2[0];
                                         }
                                     }
                                 } else if (tmp[1] == 0) {
                                     tok1 = v.shift();
-                                    cursY = tok1[0];
+                                    cursYt = tok1[0];
                                 }
                             }
                         }
+                        if (cursSkipdraw == false) {
+                            ctx.beginPath();
+                            ctx.moveTo(cursX, cursY);
+                            ctx.lineTo(cursXt, cursYt);
+                            ctx.stroke();
+                        } else {
+                            cursSkipdraw = false;
+                        }
+                        cursX = cursXt;
+                        cursY = cursYt;
                     }
 
                 } else if (tok[0] == "P") {
@@ -862,7 +875,7 @@ var QB = new function() {
                         }
                     }
 
-                } else { // "UERFDGLH"
+                } else { 
                     for (i=0 ; i<lines.length ; i++) {
                         if (tok[0] == lines[i][0]) {
                             if (v.length) {
@@ -876,8 +889,8 @@ var QB = new function() {
                             }
                             dx = dlen * Math.cos(cursA + lines[i][1]);
                             dy = dlen * Math.sin(cursA + lines[i][1]);
-                            cursXt = cursX + dx;
-                            cursYt = cursY + dy;
+                            cursXt = cursX*1.0 + dx;
+                            cursYt = cursY*1.0 + dy;
                             if (cursSkipdraw == false) {
                                 ctx.beginPath();
                                 ctx.moveTo(cursX, cursY);
@@ -1059,6 +1072,7 @@ var QB = new function() {
             }
         }
         ctx.stroke();
+        _fgColor = _color(color);
     };
 
     this.sub_Line = function(sstep, sx, sy, estep, ex, ey, color, style, pattern) {
@@ -1114,6 +1128,7 @@ var QB = new function() {
             ctx.lineTo(ex, ey);
             ctx.stroke();
         }
+        _fgColor = _color(color);
     };
 
     this.sub_LineInput = async function(values, preventNewline, addQuestionPrompt, prompt) {
@@ -1384,6 +1399,7 @@ var QB = new function() {
         ctx.fillStyle = color.rgba();
         ctx.beginPath();
         ctx.fillRect(x, y, 1, 1);
+        _fgColor = _color(color);
     };
 
     this.func_Right = function(value, n) {
@@ -1493,6 +1509,15 @@ var QB = new function() {
 
     this.func_Tan = function(value) {
         return Math.tan(value);
+    };
+
+    this.func_Time = function() {
+        var digital = new Date();
+        var hours = ("00" + digital.getHours()).slice(-2);
+        var minutes = ("00" + digital.getMinutes()).slice(-2);
+        var seconds = ("00" + digital.getSeconds()).slice(-2);
+        var c = hours + ":" + minutes + ":" + seconds;
+        return c;
     };
 
     this.func_Timer = function(accuracy) {

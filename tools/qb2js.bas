@@ -2790,6 +2790,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Str$", False
     AddQBMethod "SUB", "Swap", False
     AddQBMethod "FUNCTION", "Tan", False
+    AddQBMethod "FUNCTION", "Time$", False
     AddQBMethod "FUNCTION", "Timer", False
     AddQBMethod "FUNCTION", "UBound", False
     AddQBMethod "FUNCTION", "UCase$", False
