@@ -2593,6 +2593,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "SUB",  "Color",   False);
    await sub_AddQBMethod( "FUNCTION",  "Command$",   False);
    await sub_AddQBMethod( "FUNCTION",  "Cos",   False);
+   await sub_AddQBMethod( "FUNCTION",  "Csrlin",   False);
    await sub_AddQBMethod( "FUNCTION",  "Cvi",   False);
    await sub_AddQBMethod( "FUNCTION",  "Cvl",   False);
    await sub_AddQBMethod( "SUB",  "Draw",   False);
@@ -2617,6 +2618,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "Oct$",   False);
    await sub_AddQBMethod( "SUB",  "Paint",   False);
    await sub_AddQBMethod( "FUNCTION",  "Point",   False);
+   await sub_AddQBMethod( "FUNCTION",  "Pos",   False);
    await sub_AddQBMethod( "SUB",  "PReset",   False);
    await sub_AddQBMethod( "SUB",  "Print",   True);
    await sub_AddQBMethod( "SUB",  "PSet",   False);
