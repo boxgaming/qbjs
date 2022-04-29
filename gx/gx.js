@@ -17,7 +17,7 @@ var GX = new function() {
     _fonts[0] = { eid:0, charSpacing:0, lineSpacing: 0};
     _fonts[1] = { eid:0, charSpacing:0, lineSpacing: 0};
     var _font_charmap = new Array(2).fill(new Array(256).fill({x:0,y:0}));
-    var _fullscreenFlag = false;
+    //var _fullscreenFlag = false;
     var __debug = {
         enabled: false,
         font: 1 // GX.FONT_DEFAULT
@@ -70,7 +70,7 @@ var GX = new function() {
         _fontCreateDefault(GX.FONT_DEFAULT);
         _fontCreateDefault(GX.FONT_DEFAULT_BLACK);
 
-        _fullscreenFlag = false;
+        //_fullscreenFlag = false;
         __debug = {
             enabled: false,
             font: 1 // GX.FONT_DEFAULT
@@ -160,6 +160,35 @@ var GX = new function() {
                 }
             });
 
+            document.addEventListener("fullscreenchange", function(event) {
+                if (document.fullscreenElement) {
+                    _scene.prevScaleX = _scene.scaleX;
+                    _scene.prevScaleY = _scene.scaleY;
+                    var widthFactor = screen.width / _scene.width;
+                    var heightFactor = screen.height / _scene.height;
+                    var factor = Math.min(widthFactor, heightFactor);
+                    var offsetX = 0;
+                    var offsetY = 0;
+                    if (widthFactor > heightFactor) {
+                        offsetX = (screen.width - _scene.width * factor) / 2;
+                    }
+                    else {
+                        offsetY = (screen.height - _scene.height * factor) / 2;
+                    }
+                    
+                    _scene.scaleX = factor;
+                    _scene.scaleY = factor;
+                    _scene.offsetX = offsetX;
+                    _scene.offsetY = offsetY;
+                }
+                else {
+                    _scene.scaleX = _scene.prevScaleX;
+                    _scene.scaleY = _scene.prevScaleY;
+                    _scene.offsetX = 0;
+                    _scene.offsetY = 0;
+                }
+            });
+
 /*
             _canvas.addEventListener("keyup", function(event) { 
                 if (_scene.active) {
@@ -188,6 +217,8 @@ var GX = new function() {
         _scene.y = 0;
         _scene.scaleX = 1;
         _scene.scaleY = 1;
+        _scene.offsetX = 0;
+        _scene.offsetY = 0;
         _scene.frame = 0;
         _scene.followMode = GX.SCENE_FOLLOW_NONE;
         _scene.followEntity = null;
@@ -1719,14 +1750,17 @@ var GX = new function() {
 
     function _fullScreen(fullscreenFlag) {
         if (fullscreenFlag != undefined) {
-            _fullscreenFlag = fullscreenFlag;
             if (fullscreenFlag) {
-                document.getElementById("gx-container").requestFullscreen();
+                if (_canvas.requestFullscreen) {
+                    _canvas.requestFullscreen();
+                }
             } else {
-                document.exitFullscreen();
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
             }
         }
-        return _fullscreenFlag;
+        return (window.innerHeight == screen.height);
     }
 
 
@@ -1846,11 +1880,11 @@ var GX = new function() {
     }
 
     function _mouseX() {
-        return Math.round(_mousePos.x / _scene.scaleX);
+        return Math.round((_mousePos.x - _scene.offsetX) / _scene.scaleX);
     }
 
     function _mouseY() {
-        return Math.round(_mousePos.y / _scene.scaleY);
+        return Math.round((_mousePos.y - _scene.offsetY) / _scene.scaleY);
     };
 
     function _mouseButton(button) {

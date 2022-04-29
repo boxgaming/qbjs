@@ -591,12 +591,39 @@ Function ConvertSub$ (m As Method, args As String)
     ElseIf m.name = "_PutImage" Then
         js = CallMethod(m) + "(" + ConvertPutImage(args) + ");"
 
+    ElseIf m.name = "_FullScreen" Then
+        js = CallMethod(m) + "(" + ConvertFullScreen(args) + ");"
     Else
         'js = CallMethod(m) + "(" + ConvertExpression(args) + ");"
         js = CallMethod(m) + "(" + ConvertMethodParams(args) + ");"
     End If
 
     ConvertSub = js
+End Function
+
+Function ConvertFullScreen$ (args As String)
+    ReDim parts(0) As String
+    Dim argc As Integer
+    Dim mode As String: mode = "QB.STRETCH"
+    Dim doSmooth As String: doSmooth = "false"
+
+    argc = ListSplit(args, parts())
+    If argc > 0 Then
+        Dim arg As String
+        arg = UCase$(parts(1))
+        If arg = "_OFF" Then
+            mode = "QB.OFF"
+        ElseIf arg = "_STRETCH" Then
+            mode = "QB.STRETCH"
+        ElseIf arg = "_SQUAREPIXELS" Then
+            mode = "QB.SQUAREPIXELS"
+        End If
+    End If
+    If argc > 1 Then
+        If UCase$(parts(2)) = "_SMOOTH" Then doSmooth = "true"
+    End If
+
+    ConvertFullScreen = mode + ", " + doSmooth
 End Function
 
 Function ConvertLine$ (args As String)
@@ -2667,6 +2694,8 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_Display", False
     AddQBMethod "FUNCTION", "_FontWidth", False
     AddQBMethod "SUB", "_FreeImage", False
+    AddQBMethod "SUB", "_FullScreen", False
+    AddQBMethod "FUNCTION", "_FullScreen", False
     AddQBMethod "FUNCTION", "_Green", False
     AddQBMethod "FUNCTION", "_Green32", False
     AddQBMethod "FUNCTION", "_Height", False
@@ -2714,6 +2743,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Abs", False
     AddQBMethod "FUNCTION", "Asc", False
     AddQBMethod "FUNCTION", "Atn", False
+    AddQBMethod "SUB", "Beep", False
     AddQBMethod "FUNCTION", "Chr$", False
     AddQBMethod "SUB", "Circle", False
     AddQBMethod "SUB", "Cls", False

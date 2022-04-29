@@ -489,11 +489,42 @@ var ConvertSub = null;
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertCls(  args))  +");";
    } else if ( m.name == "_PutImage" ) {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertPutImage(  args))  +");";
+   } else if ( m.name == "_FullScreen" ) {
+      js = (await func_CallMethod(  m))  +"("  +(await func_ConvertFullScreen(  args))  +");";
    } else {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertMethodParams(  args))  +");";
    }
    ConvertSub =  js;
 return ConvertSub;
+}
+async function func_ConvertFullScreen(args/*STRING*/) {
+if (QB.halted()) { return; }
+var ConvertFullScreen = null;
+   var parts = QB.initArray([{l:1,u:0}], ''); // STRING
+   var argc = 0; // INTEGER
+   var mode = ''; // STRING
+   mode = "QB.STRETCH";
+   var doSmooth = ''; // STRING
+   doSmooth = "false";
+   argc = (await func_ListSplit(  args,  parts));
+   if ( argc >  0) {
+      var arg = ''; // STRING
+      arg = (QB.func_UCase( QB.arrayValue(parts, [ 1]).value));
+      if ( arg == "_OFF" ) {
+         mode = "QB.OFF";
+      } else if ( arg == "_STRETCH" ) {
+         mode = "QB.STRETCH";
+      } else if ( arg == "_SQUAREPIXELS" ) {
+         mode = "QB.SQUAREPIXELS";
+      }
+   }
+   if ( argc >  1) {
+      if ((QB.func_UCase( QB.arrayValue(parts, [ 2]).value))  == "_SMOOTH" ) {
+         doSmooth = "true";
+      }
+   }
+   ConvertFullScreen =  mode +", "  + doSmooth;
+return ConvertFullScreen;
 }
 async function func_ConvertLine(args/*STRING*/) {
 if (QB.halted()) { return; }
@@ -2509,6 +2540,8 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "SUB",  "_Display",   False);
    await sub_AddQBMethod( "FUNCTION",  "_FontWidth",   False);
    await sub_AddQBMethod( "SUB",  "_FreeImage",   False);
+   await sub_AddQBMethod( "SUB",  "_FullScreen",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_FullScreen",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Green",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Green32",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Height",   False);
@@ -2553,6 +2586,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "Abs",   False);
    await sub_AddQBMethod( "FUNCTION",  "Asc",   False);
    await sub_AddQBMethod( "FUNCTION",  "Atn",   False);
+   await sub_AddQBMethod( "SUB",  "Beep",   False);
    await sub_AddQBMethod( "FUNCTION",  "Chr$",   False);
    await sub_AddQBMethod( "SUB",  "Circle",   False);
    await sub_AddQBMethod( "SUB",  "Cls",   False);

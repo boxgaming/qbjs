@@ -4,6 +4,9 @@ var QB = new function() {
     this.PREVENT_NEWLINE = Symbol("PREVENT_NEWLINE");
     this.LOCAL = Symbol("LOCAL");
     this.SESSION = Symbol("SESSION");
+    this.STRETCH = Symbol("STRETCH");
+    this.SQUAREPIXELS = Symbol("SQUAREPIXELS");
+    this.OFF = Symbol("OFF");
 
     var _strokeThickness = 2;
     var _fgColor = null; 
@@ -120,7 +123,7 @@ var QB = new function() {
     // Access methods for std libraries
     // --------------------------------------------
     this.getImage = function(imageId) {
-        return _images[imageId];
+        return _images[imageId].canvas;
     };
 
     // Extended QB64 Keywords
@@ -201,6 +204,21 @@ var QB = new function() {
 
     this.sub__FreeImage = function(imageId) {
         _images[imageId] = undefined;
+    };
+
+    this.func__FullScreen = function() {
+        return GX.fullScreen();
+    };
+
+    this.sub__FullScreen = function(mode, smooth) {
+        if (mode == QB.OFF) {
+            GX.fullScreen(false);
+        }
+        else if (mode == QB.STRETCH || mode == QB.SQUAREPIXELS) {
+            // TODO: not making any distinction at present
+            GX.fullScreen(true);
+        }
+        // TODO: implement smooth option (maybe) - the canvas does smooth scaling by default
     }
 
     this.func__Green = function(rgb, imageHandle) {
@@ -547,6 +565,18 @@ var QB = new function() {
 
     this.func_Atn = function(value) {
         return Math.atan(value);
+    };
+
+    this.sub_Beep = function() {
+        var context = new AudioContext();
+        var oscillator = context.createOscillator();
+        oscillator.type = "square";
+        oscillator.frequency.value = 780;
+        oscillator.connect(context.destination);
+        oscillator.start(); 
+        setTimeout(function () {
+            oscillator.stop();
+        }, 200);  
     };
 
     this.func_Chr = function(charCode) {
@@ -1146,9 +1176,13 @@ var QB = new function() {
             x0 = screen.lastX + x0;
             y0 = screen.lastY + y0;
         }
-
+        
+        fillColor = _color(fillColor);
         if (borderColor == undefined) {
             borderColor = fillColor;
+        }
+        else {
+            borderColor = _color(borderColor);
         }
 
         var pixelStack = [[Math.floor(x0), Math.floor(y0)]];
