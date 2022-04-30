@@ -1,8 +1,12 @@
+Const LOCAL = "LOCAL"
+Const SESSION = "SESSION"
+
+Export LOCAL, SESSION
 Export Clear, Get, Key, Length, Set, Remove
 
 $If Javascript Then
 function _storage(stype) {
-    return (stype == QB.SESSION) ? sessionStorage : localStorage;
+    return (stype == SESSION) ? sessionStorage : localStorage;
 }
 $End If
 

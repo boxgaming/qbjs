@@ -55,6 +55,7 @@ ReDim Shared As Variable globalVars(0)
 ReDim Shared As Variable localVars(0)
 ReDim Shared As CodeLine warnings(0)
 ReDim Shared As String exportLines(0)
+ReDim Shared As Variable exportConsts(0)
 ReDim Shared As Method exportMethods(0)
 Dim Shared modLevel As Integer
 Dim Shared As String currentMethod
@@ -167,7 +168,10 @@ Sub ResetDataStructures
     ReDim As Variable globalVars(0)
     ReDim As Variable localVars(0)
     ReDim As CodeLine warnings(0)
-    If modLevel = 0 Then ReDim As Method exportMethods(0)
+    If modLevel = 0 Then
+        ReDim As Method exportMethods(0)
+        ReDim As Variable exportConsts(0)
+    End If
     currentMethod = ""
     programMethods = 0
 End Sub
@@ -413,7 +417,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
                     Dim exi As Integer
                     For exi = 1 To excount
-                        ParseExport exparts(exi)
+                        ParseExport exparts(exi), i
                     Next exi
                     _Continue
                 Else
@@ -490,14 +494,16 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
 End Sub
 
-Sub ParseExport (s As String)
+Sub ParseExport (s As String, lineIndex As Integer)
     Dim exportedItem As String
     Dim ef As Method
     Dim es As Method
     Dim ev As Variable
     Dim exportName As String
-    Dim c As Integer
     Dim parts(0) As String
+    Dim found As Integer: found = False
+
+    Dim c As Integer
     c = SLSplit(s, parts(), False)
 
     If FindMethod(parts(1), es, "SUB") Then
@@ -511,6 +517,7 @@ Sub ParseExport (s As String)
         AddExportMethod es, currentModule + ".", True
         exportName = "sub_" + exportName
         RegisterExport exportName, exportedItem
+        found = True
     End If
 
     If FindMethod(parts(1), ef, "FUNCTION") Then
@@ -524,18 +531,30 @@ Sub ParseExport (s As String)
         AddExportMethod ef, currentModule + ".", True
         exportName = "func_" + exportName
         RegisterExport exportName, exportedItem
+        found = True
     End If
 
-    'If FindVariable(parts(1), ev, False) Then
-    '    exportedItem = ev.jsname
-    '    If exportName = "" Then exportName = parts(1)
-    '    ev.name = exportName
+    If FindVariable(parts(1), ev, False) Then
+        If ev.isConst = True Then
+            If c > 2 Then
+                exportName = parts(3)
+            Else
+                exportName = parts(1)
+            End If
+            exportedItem = ev.jsname
+            ev.name = exportName
+            exportedItem = ev.jsname
+            If exportName = "" Then exportName = parts(1)
+            ev.name = exportName
+            AddExportConst currentModule + "." + exportName
+            RegisterExport exportName, exportedItem
+            found = True
+        End If
+    End If
 
-    'ElseIf FindVariable(parts(1), ev, True) Then
-    '    exportedItem = ev.jsname
-    '    If exportName = "" Then exportName = parts(1)
-    '    ev.name = exportName
-    'End If
+    If Not found Then
+        AddWarning lineIndex, "Invalid export [" + parts(1) + "].  Exported items must be a Sub, Function or Const in the current module."
+    End If
 
 End Sub
 
@@ -2042,6 +2061,7 @@ Sub AddMethod (m As Method, prefix As String, sync As Integer)
     methods(mcount) = m
 End Sub
 
+
 Sub AddExportMethod (m As Method, prefix As String, sync As Integer)
     Dim mcount: mcount = UBound(exportMethods) + 1
     ReDim _Preserve As Method exportMethods(mcount)
@@ -2054,9 +2074,16 @@ Sub AddExportMethod (m As Method, prefix As String, sync As Integer)
     m.name = prefix + m.name
     m.sync = sync
     exportMethods(mcount) = m
-
-    'AddJSLine 0, "////: " + m.name + " : " + m.uname + " : " + m.jsname
 End Sub
+
+Sub AddExportConst (vname As String)
+    Dim v As Variable
+    v.type = "CONST"
+    v.name = vname
+    v.isConst = True
+    AddVariable v, exportConsts()
+End Sub
+
 
 Sub AddGXMethod (mtype As String, mname As String, sync As Integer)
     Dim mcount: mcount = UBound(methods) + 1
@@ -2799,16 +2826,14 @@ Sub InitQBMethods
 
     ' QBJS-only language features
     ' --------------------------------------------------------------------------------
-    AddQBConst "LOCAL"
-    AddQBConst "SESSION"
+    AddQBMethod "SUB", "IncludeJS", True
 
+    ' Undocumented at present
     AddSystemType "FETCHRESPONSE", "ok:INTEGER,status:INTEGER,statusText:STRING,text:STRING"
     AddQBMethod "FUNCTION", "Fetch", True
     AddQBMethod "SUB", "Fetch", True
     AddQBMethod "FUNCTION", "FromJSON", False
     AddQBMethod "FUNCTION", "ToJSON", False
-
-    AddQBMethod "SUB", "$TouchMouse", False
 
 End Sub
 

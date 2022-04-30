@@ -29,7 +29,7 @@ var GX = new function() {
     var _mouseInputFlag = false;
     var _touchInputFlag = false;
     var _touchPos = { x:0, y:0 };
-    var _bindTouchToMouse = false;
+    var _bindTouchToMouse = true;
 
     // javascript specific
     var _onGameEvent = null;

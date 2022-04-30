@@ -2,8 +2,6 @@ var QB = new function() {
     // QB constants
     this.COLUMN_ADVANCE = Symbol("COLUMN_ADVANCE");
     this.PREVENT_NEWLINE = Symbol("PREVENT_NEWLINE");
-    this.LOCAL = Symbol("LOCAL");
-    this.SESSION = Symbol("SESSION");
     this.STRETCH = Symbol("STRETCH");
     this.SQUAREPIXELS = Symbol("SQUAREPIXELS");
     this.OFF = Symbol("OFF");
@@ -207,7 +205,7 @@ var QB = new function() {
     };
 
     this.func__FullScreen = function() {
-        return GX.fullScreen();
+        return GX.fullScreen() ? 2 : -1;
     };
 
     this.sub__FullScreen = function(mode, smooth) {
@@ -1323,10 +1321,13 @@ var QB = new function() {
 
     // QBJS-only methods
     // ---------------------------------------------------------------------------------
-    this.sub_TouchMouse = function() {
-        GX._enableTouchMouse(true);
+    this.sub_IncludeJS = async function(url) {
+        var script = document.createElement("script")
+        document.body.appendChild(script);
+        script.id = url
+        script.src = url
     };
-
+    
     this.sub_Fetch = async function(url, fetchRes) {
         var response = await fetch(url);
         var responseText = await(response.text());
@@ -1338,7 +1339,7 @@ var QB = new function() {
 
     this.func_Fetch = async function(url) {
         var fetchRes = {};
-        QB.fetch(url, fetchRes);
+        await QB.sub_Fetch(url, fetchRes);
         return fetchRes;
     };
 

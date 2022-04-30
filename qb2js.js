@@ -21,6 +21,7 @@ async function _QBCompiler() {
    var localVars = QB.initArray([{l:1,u:0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); // VARIABLE
    var warnings = QB.initArray([{l:1,u:0}], {line:0,text:''}); // CODELINE
    var exportLines = QB.initArray([{l:1,u:0}], ''); // STRING
+   var exportConsts = QB.initArray([{l:1,u:0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); // VARIABLE
    var exportMethods = QB.initArray([{l:1,u:0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0}); // METHOD
    var modLevel = 0; // INTEGER
    var currentMethod = ''; // STRING
@@ -120,6 +121,7 @@ if (QB.halted()) { return; }
    QB.resizeArray(warnings, [{l:1,u:0}], {line:0,text:''}, false); // CODELINE
    if ( modLevel ==  0) {
       QB.resizeArray(exportMethods, [{l:1,u:0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0}, false); // METHOD
+      QB.resizeArray(exportConsts, [{l:1,u:0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false); // VARIABLE
    }
    currentMethod = "";
    programMethods =  0;
@@ -350,7 +352,7 @@ if (QB.halted()) { return; }
                excount = (await func_ListSplit( (await func_Join( parts,   2,   -1,  " ")),  exparts));
                var exi = 0; // INTEGER
                for ( exi= 1;  exi <=  excount;  exi= exi + 1) {  if (QB.halted()) { return; }
-                  await sub_ParseExport( QB.arrayValue(exparts, [ exi]).value);
+                  await sub_ParseExport( QB.arrayValue(exparts, [ exi]).value,   i);
                }
                continue;
             } else {
@@ -415,15 +417,17 @@ if (QB.halted()) { return; }
       }
    }
 }
-async function sub_ParseExport(s/*STRING*/) {
+async function sub_ParseExport(s/*STRING*/,lineIndex/*INTEGER*/) {
 if (QB.halted()) { return; }
    var exportedItem = ''; // STRING
    var ef = {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0}; // METHOD
    var es = {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0}; // METHOD
    var ev = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}; // VARIABLE
    var exportName = ''; // STRING
-   var c = 0; // INTEGER
    var parts = QB.initArray([{l:1,u:0}], ''); // STRING
+   var found = 0; // INTEGER
+   found =  False;
+   var c = 0; // INTEGER
    c = (await func_SLSplit(  s,  parts,   False));
    if ((await func_FindMethod( QB.arrayValue(parts, [ 1]).value,   es,  "SUB")) ) {
       if ( c >  2) {
@@ -436,6 +440,7 @@ if (QB.halted()) { return; }
       await sub_AddExportMethod(  es,   currentModule +".",   True);
       exportName = "sub_"  + exportName;
       await sub_RegisterExport(  exportName,   exportedItem);
+      found =  True;
    }
    if ((await func_FindMethod( QB.arrayValue(parts, [ 1]).value,   ef,  "FUNCTION")) ) {
       if ( c >  2) {
@@ -448,6 +453,29 @@ if (QB.halted()) { return; }
       await sub_AddExportMethod(  ef,   currentModule +".",   True);
       exportName = "func_"  + exportName;
       await sub_RegisterExport(  exportName,   exportedItem);
+      found =  True;
+   }
+   if ((await func_FindVariable( QB.arrayValue(parts, [ 1]).value,   ev,   False)) ) {
+      if ( ev.isConst ==  True) {
+         if ( c >  2) {
+            exportName = QB.arrayValue(parts, [ 3]).value;
+         } else {
+            exportName = QB.arrayValue(parts, [ 1]).value;
+         }
+         exportedItem =  ev.jsname;
+         ev.name =  exportName;
+         exportedItem =  ev.jsname;
+         if ( exportName == "" ) {
+            exportName = QB.arrayValue(parts, [ 1]).value;
+         }
+         ev.name =  exportName;
+         await sub_AddExportConst(  currentModule +"."  + exportName);
+         await sub_RegisterExport(  exportName,   exportedItem);
+         found =  True;
+      }
+   }
+   if (! found) {
+      await sub_AddWarning(  lineIndex,  "Invalid export ["  +QB.arrayValue(parts, [ 1]).value  +"].  Exported items must be a Sub, Function or Const in the current module.");
    }
 }
 async function sub_RegisterExport(exportName/*STRING*/,exportedItem/*STRING*/) {
@@ -1902,6 +1930,14 @@ if (QB.halted()) { return; }
    m.sync =  sync;
    QB.arrayValue(exportMethods, [ mcount]).value =  m;
 }
+async function sub_AddExportConst(vname/*STRING*/) {
+if (QB.halted()) { return; }
+   var v = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}; // VARIABLE
+   v.type = "CONST";
+   v.name =  vname;
+   v.isConst =  True;
+   await sub_AddVariable(  v,  exportConsts);
+}
 async function sub_AddGXMethod(mtype/*STRING*/,mname/*STRING*/,sync/*INTEGER*/) {
 if (QB.halted()) { return; }
    var mcount = 0; // SINGLE
@@ -2638,14 +2674,12 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "UBound",   False);
    await sub_AddQBMethod( "FUNCTION",  "UCase$",   False);
    await sub_AddQBMethod( "FUNCTION",  "Val",   False);
-   await sub_AddQBConst( "LOCAL");
-   await sub_AddQBConst( "SESSION");
+   await sub_AddQBMethod( "SUB",  "IncludeJS",   True);
    await sub_AddSystemType( "FETCHRESPONSE",  "ok:INTEGER,status:INTEGER,statusText:STRING,text:STRING");
    await sub_AddQBMethod( "FUNCTION",  "Fetch",   True);
    await sub_AddQBMethod( "SUB",  "Fetch",   True);
    await sub_AddQBMethod( "FUNCTION",  "FromJSON",   False);
    await sub_AddQBMethod( "FUNCTION",  "ToJSON",   False);
-   await sub_AddQBMethod( "SUB",  "$TouchMouse",   False);
 }
 this.compile = async function(src) {
    await sub_QBToJS(src, TEXT, '');
