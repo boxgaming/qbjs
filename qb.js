@@ -8,7 +8,10 @@ var QB = new function() {
     this.SQUAREPIXELS = Symbol("SQUAREPIXELS");
     this.OFF = Symbol("OFF");
 
-    var _strokeThickness = 2;
+    var _strokeLineThickness = 2;
+    var _strokeDrawLength = 4;
+    var _strokeDrawAngle = -Math.PI/2;
+    var _strokeDrawColor;
     var _fgColor = null; 
     var _bgColor = null; 
     var _colormap = [];
@@ -682,7 +685,7 @@ var QB = new function() {
     }
 
     this.sub_Draw = function(t) {
-
+        
         // Turn input string into array of characters.
         var u = t.toString();
         u = u.replace(" ","");
@@ -729,37 +732,51 @@ var QB = new function() {
         }
         v.push([elem,flag]);
 
-        var color;
-        var cursS = 4;
-        var cursA = -Math.PI/2;
+        // Draw-specific variables.
+        //var color;
         var cursX, cursY;
         var cursX0, cursY0;
         var cursXt, cursYt;
+        var ux, uy, ux0, uy0, uxx, uyy;
         var cursReturn = false;
         var cursSkipdraw = false;
         var dx, dy, dlen;
-        var multiplier;
+        var multiplier = 1;
         var tok, tok1, tok2;
         var tmp = [[]];
-        var lines = [["U",0],["E",Math.PI/4],["R",Math.PI/2],["F",Math.PI*(3/4)],["D",Math.PI],["G",Math.PI*(5/4)],["L",Math.PI*(3/2)],["H",Math.PI*(7/4)]];
+        var lines = [["U",0,1],
+                     ["E",Math.PI/4,Math.sqrt(2)],
+                     ["R",Math.PI/2,1],
+                     ["F",Math.PI*(3/4),Math.sqrt(2)],
+                     ["D",Math.PI,1],
+                     ["G",Math.PI*(5/4),Math.sqrt(2)],
+                     ["L",Math.PI*(3/2),1],
+                     ["H",Math.PI*(7/4),Math.sqrt(2)]];
 
+        // Screen variables.
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
         cursX = screen.lastX;
         cursY = screen.lastY;
-        ctx.strokeStyle = _fgColor.rgba();
 
         while (v.length) {
             tok = v.shift();
             if (tok[1] == 1) { 
-                if (tok[0] == "C") {
+
+                if (tok[0] == "B") {
+                    cursSkipdraw = true;
+
+                } else if (tok[0] == "N") {
+                    cursX0 = cursX;
+                    cursY0 = cursY;
+                    cursReturn = true;
+
+                } else if (tok[0] == "C") {
                     if (v.length) {
                         tmp = v[0];
                         if (tmp[1] == 0) {
                             tok1 = v.shift();
-                            color = Math.floor(tok1[0]);
-                            ctx.strokeStyle = _color(color).rgba();
-                            _fgColor = _color(color);
+                            _strokeDrawColor = Math.floor(tok1[0]);
                         }
                     }
 
@@ -768,30 +785,22 @@ var QB = new function() {
                         tmp = v[0];
                         if (tmp[1] == 0) {
                             tok1 = v.shift();
-                            cursS = tok1[0];
+                            _strokeDrawLength = (tok1[0]) * Math.sqrt(2);
                         }
                     }
-
-                } else if (tok[0] == "N") {
-                    cursX0 = cursX;
-                    cursY0 = cursY;
-                    cursReturn = true;
-
-                } else if (tok[0] == "B") {
-                    cursSkipdraw = true;
 
                 } else if (tok[0] == "A") {
                     tok1 = v.shift();
                     if (tok1[1] == 0) {
                         if (tok1[0] == 1) {
-                            cursA = -Math.PI;
+                            _strokeDrawAngle = -Math.PI;
                         } else if (tok1[0] == 2) {
-                            cursA = -Math.PI*(3/2);
+                            _strokeDrawAngle = -Math.PI*(3/2);
                         } else if (tok1[0] == 3) {
-                            cursA = 0;
+                            _strokeDrawAngle = 0;
                         }
-                        if (cursA > Math.PI*2) { cursA -= Math.PI*2; }
-                        if (cursA < -Math.PI*2) { cursA += Math.PI*2; }
+                        if (_strokeDrawAngle > Math.PI*2) { _strokeDrawAngle -= Math.PI*2; }
+                        if (_strokeDrawAngle < -Math.PI*2) { _strokeDrawAngle += Math.PI*2; }
                     }
 
                 } else if (tok[0] == "T") {
@@ -802,9 +811,25 @@ var QB = new function() {
                             if (tok1[0] == "A") {
                                 if (v.length) {
                                     tmp = v[0];
+                                    if (tmp[1] == -1) {
+                                        if (tmp[0] == "-") {
+                                            multiplier = -1;
+                                        } else if (tmp[0] == "+") {
+                                            multiplier = 1;
+                                        }
+                                        tmp = v.shift();
+                                        tmp = v[0];
+                                    } else {
+                                        multiplier = 1;
+                                    }
+                                }
+                                if (v.length) {
+                                    tmp = v[0];
                                     if (tmp[1] == 0) {
                                         tok2 = v.shift();
-                                        cursA = -Math.PI/2 - tok2[0]*Math.PI/180;
+                                        _strokeDrawAngle = -(Math.PI/2) - multiplier * (tok2[0])*Math.PI/180;
+                                        if (_strokeDrawAngle > Math.PI*2) { _strokeDrawAngle -= Math.PI*2; }
+                                        if (_strokeDrawAngle < -Math.PI*2) { _strokeDrawAngle += Math.PI*2; }
                                     }
                                 }
                             }
@@ -812,27 +837,36 @@ var QB = new function() {
                     }
 
                 } else if (tok[0] == "M") {
+                    multiplier = 1;
                     if (v.length) {
                         tmp = v[0];
                         if (tmp[1] == -1) {
                             tok1 = v.shift(); 
+                            ux0 = 0;
+                            uy0 = 0;
                             if (tok1[0] == "+") {
                                 multiplier = 1;
+                                ux0 = cursX;
+                                uy0 = cursY;
                             } else if (tok1[0] == "-") {
                                 multiplier = -1;
+                                ux0 = cursX;
+                                uy0 = cursY;
                             }
                             if (v.length) {
                                 tmp = v[0];
                                 if (tmp[1] == 0) {
                                     tok2 = v.shift();
-                                    cursXt = cursX + multiplier * tok2[0];
+                                    ux = multiplier * (_strokeDrawLength/4) * (tok2[0]);
                                 }
                             }
                         } else if (tmp[1] == 0) {
                             tok1 = v.shift();
-                            cursXt = tok1[0];
+                            ux = multiplier * (_strokeDrawLength/4) * (tok1[0]);
                         }
+                        
                     }
+                    multiplier = 1;
                     if (v.length) {
                         tmp = v[0];
                         if ((tmp[1] == -1) && (tmp[0] == ",")) {
@@ -844,23 +878,31 @@ var QB = new function() {
                                     if (tok1[0] == "+") {
                                         multiplier = 1;
                                     } else if (tok1[0] == "-") {
-                                        multiplier = -1;
+                                        multiplier = 1;
                                     }
                                     if (v.length) {
                                         tmp = v[0];
                                         if (tmp[1] == 0) {
                                             tok2 = v.shift();
-                                            cursYt = cursY + multiplier * tok2[0];
+                                            uy = multiplier * (_strokeDrawLength/4) * (tok2[0]);
                                         }
                                     }
                                 } else if (tmp[1] == 0) {
                                     tok1 = v.shift();
-                                    cursYt = tok1[0];
+                                    uy = multiplier * (_strokeDrawLength/4) * (tok1[0]);
                                 }
+
+                                uxx = ux * Math.cos(_strokeDrawAngle + Math.PI/2) - uy * Math.sin(_strokeDrawAngle + Math.PI/2);
+                                uyy = ux * Math.sin(_strokeDrawAngle + Math.PI/2) + uy * Math.cos(a_strokeDrawAngle + Math.PI/2);
+                                uxx = uxx / Math.sqrt(2);
+                                uyy = uyy / Math.sqrt(2);
+                                cursXt = ux0 + uxx;
+                                cursYt = uy0 + uyy;
                             }
                         }
                         if (cursSkipdraw == false) {
                             ctx.beginPath();
+                            ctx.strokeStyle = _color(_strokeDrawColor).rgba();
                             ctx.moveTo(cursX, cursY);
                             ctx.lineTo(cursXt, cursYt);
                             ctx.stroke();
@@ -900,17 +942,18 @@ var QB = new function() {
                                 tmp = v[0];
                                 if (tmp[1] == 0) {
                                     tok1 = v.shift();
-                                    dlen = tok1[0];
+                                    dlen = (tok1[0]) * (_strokeDrawLength/4) * (lines[i][2]);
                                 } else {
-                                    dlen = cursS/4;
+                                    dlen = (_strokeDrawLength/4) * (lines[i][2]);
                                 }
                             }
-                            dx = dlen * Math.cos(cursA + lines[i][1]);
-                            dy = dlen * Math.sin(cursA + lines[i][1]);
+                            dx = dlen * Math.cos(_strokeDrawAngle + lines[i][1]);
+                            dy = dlen * Math.sin(_strokeDrawAngle + lines[i][1]);
                             cursXt = cursX*1.0 + dx;
                             cursYt = cursY*1.0 + dy;
                             if (cursSkipdraw == false) {
                                 ctx.beginPath();
+                                ctx.strokeStyle = _color(_strokeDrawColor).rgba();
                                 ctx.moveTo(cursX, cursY);
                                 ctx.lineTo(cursXt, cursYt);
                                 ctx.stroke();
@@ -1077,7 +1120,7 @@ var QB = new function() {
         screen.lastY = y;
 
         var ctx = screen.ctx;
-        ctx.lineWidth = _strokeThickness;
+        ctx.lineWidth = _strokeLineThickness;
         ctx.strokeStyle = color.rgba();
         ctx.beginPath();
         if (aspect == undefined) {
@@ -1090,7 +1133,7 @@ var QB = new function() {
             }
         }
         ctx.stroke();
-        _fgColor = _color(color);
+        _strokeDrawColor = _color(color);
     };
 
     this.sub_Line = function(sstep, sx, sy, estep, ex, ey, color, style, pattern) {
@@ -1127,7 +1170,7 @@ var QB = new function() {
         screen.lastY = ey;
 
         var ctx = screen.ctx;
-        ctx.lineWidth = _strokeThickness;
+        ctx.lineWidth = _strokeLineThickness;
 
         if (style == "B") {
             ctx.strokeStyle = color.rgba();
@@ -1146,7 +1189,7 @@ var QB = new function() {
             ctx.lineTo(ex, ey);
             ctx.stroke();
         }
-        _fgColor = _color(color);
+        _strokeDrawColor = _color(color);
     };
 
     this.sub_LineInput = async function(values, preventNewline, addQuestionPrompt, prompt) {
@@ -1320,6 +1363,7 @@ var QB = new function() {
     };
 
     this.sub_Print = async function(args) {
+
         // Print called with no arguments
         if (args == undefined || args == null || args.length < 1) {
             args = [""];
@@ -1421,7 +1465,7 @@ var QB = new function() {
         ctx.fillStyle = color.rgba();
         ctx.beginPath();
         ctx.fillRect(x, y, 1, 1);
-        _fgColor = _color(color);
+        _strokeDrawColor = _color(color);
     };
 
     this.func_Right = function(value, n) {
@@ -1480,6 +1524,7 @@ var QB = new function() {
         _bgColor = _color(0);
         _locX = 0;
         _locY = 0;
+        _strokeDrawColor = _color(15);
 
         _lastKey = null;
         _inputMode = false;
