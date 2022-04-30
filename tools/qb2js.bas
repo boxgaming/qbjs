@@ -2780,6 +2780,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Csrlin", False
     AddQBMethod "FUNCTION", "Cvi", False
     AddQBMethod "FUNCTION", "Cvl", False
+    AddQBMethod "SUB", "Draw", False
     AddQBMethod "FUNCTION", "Exp", False
     AddQBMethod "FUNCTION", "Fix", False
     AddQBMethod "FUNCTION", "Hex$", False
@@ -2818,10 +2819,12 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Str$", False
     AddQBMethod "SUB", "Swap", False
     AddQBMethod "FUNCTION", "Tan", False
+    AddQBMethod "FUNCTION", "Time$", False
     AddQBMethod "FUNCTION", "Timer", False
     AddQBMethod "FUNCTION", "UBound", False
     AddQBMethod "FUNCTION", "UCase$", False
     AddQBMethod "FUNCTION", "Val", False
+    AddQBMethod "FUNCTION", "Varptr", False
 
 
     ' QBJS-only language features

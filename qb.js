@@ -6,7 +6,10 @@ var QB = new function() {
     this.SQUAREPIXELS = Symbol("SQUAREPIXELS");
     this.OFF = Symbol("OFF");
 
-    var _strokeThickness = 2;
+    var _strokeLineThickness = 2;
+    var _strokeDrawLength = 4;
+    var _strokeDrawAngle = -Math.PI/2;
+    var _strokeDrawColor;
     var _fgColor = null; 
     var _bgColor = null; 
     var _colormap = [];
@@ -438,10 +441,10 @@ var QB = new function() {
             a: a,
             rgba: function() { return "rgba(" + this.r + "," + this.g + "," + this.b + "," + this.a + ")"; },
             toString: function() {
-                var hexrep = ("00" + r.toString(16)).slice(-2) +
+                var hexrep = ("00" + (255*a).toString(16)).slice(-2) +
+                             ("00" + r.toString(16)).slice(-2) +
                              ("00" + g.toString(16)).slice(-2) +
-                             ("00" + b.toString(16)).slice(-2) +
-                             ("00" + a.toString(16)).slice(-2);
+                             ("00" + b.toString(16)).slice(-2);
                 return parseInt(hexrep, 16).toString();
             }
         }
@@ -679,6 +682,298 @@ var QB = new function() {
         return result;
     }
 
+    this.sub_Draw = function(t) {
+        
+        // Turn input string into array of characters.
+        var u = t.toString();
+        u = u.replace(" ","");
+        u = u.replace("=","");
+        u = u.toUpperCase();
+        u = u.split("");
+
+        // Prime data prep loop.
+        var ch;
+        var elem;
+        var flag;
+        ch = u[0];
+        if (!isNaN(String(ch) * 1)) {
+            flag = 0;  // number
+        } else if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
+            flag = 1;  // letter
+        } else {
+            flag = -1; // symbol
+        }
+        elem = ch;
+
+        // Turn character data into tokens.
+        var v = [[]];
+        v.shift();
+        for (var i=1; i<u.length; i++) {
+            ch = u[i];
+            if (!isNaN(String(ch) * 1)) {
+                if (flag == 0) {
+                    elem += ch;
+                } else {
+                    v.push([elem,flag]);
+                    elem = ch;
+                    flag = 0;
+                }
+            } else if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
+                v.push([elem,flag]);
+                elem = ch;
+                flag = 1;
+            } else {
+                v.push([elem,flag]);
+                elem = ch;
+                flag = -1;
+            }
+        }
+        v.push([elem,flag]);
+
+        // Draw-specific variables.
+        //var color;
+        var cursX, cursY;
+        var cursX0, cursY0;
+        var cursXt, cursYt;
+        var ux, uy, ux0, uy0, uxx, uyy;
+        var cursReturn = false;
+        var cursSkipdraw = false;
+        var dx, dy, dlen;
+        var multiplier = 1;
+        var tok, tok1, tok2;
+        var tmp = [[]];
+        var lines = [["U",0,1],
+                     ["E",Math.PI/4,Math.sqrt(2)],
+                     ["R",Math.PI/2,1],
+                     ["F",Math.PI*(3/4),Math.sqrt(2)],
+                     ["D",Math.PI,1],
+                     ["G",Math.PI*(5/4),Math.sqrt(2)],
+                     ["L",Math.PI*(3/2),1],
+                     ["H",Math.PI*(7/4),Math.sqrt(2)]];
+
+        // Screen variables.
+        var screen = _images[_activeImage];
+        var ctx = screen.ctx;
+        cursX = screen.lastX;
+        cursY = screen.lastY;
+
+        while (v.length) {
+            tok = v.shift();
+            if (tok[1] == 1) { 
+
+                if (tok[0] == "B") {
+                    cursSkipdraw = true;
+
+                } else if (tok[0] == "N") {
+                    cursX0 = cursX;
+                    cursY0 = cursY;
+                    cursReturn = true;
+
+                } else if (tok[0] == "C") {
+                    if (v.length) {
+                        tmp = v[0];
+                        if (tmp[1] == 0) {
+                            tok1 = v.shift();
+                            _strokeDrawColor = Math.floor(tok1[0]);
+                        }
+                    }
+
+                } else if (tok[0] == "S") {
+                    if (v.length) {
+                        tmp = v[0];
+                        if (tmp[1] == 0) {
+                            tok1 = v.shift();
+                            _strokeDrawLength = (tok1[0]) * Math.sqrt(2);
+                        }
+                    }
+
+                } else if (tok[0] == "A") {
+                    tok1 = v.shift();
+                    if (tok1[1] == 0) {
+                        if (tok1[0] == 1) {
+                            _strokeDrawAngle = -Math.PI;
+                        } else if (tok1[0] == 2) {
+                            _strokeDrawAngle = -Math.PI*(3/2);
+                        } else if (tok1[0] == 3) {
+                            _strokeDrawAngle = 0;
+                        }
+                        if (_strokeDrawAngle > Math.PI*2) { _strokeDrawAngle -= Math.PI*2; }
+                        if (_strokeDrawAngle < -Math.PI*2) { _strokeDrawAngle += Math.PI*2; }
+                    }
+
+                } else if (tok[0] == "T") {
+                    if (v.length) {
+                        tmp = v[0];
+                        if (tmp[1] == 1) {
+                            tok1 = v.shift();
+                            if (tok1[0] == "A") {
+                                if (v.length) {
+                                    tmp = v[0];
+                                    if (tmp[1] == -1) {
+                                        if (tmp[0] == "-") {
+                                            multiplier = -1;
+                                        } else if (tmp[0] == "+") {
+                                            multiplier = 1;
+                                        }
+                                        tmp = v.shift();
+                                        tmp = v[0];
+                                    } else {
+                                        multiplier = 1;
+                                    }
+                                }
+                                if (v.length) {
+                                    tmp = v[0];
+                                    if (tmp[1] == 0) {
+                                        tok2 = v.shift();
+                                        _strokeDrawAngle = -(Math.PI/2) - multiplier * (tok2[0])*Math.PI/180;
+                                        if (_strokeDrawAngle > Math.PI*2) { _strokeDrawAngle -= Math.PI*2; }
+                                        if (_strokeDrawAngle < -Math.PI*2) { _strokeDrawAngle += Math.PI*2; }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                } else if (tok[0] == "M") {
+                    multiplier = 1;
+                    if (v.length) {
+                        tmp = v[0];
+                        if (tmp[1] == -1) {
+                            tok1 = v.shift(); 
+                            ux0 = 0;
+                            uy0 = 0;
+                            if (tok1[0] == "+") {
+                                multiplier = 1;
+                                ux0 = cursX;
+                                uy0 = cursY;
+                            } else if (tok1[0] == "-") {
+                                multiplier = -1;
+                                ux0 = cursX;
+                                uy0 = cursY;
+                            }
+                            if (v.length) {
+                                tmp = v[0];
+                                if (tmp[1] == 0) {
+                                    tok2 = v.shift();
+                                    ux = multiplier * (_strokeDrawLength/4) * (tok2[0]);
+                                }
+                            }
+                        } else if (tmp[1] == 0) {
+                            tok1 = v.shift();
+                            ux = multiplier * (_strokeDrawLength/4) * (tok1[0]);
+                        }
+                        
+                    }
+                    multiplier = 1;
+                    if (v.length) {
+                        tmp = v[0];
+                        if ((tmp[1] == -1) && (tmp[0] == ",")) {
+                            tmp = v.shift();
+                            if (v.length) {
+                                tmp = v[0];
+                                if (tmp[1] == -1) {
+                                    tok1 = v.shift(); 
+                                    if (tok1[0] == "+") {
+                                        multiplier = 1;
+                                    } else if (tok1[0] == "-") {
+                                        multiplier = 1;
+                                    }
+                                    if (v.length) {
+                                        tmp = v[0];
+                                        if (tmp[1] == 0) {
+                                            tok2 = v.shift();
+                                            uy = multiplier * (_strokeDrawLength/4) * (tok2[0]);
+                                        }
+                                    }
+                                } else if (tmp[1] == 0) {
+                                    tok1 = v.shift();
+                                    uy = multiplier * (_strokeDrawLength/4) * (tok1[0]);
+                                }
+
+                                uxx = ux * Math.cos(_strokeDrawAngle + Math.PI/2) - uy * Math.sin(_strokeDrawAngle + Math.PI/2);
+                                uyy = ux * Math.sin(_strokeDrawAngle + Math.PI/2) + uy * Math.cos(_strokeDrawAngle + Math.PI/2);
+                                uxx = uxx / Math.sqrt(2);
+                                uyy = uyy / Math.sqrt(2);
+                                cursXt = ux0 + uxx;
+                                cursYt = uy0 + uyy;
+                            }
+                        }
+                        if (cursSkipdraw == false) {
+                            ctx.beginPath();
+                            ctx.strokeStyle = _color(_strokeDrawColor).rgba();
+                            ctx.moveTo(cursX, cursY);
+                            ctx.lineTo(cursXt, cursYt);
+                            ctx.stroke();
+                        } else {
+                            cursSkipdraw = false;
+                        }
+                        cursX = cursXt;
+                        cursY = cursYt;
+                    }
+
+                } else if (tok[0] == "P") {
+                    if (v.length) {
+                        tmp = v[0];
+                        if (tmp[1] == 0) {
+                            tok1 = v.shift();
+                            tok2 = tok1;
+                            if (v.length) {
+                                tmp = v[0];
+                                if ((tmp[1] == -1) && (tmp[0] == ",")) {
+                                    tmp = v.shift();
+                                    if (v.length) {
+                                        tmp = v[0];
+                                        if (tmp[1] == 0) {
+                                            tok2 = v.shift();
+                                        }
+                                    }
+                                }
+                            }
+                            this.sub_Paint(undefined, cursX, cursY, _color(Math.floor(tok1[0])), _color(Math.floor(tok2[0])));
+                        }
+                    }
+
+                } else { 
+                    for (i=0 ; i<lines.length ; i++) {
+                        if (tok[0] == lines[i][0]) {
+                            if (v.length) {
+                                tmp = v[0];
+                                if (tmp[1] == 0) {
+                                    tok1 = v.shift();
+                                    dlen = (tok1[0]) * (_strokeDrawLength/4) * (lines[i][2]);
+                                } else {
+                                    dlen = (_strokeDrawLength/4) * (lines[i][2]);
+                                }
+                            }
+                            dx = dlen * Math.cos(_strokeDrawAngle + lines[i][1]);
+                            dy = dlen * Math.sin(_strokeDrawAngle + lines[i][1]);
+                            cursXt = cursX*1.0 + dx;
+                            cursYt = cursY*1.0 + dy;
+                            if (cursSkipdraw == false) {
+                                ctx.beginPath();
+                                ctx.strokeStyle = _color(_strokeDrawColor).rgba();
+                                ctx.moveTo(cursX, cursY);
+                                ctx.lineTo(cursXt, cursYt);
+                                ctx.stroke();
+                            } else {
+                                cursSkipdraw = false;
+                            }
+                            cursX = cursXt;
+                            cursY = cursYt;
+                        }
+                    }
+                }     
+            }
+            if (cursReturn == true) {
+                cursX = cursX0;
+                cursY = cursY0;
+                cursReturn = false;
+            } 
+        }
+        screen.lastX = cursX;
+        screen.lastY = cursY;
+    };
+
     this.func_Exp = function(value) {
         return Math.exp(value);
     };
@@ -823,7 +1118,7 @@ var QB = new function() {
         screen.lastY = y;
 
         var ctx = screen.ctx;
-        ctx.lineWidth = _strokeThickness;
+        ctx.lineWidth = _strokeLineThickness;
         ctx.strokeStyle = color.rgba();
         ctx.beginPath();
         if (aspect == undefined) {
@@ -836,6 +1131,7 @@ var QB = new function() {
             }
         }
         ctx.stroke();
+        _strokeDrawColor = _color(color);
     };
 
     this.sub_Line = function(sstep, sx, sy, estep, ex, ey, color, style, pattern) {
@@ -872,7 +1168,7 @@ var QB = new function() {
         screen.lastY = ey;
 
         var ctx = screen.ctx;
-        ctx.lineWidth = _strokeThickness;
+        ctx.lineWidth = _strokeLineThickness;
 
         if (style == "B") {
             ctx.strokeStyle = color.rgba();
@@ -891,6 +1187,7 @@ var QB = new function() {
             ctx.lineTo(ex, ey);
             ctx.stroke();
         }
+        _strokeDrawColor = _color(color);
     };
 
     this.sub_LineInput = async function(values, preventNewline, addQuestionPrompt, prompt) {
@@ -1064,6 +1361,7 @@ var QB = new function() {
     };
 
     this.sub_Print = async function(args) {
+
         // Print called with no arguments
         if (args == undefined || args == null || args.length < 1) {
             args = [""];
@@ -1165,6 +1463,7 @@ var QB = new function() {
         ctx.fillStyle = color.rgba();
         ctx.beginPath();
         ctx.fillRect(x, y, 1, 1);
+        _strokeDrawColor = _color(color);
     };
 
     this.func_Right = function(value, n) {
@@ -1214,13 +1513,16 @@ var QB = new function() {
                 charSizeMode = img.charSizeMode;
             }
         }
-        _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0, charSizeMode: charSizeMode };
+        _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0 };
+        _images[0].lastX = _images[0].canvas.width/2;
+        _images[0].lastY = _images[0].canvas.height/2;
 
         // initialize the graphics
         _fgColor = _color(7); 
         _bgColor = _color(0);
         _locX = 0;
         _locY = 0;
+        _strokeDrawColor = _color(15);
 
         _lastKey = null;
         _inputMode = false;
@@ -1279,6 +1581,15 @@ var QB = new function() {
         return Math.tan(value);
     };
 
+    this.func_Time = function() {
+        var digital = new Date();
+        var hours = ("00" + digital.getHours()).slice(-2);
+        var minutes = ("00" + digital.getMinutes()).slice(-2);
+        var seconds = ("00" + digital.getSeconds()).slice(-2);
+        var c = hours + ":" + minutes + ":" + seconds;
+        return c;
+    };
+
     this.func_Timer = function(accuracy) {
         // TODO: implement optional accuracy
         var midnight = new Date();
@@ -1316,6 +1627,10 @@ var QB = new function() {
             ret = Number(value);
         }
         return ret;
+    };
+
+    this.func_Varptr = function(value) {
+        return String(value);
     };
 
 
