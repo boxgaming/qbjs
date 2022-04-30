@@ -893,7 +893,7 @@ var QB = new function() {
                                 }
 
                                 uxx = ux * Math.cos(_strokeDrawAngle + Math.PI/2) - uy * Math.sin(_strokeDrawAngle + Math.PI/2);
-                                uyy = ux * Math.sin(_strokeDrawAngle + Math.PI/2) + uy * Math.cos(a_strokeDrawAngle + Math.PI/2);
+                                uyy = ux * Math.sin(_strokeDrawAngle + Math.PI/2) + uy * Math.cos(_strokeDrawAngle + Math.PI/2);
                                 uxx = uxx / Math.sqrt(2);
                                 uyy = uyy / Math.sqrt(2);
                                 cursXt = ux0 + uxx;
