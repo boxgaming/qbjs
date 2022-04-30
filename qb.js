@@ -783,7 +783,7 @@ var QB = new function() {
                         tmp = v[0];
                         if (tmp[1] == 0) {
                             tok1 = v.shift();
-                            _strokeDrawLength = (tok1[0]) * Math.sqrt(2);
+                            _strokeDrawLength = (tok1[0]) * 1.0;
                         }
                     }
 
@@ -835,21 +835,18 @@ var QB = new function() {
                     }
 
                 } else if (tok[0] == "M") {
+                    var sFlag = false;
                     multiplier = 1;
                     if (v.length) {
                         tmp = v[0];
                         if (tmp[1] == -1) {
                             tok1 = v.shift(); 
-                            ux0 = 0;
-                            uy0 = 0;
                             if (tok1[0] == "+") {
                                 multiplier = 1;
-                                ux0 = cursX;
-                                uy0 = cursY;
+                                sFlag = true;
                             } else if (tok1[0] == "-") {
                                 multiplier = -1;
-                                ux0 = cursX;
-                                uy0 = cursY;
+                                sFlag = true;
                             }
                             if (v.length) {
                                 tmp = v[0];
@@ -862,7 +859,13 @@ var QB = new function() {
                             tok1 = v.shift();
                             ux = multiplier * (_strokeDrawLength/4) * (tok1[0]);
                         }
-                        
+                        if (sFlag == true) {
+                            ux0 = cursX;
+                            uy0 = cursY;
+                        } else {
+                            ux0 = 0;
+                            uy0 = 0;
+                        }
                     }
                     multiplier = 1;
                     if (v.length) {
@@ -889,11 +892,13 @@ var QB = new function() {
                                     tok1 = v.shift();
                                     uy = multiplier * (_strokeDrawLength/4) * (tok1[0]);
                                 }
-
-                                uxx = ux * Math.cos(_strokeDrawAngle + Math.PI/2) - uy * Math.sin(_strokeDrawAngle + Math.PI/2);
-                                uyy = ux * Math.sin(_strokeDrawAngle + Math.PI/2) + uy * Math.cos(_strokeDrawAngle + Math.PI/2);
-                                uxx = uxx / Math.sqrt(2);
-                                uyy = uyy / Math.sqrt(2);
+                                if (sFlag == true) {
+                                    uxx = ux * Math.cos(_strokeDrawAngle + Math.PI/2) - uy * Math.sin(_strokeDrawAngle + Math.PI/2);
+                                    uyy = ux * Math.sin(_strokeDrawAngle + Math.PI/2) + uy * Math.cos(_strokeDrawAngle + Math.PI/2);
+                                } else {
+                                    uxx = ux;
+                                    uyy = uy;
+                                }
                                 cursXt = ux0 + uxx;
                                 cursYt = uy0 + uyy;
                             }
