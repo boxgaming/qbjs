@@ -2596,6 +2596,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "Csrlin",   False);
    await sub_AddQBMethod( "FUNCTION",  "Cvi",   False);
    await sub_AddQBMethod( "FUNCTION",  "Cvl",   False);
+   await sub_AddQBMethod( "SUB",  "Draw",   False);
    await sub_AddQBMethod( "FUNCTION",  "Exp",   False);
    await sub_AddQBMethod( "FUNCTION",  "Fix",   False);
    await sub_AddQBMethod( "FUNCTION",  "Hex$",   False);
@@ -2634,10 +2635,12 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "Str$",   False);
    await sub_AddQBMethod( "SUB",  "Swap",   False);
    await sub_AddQBMethod( "FUNCTION",  "Tan",   False);
+   await sub_AddQBMethod( "FUNCTION",  "Time$",   False);
    await sub_AddQBMethod( "FUNCTION",  "Timer",   False);
    await sub_AddQBMethod( "FUNCTION",  "UBound",   False);
    await sub_AddQBMethod( "FUNCTION",  "UCase$",   False);
    await sub_AddQBMethod( "FUNCTION",  "Val",   False);
+   await sub_AddQBMethod( "FUNCTION",  "Varptr",   False);
    await sub_AddQBConst( "LOCAL");
    await sub_AddQBConst( "SESSION");
    await sub_AddSystemType( "FETCHRESPONSE",  "ok:INTEGER,status:INTEGER,statusText:STRING,text:STRING");
