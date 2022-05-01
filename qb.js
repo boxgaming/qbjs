@@ -691,7 +691,7 @@ var QB = new function() {
         u = u.toUpperCase();
         u = u.split("");
 
-        // Prime data prep loop.
+        // Prime data loop.
         var ch;
         var elem;
         var flag;
@@ -731,14 +731,15 @@ var QB = new function() {
         v.push([elem,flag]);
 
         // Draw-specific variables.
-        //var color;
+        var fudgeFactor = 1.30;
         var cursX, cursY;
         var cursX0, cursY0;
         var cursXt, cursYt;
         var ux, uy, ux0, uy0, uxx, uyy;
+        var sMFlag;
         var cursReturn = false;
         var cursSkipdraw = false;
-        var dx, dy, dlen;
+        var dx, dy, dlen, ang;
         var multiplier = 1;
         var tok, tok1, tok2;
         var tmp = [[]];
@@ -757,6 +758,7 @@ var QB = new function() {
         cursX = screen.lastX;
         cursY = screen.lastY;
 
+        // Main loop.
         while (v.length) {
             tok = v.shift();
             if (tok[1] == 1) { 
@@ -783,7 +785,7 @@ var QB = new function() {
                         tmp = v[0];
                         if (tmp[1] == 0) {
                             tok1 = v.shift();
-                            _strokeDrawLength = (tok1[0]) * Math.sqrt(2);
+                            _strokeDrawLength = (tok1[0]) * (fudgeFactor);
                         }
                     }
 
@@ -835,34 +837,37 @@ var QB = new function() {
                     }
 
                 } else if (tok[0] == "M") {
+                    sMFlag = false;
                     multiplier = 1;
                     if (v.length) {
                         tmp = v[0];
                         if (tmp[1] == -1) {
                             tok1 = v.shift(); 
-                            ux0 = 0;
-                            uy0 = 0;
                             if (tok1[0] == "+") {
                                 multiplier = 1;
-                                ux0 = cursX;
-                                uy0 = cursY;
+                                sMFlag = true;
                             } else if (tok1[0] == "-") {
                                 multiplier = -1;
-                                ux0 = cursX;
-                                uy0 = cursY;
+                                sMFlag = true;
                             }
                             if (v.length) {
                                 tmp = v[0];
                                 if (tmp[1] == 0) {
                                     tok2 = v.shift();
-                                    ux = multiplier * (_strokeDrawLength/4) * (tok2[0]);
+                                    ux = multiplier * (tok2[0]);
                                 }
                             }
                         } else if (tmp[1] == 0) {
                             tok1 = v.shift();
-                            ux = multiplier * (_strokeDrawLength/4) * (tok1[0]);
+                            ux = multiplier * (tok1[0]);
                         }
-                        
+                        if (sMFlag == true) {
+                            ux0 = cursX;
+                            uy0 = cursY;
+                        } else {
+                            ux0 = 0.0;
+                            uy0 = 0.0;
+                        }
                     }
                     multiplier = 1;
                     if (v.length) {
@@ -876,31 +881,36 @@ var QB = new function() {
                                     if (tok1[0] == "+") {
                                         multiplier = 1;
                                     } else if (tok1[0] == "-") {
-                                        multiplier = 1;
+                                        multiplier = -1;
                                     }
                                     if (v.length) {
                                         tmp = v[0];
                                         if (tmp[1] == 0) {
                                             tok2 = v.shift();
-                                            uy = multiplier * (_strokeDrawLength/4) * (tok2[0]);
+                                            uy = multiplier * (tok2[0]);
                                         }
                                     }
                                 } else if (tmp[1] == 0) {
                                     tok1 = v.shift();
-                                    uy = multiplier * (_strokeDrawLength/4) * (tok1[0]);
+                                    uy = multiplier * (tok1[0]);
                                 }
-
-                                uxx = ux * Math.cos(_strokeDrawAngle + Math.PI/2) - uy * Math.sin(_strokeDrawAngle + Math.PI/2);
-                                uyy = ux * Math.sin(_strokeDrawAngle + Math.PI/2) + uy * Math.cos(_strokeDrawAngle + Math.PI/2);
-                                uxx = uxx / Math.sqrt(2);
-                                uyy = uyy / Math.sqrt(2);
+                                if (sMFlag == true) {
+                                    ang = (_strokeDrawAngle + Math.PI/2);
+                                    uxx = ux * Math.cos(ang) - uy * Math.sin(ang);
+                                    uyy = ux * Math.sin(ang) + uy * Math.cos(ang);
+                                    uxx *= (_strokeDrawLength/4) / (fudgeFactor);
+                                    uyy *= (_strokeDrawLength/4) / (fudgeFactor);
+                                } else {
+                                    uxx = ux;
+                                    uyy = uy;
+                                }
                                 cursXt = ux0 + uxx;
                                 cursYt = uy0 + uyy;
                             }
                         }
                         if (cursSkipdraw == false) {
-                            ctx.beginPath();
                             ctx.strokeStyle = _color(_strokeDrawColor).rgba();
+                            ctx.beginPath();
                             ctx.moveTo(cursX, cursY);
                             ctx.lineTo(cursXt, cursYt);
                             ctx.stroke();
@@ -947,11 +957,11 @@ var QB = new function() {
                             }
                             dx = dlen * Math.cos(_strokeDrawAngle + lines[i][1]);
                             dy = dlen * Math.sin(_strokeDrawAngle + lines[i][1]);
-                            cursXt = cursX*1.0 + dx;
-                            cursYt = cursY*1.0 + dy;
+                            cursXt = (cursX)*1.0 + dx;
+                            cursYt = (cursY)*1.0 + dy;
                             if (cursSkipdraw == false) {
-                                ctx.beginPath();
                                 ctx.strokeStyle = _color(_strokeDrawColor).rgba();
+                                ctx.beginPath();
                                 ctx.moveTo(cursX, cursY);
                                 ctx.lineTo(cursXt, cursYt);
                                 ctx.stroke();
