@@ -27,11 +27,11 @@ $If Javascript Then
 $End If
 End Sub
 
-Sub Confirm (text) 
+Function Confirm (text) 
 $If Javascript Then
     Confirm = confirm(text) ? -1 : 0;
 $End If
-End Sub
+End Function
 
 Sub Add (e, parent, beforeElement)
 $If Javascript Then
