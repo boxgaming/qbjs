@@ -246,13 +246,13 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
             ElseIf first = "SELECT" Then
                 caseVar = GenJSVar
-                js = "var " + caseVar + " = " + ConvertExpression(Join(parts(), 3, -1, " ")) + ";" + GX_CRLF
+                js = "var " + caseVar + " = " + ConvertExpression(Join(parts(), 3, -1, " ")) + ";" + CRLF
                 js = js + "switch (" + caseVar + ") {"
                 indent = 1
                 caseCount = 0
 
             ElseIf first = "CASE" Then
-                If caseCount > 0 Then js = "break;" + GX_LF
+                If caseCount > 0 Then js = "break;" + LF
                 If UCase$(parts(2)) = "ELSE" Then
                     js = js + "default:"
                 ElseIf UCase$(parts(2)) = "IS" Then
@@ -263,7 +263,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     cscount = ListSplit(Join(parts(), 2, -1, " "), caseParts())
                     Dim ci As Integer
                     For ci = 1 To cscount
-                        If ci > 1 Then js = js + GX_CRLF
+                        If ci > 1 Then js = js + CRLF
                         js = js + "case " + ConvertExpression(caseParts(ci)) + ":"
                     Next ci
                 End If
@@ -485,7 +485,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
             End If
 
             If (indent < 0) Then totalIndent = totalIndent + indent
-            AddJSLine i, GXSTR_LPad("", " ", (totalIndent + tempIndent) * 3) + js
+            AddJSLine i, LPad("", " ", (totalIndent + tempIndent) * 3) + js
             If (indent > 0) Then totalIndent = totalIndent + indent
 
         End If
@@ -696,12 +696,12 @@ Function ConvertLine$ (args As String)
 
     theRest = ConvertExpression(theRest)
     ' TODO: fix this nonsense
-    theRest = GXSTR_Replace(theRest, " BF", " " + Chr$(34) + "BF" + Chr$(34))
-    theRest = GXSTR_Replace(theRest, " bf", " " + Chr$(34) + "BF" + Chr$(34))
-    theRest = GXSTR_Replace(theRest, " bF", " " + Chr$(34) + "BF" + Chr$(34))
-    theRest = GXSTR_Replace(theRest, " Bf", " " + Chr$(34) + "BF" + Chr$(34))
-    theRest = GXSTR_Replace(theRest, " B", " " + Chr$(34) + "B" + Chr$(34))
-    theRest = GXSTR_Replace(theRest, " b", " " + Chr$(34) + "B" + Chr$(34))
+    theRest = Replace(theRest, " BF", " " + Chr$(34) + "BF" + Chr$(34))
+    theRest = Replace(theRest, " bf", " " + Chr$(34) + "BF" + Chr$(34))
+    theRest = Replace(theRest, " bF", " " + Chr$(34) + "BF" + Chr$(34))
+    theRest = Replace(theRest, " Bf", " " + Chr$(34) + "BF" + Chr$(34))
+    theRest = Replace(theRest, " B", " " + Chr$(34) + "B" + Chr$(34))
+    theRest = Replace(theRest, " b", " " + Chr$(34) + "B" + Chr$(34))
 
     ConvertLine = sstep + ", " + startCord + ", " + estep + ", " + endCord + ", " + theRest
 End Function
@@ -918,11 +918,11 @@ Function ConvertInput$ (m As Method, args As String)
     Next i
 
     vname = GenJSVar '"___i" + _Trim$(Str$(_Round(Rnd * 10000000)))
-    js = "var " + vname + " = new Array(" + Str$(UBound(vars)) + ");" + GX_LF
-    js = js + CallMethod(m) + "(" + vname + ", " + preventNewline + ", " + addQuestionPrompt + ", " + prompt + ");" + GX_LF
+    js = "var " + vname + " = new Array(" + Str$(UBound(vars)) + ");" + LF
+    js = js + CallMethod(m) + "(" + vname + ", " + preventNewline + ", " + addQuestionPrompt + ", " + prompt + ");" + LF
     For i = 1 To UBound(vars)
         If Not StartsWith(_Trim$(vars(i)), "#") Then ' special case to prevent file references from being output during self-compilation
-            js = js + ConvertExpression(vars(i)) + " = " + vname + "[" + Str$(i - 1) + "];" + GX_LF
+            js = js + ConvertExpression(vars(i)) + " = " + vname + "[" + Str$(i - 1) + "];" + LF
         End If
     Next i
     ConvertInput = js
@@ -939,9 +939,9 @@ Function ConvertSwap$ (m As Method, args As String)
     Dim var2 As String
     var1 = ConvertExpression(swapArgs(1))
     var2 = ConvertExpression(swapArgs(2))
-    js = "var " + swapArray + " = [" + var1 + "," + var2 + "];" + GX_LF
-    js = js + CallMethod(m) + "(" + swapArray + ");" + GX_LF
-    js = js + var1 + " = " + swapArray + "[0];" + GX_LF
+    js = "var " + swapArray + " = [" + var1 + "," + var2 + "];" + LF
+    js = js + CallMethod(m) + "(" + swapArray + ");" + LF
+    js = js + var1 + " = " + swapArray + "[0];" + LF
     js = js + var2 + " = " + swapArray + "[1];"
     ConvertSwap = js
 End Function
@@ -1050,7 +1050,7 @@ Function DeclareVar$ (parts() As String)
 
             js = js + " // " + bvar.type
 
-            If i < vnamecount Then js = js + GX_LF
+            If i < vnamecount Then js = js + LF
         Next i
 
 
@@ -1117,7 +1117,7 @@ Function DeclareVar$ (parts() As String)
 
             js = js + " // " + bvar.type
 
-            If i < vnamecount Then js = js + GX_LF
+            If i < vnamecount Then js = js + LF
         Next i
     End If
 
@@ -1516,7 +1516,7 @@ Sub ReadLinesFromText (sourceText As String)
     Dim rawJS
     Dim lcount As Integer
     Dim i As Integer
-    lcount = Split(sourceText, GX_LF, sourceLines())
+    lcount = Split(sourceText, LF, sourceLines())
     For i = 1 To lcount
         Dim fline As String
         fline = sourceLines(i)
@@ -1790,7 +1790,7 @@ Function SLSplit (sourceString As String, results() As String, escapeStrings As 
             ' This is not the most intuitive place for this...
             ' If we find a string then escape any backslashes
             If Not quoteMode And escapeStrings Then
-                result = GXSTR_Replace(result, "\", "\\")
+                result = Replace(result, "\", "\\")
             End If
 
         ElseIf c = " " Then
@@ -2335,6 +2335,37 @@ Function Join$ (parts() As String, startIndex As Integer, endIndex As Integer, d
     Join = s
 End Function
 
+Function LPad$ (s As String, padChar As String, swidth As Integer)
+    Dim padding As String
+    padding = String$(swidth - Len(s), padChar)
+    LPad = padding + s
+End Function
+
+Function Replace$ (s As String, searchString As String, newString As String)
+    Dim ns As String
+    Dim i As Integer
+
+    Dim slen As Integer
+    slen = Len(searchString)
+
+    For i = 1 To Len(s) '- slen + 1
+        If Mid$(s, i, slen) = searchString Then
+            ns = ns + newString
+            i = i + slen - 1
+        Else
+            ns = ns + Mid$(s, i, 1)
+        End If
+    Next i
+
+    Replace = ns
+End Function
+
+' Pseudo-constants
+Function LF$: LF = Chr$(10): End Function
+Function CR$: CR = Chr$(13): End Function
+Function CRLF$: CRLF = CR + LF: End Function
+
+
 Function MethodJS$ (m As Method, prefix As String)
     Dim jsname As String
     jsname = prefix
@@ -2697,7 +2728,6 @@ Sub InitGX
     AddGXMethod "FUNCTION", "GXSTR_LPad", False
     AddGXMethod "FUNCTION", "GXSTR_RPad", False
     AddGXMethod "FUNCTION", "GXSTR_Replace", False
-    '    AddGXMethod "FUNCTION", "GXSTR_Split"
 
 End Sub
 
@@ -2839,5 +2869,3 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "ToJSON", False
 
 End Sub
-
-'$include: '../../gx/gx/gx_str.bm'

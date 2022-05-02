@@ -194,13 +194,13 @@ if (QB.halted()) { return; }
             js = (await func_DeclareVar( parts));
          } else if ( first == "SELECT" ) {
             caseVar = await func_GenJSVar();
-            js = "var "  + caseVar +" = "  +(await func_ConvertExpression( (await func_Join( parts,   3,   -1,  " "))))  +";"  + GX.CRLF;
+            js = "var "  + caseVar +" = "  +(await func_ConvertExpression( (await func_Join( parts,   3,   -1,  " "))))  +";"  +await func_CRLF();
             js =  js +"switch ("  + caseVar +") {";
             indent =  1;
             caseCount =  0;
          } else if ( first == "CASE" ) {
             if ( caseCount >  0) {
-               js = "break;"  + GX.LF;
+               js = "break;"  +await func_LF();
             }
             if ((QB.func_UCase( QB.arrayValue(parts, [ 2]).value))  == "ELSE" ) {
                js =  js +"default:";
@@ -213,7 +213,7 @@ if (QB.halted()) { return; }
                var ci = 0; // INTEGER
                for ( ci= 1;  ci <=  cscount;  ci= ci + 1) {  if (QB.halted()) { return; }
                   if ( ci >  1) {
-                     js =  js + GX.CRLF;
+                     js =  js +await func_CRLF();
                   }
                   js =  js +"case "  +(await func_ConvertExpression( QB.arrayValue(caseParts, [ ci]).value))  +":";
                }
@@ -410,7 +410,7 @@ if (QB.halted()) { return; }
          if (( indent <  0) ) {
             totalIndent =  totalIndent + indent;
          }
-         await sub_AddJSLine(  i,  (GXSTR.lPad( "",  " ",  ( totalIndent + tempIndent)  * 3))  + js);
+         await sub_AddJSLine(  i,  (await func_LPad( "",  " ",  ( totalIndent + tempIndent)  * 3))  + js);
          if (( indent >  0) ) {
             totalIndent =  totalIndent + indent;
          }
@@ -601,12 +601,12 @@ var ConvertLine = null;
    endCord = (QB.func_Left(  endCord,   idx - 1));
    endCord = (await func_ConvertExpression(  endCord));
    theRest = (await func_ConvertExpression(  theRest));
-   theRest = (GXSTR.replace(  theRest,  " BF",  " "  +(QB.func_Chr(  34))  +"BF"  +(QB.func_Chr(  34))));
-   theRest = (GXSTR.replace(  theRest,  " bf",  " "  +(QB.func_Chr(  34))  +"BF"  +(QB.func_Chr(  34))));
-   theRest = (GXSTR.replace(  theRest,  " bF",  " "  +(QB.func_Chr(  34))  +"BF"  +(QB.func_Chr(  34))));
-   theRest = (GXSTR.replace(  theRest,  " Bf",  " "  +(QB.func_Chr(  34))  +"BF"  +(QB.func_Chr(  34))));
-   theRest = (GXSTR.replace(  theRest,  " B",  " "  +(QB.func_Chr(  34))  +"B"  +(QB.func_Chr(  34))));
-   theRest = (GXSTR.replace(  theRest,  " b",  " "  +(QB.func_Chr(  34))  +"B"  +(QB.func_Chr(  34))));
+   theRest = (await func_Replace(  theRest,  " BF",  " "  +(QB.func_Chr(  34))  +"BF"  +(QB.func_Chr(  34))));
+   theRest = (await func_Replace(  theRest,  " bf",  " "  +(QB.func_Chr(  34))  +"BF"  +(QB.func_Chr(  34))));
+   theRest = (await func_Replace(  theRest,  " bF",  " "  +(QB.func_Chr(  34))  +"BF"  +(QB.func_Chr(  34))));
+   theRest = (await func_Replace(  theRest,  " Bf",  " "  +(QB.func_Chr(  34))  +"BF"  +(QB.func_Chr(  34))));
+   theRest = (await func_Replace(  theRest,  " B",  " "  +(QB.func_Chr(  34))  +"B"  +(QB.func_Chr(  34))));
+   theRest = (await func_Replace(  theRest,  " b",  " "  +(QB.func_Chr(  34))  +"B"  +(QB.func_Chr(  34))));
    ConvertLine =  sstep +", "  + startCord +", "  + estep +", "  + endCord +", "  + theRest;
 return ConvertLine;
 }
@@ -842,11 +842,11 @@ var ConvertInput = null;
       }
    }
    vname = await func_GenJSVar();
-   js = "var "  + vname +" = new Array("  +(QB.func_Str( (QB.func_UBound(  vars))))  +");"  + GX.LF;
-   js =  js +(await func_CallMethod(  m))  +"("  + vname +", "  + preventNewline +", "  + addQuestionPrompt +", "  + prompt +");"  + GX.LF;
+   js = "var "  + vname +" = new Array("  +(QB.func_Str( (QB.func_UBound(  vars))))  +");"  +await func_LF();
+   js =  js +(await func_CallMethod(  m))  +"("  + vname +", "  + preventNewline +", "  + addQuestionPrompt +", "  + prompt +");"  +await func_LF();
    for ( i= 1;  i <= (QB.func_UBound(  vars));  i= i + 1) {  if (QB.halted()) { return; }
       if (!(await func_StartsWith( (QB.func__Trim( QB.arrayValue(vars, [ i]).value)),  "#")) ) {
-         js =  js +(await func_ConvertExpression( QB.arrayValue(vars, [ i]).value))  +" = "  + vname +"["  +(QB.func_Str(  i - 1))  +"];"  + GX.LF;
+         js =  js +(await func_ConvertExpression( QB.arrayValue(vars, [ i]).value))  +" = "  + vname +"["  +(QB.func_Str(  i - 1))  +"];"  +await func_LF();
       }
    }
    ConvertInput =  js;
@@ -865,9 +865,9 @@ var ConvertSwap = null;
    var var2 = ''; // STRING
    var1 = (await func_ConvertExpression( QB.arrayValue(swapArgs, [ 1]).value));
    var2 = (await func_ConvertExpression( QB.arrayValue(swapArgs, [ 2]).value));
-   js = "var "  + swapArray +" = ["  + var1 +","  + var2 +"];"  + GX.LF;
-   js =  js +(await func_CallMethod(  m))  +"("  + swapArray +");"  + GX.LF;
-   js =  js + var1 +" = "  + swapArray +"[0];"  + GX.LF;
+   js = "var "  + swapArray +" = ["  + var1 +","  + var2 +"];"  +await func_LF();
+   js =  js +(await func_CallMethod(  m))  +"("  + swapArray +");"  +await func_LF();
+   js =  js + var1 +" = "  + swapArray +"[0];"  +await func_LF();
    js =  js + var2 +" = "  + swapArray +"[1];";
    ConvertSwap =  js;
 return ConvertSwap;
@@ -978,7 +978,7 @@ var DeclareVar = null;
          }
          js =  js +" // "  + bvar.type;
          if ( i <  vnamecount) {
-            js =  js + GX.LF;
+            js =  js +await func_LF();
          }
       }
    } else {
@@ -1031,7 +1031,7 @@ var DeclareVar = null;
          }
          js =  js +" // "  + bvar.type;
          if ( i <  vnamecount) {
-            js =  js + GX.LF;
+            js =  js +await func_LF();
          }
       }
    }
@@ -1429,7 +1429,7 @@ if (QB.halted()) { return; }
    var rawJS = 0; // SINGLE
    var lcount = 0; // INTEGER
    var i = 0; // INTEGER
-   lcount = (await func_Split(  sourceText,   GX.LF,  sourceLines));
+   lcount = (await func_Split(  sourceText,  await func_LF(),  sourceLines));
    for ( i= 1;  i <=  lcount;  i= i + 1) {  if (QB.halted()) { return; }
       var fline = ''; // STRING
       fline = QB.arrayValue(sourceLines, [ i]).value;
@@ -1686,7 +1686,7 @@ var dpos = 0; // LONG
          quoteMode = ! quoteMode;
          result =  result + c;
          if (! quoteMode &&  escapeStrings) {
-            result = (GXSTR.replace(  result,  "\\",  "\\\\"));
+            result = (await func_Replace(  result,  "\\",  "\\\\"));
          }
       } else if ( c == " " ) {
          if ( quoteMode) {
@@ -2206,6 +2206,50 @@ var Join = null;
    Join =  s;
 return Join;
 }
+async function func_LPad(s/*STRING*/,padChar/*STRING*/,swidth/*INTEGER*/) {
+if (QB.halted()) { return; }
+var LPad = null;
+   var padding = ''; // STRING
+   padding = (QB.func_String(  swidth -(QB.func_Len(  s)),   padChar));
+   LPad =  padding + s;
+return LPad;
+}
+async function func_Replace(s/*STRING*/,searchString/*STRING*/,newString/*STRING*/) {
+if (QB.halted()) { return; }
+var Replace = null;
+   var ns = ''; // STRING
+   var i = 0; // INTEGER
+   var slen = 0; // INTEGER
+   slen = (QB.func_Len(  searchString));
+   for ( i= 1;  i <= (QB.func_Len(  s));  i= i + 1) {  if (QB.halted()) { return; }
+      if ((QB.func_Mid(  s,   i,   slen))  ==  searchString) {
+         ns =  ns + newString;
+         i =  i + slen - 1;
+      } else {
+         ns =  ns +(QB.func_Mid(  s,   i,   1));
+      }
+   }
+   Replace =  ns;
+return Replace;
+}
+async function func_LF() {
+if (QB.halted()) { return; }
+var LF = null;
+   LF = (QB.func_Chr(  10));
+return LF;
+}
+async function func_CR() {
+if (QB.halted()) { return; }
+var CR = null;
+   CR = (QB.func_Chr(  13));
+return CR;
+}
+async function func_CRLF() {
+if (QB.halted()) { return; }
+var CRLF = null;
+   CRLF = await func_CR() +await func_LF();
+return CRLF;
+}
 async function func_MethodJS(m/*METHOD*/,prefix/*STRING*/) {
 if (QB.halted()) { return; }
 var MethodJS = null;
@@ -2676,10 +2720,8 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "UBound",   False);
    await sub_AddQBMethod( "FUNCTION",  "UCase$",   False);
    await sub_AddQBMethod( "FUNCTION",  "Val",   False);
-   await sub_AddQBMethod( "SUB",  "IncludeJS",   True);
    await sub_AddQBMethod( "FUNCTION",  "Varptr",   False);
-   await sub_AddQBConst( "LOCAL");
-   await sub_AddQBConst( "SESSION");
+   await sub_AddQBMethod( "SUB",  "IncludeJS",   True);
    await sub_AddSystemType( "FETCHRESPONSE",  "ok:INTEGER,status:INTEGER,statusText:STRING,text:STRING");
    await sub_AddQBMethod( "FUNCTION",  "Fetch",   True);
    await sub_AddQBMethod( "SUB",  "Fetch",   True);
