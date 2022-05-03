@@ -6,6 +6,7 @@ var QB = new function() {
     this.SQUAREPIXELS = Symbol("SQUAREPIXELS");
     this.OFF = Symbol("OFF");
 
+    var _windowAspect = false;
     var _strokeLineThickness = 2;
     var _strokeDrawLength = 4;
     var _strokeDrawAngle = -Math.PI/2;
@@ -1127,6 +1128,11 @@ var QB = new function() {
         screen.lastX = x;
         screen.lastY = y;
 
+        if (_windowAspect != false) {
+            aspect = _windowAspect;
+            radius *= _windowAspect;
+        }
+
         var ctx = screen.ctx;
         ctx.lineWidth = _strokeLineThickness;
         ctx.strokeStyle = color.rgba();
@@ -1539,6 +1545,7 @@ var QB = new function() {
         _inkeyBuffer = [];
         _keyHitBuffer = [];
         _keyDownMap = {};
+
     };
 
     this.func_Sgn = function(value) {
@@ -1643,6 +1650,23 @@ var QB = new function() {
         return String(value);
     };
 
+    this.sub_Window = function(screenSwitch, x0, y0, x1, y1) {
+        var screen = _images[_activeImage];
+        var ctx = screen.ctx;
+        var orientY, factorX, factorY;
+        if (screenSwitch == false) {
+            orientY = -1;
+            ctx.translate(-x0, screen.canvas.height);
+        } else {
+            orientY = 1;
+        }
+        factorX = Math.abs(x1-x0) / screen.canvas.width;
+        factorY = Math.abs(y1-y0) / screen.canvas.height;
+        _windowAspect = factorY/factorX;
+        ctx.scale(1/factorX, orientY/factorY);
+        ctx.translate(-x0, -y0);
+        _strokeLineThickness *= (0.20)/Math.sqrt((x1-x0)*(x1-x0) + (y1-y0)*(y1-y0));
+    };
 
     // QBJS-only methods
     // ---------------------------------------------------------------------------------

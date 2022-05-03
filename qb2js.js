@@ -2676,10 +2676,9 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "UBound",   False);
    await sub_AddQBMethod( "FUNCTION",  "UCase$",   False);
    await sub_AddQBMethod( "FUNCTION",  "Val",   False);
-   await sub_AddQBMethod( "SUB",  "IncludeJS",   True);
    await sub_AddQBMethod( "FUNCTION",  "Varptr",   False);
-   await sub_AddQBConst( "LOCAL");
-   await sub_AddQBConst( "SESSION");
+   await sub_AddQBMethod( "SUB",  "Window",   False);
+   await sub_AddQBMethod( "SUB",  "IncludeJS",   True);
    await sub_AddSystemType( "FETCHRESPONSE",  "ok:INTEGER,status:INTEGER,statusText:STRING,text:STRING");
    await sub_AddQBMethod( "FUNCTION",  "Fetch",   True);
    await sub_AddQBMethod( "SUB",  "Fetch",   True);

@@ -610,6 +610,9 @@ Function ConvertSub$ (m As Method, args As String)
     ElseIf m.name = "_PutImage" Then
         js = CallMethod(m) + "(" + ConvertPutImage(args) + ");"
 
+        'ElseIf m.name = "Window" Then
+        '    js = CallMethod(m) + "(" + ConvertWindow(args) + ");"
+
     ElseIf m.name = "_FullScreen" Then
         js = CallMethod(m) + "(" + ConvertFullScreen(args) + ");"
     Else
@@ -734,6 +737,34 @@ Function ConvertPutImage$ (args As String)
 
     ConvertPutImage = startCoord + ", " + sourceImage + ", " + destImage + ", " + destCoord + ", " + doSmooth
 End Function
+
+'Function ConvertWindow$ (args As String)
+'    Dim argc As Integer
+'    ReDim parts(0) As String
+'    Dim As String invertFlag, x0, x1 ', y0, y1
+'    invertFlag = "false"
+'    x0 = ConvertCoordParam("", True)
+'    'y0 = ConvertCoordParam("", True)
+'    x1 = ConvertCoordParam("", True)
+'    'y1 = ConvertCoordParam("", True)
+'    argc = ListSplit(args, parts())
+'    If argc = 5 Then
+'        If UCase$(ConvertExpression(parts(1))) = "SCREEN" Then
+'            invertFlag = "true"
+'        End If
+'        x0 = ConvertCoordParam(parts(2), True)
+'        'y0 = ConvertCoordParam(parts(3), True)
+'        x1 = ConvertCoordParam(parts(3), True)
+'        'y1 = ConvertCoordParam(parts(5), True)
+'    End If
+'    If argc = 4 Then
+'        x0 = ConvertCoordParam(parts(1), True)
+'        'y0 = ConvertCoordParam(parts(2), True)
+'        x1 = ConvertCoordParam(parts(2), True)
+'        'y1 = ConvertCoordParam(parts(4), True)
+'    End If
+'    ConvertWindow = invertFlag + ", " + x0 + ", " + x1 ' + ", " + y0 + ", " + y1
+'End Function
 
 Function ConvertCls$ (args As String)
     Dim argc As Integer
@@ -2825,6 +2856,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "UCase$", False
     AddQBMethod "FUNCTION", "Val", False
     AddQBMethod "FUNCTION", "Varptr", False
+    AddQBMethod "SUB", "Window", False
 
 
     ' QBJS-only language features
