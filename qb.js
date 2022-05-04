@@ -6,12 +6,12 @@ var QB = new function() {
     this.SQUAREPIXELS = Symbol("SQUAREPIXELS");
     this.OFF = Symbol("OFF");
 
-    var _windowAspectR = false;
-    var _windowAspectX = 1;
-    var _windowAspectY = 1;
-    var _strokeLineThickness = 2;
-    var _strokeDrawLength = 4;
-    var _strokeDrawAngle = -Math.PI/2;
+    var _windowAspectR;// = false;
+    var _windowAspectX;// = 1;
+    var _windowAspectY;// = 1;
+    var _strokeLineThickness;// = 2;
+    var _strokeDrawLength;// = 4;
+    var _strokeDrawAngle;// = -Math.PI/2;
     var _strokeDrawColor;
     var _fgColor = null; 
     var _bgColor = null; 
@@ -1549,6 +1549,10 @@ var QB = new function() {
         _bgColor = _color(0);
         _locX = 0;
         _locY = 0;
+        _windowAspectR = false;
+        _strokeLineThickness = 2;
+        _strokeDrawLength = 4;
+        _strokeDrawAngle = -Math.PI/2;
         _strokeDrawColor = _color(15);
 
         _lastKey = null;
