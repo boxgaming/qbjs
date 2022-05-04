@@ -211,7 +211,7 @@ var QB = new function() {
     };
 
     this.func__FullScreen = function() {
-        return GX.fullScreen() ? 2 : -1;
+        return GX.fullScreen() ? 2 : 0;
     };
 
     this.sub__FullScreen = function(mode, smooth) {
