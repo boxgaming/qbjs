@@ -733,8 +733,11 @@ var QB = new function() {
         }
         v.push([elem,flag]);
 
+        // Compatibility factors.
+        var compatFactorM = 1.30;
+        var compatFactorT = 0.75;
+
         // Draw-specific variables.
-        var fudgeFactor = 1.30;
         var cursX, cursY;
         var cursX0, cursY0;
         var cursXt, cursYt;
@@ -788,7 +791,7 @@ var QB = new function() {
                         tmp = v[0];
                         if (tmp[1] == 0) {
                             tok1 = v.shift();
-                            _strokeDrawLength = (tok1[0]) * (fudgeFactor);
+                            _strokeDrawLength = (tok1[0]) * (compatFactorM);
                         }
                     }
 
@@ -899,8 +902,8 @@ var QB = new function() {
                                     ang = (_strokeDrawAngle + Math.PI/2);
                                     uxx = ux * Math.cos(ang) - uy * Math.sin(ang);
                                     uyy = ux * Math.sin(ang) + uy * Math.cos(ang);
-                                    uxx *= (_strokeDrawLength/4) / (fudgeFactor);
-                                    uyy *= (_strokeDrawLength/4) / (fudgeFactor);
+                                    uxx *= (_strokeDrawLength/4) / (compatFactorM);
+                                    uyy *= (_strokeDrawLength/4) / (compatFactorM);
                                 } else {
                                     uxx = ux;
                                     uyy = uy;
@@ -963,8 +966,8 @@ var QB = new function() {
                             dx = dlen * Math.cos(_strokeDrawAngle + lines[i][1]);
                             dy = dlen * Math.sin(_strokeDrawAngle + lines[i][1]);
                             if (_windowAspectR != false) {
-                                dx *= .75*_windowAspectX;// / Math.sqrt(2);
-                                dy *= .75*_windowAspectY;// / Math.sqrt(2);
+                                dx *= _windowAspectX * (compatFactorT);
+                                dy *= _windowAspectY * (compatFactorT);
                             }
                             cursXt = (cursX)*1.0 + dx;
                             cursYt = (cursY)*1.0 + dy;
