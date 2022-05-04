@@ -1,3 +1,4 @@
+Import Dom From "lib/web/dom.bas"
 ' -----------------------------------------------
 ' QB64 FlappyBird Clone by Terry Ritchie 02/28/14
 '
@@ -96,9 +97,11 @@ Dim WinX% '                  stops player from exiting program at will
 '------------------------
 
 Screen _NewImage(432, 768, 32) '                        create 432x768 game screen
+_FullScreen
+If Not _FullScreen Then GXSceneScale Dom.Container().clientHeight / _Height
 _Title "FlappyBird" '                                   give window a title
 Cls '                                                   clear the screen
-_Delay .5 '                                             slight delay before moving screen to middle
+'_Delay .5 '                                             slight delay before moving screen to middle
 '_ScreenMove _Middle '                                   move window to center of desktop
 'WinX% = _Exit '                                         program will handle all window close requests
 LOADASSETS '                                            set/load game graphics/sounds/settings
@@ -110,7 +113,7 @@ Do '                                                    BEGIN MAIN GAME LOOP
     _PutImage (350, 265), Fbird&(2, FLAPTHEBIRD%) '     place flapping bird on screen
     If BUTTON%(64, 535, StartButton&) Then PLAYGAME '   if start button pressed play game
     If BUTTON%(248, 535, ScoreButton&) Then SHOWSCORE ' if score button pressed show scores
-    If BUTTON%(248, 480, RateButton&) Then RATEGAME '   if rate button pressed bring up browser
+'    If BUTTON%(248, 480, RateButton&) Then RATEGAME '   if rate button pressed bring up browser
     _Display '                                          update screen with changes
 Loop Until _KeyDown(27) 'Or _Exit '                      END MAIN GAME LOOP when ESC pressed or window closed
 CLEANUP '                                               clean the computer's RAM before leaving
@@ -670,6 +673,7 @@ Sub LOADASSETS ()
     _PutImage (432, 0)-(863, 26), Sheet&, Bushes&, (424, 177)-(855, 203)
     _PutImage , Sheet&, New&, (289, 363)-(336, 383)
     _PutImage , Sheet&, PipeTop&, (339, 189)-(416, 224)
+    '_PutImage , Sheet&, PipeTube&, (339, 225)-(416, 260)
     _PutImage , Sheet&, PipeTube&, (339, 225)-(416, 260)
     _PutImage (0, 431)-(77, 395), PipeTop&, Pipe&(0) '         create bottom of upper tube image
     _PutImage (0, 0), PipeTop&, Pipe&(1) '                     create top of lower tube image
@@ -680,7 +684,8 @@ Sub LOADASSETS ()
     _FreeImage PipeTop& '                                      temporary image no longer needed
     _FreeImage PipeTube& '                                     temporary image no longer needed
     _FreeImage Sheet& '                                        sprite sheet no longer needed
-    Clean& = _NewImage(432, 768, 32) '                         create clean image holder
+    'Clean& = _NewImage(432, 768, 32) '                         create clean image holder
+    Clean& = _NewImage(_Width, _Height, 32)
     _Dest Clean& '                                             work on clean image
     Cls , _RGB32(84, 192, 201) '                               clear image with sky blue color
     Line (0, 620)-(431, 767), _RGB32(219, 218, 150), BF '      create brown ground portion of image
@@ -794,4 +799,3 @@ Sub CLEANUP ()
 End Sub
 
 '----------------------------------------------------------------------------------------------------------------------
-
