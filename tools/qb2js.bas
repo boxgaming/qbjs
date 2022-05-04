@@ -610,8 +610,8 @@ Function ConvertSub$ (m As Method, args As String)
     ElseIf m.name = "_PutImage" Then
         js = CallMethod(m) + "(" + ConvertPutImage(args) + ");"
 
-        'ElseIf m.name = "Window" Then
-        '    js = CallMethod(m) + "(" + ConvertWindow(args) + ");"
+    ElseIf m.name = "Window" Then
+        js = CallMethod(m) + "(" + ConvertWindow(args) + ");"
 
     ElseIf m.name = "_FullScreen" Then
         js = CallMethod(m) + "(" + ConvertFullScreen(args) + ");"
@@ -738,33 +738,60 @@ Function ConvertPutImage$ (args As String)
     ConvertPutImage = startCoord + ", " + sourceImage + ", " + destImage + ", " + destCoord + ", " + doSmooth
 End Function
 
-'Function ConvertWindow$ (args As String)
-'    Dim argc As Integer
-'    ReDim parts(0) As String
-'    Dim As String invertFlag, x0, x1 ', y0, y1
-'    invertFlag = "false"
-'    x0 = ConvertCoordParam("", True)
-'    'y0 = ConvertCoordParam("", True)
-'    x1 = ConvertCoordParam("", True)
-'    'y1 = ConvertCoordParam("", True)
-'    argc = ListSplit(args, parts())
-'    If argc = 5 Then
-'        If UCase$(ConvertExpression(parts(1))) = "SCREEN" Then
-'            invertFlag = "true"
-'        End If
-'        x0 = ConvertCoordParam(parts(2), True)
-'        'y0 = ConvertCoordParam(parts(3), True)
-'        x1 = ConvertCoordParam(parts(3), True)
-'        'y1 = ConvertCoordParam(parts(5), True)
-'    End If
-'    If argc = 4 Then
-'        x0 = ConvertCoordParam(parts(1), True)
-'        'y0 = ConvertCoordParam(parts(2), True)
-'        x1 = ConvertCoordParam(parts(2), True)
-'        'y1 = ConvertCoordParam(parts(4), True)
-'    End If
-'    ConvertWindow = invertFlag + ", " + x0 + ", " + x1 ' + ", " + y0 + ", " + y1
-'End Function
+Function ConvertWindow$ (args As String)
+    Dim As String invertFlag
+    Dim firstParam As String
+    Dim theRest As String
+    Dim idx As Integer
+    Dim sstep As String
+    Dim estep As String
+    invertFlag = "false"
+
+    Dim kwd As String
+    kwd = "SCREEN"
+    If (UCase$(Left$(args, Len(kwd))) = kwd) Then
+        args = Right$(args, Len(args) - Len(kwd))
+        invertFlag = "true"
+    End If
+    args = _Trim$(args)
+
+    sstep = "false"
+    estep = "false"
+
+    idx = FindParamChar(args, ",")
+    If idx = -1 Then
+        firstParam = args
+        theRest = ""
+    Else
+        firstParam = Left$(args, idx - 1)
+        theRest = Right$(args, Len(args) - idx)
+    End If
+
+    idx = FindParamChar(firstParam, "-")
+    Dim startCord As String
+    Dim endCord As String
+    If idx = -1 Then
+        endCord = firstParam
+    Else
+        startCord = Left$(firstParam, idx - 1)
+        endCord = Right$(firstParam, Len(firstParam) - idx)
+    End If
+
+    idx = InStr(startCord, "(")
+    startCord = Right$(startCord, Len(startCord) - idx)
+    idx = _InStrRev(startCord, ")")
+    startCord = Left$(startCord, idx - 1)
+    startCord = ConvertExpression(startCord)
+    If (_Trim$(startCord) = "") Then startCord = "undefined, undefined"
+
+    idx = InStr(endCord, "(")
+    endCord = Right$(endCord, Len(endCord) - idx)
+    idx = _InStrRev(endCord, ")")
+    endCord = Left$(endCord, idx - 1)
+    endCord = ConvertExpression(endCord)
+
+    ConvertWindow = invertFlag + ", " + startCord + ", " + endCord
+End Function
 
 Function ConvertCls$ (args As String)
     Dim argc As Integer

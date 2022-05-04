@@ -517,6 +517,8 @@ var ConvertSub = null;
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertCls(  args))  +");";
    } else if ( m.name == "_PutImage" ) {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertPutImage(  args))  +");";
+   } else if ( m.name == "Window" ) {
+      js = (await func_CallMethod(  m))  +"("  +(await func_ConvertWindow(  args))  +");";
    } else if ( m.name == "_FullScreen" ) {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertFullScreen(  args))  +");";
    } else {
@@ -651,6 +653,58 @@ var doSmooth = ''; // STRING
    }
    ConvertPutImage =  startCoord +", "  + sourceImage +", "  + destImage +", "  + destCoord +", "  + doSmooth;
 return ConvertPutImage;
+}
+async function func_ConvertWindow(args/*STRING*/) {
+if (QB.halted()) { return; }
+var ConvertWindow = null;
+   var invertFlag = ''; // STRING
+   var firstParam = ''; // STRING
+   var theRest = ''; // STRING
+   var idx = 0; // INTEGER
+   var sstep = ''; // STRING
+   var estep = ''; // STRING
+   invertFlag = "false";
+   var kwd = ''; // STRING
+   kwd = "SCREEN";
+   if (((QB.func_UCase( (QB.func_Left(  args,  (QB.func_Len(  kwd))))))  ==  kwd) ) {
+      args = (QB.func_Right(  args,  (QB.func_Len(  args))  -(QB.func_Len(  kwd))));
+      invertFlag = "true";
+   }
+   args = (QB.func__Trim(  args));
+   sstep = "false";
+   estep = "false";
+   idx = (await func_FindParamChar(  args,  ","));
+   if ( idx ==  -1) {
+      firstParam =  args;
+      theRest = "";
+   } else {
+      firstParam = (QB.func_Left(  args,   idx - 1));
+      theRest = (QB.func_Right(  args,  (QB.func_Len(  args))  - idx));
+   }
+   idx = (await func_FindParamChar(  firstParam,  "-"));
+   var startCord = ''; // STRING
+   var endCord = ''; // STRING
+   if ( idx ==  -1) {
+      endCord =  firstParam;
+   } else {
+      startCord = (QB.func_Left(  firstParam,   idx - 1));
+      endCord = (QB.func_Right(  firstParam,  (QB.func_Len(  firstParam))  - idx));
+   }
+   idx = (QB.func_InStr(  startCord,  "("));
+   startCord = (QB.func_Right(  startCord,  (QB.func_Len(  startCord))  - idx));
+   idx = (QB.func__InStrRev(  startCord,  ")"));
+   startCord = (QB.func_Left(  startCord,   idx - 1));
+   startCord = (await func_ConvertExpression(  startCord));
+   if (((QB.func__Trim(  startCord))  == "") ) {
+      startCord = "undefined, undefined";
+   }
+   idx = (QB.func_InStr(  endCord,  "("));
+   endCord = (QB.func_Right(  endCord,  (QB.func_Len(  endCord))  - idx));
+   idx = (QB.func__InStrRev(  endCord,  ")"));
+   endCord = (QB.func_Left(  endCord,   idx - 1));
+   endCord = (await func_ConvertExpression(  endCord));
+   ConvertWindow =  invertFlag +", "  + startCord +", "  + endCord;
+return ConvertWindow;
 }
 async function func_ConvertCls(args/*STRING*/) {
 if (QB.halted()) { return; }

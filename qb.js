@@ -6,7 +6,9 @@ var QB = new function() {
     this.SQUAREPIXELS = Symbol("SQUAREPIXELS");
     this.OFF = Symbol("OFF");
 
-    var _windowAspect = false;
+    var _windowAspectR = false;
+    var _windowAspectX = 1;
+    var _windowAspectY = 1;
     var _strokeLineThickness = 2;
     var _strokeDrawLength = 4;
     var _strokeDrawAngle = -Math.PI/2;
@@ -687,8 +689,8 @@ var QB = new function() {
         
         // Turn input string into array of characters.
         var u = t.toString();
-        u = u.replace(" ","");
-        u = u.replace("=","");
+        u = u.replace(/\s+/g, '');
+        u = u.replace(/=/g, '');
         u = u.toUpperCase();
         u = u.split("");
 
@@ -812,16 +814,14 @@ var QB = new function() {
                             if (tok1[0] == "A") {
                                 if (v.length) {
                                     tmp = v[0];
+                                    multiplier = 1;
                                     if (tmp[1] == -1) {
                                         if (tmp[0] == "-") {
                                             multiplier = -1;
                                         } else if (tmp[0] == "+") {
                                             multiplier = 1;
                                         }
-                                        tmp = v.shift();
-                                        tmp = v[0];
-                                    } else {
-                                        multiplier = 1;
+                                        tok1 = v.shift();
                                     }
                                 }
                                 if (v.length) {
@@ -905,6 +905,10 @@ var QB = new function() {
                                     uxx = ux;
                                     uyy = uy;
                                 }
+                                if (_windowAspectR != false) {
+                                    uxx *= _windowAspectX;
+                                    uyy *= _windowAspectY;
+                                }
                                 cursXt = ux0 + uxx;
                                 cursYt = uy0 + uyy;
                             }
@@ -958,6 +962,10 @@ var QB = new function() {
                             }
                             dx = dlen * Math.cos(_strokeDrawAngle + lines[i][1]);
                             dy = dlen * Math.sin(_strokeDrawAngle + lines[i][1]);
+                            if (_windowAspectR != false) {
+                                dx *= .75*_windowAspectX;// / Math.sqrt(2);
+                                dy *= .75*_windowAspectY;// / Math.sqrt(2);
+                            }
                             cursXt = (cursX)*1.0 + dx;
                             cursYt = (cursY)*1.0 + dy;
                             if (cursSkipdraw == false) {
@@ -1128,9 +1136,9 @@ var QB = new function() {
         screen.lastX = x;
         screen.lastY = y;
 
-        if (_windowAspect != false) {
-            aspect = _windowAspect;
-            radius *= _windowAspect;
+        if (_windowAspectR != false) {
+            aspect = _windowAspectR;
+            radius *= _windowAspectR;
         }
 
         var ctx = screen.ctx;
@@ -1656,16 +1664,18 @@ var QB = new function() {
         var orientY, factorX, factorY;
         if (screenSwitch == false) {
             orientY = -1;
-            ctx.translate(-x0, screen.canvas.height);
+            ctx.translate(0, screen.canvas.height);
         } else {
             orientY = 1;
         }
         factorX = Math.abs(x1-x0) / screen.canvas.width;
         factorY = Math.abs(y1-y0) / screen.canvas.height;
-        _windowAspect = factorY/factorX;
+        _windowAspectR = factorY/factorX;
+        _windowAspectX = factorX;
+        _windowAspectY = orientY*factorY;
         ctx.scale(1/factorX, orientY/factorY);
         ctx.translate(-x0, -y0);
-        _strokeLineThickness *= (0.20)/Math.sqrt((x1-x0)*(x1-x0) + (y1-y0)*(y1-y0));
+        _strokeLineThickness = Math.sqrt(factorX*factorX + factorY*factorY) / Math.sqrt(2);
     };
 
     // QBJS-only methods
