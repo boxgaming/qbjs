@@ -2842,6 +2842,8 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Round", False
     AddQBMethod "FUNCTION", "_ScreenExists", False
     AddQBMethod "FUNCTION", "_Sinh", False
+    AddQBMethod "FUNCTION", "_Source", False
+    AddQBMethod "SUB", "_Source", False
     AddQBMethod "SUB", "_SndClose", False
     AddQBMethod "FUNCTION", "_SndOpen", False
     AddQBMethod "SUB", "_SndPlay", False

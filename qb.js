@@ -31,6 +31,7 @@ var QB = new function() {
     var _runningFlag = false;
     var _images = {};
     var _activeImage = 0;
+    var _sourceImage = 0;
     var _nextImageId = 1000;
     var _lastLimitTime = new Date();
     var _resize = false;
@@ -116,6 +117,7 @@ var QB = new function() {
         _haltedFlag = false;
         _nextImageId = 1000;
         _activeImage = 0;
+        _sourceImage = 0;
         GX._enableTouchMouse(true);
         GX.registerGameEvents(function(e){});
         QB.sub_Screen(0);
@@ -369,6 +371,9 @@ var QB = new function() {
         if (destImageId == undefined) {
             destImageId = _activeImage;
         }
+        if (sourceImageId == undefined) {
+            sourceImageId = _sourceImage;
+        }
         var destImage = _images[destImageId];
         var sourceImage = _images[sourceImageId];
         var sw = 0;
@@ -524,6 +529,13 @@ var QB = new function() {
         return (Math.exp(x)-Math.exp(-x))/2;
     };
 
+    this.func__Source = function() {
+        return _sourceImage;
+    }
+
+    this.sub__Source = function(imageId) {
+        _sourceImage = imageId;
+    }
     this.sub__SndClose = function(sid) {
         GX.soundClose(sid);
     };
@@ -1350,7 +1362,7 @@ var QB = new function() {
     }
 
     this.func_Point = function(x, y) {
-        var screen = _images[_activeImage];
+        var screen = _images[_sourceImage];
         var ret = 0;
         if ( y == undefined ) {
             if (x == 0) { 

@@ -39,7 +39,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              '_display', '_fontwidth', '_freeimage', '_fullscreen', '_green', '_green32', '_height', '_instrrev', '_limit', '_keyclear', '_keydown',
                              '_keyhit', '_loadimage', '_mousebutton', '_mouseinput', '_mousex', '_mousey', '_newimage', '_pi', '_printstring', '_printwidth',
                              '_putimage', '_r2d', '_red', '_red32', '_resize', '_resizewidth', '_resizeheight', '_rgb', '_rgba', '_rgb32', '_rgba32', '_round',
-                             '_screenexists', '_sinh', '_sndclose', '_sndopen', '_sndplay', '_sndloop', '_sndpause', '_sndstop', '_sndvol', 
+                             '_screenexists', '_sinh', '_source', '_sndclose', '_sndopen', '_sndplay', '_sndloop', '_sndpause', '_sndstop', '_sndvol', 
                              '_title', '_trim', '_width', 'abs', 'asc', 'atn', 'beep', 'chr', 'circle', 'cls', 'color', 'command', 'cos', 'cvi', 'cvl', 'draw', 'exp',
                              'fix', 'hex', 'input', 'inkey', 'instr', 'int', 'lbound', 'left', 'lcase', 'len', 'line', 'locate', 'log', 'ltrim', 'mid', 'mki', 'mkl',
                              'oct', 'paint', 'point', 'preset', 'print', 'pset', 'right', 'rtrim', 'rnd', 'screen', 'shared', 'sgn', 'sin', 'sleep', 'space', 'sqr',
@@ -75,7 +75,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
     var builtinObjsWords = ['\\$if', '\\$end if', '\\$touchmouse'];
 
     // TODO: adjust for QB
-    var knownProperties = ['description', 'firstindex', 'global', 'helpcontext', 'helpfile', 'ignorecase', 'length', 'number', 'pattern', 'source', 'value', 'count'];
+    var knownProperties = ['description', 'firstindex', 'global', 'helpcontext', 'helpfile', 'ignorecase', 'length', 'number', 'pattern', 'value', 'count'];
 
     var knownMethods = ['gxongameevent', 'gxmousex', 'gxmousey', 'gxsoundload', 'gxsoundplay', 'gxsoundrepeat', 'gxsoundvolume', 'gxsoundpause', 'gxsoundstop',
                         'gxsoundmuted', 'gxsoundmuted', 'gxentityanimate', 'gxentityanimatestop', 'gxentityanimatemode', 'gxentityanimatemode',

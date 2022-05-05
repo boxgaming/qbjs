@@ -2707,6 +2707,8 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "_Round",   False);
    await sub_AddQBMethod( "FUNCTION",  "_ScreenExists",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Sinh",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Source",   False);
+   await sub_AddQBMethod( "SUB",  "_Source",   False);
    await sub_AddQBMethod( "SUB",  "_SndClose",   False);
    await sub_AddQBMethod( "FUNCTION",  "_SndOpen",   False);
    await sub_AddQBMethod( "SUB",  "_SndPlay",   False);
