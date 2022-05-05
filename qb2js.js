@@ -1123,6 +1123,8 @@ var InitTypeValue = null;
    var value = ''; // STRING
    if ( vtype == "STRING" ) {
       value = "''";
+   } else if ( vtype == "OBJECT" ) {
+      value = "{}";
    } else if ( vtype == "_BIT"  ||  vtype == "_UNSIGNED _BIT"  ||  vtype == "_BYTE"  ||  vtype == "_UNSIGNED _BYTE"  ||  vtype == "INTEGER"  ||  vtype == "_UNSIGNED INTEGER"  ||  vtype == "LONG"  ||  vtype == "_UNSIGNED LONG"  ||  vtype == "_INTEGER64"  ||  vtype == "_UNSIGNED INTEGER64"  ||  vtype == "SINGLE"  ||  vtype == "DOUBLE"  ||  vtype == "_FLOAT"  ||  vtype == "_OFFSET"  ||  vtype == "_UNSIGNED _OFFSET" ) {
       value = "0";
    } else {

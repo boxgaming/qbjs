@@ -29,7 +29,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
 
     var wordOperators = wordRegexp(['and', 'or', 'not', 'xor', 'is', 'mod', 'eqv', 'imp']);
     var commonkeywords = ['dim', 'as', 'redim', 'then', 'until', 'exit', 'in', 'to',
-                          'const', 'integer', 'single', 'double', 'long', '_unsigned', 'string', '_byte',
+                          'const', 'integer', 'single', 'double', 'long', '_unsigned', 'string', '_byte', 'object',
                           'option explicit', 'call', 'step'];
 
     // TODO: adjust for QB

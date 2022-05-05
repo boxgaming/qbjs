@@ -1208,6 +1208,8 @@ Function InitTypeValue$ (vtype As String)
     Dim value As String
     If vtype = "STRING" Then
         value = "''"
+    ElseIf vtype = "OBJECT" Then
+        value = "{}"
     ElseIf vtype = "_BIT" Or vtype = "_UNSIGNED _BIT" Or vtype = "_BYTE" Or vtype = "_UNSIGNED _BYTE" Or _
            vtype = "INTEGER" Or vtype = "_UNSIGNED INTEGER" Or vtype = "LONG" Or vtype = "_UNSIGNED LONG" Or _
            vtype = "_INTEGER64" Or vtype = "_UNSIGNED INTEGER64" Or _
