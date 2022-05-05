@@ -610,6 +610,9 @@ Function ConvertSub$ (m As Method, args As String)
     ElseIf m.name = "_PutImage" Then
         js = CallMethod(m) + "(" + ConvertPutImage(args) + ");"
 
+    ElseIf m.name = "Window" Then
+        js = CallMethod(m) + "(" + ConvertWindow(args) + ");"
+
     ElseIf m.name = "_FullScreen" Then
         js = CallMethod(m) + "(" + ConvertFullScreen(args) + ");"
     Else
@@ -733,6 +736,61 @@ Function ConvertPutImage$ (args As String)
     End If
 
     ConvertPutImage = startCoord + ", " + sourceImage + ", " + destImage + ", " + destCoord + ", " + doSmooth
+End Function
+
+Function ConvertWindow$ (args As String)
+    Dim As String invertFlag
+    Dim firstParam As String
+    Dim theRest As String
+    Dim idx As Integer
+    Dim sstep As String
+    Dim estep As String
+    invertFlag = "false"
+
+    Dim kwd As String
+    kwd = "SCREEN"
+    If (UCase$(Left$(args, Len(kwd))) = kwd) Then
+        args = Right$(args, Len(args) - Len(kwd))
+        invertFlag = "true"
+    End If
+    args = _Trim$(args)
+
+    sstep = "false"
+    estep = "false"
+
+    idx = FindParamChar(args, ",")
+    If idx = -1 Then
+        firstParam = args
+        theRest = ""
+    Else
+        firstParam = Left$(args, idx - 1)
+        theRest = Right$(args, Len(args) - idx)
+    End If
+
+    idx = FindParamChar(firstParam, "-")
+    Dim startCord As String
+    Dim endCord As String
+    If idx = -1 Then
+        endCord = firstParam
+    Else
+        startCord = Left$(firstParam, idx - 1)
+        endCord = Right$(firstParam, Len(firstParam) - idx)
+    End If
+
+    idx = InStr(startCord, "(")
+    startCord = Right$(startCord, Len(startCord) - idx)
+    idx = _InStrRev(startCord, ")")
+    startCord = Left$(startCord, idx - 1)
+    startCord = ConvertExpression(startCord)
+    If (_Trim$(startCord) = "") Then startCord = "undefined, undefined"
+
+    idx = InStr(endCord, "(")
+    endCord = Right$(endCord, Len(endCord) - idx)
+    idx = _InStrRev(endCord, ")")
+    endCord = Left$(endCord, idx - 1)
+    endCord = ConvertExpression(endCord)
+
+    ConvertWindow = invertFlag + ", " + startCord + ", " + endCord
 End Function
 
 Function ConvertCls$ (args As String)
@@ -2855,6 +2913,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "UCase$", False
     AddQBMethod "FUNCTION", "Val", False
     AddQBMethod "FUNCTION", "Varptr", False
+    AddQBMethod "SUB", "Window", False
 
 
     ' QBJS-only language features

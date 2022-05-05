@@ -6,9 +6,13 @@ var QB = new function() {
     this.SQUAREPIXELS = Symbol("SQUAREPIXELS");
     this.OFF = Symbol("OFF");
 
-    var _strokeLineThickness = 2;
-    var _strokeDrawLength = 4;
-    var _strokeDrawAngle = -Math.PI/2;
+    var _windowDef = [];
+    var _windowAspectR;
+    var _windowAspectX;
+    var _windowAspectY;
+    var _strokeLineThickness;
+    var _strokeDrawLength;
+    var _strokeDrawAngle;
     var _strokeDrawColor;
     var _fgColor = null; 
     var _bgColor = null; 
@@ -686,8 +690,8 @@ var QB = new function() {
         
         // Turn input string into array of characters.
         var u = t.toString();
-        u = u.replace(" ","");
-        u = u.replace("=","");
+        u = u.replace(/\s+/g, '');
+        u = u.replace(/=/g, '');
         u = u.toUpperCase();
         u = u.split("");
 
@@ -730,8 +734,11 @@ var QB = new function() {
         }
         v.push([elem,flag]);
 
+        // Compatibility factors.
+        var compatFactorM = 1.30;
+        var compatFactorT = 0.75;
+
         // Draw-specific variables.
-        var fudgeFactor = 1.30;
         var cursX, cursY;
         var cursX0, cursY0;
         var cursXt, cursYt;
@@ -785,7 +792,7 @@ var QB = new function() {
                         tmp = v[0];
                         if (tmp[1] == 0) {
                             tok1 = v.shift();
-                            _strokeDrawLength = (tok1[0]) * (fudgeFactor);
+                            _strokeDrawLength = (tok1[0]) * (compatFactorM);
                         }
                     }
 
@@ -811,16 +818,14 @@ var QB = new function() {
                             if (tok1[0] == "A") {
                                 if (v.length) {
                                     tmp = v[0];
+                                    multiplier = 1;
                                     if (tmp[1] == -1) {
                                         if (tmp[0] == "-") {
                                             multiplier = -1;
                                         } else if (tmp[0] == "+") {
                                             multiplier = 1;
                                         }
-                                        tmp = v.shift();
-                                        tmp = v[0];
-                                    } else {
-                                        multiplier = 1;
+                                        tok1 = v.shift();
                                     }
                                 }
                                 if (v.length) {
@@ -898,17 +903,22 @@ var QB = new function() {
                                     ang = (_strokeDrawAngle + Math.PI/2);
                                     uxx = ux * Math.cos(ang) - uy * Math.sin(ang);
                                     uyy = ux * Math.sin(ang) + uy * Math.cos(ang);
-                                    uxx *= (_strokeDrawLength/4) / (fudgeFactor);
-                                    uyy *= (_strokeDrawLength/4) / (fudgeFactor);
+                                    uxx *= (_strokeDrawLength/4) / (compatFactorM);
+                                    uyy *= (_strokeDrawLength/4) / (compatFactorM);
                                 } else {
                                     uxx = ux;
                                     uyy = uy;
+                                }
+                                if (_windowAspectR != false) {
+                                    uxx *= _windowAspectX;
+                                    uyy *= _windowAspectY;
                                 }
                                 cursXt = ux0 + uxx;
                                 cursYt = uy0 + uyy;
                             }
                         }
                         if (cursSkipdraw == false) {
+                            ctx.lineWidth = _strokeLineThickness;
                             ctx.strokeStyle = _color(_strokeDrawColor).rgba();
                             ctx.beginPath();
                             ctx.moveTo(cursX, cursY);
@@ -957,9 +967,14 @@ var QB = new function() {
                             }
                             dx = dlen * Math.cos(_strokeDrawAngle + lines[i][1]);
                             dy = dlen * Math.sin(_strokeDrawAngle + lines[i][1]);
+                            if (_windowAspectR != false) {
+                                dx *= _windowAspectX * (compatFactorT);
+                                dy *= _windowAspectY * (compatFactorT);
+                            }
                             cursXt = (cursX)*1.0 + dx;
                             cursYt = (cursY)*1.0 + dy;
                             if (cursSkipdraw == false) {
+                                ctx.lineWidth = _strokeLineThickness;
                                 ctx.strokeStyle = _color(_strokeDrawColor).rgba();
                                 ctx.beginPath();
                                 ctx.moveTo(cursX, cursY);
@@ -1126,6 +1141,11 @@ var QB = new function() {
         }
         screen.lastX = x;
         screen.lastY = y;
+
+        if (_windowAspectR != false) {
+            aspect = _windowAspectR;
+            radius *= _windowAspectR;
+        }
 
         var ctx = screen.ctx;
         ctx.lineWidth = _strokeLineThickness;
@@ -1472,7 +1492,11 @@ var QB = new function() {
         var ctx = screen.ctx;
         ctx.fillStyle = color.rgba();
         ctx.beginPath();
-        ctx.fillRect(x, y, 1, 1);
+        if (_windowAspectR == false) {
+            ctx.fillRect(x, y, 1, 1);
+        } else {
+            ctx.fillRect(x, y, _windowAspectX, _windowAspectY);
+        }
         _strokeDrawColor = _color(color);
     };
 
@@ -1532,6 +1556,11 @@ var QB = new function() {
         _bgColor = _color(0);
         _locX = 0;
         _locY = 0;
+
+        _windowAspectR = false;
+        _strokeLineThickness = 2;
+        _strokeDrawLength = 4;
+        _strokeDrawAngle = -Math.PI/2;
         _strokeDrawColor = _color(15);
 
         _lastKey = null;
@@ -1539,6 +1568,7 @@ var QB = new function() {
         _inkeyBuffer = [];
         _keyHitBuffer = [];
         _keyDownMap = {};
+
     };
 
     this.func_Sgn = function(value) {
@@ -1643,6 +1673,47 @@ var QB = new function() {
         return String(value);
     };
 
+    this.sub_Window = function(screenSwitch, x0, y0, x1, y1) {
+        var screen = _images[_activeImage];
+        var ctx = screen.ctx;
+        var orientY, factorX, factorY;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        if (_windowAspectR != false) { // convert cursor position to native
+            screen.lastX = screen.canvas.width * (screen.lastX - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
+            screen.lastY = screen.canvas.height * (screen.lastY - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+        }
+        if ((screenSwitch == false) && (x0 == undefined) && (y0 == undefined) && (x1 == undefined) && (y1 == undefined)) {
+            _windowAspectR = false;
+            _strokeLineThickness = 2;
+            ///
+            _strokeDrawLength = 4;//
+            _strokeDrawAngle = -Math.PI/2;//
+            _strokeDrawColor = _color(15);//
+            //
+        } else {
+            if (screenSwitch == false) {
+                orientY = -1;
+                ctx.translate(0, screen.canvas.height);
+            } else {
+                orientY = 1;
+            }
+            factorX = Math.abs(x1-x0) / screen.canvas.width;
+            factorY = Math.abs(y1-y0) / screen.canvas.height;
+            _windowAspectR = factorY/factorX;
+            _windowAspectX = factorX;
+            _windowAspectY = orientY*factorY;
+            ctx.scale(1/factorX, orientY/factorY);
+            ctx.translate(-x0, -y0);
+            _strokeLineThickness = Math.sqrt(factorX*factorX + factorY*factorY) / Math.sqrt(2);
+            screen.lastX = screen.lastX * factorX + x0;
+            screen.lastY = (screen.canvas.height - screen.lastY) * factorY + y0;
+            _windowDef[0] = x0;
+            _windowDef[1] = y0;
+            _windowDef[2] = x1;
+            _windowDef[3] = y1;
+        }
+
+    };
 
     // QBJS-only methods
     // ---------------------------------------------------------------------------------
