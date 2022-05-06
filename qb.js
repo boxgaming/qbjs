@@ -293,8 +293,12 @@ var QB = new function() {
     };
 
     this.func__LoadImage = async function(url) {
+        var res = await fetch(url);
+        var b = await res.blob();
+
         var img = new Image();
-        img.src = url;
+        img.src = URL.createObjectURL(b)
+
         while (!img.complete) {
             await GX.sleep(10);
         }
