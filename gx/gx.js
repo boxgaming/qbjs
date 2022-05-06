@@ -17,7 +17,7 @@ var GX = new function() {
     _fonts[0] = { eid:0, charSpacing:0, lineSpacing: 0};
     _fonts[1] = { eid:0, charSpacing:0, lineSpacing: 0};
     var _font_charmap = new Array(2).fill(new Array(256).fill({x:0,y:0}));
-    //var _fullscreenFlag = false;
+    var _fullscreenFlag = false;
     var __debug = {
         enabled: false,
         font: 1 // GX.FONT_DEFAULT
@@ -70,7 +70,7 @@ var GX = new function() {
         _fontCreateDefault(GX.FONT_DEFAULT);
         _fontCreateDefault(GX.FONT_DEFAULT_BLACK);
 
-        //_fullscreenFlag = false;
+        _fullscreenFlag = false;
         __debug = {
             enabled: false,
             font: 1 // GX.FONT_DEFAULT
@@ -162,6 +162,7 @@ var GX = new function() {
 
             document.addEventListener("fullscreenchange", function(event) {
                 if (document.fullscreenElement) {
+                    _fullscreenFlag = true;
                     _scene.prevScaleX = _scene.scaleX;
                     _scene.prevScaleY = _scene.scaleY;
                     var widthFactor = screen.width / _scene.width;
@@ -182,6 +183,7 @@ var GX = new function() {
                     _scene.offsetY = offsetY;
                 }
                 else {
+                    _fullscreenFlag = false;
                     _scene.scaleX = _scene.prevScaleX;
                     _scene.scaleY = _scene.prevScaleY;
                     _scene.offsetX = 0;
@@ -257,8 +259,8 @@ var GX = new function() {
         _scene.scaleY = scale;
         _canvas.width = _scene.width * _scene.scaleX;
         _canvas.height = _scene.height * _scene.scaleY;
-        _ctx.scale(_scene.scaleX, _scene.scaleY);
         _ctx.imageSmoothingEnabled = false;
+        _ctx.scale(_scene.scaleX, _scene.scaleY);
 
         var footer = document.getElementById("gx-footer");
         footer.style.width = _canvas.width;
@@ -1753,14 +1755,16 @@ var GX = new function() {
             if (fullscreenFlag) {
                 if (_canvas.requestFullscreen) {
                     _canvas.requestFullscreen();
+                    _fullscreenFlag = true;
                 }
             } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
+                    _fullscreenFlag = false;
                 }
             }
         }
-        return (window.innerHeight == screen.height);
+        return _fullscreenFlag; //(window.innerHeight == screen.height);
     }
 
 
