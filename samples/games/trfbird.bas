@@ -97,14 +97,16 @@ Dim WinX% '                  stops player from exiting program at will
 '------------------------
 
 Screen _NewImage(432, 768, 32) '                        create 432x768 game screen
-_FullScreen
-If Not _FullScreen Then GXSceneScale Dom.Container().clientHeight / _Height
 _Title "FlappyBird" '                                   give window a title
 Cls '                                                   clear the screen
 '_Delay .5 '                                             slight delay before moving screen to middle
 '_ScreenMove _Middle '                                   move window to center of desktop
 'WinX% = _Exit '                                         program will handle all window close requests
 LOADASSETS '                                            set/load game graphics/sounds/settings
+
+_FullScreen
+If Not _FullScreen Then GXSceneScale Dom.Container().clientHeight / _Height
+
 Birdie.flap = 1 '                                       set initial wing position of bird
 Do '                                                    BEGIN MAIN GAME LOOP
     _Limit 60 '                                         60 frames per second
@@ -435,11 +437,11 @@ Sub SHOWSCORE ()
         Next sc%
         If ShowNew% Then _PutImage (250, 382), New& '           display red new image if new high score
         If BUTTON%(64, 535, OKButton&) Then Ok% = TRUE '        remember if OK button was pressed
-        If BUTTON%(248, 535, ShareButton&) Then '               was share button pressed?
-            SHAREPROGRAM '                                      yes, share program with others
-            UPDATESCENERY '                                     draw parallax scenery
-            MOVEPIPES '                                         draw pipes
-        End If
+        'If BUTTON%(248, 535, ShareButton&) Then '               was share button pressed?
+        '    SHAREPROGRAM '                                      yes, share program with others
+        '    UPDATESCENERY '                                     draw parallax scenery
+        '    MOVEPIPES '                                         draw pipes
+        'End If
         _Display '                                              update screen with changes
         'If _Exit Then CLEANUP: System '                         leave game if user closes game window
     Loop Until Ok% '                                            END SCORE LOOP when OK button pressed
@@ -561,7 +563,7 @@ Sub UPDATESCENERY ()
 
     Dim c% ' scenery index indicator
 
-    _PutImage , Clean& '                                              clear screen with clean image
+    _PutImage (0, 0)-(432, 768), Clean& '                                              clear screen with clean image
     Do '                                                              BEGIN SCENERY LOOP
         c% = c% + 1 '                                                 increment index value
         If Not Paused% Then '                                         is game in paused state?
@@ -684,8 +686,9 @@ Sub LOADASSETS ()
     _FreeImage PipeTop& '                                      temporary image no longer needed
     _FreeImage PipeTube& '                                     temporary image no longer needed
     _FreeImage Sheet& '                                        sprite sheet no longer needed
-    'Clean& = _NewImage(432, 768, 32) '                         create clean image holder
-    Clean& = _NewImage(_Width, _Height, 32)
+
+    Clean& = _NewImage(432, 768, 32) '                         create clean image holder
+    'Clean& = _NewImage(_Width, _Height, 32)
     _Dest Clean& '                                             work on clean image
     Cls , _RGB32(84, 192, 201) '                               clear image with sky blue color
     Line (0, 620)-(431, 767), _RGB32(219, 218, 150), BF '      create brown ground portion of image
