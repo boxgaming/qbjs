@@ -6,14 +6,12 @@ var QB = new function() {
     this.SQUAREPIXELS = Symbol("SQUAREPIXELS");
     this.OFF = Symbol("OFF");
 
+    var _strokeLineThickness = 2;
     var _windowDef = [];
-    var _windowAspectR;
-    var _windowAspectX;
-    var _windowAspectY;
-    var _strokeLineThickness;
-    var _strokeDrawLength;
-    var _strokeDrawAngle;
-    var _strokeDrawColor;
+    var _windowAspect = [];
+    var _strokeDrawLength = null;
+    var _strokeDrawAngle = null;
+    var _strokeDrawColor = null;
     var _fgColor = null; 
     var _bgColor = null; 
     var _colormap = [];
@@ -750,19 +748,14 @@ var QB = new function() {
         }
         v.push([elem,flag]);
 
-        // Compatibility factors.
-        var compatFactorM = 1.30;
-        var compatFactorT = 0.75;
-
         // Draw-specific variables.
         var cursX, cursY;
         var cursX0, cursY0;
         var cursXt, cursYt;
-        var ux, uy, ux0, uy0, uxx, uyy;
+        var ang, ux, uy, ux0, uy0, vx, vy, wx, wy, dlen;
         var sMFlag;
         var cursReturn = false;
         var cursSkipdraw = false;
-        var dx, dy, dlen, ang;
         var multiplier = 1;
         var tok, tok1, tok2;
         var tmp = [[]];
@@ -780,6 +773,12 @@ var QB = new function() {
         var ctx = screen.ctx;
         cursX = screen.lastX;
         cursY = screen.lastY;
+
+        if (_windowAspect[0] != false) {
+            ctx.lineWidth = (_strokeLineThickness) * Math.sqrt(_windowAspect[1]*_windowAspect[1] + _windowAspect[2]*_windowAspect[2]) / Math.sqrt(2);
+        } else {
+            ctx.lineWidth = _strokeLineThickness;
+        }
 
         // Main loop.
         while (v.length) {
@@ -808,7 +807,7 @@ var QB = new function() {
                         tmp = v[0];
                         if (tmp[1] == 0) {
                             tok1 = v.shift();
-                            _strokeDrawLength = (tok1[0]) * (compatFactorM);
+                            _strokeDrawLength = tok1[0];
                         }
                     }
 
@@ -915,26 +914,36 @@ var QB = new function() {
                                     tok1 = v.shift();
                                     uy = multiplier * (tok1[0]);
                                 }
+
                                 if (sMFlag == true) {
                                     ang = (_strokeDrawAngle + Math.PI/2);
-                                    uxx = ux * Math.cos(ang) - uy * Math.sin(ang);
-                                    uyy = ux * Math.sin(ang) + uy * Math.cos(ang);
-                                    uxx *= (_strokeDrawLength/4) / (compatFactorM);
-                                    uyy *= (_strokeDrawLength/4) / (compatFactorM);
+                                    vx = ux * Math.cos(ang) - uy * Math.sin(ang);
+                                    vy = ux * Math.sin(ang) + uy * Math.cos(ang);
+                                    vx *= (_strokeDrawLength/4);
+                                    vy *= (_strokeDrawLength/4);
+                                    if (_windowAspect[0] != false) {
+                                        wx = vx * (_windowDef[2] - _windowDef[0]) / screen.canvas.width;
+                                        wy = -vy * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
+                                    } else {
+                                        wx = vx;
+                                        wy = vy;
+                                    }
                                 } else {
-                                    uxx = ux;
-                                    uyy = uy;
+                                    vx = ux;
+                                    vy = uy;
+                                    if (_windowAspect[0] != false) {
+                                        wx = vx * (_windowDef[2] - _windowDef[0]) / screen.canvas.width + _windowDef[0];
+                                        wy = -vy * (_windowDef[3] - _windowDef[1]) / screen.canvas.height + _windowDef[3];
+                                    } else {
+                                        wx = vx;
+                                        wy = vy;
+                                    }
                                 }
-                                if (_windowAspectR != false) {
-                                    uxx *= _windowAspectX;
-                                    uyy *= _windowAspectY;
-                                }
-                                cursXt = ux0 + uxx;
-                                cursYt = uy0 + uyy;
                             }
                         }
+                        cursXt = ux0 + wx;
+                        cursYt = uy0 + wy;
                         if (cursSkipdraw == false) {
-                            ctx.lineWidth = _strokeLineThickness;
                             ctx.strokeStyle = _color(_strokeDrawColor).rgba();
                             ctx.beginPath();
                             ctx.moveTo(cursX, cursY);
@@ -981,16 +990,15 @@ var QB = new function() {
                                     dlen = (_strokeDrawLength/4) * (lines[i][2]);
                                 }
                             }
-                            dx = dlen * Math.cos(_strokeDrawAngle + lines[i][1]);
-                            dy = dlen * Math.sin(_strokeDrawAngle + lines[i][1]);
-                            if (_windowAspectR != false) {
-                                dx *= _windowAspectX * (compatFactorT);
-                                dy *= _windowAspectY * (compatFactorT);
+                            ux = dlen * Math.cos(_strokeDrawAngle + lines[i][1]);
+                            uy = dlen * Math.sin(_strokeDrawAngle + lines[i][1]);
+                            if (_windowAspect[0] != false) {
+                                ux *= _windowAspect[1];
+                                uy *= _windowAspect[2];
                             }
-                            cursXt = (cursX)*1.0 + dx;
-                            cursYt = (cursY)*1.0 + dy;
+                            cursXt = (cursX)*1.0 + ux;
+                            cursYt = (cursY)*1.0 + uy;
                             if (cursSkipdraw == false) {
-                                ctx.lineWidth = _strokeLineThickness;
                                 ctx.strokeStyle = _color(_strokeDrawColor).rgba();
                                 ctx.beginPath();
                                 ctx.moveTo(cursX, cursY);
@@ -1158,13 +1166,19 @@ var QB = new function() {
         screen.lastX = x;
         screen.lastY = y;
 
-        if (_windowAspectR != false) {
-            aspect = _windowAspectR;
-            radius *= _windowAspectR;
+        if (_windowAspect[0] != false) {
+            aspect = _windowAspect[0];
+            radius *= _windowAspect[0];
         }
 
         var ctx = screen.ctx;
-        ctx.lineWidth = _strokeLineThickness;
+
+        if (_windowAspect[0] != false) {
+            ctx.lineWidth = (_strokeLineThickness) * Math.sqrt(_windowAspect[1]*_windowAspect[1] + _windowAspect[2]*_windowAspect[2]) / Math.sqrt(2);
+        } else {
+            ctx.lineWidth = _strokeLineThickness;
+        }
+
         ctx.strokeStyle = color.rgba();
         ctx.beginPath();
         if (aspect == undefined) {
@@ -1214,7 +1228,12 @@ var QB = new function() {
         screen.lastY = ey;
 
         var ctx = screen.ctx;
-        ctx.lineWidth = _strokeLineThickness;
+
+        if (_windowAspect[0] != false) {
+            ctx.lineWidth = (_strokeLineThickness) * Math.sqrt(_windowAspect[1]*_windowAspect[1] + _windowAspect[2]*_windowAspect[2]) / Math.sqrt(2);
+        } else {
+            ctx.lineWidth = _strokeLineThickness;
+        }
 
         if (style == "B") {
             ctx.strokeStyle = color.rgba();
@@ -1404,6 +1423,7 @@ var QB = new function() {
         }
         screen.lastX = x;
         screen.lastY = y;
+        _strokeDrawColor = _color(color);
     };
 
     this.sub_Print = async function(args) {
@@ -1508,10 +1528,10 @@ var QB = new function() {
         var ctx = screen.ctx;
         ctx.fillStyle = color.rgba();
         ctx.beginPath();
-        if (_windowAspectR == false) {
+        if (_windowAspect[0] == false) {
             ctx.fillRect(x, y, 1, 1);
         } else {
-            ctx.fillRect(x, y, _windowAspectX, _windowAspectY);
+            ctx.fillRect(x, y, _windowAspect[1], _windowAspect[2]);
         }
         _strokeDrawColor = _color(color);
     };
@@ -1566,6 +1586,7 @@ var QB = new function() {
         _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0 };
         _images[0].lastX = _images[0].canvas.width/2;
         _images[0].lastY = _images[0].canvas.height/2;
+        _images[0].lineWidth = _strokeLineThickness;
 
         // initialize the graphics
         _fgColor = _color(7); 
@@ -1573,8 +1594,7 @@ var QB = new function() {
         _locX = 0;
         _locY = 0;
 
-        _windowAspectR = false;
-        _strokeLineThickness = 2;
+        _windowAspect[0] = false;
         _strokeDrawLength = 4;
         _strokeDrawAngle = -Math.PI/2;
         _strokeDrawColor = _color(15);
@@ -1693,42 +1713,40 @@ var QB = new function() {
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
         var orientY, factorX, factorY;
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        if (_windowAspectR != false) { // convert cursor position to native
+        if (_windowAspect[0] != false) { // Convert cursor position to canvas coordinates.
             screen.lastX = screen.canvas.width * (screen.lastX - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
             screen.lastY = screen.canvas.height * (screen.lastY - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
         }
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset canvas.
         if ((screenSwitch == false) && (x0 == undefined) && (y0 == undefined) && (x1 == undefined) && (y1 == undefined)) {
-            _windowAspectR = false;
-            _strokeLineThickness = 2;
-            ///
-            _strokeDrawLength = 4;//
-            _strokeDrawAngle = -Math.PI/2;//
-            _strokeDrawColor = _color(15);//
-            //
+            _windowAspect[0] = false;
+            ctx.lineWidth = _strokeLineThickness;
         } else {
+            factorX = Math.abs(x1-x0) / screen.canvas.width;
+            factorY = Math.abs(y1-y0) / screen.canvas.height;
             if (screenSwitch == false) {
                 orientY = -1;
                 ctx.translate(0, screen.canvas.height);
             } else {
                 orientY = 1;
             }
-            factorX = Math.abs(x1-x0) / screen.canvas.width;
-            factorY = Math.abs(y1-y0) / screen.canvas.height;
-            _windowAspectR = factorY/factorX;
-            _windowAspectX = factorX;
-            _windowAspectY = orientY*factorY;
             ctx.scale(1/factorX, orientY/factorY);
             ctx.translate(-x0, -y0);
-            _strokeLineThickness = Math.sqrt(factorX*factorX + factorY*factorY) / Math.sqrt(2);
+            ctx.lineWidth = (_strokeLineThickness) * Math.sqrt(factorX*factorX + factorY*factorY) / Math.sqrt(2);
+            if (_windowAspect[0] != false) { // Convert cursor position to window coordinates.
+                screen.lastY = screen.lastY * factorY + y0;
+            } else {
+                screen.lastY = (screen.canvas.height - screen.lastY) * factorY + y0;
+            }
             screen.lastX = screen.lastX * factorX + x0;
-            screen.lastY = (screen.canvas.height - screen.lastY) * factorY + y0;
+            _windowAspect[0] = factorY/factorX;
+            _windowAspect[1] = factorX;
+            _windowAspect[2] = orientY*factorY;
             _windowDef[0] = x0;
             _windowDef[1] = y0;
             _windowDef[2] = x1;
             _windowDef[3] = y1;
         }
-
     };
 
     // QBJS-only methods
