@@ -15,6 +15,7 @@
             a, a:link, a:visited {
                 text-decoration: none;
                 color: #ccc;
+                margin-right: 5px;
             }
             a:hover { color: #fff;  }
             a:before { content: "< "; }
@@ -68,6 +69,9 @@
                 font-family: dosvga;
                 color: #999;
                 padding: 5px;
+            }
+            #edit-button {
+                float: left;
             }
             #share-button {
                 float: right;
@@ -193,6 +197,7 @@
     <body>
         <div id="code-container">
             <div id="code"></div>
+            <a id="edit-button" href="javascript:slideRight()" display="none">Edit Program</a>
             <a id="run-button" href="javascript:runProgram()">Run Program</a>
             <a id="stop-button" href="javascript:stopProgram()">Stop</a>
             <a id="share-button" href="javascript:shareProgram()">Share</a>
@@ -249,6 +254,10 @@
         var appMode = "ide";
         var consoleVisible = false;
         var currTab = "console";
+
+        if (window.innerWidth < 1200) {
+            sizeMode = "max";
+        }
  
         if (url && url.indexOf("?")) {
             var queryString = url.substring(url.indexOf("?")+1);
@@ -466,7 +475,7 @@
 
         function slideLeft() {
             document.getElementById("slider-right").style.display = "block";
-            if (sizeMode == "max") {
+            if (sizeMode == "max" && window.innerWidth >= 1200) {
                 sizeMode = "normal"
             }
             else {
@@ -479,7 +488,7 @@
 
         function slideRight() {
             document.getElementById("slider-left").style.display = "block";
-            if (sizeMode == "min") {
+            if (sizeMode == "min" && window.innerWidth >= 1200) {
                 sizeMode = "normal"
             }
             else {
@@ -514,18 +523,24 @@
                     cmwidth = 0;
                     editor.getWrapperElement().style.display = "none";
                     document.getElementById("code").style.borderRight = "0";
+                    document.getElementById("game-container").style.display = "block";
+                    document.getElementById("edit-button").style.display = "block";
                 }
                 else if (sizeMode == "max") {
                     cmwidth = window.innerWidth - 25;
                     document.getElementById("game-container").style.display = "none";
+                    document.getElementById("code").style.borderRight = "1px solid #666";
                     document.getElementById("slider").style.border = "1px solid #666";
                     document.getElementById("slider").style.borderLeft = "0";
+                    editor.getWrapperElement().style.display = "block";
+                    document.getElementById("edit-button").style.display = "none";
                 }
                 else {
                     editor.getWrapperElement().style.display = "block";
                     document.getElementById("game-container").style.display = "block";
                     document.getElementById("code").style.borderRight = "1px solid #666";
                     document.getElementById("slider").style.border = "0";
+                    document.getElementById("edit-button").style.display = "none";
                 }
 
                 document.getElementById("game-container").style.left = (cmwidth + 20) + "px";
