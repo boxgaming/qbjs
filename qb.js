@@ -1713,7 +1713,7 @@ var QB = new function() {
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
         var orientY, factorX, factorY;
-        if (_windowAspect[0] != false) { // Convert cursor position to absolute coordinates.
+        if (_windowAspect[0] != false) { // Convert cursor position to canvas coordinates.
             screen.lastX = screen.canvas.width * (screen.lastX - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
             screen.lastY = screen.canvas.height * (screen.lastY - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
         }
@@ -1733,12 +1733,12 @@ var QB = new function() {
             ctx.scale(1/factorX, orientY/factorY);
             ctx.translate(-x0, -y0);
             ctx.lineWidth = (_strokeLineThickness) * Math.sqrt(factorX*factorX + factorY*factorY) / Math.sqrt(2);
-            screen.lastX = screen.lastX * factorX + x0;
-            if (_windowAspect[0] != false) {
+            if (_windowAspect[0] != false) { // Convert cursor position to window coordinates.
                 screen.lastY = screen.lastY * factorY + y0;
             } else {
                 screen.lastY = (screen.canvas.height - screen.lastY) * factorY + y0;
             }
+            screen.lastX = screen.lastX * factorX + x0;
             _windowAspect[0] = factorY/factorX;
             _windowAspect[1] = factorX;
             _windowAspect[2] = orientY*factorY;
