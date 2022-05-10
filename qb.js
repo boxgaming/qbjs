@@ -35,6 +35,7 @@ var QB = new function() {
     var _resize = false;
     var _resizeWidth = 0;
     var _resizeHeight = 0;
+    var _currScreenImage = null;
 
     // Array handling methods
     // ----------------------------------------------------
@@ -116,6 +117,7 @@ var QB = new function() {
         _nextImageId = 1000;
         _activeImage = 0;
         _sourceImage = 0;
+        _currScreenImage = null;
         GX._enableTouchMouse(true);
         GX.registerGameEvents(function(e){});
         QB.sub_Screen(0);
@@ -337,7 +339,7 @@ var QB = new function() {
         }
         ctx = canvas.getContext("2d");
 
-        _images[_nextImageId] = { canvas: canvas, ctx: ctx, lastX: 0, lastY: 0, charSizeMode: (mode == 0)};
+        _images[_nextImageId] = { canvas: canvas, ctx: ctx, lastX: 0, lastY: 0, charSizeMode: (mode == 0), dirty: true };
         var tmpId = _nextImageId;
         _nextImageId++;
         return tmpId;
@@ -347,6 +349,7 @@ var QB = new function() {
         // TODO: check the background opacity mode
         // Draw the text background
         var ctx = _images[_activeImage].ctx;
+        _images[_activeImage].dirty = true;
         ctx.beginPath();
         ctx.fillStyle = _bgColor.rgba();
         ctx.fillRect(x, y, QB.func__FontWidth(), QB.func__FontHeight());
@@ -435,12 +438,20 @@ var QB = new function() {
             sh = sy2-sy1;
         }
 
+        if (sw > sourceImage.canvas.width) {
+            sw = sourceImage.canvas.width;
+        }
+        if (sh > sourceImage.canvas.height) {
+            sh = sourceImage.canvas.height;
+        }
+
         destImage.lastX = dx1 + dw;
         destImage.lastY = dy1 + dh;
         sourceImage.lastX = sx1 + sw;
         sourceImage.lastY = sy2 + sh;
 
         destImage.ctx.drawImage(sourceImage.canvas, sx1, sy1, sw, sh, dx1, dy1, dw, dh);
+        _images[sourceImageId].dirty = true;
     }
 
     function _rgb(r, g, b, a) {
@@ -633,6 +644,7 @@ var QB = new function() {
         }
         
         ctx = _images[_activeImage].ctx;
+        _images[_activeImage].dirty = true;
         ctx.beginPath();
         ctx.clearRect(0, 0, _width(), _height());
         ctx.fillStyle = color.rgba();
@@ -769,6 +781,7 @@ var QB = new function() {
                      ["H",Math.PI*(7/4),Math.sqrt(2)]];
 
         // Screen variables.
+        _images[_activeImage].dirty = true;
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
         cursX = screen.lastX;
@@ -1101,6 +1114,7 @@ var QB = new function() {
             }
         }
         _inputMode = false;
+        _images[_activeImage].dirty = true;
     }
 
     this.func_InKey = function() {
@@ -1149,6 +1163,8 @@ var QB = new function() {
     this.sub_Circle = function(step, x, y, radius, color, startAngle, endAngle, aspect) {
 
         var screen = _images[_activeImage];
+        _images[_activeImage].dirty = true;
+
         if (color == undefined) {
             color = _fgColor;
         }
@@ -1196,6 +1212,7 @@ var QB = new function() {
 
     this.sub_Line = function(sstep, sx, sy, estep, ex, ey, color, style, pattern) {
         var screen = _images[_activeImage];
+        _images[_activeImage].dirty = true;
 
         if (color == undefined) {
             if (style == "BF") {
@@ -1303,6 +1320,7 @@ var QB = new function() {
     };
 
     this.sub_Paint = function(sstep, startX, startY, fillColor, borderColor) {
+        _images[_activeImage].dirty = true;
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
         var data = ctx.getImageData(0, 0, screen.canvas.width, screen.canvas.height).data;
@@ -1398,9 +1416,18 @@ var QB = new function() {
                 ret = screen.lastY;
             }
         } else {
-            var ctx = screen.ctx;
-            var data = ctx.getImageData(x, y, 1, 1).data;
-            ret = QB.func__RGBA(data[0],data[1],data[2],data[3]);
+            if (screen.dirty != false) { 
+                var ctx = screen.ctx;
+                screen.data = ctx.getImageData(0, 0, screen.canvas.width, screen.canvas.height).data;
+                screen.dirty = false;
+            }
+            //var data = ctx.getImageData(x, y, 1, 1).data;
+            //ret = QB.func__RGBA(data[0],data[1],data[2],data[3]);
+            var pixelIndex = (y * screen.canvas.width + x) * 4;
+            ret = _rgb(screen.data[pixelIndex], 
+                       screen.data[pixelIndex + 1], 
+                       screen.data[pixelIndex + 2], 
+                       screen.data[pixelIndex + 3]);
         }
         return ret;
     };
@@ -1433,6 +1460,7 @@ var QB = new function() {
             args = [""];
         }
 
+        _images[_activeImage].dirty = true;
         var ctx = _images[_activeImage].ctx;
         var preventNewline = (args[args.length-1] == QB.PREVENT_NEWLINE || args[args.length-1] == QB.COLUMN_ADVANCE);
 
@@ -1510,6 +1538,7 @@ var QB = new function() {
     }
 
     this.sub_PSet = function(sstep, x, y, color) {
+        _images[_activeImage].dirty = true;
         var screen = _images[_activeImage];
 
         if (color == undefined) {
@@ -1557,6 +1586,12 @@ var QB = new function() {
         _activeImage = 0;
         charSizeMode = false;
 
+        if (_currScreenImage) {
+            _images[_currScreenImage.id] = _currScreenImage;
+            this.sub__PutImage(undefined, undefined, undefined, undefined, undefined, undefined, 0, _currScreenImage.id);
+            _currScreenImage = null;
+        }
+
         if (mode == 0) {
             GX.sceneCreate(640, 400);
         }
@@ -1581,12 +1616,16 @@ var QB = new function() {
                 GX.sceneCreate(img.canvas.width, img.canvas.height);
                 this.sub__PutImage(undefined, undefined, undefined, undefined, undefined, undefined, mode);
                 charSizeMode = img.charSizeMode;
+                _currScreenImage = _images[mode];
+                _currScreenImage.id = mode;
+                _images[mode] = _images[0];
             }
         }
         _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0 };
         _images[0].lastX = _images[0].canvas.width/2;
         _images[0].lastY = _images[0].canvas.height/2;
         _images[0].lineWidth = _strokeLineThickness;
+        
 
         // initialize the graphics
         _fgColor = _color(7); 
