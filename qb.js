@@ -936,7 +936,8 @@ var QB = new function() {
                                     vy *= (_strokeDrawLength/4);
                                     if (_windowAspect[0] != false) {
                                         wx = vx * (_windowDef[2] - _windowDef[0]) / screen.canvas.width;
-                                        wy = -vy * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
+                                        wy = vy * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
+                                        if (_windowAspect[2] < 0) { wy = -wy; }
                                     } else {
                                         wx = vx;
                                         wy = vy;
@@ -946,7 +947,11 @@ var QB = new function() {
                                     vy = uy;
                                     if (_windowAspect[0] != false) {
                                         wx = vx * (_windowDef[2] - _windowDef[0]) / screen.canvas.width + _windowDef[0];
-                                        wy = -vy * (_windowDef[3] - _windowDef[1]) / screen.canvas.height + _windowDef[3];
+                                        if (_windowAspect[2] < 0) {
+                                            wy = -vy * (_windowDef[3] - _windowDef[1]) / screen.canvas.height + _windowDef[3];
+                                        } else {
+                                            wy = vy * (_windowDef[3] - _windowDef[1]) / screen.canvas.height + _windowDef[1];
+                                        }
                                     } else {
                                         wx = vx;
                                         wy = vy;
@@ -1401,18 +1406,30 @@ var QB = new function() {
         if ((Math.abs(r - c2.r) < thresh) && (Math.abs(g - c2.g) < thresh) && (Math.abs(b - c2.b) < thresh)) { return false; }
         return true;
     }
-
     this.func_Point = function(x, y) {
         var screen = _images[_sourceImage];
         var ret = 0;
-        if ( y == undefined ) {
-            if (x == 0) { 
-                ret = screen.lastX;
+        if (y == undefined) {
+            if (x == 0) {
+                if (_windowAspect[0] != false) {
+                    ret = screen.canvas.width * (screen.lastX - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
+                } else {
+                    ret = screen.lastX;
+                }
             } else if (x == 1) {
-                ret = screen.lastY;
-            } else if (x == 2) { // until Window is implemented.
+                if (_windowAspect[0] != false) {
+                    if (_windowAspect[2] < 0) {
+                        ret = screen.canvas.height - screen.canvas.height * (screen.lastY - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+                    } else {
+                        ret = screen.canvas.height * (screen.lastY - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+                    }
+                    //ret = screen.canvas.height * (screen.lastY - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+                } else {
+                    ret = screen.lastY;
+                }           
+            } else if (x == 2) {
                 ret = screen.lastX;
-            } else if (x == 3) { // until Window is implemented.
+            } else if (x == 3) {
                 ret = screen.lastY;
             }
         } else {
@@ -1754,7 +1771,11 @@ var QB = new function() {
         var orientY, factorX, factorY;
         if (_windowAspect[0] != false) { // Convert cursor position to canvas coordinates.
             screen.lastX = screen.canvas.width * (screen.lastX - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
-            screen.lastY = screen.canvas.height * (screen.lastY - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+            if (_windowAspect[2] < 0) { // Contend with previously-flipped y-coordinate.
+                screen.lastY = screen.canvas.height - screen.canvas.height * (screen.lastY - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+            } else {
+                screen.lastY = screen.canvas.height * (screen.lastY - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);//
+            }
         }
         ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset canvas.
         if ((screenSwitch == false) && (x0 == undefined) && (y0 == undefined) && (x1 == undefined) && (y1 == undefined)) {
@@ -1772,12 +1793,14 @@ var QB = new function() {
             ctx.scale(1/factorX, orientY/factorY);
             ctx.translate(-x0, -y0);
             ctx.lineWidth = (_strokeLineThickness) * Math.sqrt(factorX*factorX + factorY*factorY) / Math.sqrt(2);
-            if (_windowAspect[0] != false) { // Convert cursor position to window coordinates.
-                screen.lastY = screen.lastY * factorY + y0;
-            } else {
-                screen.lastY = (screen.canvas.height - screen.lastY) * factorY + y0;
-            }
+            // Convert cursor position to window coordinates.
             screen.lastX = screen.lastX * factorX + x0;
+            if (orientY == -1) {
+                screen.lastY = (screen.canvas.height - screen.lastY) * factorY + y0;
+            } else  {
+                screen.lastY = screen.lastY * factorY + y0;
+            }
+            // Store window params.
             _windowAspect[0] = factorY/factorX;
             _windowAspect[1] = factorX;
             _windowAspect[2] = orientY*factorY;
