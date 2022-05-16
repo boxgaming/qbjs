@@ -721,7 +721,7 @@ var QB = new function() {
         u = u.toUpperCase();
         u = u.split("");
 
-        // Prime data loop.
+        // Prime data prep loop.
         var ch;
         var elem;
         var flag;
@@ -784,14 +784,9 @@ var QB = new function() {
         _images[_activeImage].dirty = true;
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
+
         cursX = screen.lastX;
         cursY = screen.lastY;
-
-        if (_windowAspect[0] != false) {
-            ctx.lineWidth = (_strokeLineThickness) * Math.sqrt(_windowAspect[1]*_windowAspect[1] + _windowAspect[2]*_windowAspect[2]) / Math.sqrt(2);
-        } else {
-            ctx.lineWidth = _strokeLineThickness;
-        }
 
         // Main loop.
         while (v.length) {
@@ -934,29 +929,20 @@ var QB = new function() {
                                     vy = ux * Math.sin(ang) + uy * Math.cos(ang);
                                     vx *= (_strokeDrawLength/4);
                                     vy *= (_strokeDrawLength/4);
-                                    if (_windowAspect[0] != false) {
-                                        wx = vx * (_windowDef[2] - _windowDef[0]) / screen.canvas.width;
-                                        wy = -vy * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
-                                    } else {
-                                        wx = vx;
-                                        wy = vy;
-                                    }
+                                    wx = vx;
+                                    wy = vy;
                                 } else {
                                     vx = ux;
                                     vy = uy;
-                                    if (_windowAspect[0] != false) {
-                                        wx = vx * (_windowDef[2] - _windowDef[0]) / screen.canvas.width + _windowDef[0];
-                                        wy = -vy * (_windowDef[3] - _windowDef[1]) / screen.canvas.height + _windowDef[3];
-                                    } else {
-                                        wx = vx;
-                                        wy = vy;
-                                    }
+                                    wx = vx;
+                                    wy = vy;
                                 }
                             }
                         }
                         cursXt = ux0 + wx;
                         cursYt = uy0 + wy;
                         if (cursSkipdraw == false) {
+                            ctx.lineWidth = _strokeLineThickness;
                             ctx.strokeStyle = _color(_strokeDrawColor).rgba();
                             ctx.beginPath();
                             ctx.moveTo(cursX, cursY);
@@ -1005,13 +991,10 @@ var QB = new function() {
                             }
                             ux = dlen * Math.cos(_strokeDrawAngle + lines[i][1]);
                             uy = dlen * Math.sin(_strokeDrawAngle + lines[i][1]);
-                            if (_windowAspect[0] != false) {
-                                ux *= _windowAspect[1];
-                                uy *= _windowAspect[2];
-                            }
                             cursXt = (cursX)*1.0 + ux;
                             cursYt = (cursY)*1.0 + uy;
                             if (cursSkipdraw == false) {
+                                ctx.lineWidth = _strokeLineThickness;
                                 ctx.strokeStyle = _color(_strokeDrawColor).rgba();
                                 ctx.beginPath();
                                 ctx.moveTo(cursX, cursY);
@@ -1163,6 +1146,7 @@ var QB = new function() {
     this.sub_Circle = function(step, x, y, radius, color, startAngle, endAngle, aspect) {
 
         var screen = _images[_activeImage];
+        var ctx = screen.ctx;
         _images[_activeImage].dirty = true;
 
         if (color == undefined) {
@@ -1174,27 +1158,36 @@ var QB = new function() {
 
         if (startAngle == undefined) { startAngle = 0; }
         if (endAngle == undefined) { endAngle = 2 * Math.PI; }
-        
+
         if (step) {
+            // Un-Contend with Window.
+            if (_windowAspect[0] != false) {
+                screen.lastX = _windowDef[0] + screen.lastX * (_windowDef[2] - _windowDef[0]) / screen.canvas.width;
+                if (_windowAspect[2] < 0) {
+                    screen.lastY = _windowDef[1] - (screen.lastY - screen.canvas.height) * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
+                } else {
+                    screen.lastY = _windowDef[1] + screen.lastY * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
+                }
+            }
             x = screen.lastX + x;
             y = screen.lastY + y;
+        } 
+
+        // Contend with Window.
+        if (_windowAspect[0] != false) {
+            x = screen.canvas.width * (x - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
+            if (_windowAspect[2] < 0) {
+                y = screen.canvas.height - screen.canvas.height * (y - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+            } else {
+                y = screen.canvas.height * (y - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+            }
+            radius *= _windowAspect[0] / Math.abs(_windowAspect[2]);
         }
+        
         screen.lastX = x;
         screen.lastY = y;
 
-        if (_windowAspect[0] != false) {
-            aspect = _windowAspect[0];
-            radius *= _windowAspect[0];
-        }
-
-        var ctx = screen.ctx;
-
-        if (_windowAspect[0] != false) {
-            ctx.lineWidth = (_strokeLineThickness) * Math.sqrt(_windowAspect[1]*_windowAspect[1] + _windowAspect[2]*_windowAspect[2]) / Math.sqrt(2);
-        } else {
-            ctx.lineWidth = _strokeLineThickness;
-        }
-
+        ctx.lineWidth = _strokeLineThickness;
         ctx.strokeStyle = color.rgba();
         ctx.beginPath();
         if (aspect == undefined) {
@@ -1212,6 +1205,7 @@ var QB = new function() {
 
     this.sub_Line = function(sstep, sx, sy, estep, ex, ey, color, style, pattern) {
         var screen = _images[_activeImage];
+        var ctx = screen.ctx;
         _images[_activeImage].dirty = true;
 
         if (color == undefined) {
@@ -1227,10 +1221,29 @@ var QB = new function() {
         }
         
         if (sstep) {
+            // Un-Contend with Window.
+            if (_windowAspect[0] != false) {
+                screen.lastX = _windowDef[0] + screen.lastX * (_windowDef[2] - _windowDef[0]) / screen.canvas.width;
+                if (_windowAspect[2] < 0) {
+                    screen.lastY = _windowDef[1] - (screen.lastY - screen.canvas.height) * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
+                } else {
+                    screen.lastY = _windowDef[1] + screen.lastY * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
+                }
+            }
             sx = screen.lastX + sx;
             sy = screen.lastY + sy;
-        }
+        } 
+
         if (sx == undefined) {
+            // Un-Contend with Window.
+            if (_windowAspect[0] != false) {
+                screen.lastX = _windowDef[0] + screen.lastX * (_windowDef[2] - _windowDef[0]) / screen.canvas.width;
+                if (_windowAspect[2] < 0) {
+                    screen.lastY = _windowDef[1] - (screen.lastY - screen.canvas.height) * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
+                } else {
+                    screen.lastY = _windowDef[1] + screen.lastY * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
+                }
+            }
             sx = screen.lastX;
             sy = screen.lastY;
         }
@@ -1240,18 +1253,25 @@ var QB = new function() {
         if (estep) {
             ex = screen.lastX + ex;
             ey = screen.lastY + ey;
+        } 
+
+        // Contend with Window.
+        if (_windowAspect[0] != false) {
+            ex = screen.canvas.width * (ex - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
+            sx = screen.canvas.width * (sx - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
+            if (_windowAspect[2] < 0) {
+                ey = screen.canvas.height - screen.canvas.height * (ey - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+                sy = screen.canvas.height - screen.canvas.height * (sy - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+            } else {
+                ey = screen.canvas.height * (ey - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+                sy = screen.canvas.height * (sy - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+            }
         }
+
         screen.lastX = ex;
         screen.lastY = ey;
 
-        var ctx = screen.ctx;
-
-        if (_windowAspect[0] != false) {
-            ctx.lineWidth = (_strokeLineThickness) * Math.sqrt(_windowAspect[1]*_windowAspect[1] + _windowAspect[2]*_windowAspect[2]) / Math.sqrt(2);
-        } else {
-            ctx.lineWidth = _strokeLineThickness;
-        }
-
+        ctx.lineWidth = _strokeLineThickness;
         if (style == "B") {
             ctx.strokeStyle = color.rgba();
             ctx.beginPath();
@@ -1405,15 +1425,29 @@ var QB = new function() {
     this.func_Point = function(x, y) {
         var screen = _images[_sourceImage];
         var ret = 0;
-        if ( y == undefined ) {
-            if (x == 0) { 
+        if (y == undefined) {
+            if (x == 0) {
                 ret = screen.lastX;
             } else if (x == 1) {
-                ret = screen.lastY;
-            } else if (x == 2) { // until Window is implemented.
-                ret = screen.lastX;
-            } else if (x == 3) { // until Window is implemented.
-                ret = screen.lastY;
+                ret = screen.lastY;           
+            } else if (x == 2) {
+                // Un-Contend with Window.
+                if (_windowAspect[0] != false) {
+                    ret = _windowDef[0] + screen.lastX * (_windowDef[2] - _windowDef[0]) / screen.canvas.width;
+                } else {
+                    ret = screen.lastX;
+                }
+            } else if (x == 3) {
+                // Un-Contend with Window.
+                if (_windowAspect[0] != false) {
+                    if (_windowAspect[2] < 0) {
+                        ret = _windowDef[1] - (screen.lastY - screen.canvas.height) * (_windowDef[3] - _windowDef[1]) / screen.canvas.height; 
+                    } else {
+                        ret = screen.lastY = _windowDef[1] + screen.lastY * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
+                    }
+                } else {
+                    ret = screen.lastY;
+                }
             }
         } else {
             if (screen.dirty != false) { 
@@ -1444,16 +1478,39 @@ var QB = new function() {
         else {
             color = _color(color);
         }
+
         if (sstep) {
+            // Un-Contend with Window.
+            if (_windowAspect[0] != false) {
+                screen.lastX = _windowDef[0] + screen.lastX * (_windowDef[2] - _windowDef[0]) / screen.canvas.width;
+                if (_windowAspect[2] < 0) {
+                    screen.lastY = _windowDef[1] - (screen.lastY - screen.canvas.height) * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
+                } else {
+                    screen.lastY = _windowDef[1] + screen.lastY * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
+                }
+            }
             x = screen.lastX + x;
             y = screen.lastY + y;
+        } 
+
+        // Contend with Window.
+        if (_windowAspect[0] != false) {
+            x = screen.canvas.width * (x - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
+            if (_windowAspect[2] < 0) {
+                y = screen.canvas.height - screen.canvas.height * (y - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+            } else {
+                y = screen.canvas.height * (y - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+            }
         }
+        
         screen.lastX = x;
         screen.lastY = y;
+
         _strokeDrawColor = _color(color);
     };
 
     this.sub_Print = async function(args) {
+        var screen = _images[_activeImage];
 
         // Print called with no arguments
         if (args == undefined || args == null || args.length < 1) {
@@ -1486,16 +1543,15 @@ var QB = new function() {
                     else {
                         y = (_locY) * QB.func__FontHeight();
                     }
-        
+
                     // TODO: check the background opacity mode
                     // Draw the text background
                     ctx.beginPath();
                     ctx.fillStyle = _bgColor.rgba();
                     ctx.fillRect(x, y, QB.func__FontWidth() * lines[i].length, QB.func__FontHeight());
-        
                     ctx.font = "16px dosvga";
                     ctx.fillStyle = _fgColor.rgba();
-                    ctx.fillText(lines[i], x, y+QB.func__FontHeight()-6);
+                    ctx.fillText(lines[i], x, (y+QB.func__FontHeight()-6));
 
                     _locX += lines[i].length;
 
@@ -1547,21 +1603,39 @@ var QB = new function() {
         else {
             color = _color(color);
         }
+
         if (sstep) {
+            // Un-Contend with Window.
+            if (_windowAspect[0] != false) {
+                screen.lastX = _windowDef[0] + screen.lastX * (_windowDef[2] - _windowDef[0]) / screen.canvas.width;
+                if (_windowAspect[2] < 0) {
+                    screen.lastY = _windowDef[1] - (screen.lastY - screen.canvas.height) * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
+                } else {
+                    screen.lastY = _windowDef[1] + screen.lastY * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
+                }
+            }
             x = screen.lastX + x;
             y = screen.lastY + y;
+        } 
+
+        // Contend with Window.
+        if (_windowAspect[0] != false) {
+            x = screen.canvas.width * (x - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
+            if (_windowAspect[2] < 0) {
+                y = screen.canvas.height - screen.canvas.height * (y - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+            } else {
+                y = screen.canvas.height * (y - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+            }
         }
+
         screen.lastX = x;
         screen.lastY = y;
 
         var ctx = screen.ctx;
         ctx.fillStyle = color.rgba();
         ctx.beginPath();
-        if (_windowAspect[0] == false) {
-            ctx.fillRect(x, y, 1, 1);
-        } else {
-            ctx.fillRect(x, y, _windowAspect[1], _windowAspect[2]);
-        }
+        ctx.fillRect(x, y, 1, 1);
+
         _strokeDrawColor = _color(color);
     };
 
@@ -1621,12 +1695,11 @@ var QB = new function() {
                 _images[mode] = _images[0];
             }
         }
-        _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0 };
+        _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0};
         _images[0].lastX = _images[0].canvas.width/2;
         _images[0].lastY = _images[0].canvas.height/2;
-        _images[0].lineWidth = _strokeLineThickness;
+        //_images[0].lineWidth = _strokeLineThickness; // this line does nothing
         
-
         // initialize the graphics
         _fgColor = _color(7); 
         _bgColor = _color(0);
@@ -1750,34 +1823,17 @@ var QB = new function() {
 
     this.sub_Window = function(screenSwitch, x0, y0, x1, y1) {
         var screen = _images[_activeImage];
-        var ctx = screen.ctx;
         var orientY, factorX, factorY;
-        if (_windowAspect[0] != false) { // Convert cursor position to canvas coordinates.
-            screen.lastX = screen.canvas.width * (screen.lastX - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
-            screen.lastY = screen.canvas.height * (screen.lastY - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
-        }
-        ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset canvas.
         if ((screenSwitch == false) && (x0 == undefined) && (y0 == undefined) && (x1 == undefined) && (y1 == undefined)) {
             _windowAspect[0] = false;
-            ctx.lineWidth = _strokeLineThickness;
         } else {
             factorX = Math.abs(x1-x0) / screen.canvas.width;
             factorY = Math.abs(y1-y0) / screen.canvas.height;
             if (screenSwitch == false) {
                 orientY = -1;
-                ctx.translate(0, screen.canvas.height);
             } else {
                 orientY = 1;
             }
-            ctx.scale(1/factorX, orientY/factorY);
-            ctx.translate(-x0, -y0);
-            ctx.lineWidth = (_strokeLineThickness) * Math.sqrt(factorX*factorX + factorY*factorY) / Math.sqrt(2);
-            if (_windowAspect[0] != false) { // Convert cursor position to window coordinates.
-                screen.lastY = screen.lastY * factorY + y0;
-            } else {
-                screen.lastY = (screen.canvas.height - screen.lastY) * factorY + y0;
-            }
-            screen.lastX = screen.lastX * factorX + x0;
             _windowAspect[0] = factorY/factorX;
             _windowAspect[1] = factorX;
             _windowAspect[2] = orientY*factorY;
@@ -1786,6 +1842,7 @@ var QB = new function() {
             _windowDef[2] = x1;
             _windowDef[3] = y1;
         }
+
     };
 
     // QBJS-only methods
