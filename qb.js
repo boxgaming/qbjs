@@ -1161,27 +1161,17 @@ var QB = new function() {
         if (endAngle == undefined) { endAngle = 2 * Math.PI; }
 
         if (step) {
-            // Un-Contend with Window.
             if (_windowAspect[0] != false) {
-                screen.lastX = _windowDef[0] + screen.lastX * (_windowDef[2] - _windowDef[0]) / screen.canvas.width;
-                if (_windowAspect[2] < 0) {
-                    screen.lastY = _windowDef[1] - (screen.lastY - screen.canvas.height) * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
-                } else {
-                    screen.lastY = _windowDef[1] + screen.lastY * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
-                }
+                screen.lastX = windowUnContendX(screen.lastX, screen.canvas.width);
+                screen.lastY = windowUnContendY(screen.lastY, screen.canvas.height);
             }
             x = screen.lastX + x;
             y = screen.lastY + y;
         } 
 
-        // Contend with Window.
         if (_windowAspect[0] != false) {
-            x = screen.canvas.width * (x - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
-            if (_windowAspect[2] < 0) {
-                y = screen.canvas.height - screen.canvas.height * (y - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
-            } else {
-                y = screen.canvas.height * (y - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
-            }
+            x = windowContendX(x, screen.canvas.width);
+            y = windowContendY(y, screen.canvas.height);
             radius *= _windowAspect[0] / Math.abs(_windowAspect[2]);
         }
         
@@ -1222,28 +1212,18 @@ var QB = new function() {
         }
         
         if (sstep) {
-            // Un-Contend with Window.
             if (_windowAspect[0] != false) {
-                screen.lastX = _windowDef[0] + screen.lastX * (_windowDef[2] - _windowDef[0]) / screen.canvas.width;
-                if (_windowAspect[2] < 0) {
-                    screen.lastY = _windowDef[1] - (screen.lastY - screen.canvas.height) * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
-                } else {
-                    screen.lastY = _windowDef[1] + screen.lastY * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
-                }
+                screen.lastX = windowUnContendX(screen.lastX, screen.canvas.width);
+                screen.lastY = windowUnContendY(screen.lastY, screen.canvas.height);
             }
             sx = screen.lastX + sx;
             sy = screen.lastY + sy;
         } 
 
         if (sx == undefined) {
-            // Un-Contend with Window.
             if (_windowAspect[0] != false) {
-                screen.lastX = _windowDef[0] + screen.lastX * (_windowDef[2] - _windowDef[0]) / screen.canvas.width;
-                if (_windowAspect[2] < 0) {
-                    screen.lastY = _windowDef[1] - (screen.lastY - screen.canvas.height) * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
-                } else {
-                    screen.lastY = _windowDef[1] + screen.lastY * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
-                }
+                screen.lastX = windowUnContendX(screen.lastX, screen.canvas.width);
+                screen.lastY = windowUnContendY(screen.lastY, screen.canvas.height);
             }
             sx = screen.lastX;
             sy = screen.lastY;
@@ -1256,17 +1236,11 @@ var QB = new function() {
             ey = screen.lastY + ey;
         } 
 
-        // Contend with Window.
         if (_windowAspect[0] != false) {
-            ex = screen.canvas.width * (ex - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
-            sx = screen.canvas.width * (sx - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
-            if (_windowAspect[2] < 0) {
-                ey = screen.canvas.height - screen.canvas.height * (ey - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
-                sy = screen.canvas.height - screen.canvas.height * (sy - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
-            } else {
-                ey = screen.canvas.height * (ey - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
-                sy = screen.canvas.height * (sy - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
-            }
+            ex = windowContendX(ex, screen.canvas.width);
+            sx = windowContendX(sx, screen.canvas.width);
+            ey = windowContendY(ey, screen.canvas.height);
+            sy = windowContendY(sy, screen.canvas.height);
         }
 
         screen.lastX = ex;
@@ -1432,20 +1406,14 @@ var QB = new function() {
             } else if (x == 1) {
                 ret = screen.lastY;           
             } else if (x == 2) {
-                // Un-Contend with Window.
                 if (_windowAspect[0] != false) {
-                    ret = _windowDef[0] + screen.lastX * (_windowDef[2] - _windowDef[0]) / screen.canvas.width;
+                    ret = windowUnContendX(screen.lastX, screen.canvas.width);
                 } else {
                     ret = screen.lastX;
                 }
             } else if (x == 3) {
-                // Un-Contend with Window.
                 if (_windowAspect[0] != false) {
-                    if (_windowAspect[2] < 0) {
-                        ret = _windowDef[1] - (screen.lastY - screen.canvas.height) * (_windowDef[3] - _windowDef[1]) / screen.canvas.height; 
-                    } else {
-                        ret = screen.lastY = _windowDef[1] + screen.lastY * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
-                    }
+                    ret = windowUnContendY(screen.lastY, screen.canvas.height)
                 } else {
                     ret = screen.lastY;
                 }
@@ -1481,27 +1449,17 @@ var QB = new function() {
         }
 
         if (sstep) {
-            // Un-Contend with Window.
             if (_windowAspect[0] != false) {
-                screen.lastX = _windowDef[0] + screen.lastX * (_windowDef[2] - _windowDef[0]) / screen.canvas.width;
-                if (_windowAspect[2] < 0) {
-                    screen.lastY = _windowDef[1] - (screen.lastY - screen.canvas.height) * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
-                } else {
-                    screen.lastY = _windowDef[1] + screen.lastY * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
-                }
+                screen.lastX = windowUnContendX(screen.lastX, screen.canvas.width);
+                screen.lastY = windowUnContendY(screen.lastY, screen.canvas.height);
             }
             x = screen.lastX + x;
             y = screen.lastY + y;
         } 
 
-        // Contend with Window.
         if (_windowAspect[0] != false) {
-            x = screen.canvas.width * (x - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
-            if (_windowAspect[2] < 0) {
-                y = screen.canvas.height - screen.canvas.height * (y - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
-            } else {
-                y = screen.canvas.height * (y - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
-            }
+            x = windowContendX(x, screen.canvas.width);
+            y = windowContendY(y, screen.canvas.height);
         }
         
         screen.lastX = x;
@@ -1606,27 +1564,17 @@ var QB = new function() {
         }
 
         if (sstep) {
-            // Un-Contend with Window.
             if (_windowAspect[0] != false) {
-                screen.lastX = _windowDef[0] + screen.lastX * (_windowDef[2] - _windowDef[0]) / screen.canvas.width;
-                if (_windowAspect[2] < 0) {
-                    screen.lastY = _windowDef[1] - (screen.lastY - screen.canvas.height) * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
-                } else {
-                    screen.lastY = _windowDef[1] + screen.lastY * (_windowDef[3] - _windowDef[1]) / screen.canvas.height;
-                }
+                screen.lastX = windowUnContendX(screen.lastX, screen.canvas.width);
+                screen.lastY = windowUnContendY(screen.lastY, screen.canvas.height);
             }
             x = screen.lastX + x;
             y = screen.lastY + y;
         } 
 
-        // Contend with Window.
         if (_windowAspect[0] != false) {
-            x = screen.canvas.width * (x - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
-            if (_windowAspect[2] < 0) {
-                y = screen.canvas.height - screen.canvas.height * (y - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
-            } else {
-                y = screen.canvas.height * (y - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
-            }
+            x = windowContendX(x, screen.canvas.width);
+            y = windowContendY(y, screen.canvas.height);
         }
 
         screen.lastX = x;
@@ -1845,6 +1793,30 @@ var QB = new function() {
         }
 
     };
+
+    function windowContendX(u, w) {
+        return w * (u - _windowDef[0]) / (_windowDef[2] - _windowDef[0]);
+    }
+
+    function windowUnContendX(u, w) {
+        return _windowDef[0] + u * (_windowDef[2] - _windowDef[0]) / w;
+    }
+
+    function windowContendY(v, h) {
+        if (_windowAspect[2] < 0) {
+            return h * (1 - (v - _windowDef[1]) / (_windowDef[3] - _windowDef[1]));
+        } else {
+            return h * (v - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+        }
+    }
+
+    function windowUnContendY(v, h) {
+        if (_windowAspect[2] < 0) {
+            return _windowDef[1] - (v - h) * (_windowDef[3] - _windowDef[1]) / h;
+        } else {
+            return _windowDef[1] + v * (_windowDef[3] - _windowDef[1]) / h;
+        }
+    }
 
     // QBJS-only methods
     // ---------------------------------------------------------------------------------
