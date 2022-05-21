@@ -511,10 +511,14 @@ var ConvertSub = null;
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertPrint(  args))  +");";
    } else if ( m.name == "Input"  ||  m.name == "Line Input" ) {
       js = (await func_ConvertInput(  m,   args));
+   } else if ( m.name == "Read" ) {
+      js = (await func_ConvertRead(  m,   args));
    } else if ( m.name == "Swap" ) {
       js = (await func_ConvertSwap(  m,   args));
    } else if ( m.name == "Cls" ) {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertCls(  args))  +");";
+   } else if ( m.name == "Data" ) {
+      js = (await func_CallMethod(  m))  +"("  +(await func_ConvertData(  args))  +");";
    } else if ( m.name == "_PutImage" ) {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertPutImage(  args))  +");";
    } else if ( m.name == "Window" ) {
@@ -726,6 +730,51 @@ var bgcolor = ''; // STRING
    }
    ConvertCls =  method +", "  + bgcolor;
 return ConvertCls;
+}
+async function func_ConvertData(args/*STRING*/) {
+if (QB.halted()) { return; }
+var ConvertData = null;
+   var argc = 0; // INTEGER
+   var parts = QB.initArray([{l:1,u:0}], ''); // STRING
+   argc = (await func_ListSplit(  args,  parts));
+   var i = 0; // INTEGER
+   var r = ''; // STRING
+   r = "[";
+   for ( i= 1;  i <=  argc;  i= i + 1) {  if (QB.halted()) { return; }
+      r =  r +QB.arrayValue(parts, [ i]).value;
+      if (( i <  argc) ) {
+         r =  r +",";
+      }
+   }
+   ConvertData =  r +"]";
+return ConvertData;
+}
+async function func_ConvertRead(m/*METHOD*/,args/*STRING*/) {
+if (QB.halted()) { return; }
+var ConvertRead = null;
+   var js = ''; // STRING
+   var vname = ''; // STRING
+   var pcount = 0; // INTEGER
+   var parts = QB.initArray([{l:1,u:0}], ''); // STRING
+   var vars = QB.initArray([{l:1,u:0}], ''); // STRING
+   var vcount = 0; // INTEGER
+   var p = ''; // STRING
+   pcount = (await func_ListSplit(  args,  parts));
+   var i = 0; // INTEGER
+   for ( i= 1;  i <=  pcount;  i= i + 1) {  if (QB.halted()) { return; }
+      p = (QB.func__Trim( QB.arrayValue(parts, [ i]).value));
+      vcount = (QB.func_UBound(  vars))  + 1;
+      QB.resizeArray(vars, [{l:1,u:vcount}], '', true); // STRING
+      QB.arrayValue(vars, [ vcount]).value =  p;
+   }
+   vname = await func_GenJSVar();
+   js = "var "  + vname +" = new Array("  +(QB.func_Str( (QB.func_UBound(  vars))))  +");"  +await func_LF();
+   js =  js +(await func_CallMethod(  m))  +"("  + vname +");"  +await func_LF();
+   for ( i= 1;  i <= (QB.func_UBound(  vars));  i= i + 1) {  if (QB.halted()) { return; }
+      js =  js +(await func_ConvertExpression( QB.arrayValue(vars, [ i]).value))  +" = "  + vname +"["  +(QB.func_Str(  i - 1))  +"];"  +await func_LF();
+   }
+   ConvertRead =  js;
+return ConvertRead;
 }
 async function func_ConvertCoordParam(param/*STRING*/,hasEndCoord/*INTEGER*/) {
 if (QB.halted()) { return; }
@@ -2734,6 +2783,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "Csrlin",   False);
    await sub_AddQBMethod( "FUNCTION",  "Cvi",   False);
    await sub_AddQBMethod( "FUNCTION",  "Cvl",   False);
+   await sub_AddQBMethod( "SUB",  "Data",   False);
    await sub_AddQBMethod( "SUB",  "Draw",   False);
    await sub_AddQBMethod( "FUNCTION",  "Exp",   False);
    await sub_AddQBMethod( "FUNCTION",  "Fix",   False);
@@ -2742,6 +2792,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "InKey$",   False);
    await sub_AddQBMethod( "FUNCTION",  "InStr",   False);
    await sub_AddQBMethod( "FUNCTION",  "Int",   False);
+   await sub_AddQBMethod( "SUB",  "Label",   False);
    await sub_AddQBMethod( "FUNCTION",  "LBound",   False);
    await sub_AddQBMethod( "FUNCTION",  "Left$",   False);
    await sub_AddQBMethod( "FUNCTION",  "LCase$",   False);
@@ -2760,8 +2811,10 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "SUB",  "PReset",   False);
    await sub_AddQBMethod( "SUB",  "Print",   True);
    await sub_AddQBMethod( "SUB",  "PSet",   False);
+   await sub_AddQBMethod( "SUB",  "Restore",   False);
    await sub_AddQBMethod( "FUNCTION",  "Right$",   False);
    await sub_AddQBMethod( "FUNCTION",  "RTrim$",   False);
+   await sub_AddQBMethod( "SUB",  "Read",   False);
    await sub_AddQBMethod( "FUNCTION",  "Rnd",   False);
    await sub_AddQBMethod( "SUB",  "Screen",   False);
    await sub_AddQBMethod( "FUNCTION",  "Sgn",   False);

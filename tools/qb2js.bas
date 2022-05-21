@@ -601,11 +601,17 @@ Function ConvertSub$ (m As Method, args As String)
     ElseIf m.name = "Input" Or m.name = "Line Input" Then
         js = ConvertInput(m, args)
 
+    ElseIf m.name = "Read" Then
+        js = ConvertRead(m, args)
+
     ElseIf m.name = "Swap" Then
         js = ConvertSwap(m, args)
 
     ElseIf m.name = "Cls" Then
         js = CallMethod(m) + "(" + ConvertCls(args) + ");"
+
+    ElseIf m.name = "Data" Then
+        js = CallMethod(m) + "(" + ConvertData(args) + ");"
 
     ElseIf m.name = "_PutImage" Then
         js = CallMethod(m) + "(" + ConvertPutImage(args) + ");"
@@ -810,6 +816,45 @@ Function ConvertCls$ (args As String)
     ConvertCls$ = method + ", " + bgcolor
 End Function
 
+Function ConvertData$ (args As String)
+    Dim argc As Integer
+    ReDim parts(0) As String
+    argc = ListSplit(args, parts())
+    Dim i As Integer
+    Dim r As String
+    r = "["
+    For i = 1 To argc
+        r = r + parts(i)
+        If (i < argc) Then r = r + ","
+    Next
+    ConvertData$ = r + "]"
+End Function
+
+Function ConvertRead$ (m As Method, args As String)
+    Dim js As String
+    Dim vname As String
+    Dim pcount As Integer
+    ReDim parts(0) As String
+    ReDim vars(0) As String
+    Dim vcount As Integer
+    Dim p As String
+    pcount = ListSplit(args, parts())
+    Dim i As Integer
+    For i = 1 To pcount
+        p = _Trim$(parts(i))
+        vcount = UBound(vars) + 1
+        ReDim _Preserve As String vars(vcount)
+        vars(vcount) = p
+    Next i
+    vname = GenJSVar
+    js = "var " + vname + " = new Array(" + Str$(UBound(vars)) + ");" + LF
+    js = js + CallMethod(m) + "(" + vname + ");" + LF
+    For i = 1 To UBound(vars)
+        js = js + ConvertExpression(vars(i)) + " = " + vname + "[" + Str$(i - 1) + "];" + LF
+    Next i
+    ConvertRead$ = js
+End Function
+
 Function ConvertCoordParam$ (param As String, hasEndCoord As Integer)
     If _Trim$(param) = "" Then
         If hasEndCoord Then
@@ -964,7 +1009,6 @@ Function ConvertInput$ (m As Method, args As String)
                 preventNewline = "true"
             Else
                 addQuestionPrompt = "true"
-
             End If
         ElseIf StartsWith(p, Chr$(34)) Then
             prompt = p
@@ -985,7 +1029,6 @@ Function ConvertInput$ (m As Method, args As String)
     Next i
     ConvertInput = js
 End Function
-
 
 Function ConvertSwap$ (m As Method, args As String)
     Dim js As String
@@ -2872,6 +2915,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Csrlin", False
     AddQBMethod "FUNCTION", "Cvi", False
     AddQBMethod "FUNCTION", "Cvl", False
+    AddQBMethod "SUB", "Data", False
     AddQBMethod "SUB", "Draw", False
     AddQBMethod "FUNCTION", "Exp", False
     AddQBMethod "FUNCTION", "Fix", False
@@ -2880,6 +2924,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "InKey$", False
     AddQBMethod "FUNCTION", "InStr", False
     AddQBMethod "FUNCTION", "Int", False
+    AddQBMethod "SUB", "Label", False
     AddQBMethod "FUNCTION", "LBound", False
     AddQBMethod "FUNCTION", "Left$", False
     AddQBMethod "FUNCTION", "LCase$", False
@@ -2898,8 +2943,10 @@ Sub InitQBMethods
     AddQBMethod "SUB", "PReset", False
     AddQBMethod "SUB", "Print", True
     AddQBMethod "SUB", "PSet", False
+    AddQBMethod "SUB", "Restore", False
     AddQBMethod "FUNCTION", "Right$", False
     AddQBMethod "FUNCTION", "RTrim$", False
+    AddQBMethod "SUB", "Read", False
     AddQBMethod "FUNCTION", "Rnd", False
     AddQBMethod "SUB", "Screen", False
     AddQBMethod "FUNCTION", "Sgn", False
@@ -2918,7 +2965,6 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Val", False
     AddQBMethod "FUNCTION", "Varptr", False
     AddQBMethod "SUB", "Window", False
-
 
     ' QBJS-only language features
     ' --------------------------------------------------------------------------------

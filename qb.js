@@ -36,6 +36,9 @@ var QB = new function() {
     var _resizeWidth = 0;
     var _resizeHeight = 0;
     var _currScreenImage = null;
+    var _dataBulk = [];
+    var _readCursorPosition;
+    var _dataLabelMap = new Map();
 
     // Array handling methods
     // ----------------------------------------------------
@@ -632,6 +635,14 @@ var QB = new function() {
         }, 200);  
     };
 
+    this.sub_Data = function(dat) {
+        if (_dataBulk.length == 0) {
+            _dataBulk = dat;
+        } else {
+            _dataBulk.push.apply(_dataBulk, dat);
+        }
+    };
+
     this.func_Chr = function(charCode) {
         return String.fromCharCode(charCode);
     };
@@ -1194,6 +1205,10 @@ var QB = new function() {
         _strokeDrawColor = _color(color);
     };
 
+    this.sub_Label = function(t) {
+        _dataLabelMap.set(t, _dataBulk.length);
+    };
+
     this.sub_Line = function(sstep, sx, sy, estep, ex, ey, color, style, pattern) {
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
@@ -1588,6 +1603,21 @@ var QB = new function() {
         _strokeDrawColor = _color(color);
     };
 
+    this.sub_Read = function(values) {
+        for (var i=0; i < values.length; i++) {
+            values[i] = _dataBulk[_readCursorPosition];
+            _readCursorPosition += 1;
+        }
+    }
+
+    this.sub_Restore = function(t) {
+        if (t == undefined) {
+            _readCursorPosition = 0;
+        } else {
+            _readCursorPosition = (1.0)*_dataLabelMap.get(t);
+        }
+    };
+
     this.func_Right = function(value, n) {
         if (value == undefined) {
             return "";
@@ -1647,7 +1677,6 @@ var QB = new function() {
         _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0};
         _images[0].lastX = _images[0].canvas.width/2;
         _images[0].lastY = _images[0].canvas.height/2;
-        //_images[0].lineWidth = _strokeLineThickness; // this line does nothing
         
         // initialize the graphics
         _fgColor = _color(7); 
@@ -1665,6 +1694,8 @@ var QB = new function() {
         _inkeyBuffer = [];
         _keyHitBuffer = [];
         _keyDownMap = {};
+
+        _readCursorPosition = 0;
 
     };
 

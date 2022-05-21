@@ -40,12 +40,12 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              '_keyhit', '_loadimage', '_mousebutton', '_mouseinput', '_mousex', '_mousey', '_newimage', '_pi', '_printstring', '_printwidth',
                              '_putimage', '_r2d', '_red', '_red32', '_resize', '_resizewidth', '_resizeheight', '_rgb', '_rgba', '_rgb32', '_rgba32', '_round',
                              '_screenexists', '_sinh', '_source', '_sndclose', '_sndopen', '_sndplay', '_sndloop', '_sndpause', '_sndstop', '_sndvol', 
-                             '_title', '_trim', '_width', 'abs', 'asc', 'atn', 'beep', 'chr', 'circle', 'cls', 'color', 'command', 'cos', 'cvi', 'cvl', 'draw', 'exp',
+                             '_title', '_trim', '_width', 'abs', 'asc', 'atn', 'beep', 'chr', 'circle', 'cls', 'color', 'command', 'cos', 'cvi', 'cvl', 'data', 'draw', 'exp',
                              'fix', 'hex', 'input', 'inkey', 'instr', 'int', 'lbound', 'left', 'lcase', 'len', 'line', 'locate', 'log', 'ltrim', 'mid', 'mki', 'mkl',
-                             'oct', 'paint', 'point', 'preset', 'print', 'pset', 'right', 'rtrim', 'rnd', 'screen', 'shared', 'sgn', 'sin', 'sleep', 'space', 'sqr',
+                             'oct', 'paint', 'point', 'preset', 'print', 'pset', 'right', 'rtrim', 'read', 'restore', 'rnd', 'screen', 'shared', 'sgn', 'sin', 'sleep', 'space', 'sqr',
                              'str', 'swap', 'tan', 'time', 'timer', 'ubound', 'ucase', 'val', 'varptr', 'window',
                              // QBJS-specific
-                             'export', 'from', 'import']
+                             'export', 'from', 'import', 'label']
 
     var builtinConsts = ['_off', '_smooth', '_stretch', '_squarepixels',
                          'gx_true', 'gx_false', 'gxevent_init', 'gxevent_update', 'gxevent_drawbg', 'gxevent_drawmap', 'gxevent_drawscreen',
