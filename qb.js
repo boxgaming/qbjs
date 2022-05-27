@@ -635,14 +635,6 @@ var QB = new function() {
         }, 200);  
     };
 
-    this.sub_Data = function(dat) {
-        if (_dataBulk.length == 0) {
-            _dataBulk = dat;
-        } else {
-            _dataBulk.push.apply(_dataBulk, dat);
-        }
-    };
-
     this.func_Chr = function(charCode) {
         return String.fromCharCode(charCode);
     };
@@ -1205,7 +1197,7 @@ var QB = new function() {
         _strokeDrawColor = _color(color);
     };
 
-    this.sub_Label = function(t) {
+    this.sub__Label = function(t) {
         _dataLabelMap.set(t, _dataBulk.length);
     };
 
@@ -1601,6 +1593,14 @@ var QB = new function() {
         ctx.fillRect(x, y, 1, 1);
 
         _strokeDrawColor = _color(color);
+    };
+
+    this.sub_Data = function(dat) {
+        if (_dataBulk.length == 0) {
+            _dataBulk = dat;
+        } else {
+            _dataBulk.push.apply(_dataBulk, dat);
+        }
     };
 
     this.sub_Read = function(values) {

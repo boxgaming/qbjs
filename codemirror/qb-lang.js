@@ -45,7 +45,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              'oct', 'paint', 'point', 'preset', 'print', 'pset', 'right', 'rtrim', 'read', 'restore', 'rnd', 'screen', 'shared', 'sgn', 'sin', 'sleep', 'space', 'sqr',
                              'str', 'swap', 'tan', 'time', 'timer', 'ubound', 'ucase', 'val', 'varptr', 'window',
                              // QBJS-specific
-                             'export', 'from', 'import', 'label']
+                             'export', 'from', 'import', '_label']
 
     var builtinConsts = ['_off', '_smooth', '_stretch', '_squarepixels',
                          'gx_true', 'gx_false', 'gxevent_init', 'gxevent_update', 'gxevent_drawbg', 'gxevent_drawmap', 'gxevent_drawscreen',

@@ -61,6 +61,8 @@ Dim Shared modLevel As Integer
 Dim Shared As String currentMethod
 Dim Shared As String currentModule
 Dim Shared As Integer programMethods
+Dim Shared As Integer dataTicker
+dataTicker = 1
 
 ' Only execute the conversion from the native version if we have been passed the
 ' source file to convert on the command line
@@ -822,9 +824,13 @@ Function ConvertData$ (args As String)
     argc = ListSplit(args, parts())
     Dim i As Integer
     Dim r As String
+    Dim q As String
     r = "["
     For i = 1 To argc
-        r = r + parts(i)
+        q = parts(i)
+        If (Left$(LTrim$(q), 1) <> Chr$(34)) Then q = Chr$(34) + q
+        If (Right$(RTrim$(q), 1) <> Chr$(34)) Then q = q + Chr$(34)
+        r = r + q
         If (i < argc) Then r = r + ","
     Next
     ConvertData$ = r + "]"
@@ -1684,8 +1690,17 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
 
     ReadLine = rawJS
 
-    If _Trim$(fline) = "" Then Exit Function
+    If (_Trim$(LCase$(Left$(fline, 4))) = "data") Then
+        AddLineTop dataTicker, fline
+        AddSubLinesTop dataTicker, fline
+        Exit Function
+    End If
+    If (_Trim$(LCase$(Left$(fline, 6))) = "_label") Then
+        AddLineTop dataTicker, fline
+        Exit Function
+    End If
 
+    If _Trim$(fline) = "" Then Exit Function
 
     Dim word As String
     Dim words(0) As String
@@ -1765,6 +1780,29 @@ Sub AddSubLines (lineIndex As Integer, fline As String)
     AddLine lineIndex, fline
 End Sub
 
+Sub AddSubLinesTop (lineIndex As Integer, fline As String)
+    Dim quoteDepth As Integer
+    quoteDepth = 0
+    Dim i As Integer
+    For i = 1 To Len(fline)
+        Dim c As String
+        c = Mid$(fline, i, 1)
+        If c = Chr$(34) Then
+            If quoteDepth = 0 Then
+                quoteDepth = 1
+            Else
+                quoteDepth = 0
+            End If
+        End If
+        If quoteDepth = 0 And c = ":" Then
+            AddLineTop lineIndex, Left$(fline, i - 1)
+            fline = Right$(fline, Len(fline) - i)
+            i = 0
+        End If
+    Next i
+
+    AddLineTop lineIndex, fline
+End Sub
 
 Sub FindMethods
     Dim i As Integer
@@ -2210,6 +2248,18 @@ Sub AddQBMethod (mtype As String, mname As String, sync As Integer)
     AddMethod m, "QB.", sync
 End Sub
 
+Sub AddLineTop (lineIndex As Integer, fline As String)
+    Dim lcount As Integer: lcount = UBound(lines) + 1
+    ReDim _Preserve As CodeLine lines(lcount)
+    Dim j As Integer
+    For j = UBound(lines) To dataTicker Step -1
+        lines(j).line = lines(j - 1).line
+        lines(j).text = lines(j - 1).text
+    Next
+    lines(dataTicker).line = dataTicker
+    lines(dataTicker).text = fline
+    dataTicker = dataTicker + 1
+End Sub
 
 Sub AddLine (lineIndex As Integer, fline As String)
     __AddLine lineIndex, fline
@@ -2924,7 +2974,6 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "InKey$", False
     AddQBMethod "FUNCTION", "InStr", False
     AddQBMethod "FUNCTION", "Int", False
-    AddQBMethod "SUB", "Label", False
     AddQBMethod "FUNCTION", "LBound", False
     AddQBMethod "FUNCTION", "Left$", False
     AddQBMethod "FUNCTION", "LCase$", False
@@ -2969,6 +3018,7 @@ Sub InitQBMethods
     ' QBJS-only language features
     ' --------------------------------------------------------------------------------
     AddQBMethod "SUB", "IncludeJS", True
+    AddQBMethod "SUB", "_Label", False
 
     ' Undocumented at present
     AddSystemType "FETCHRESPONSE", "ok:INTEGER,status:INTEGER,statusText:STRING,text:STRING"
