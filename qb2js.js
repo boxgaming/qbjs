@@ -506,26 +506,28 @@ var ConvertSub = null;
    }
    if ( m.name == "Line" ) {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertLine(  args))  +");";
-   } else if ( m.name == "PSet"  ||  m.name == "Circle"  ||  m.name == "PReset"  ||  m.name == "Paint" ) {
-      js = (await func_CallMethod(  m))  +"("  +(await func_ConvertPSet(  args))  +");";
-   } else if ( m.name == "_PrintString" ) {
-      js = (await func_CallMethod(  m))  +"("  +(await func_ConvertPrintString(  args))  +");";
-   } else if ( m.name == "Print" ) {
-      js = (await func_CallMethod(  m))  +"("  +(await func_ConvertPrint(  args))  +");";
-   } else if ( m.name == "Input"  ||  m.name == "Line Input" ) {
-      js = (await func_ConvertInput(  m,   args));
-   } else if ( m.name == "Read" ) {
-      js = (await func_ConvertRead(  m,   args));
-   } else if ( m.name == "Swap" ) {
-      js = (await func_ConvertSwap(  m,   args));
    } else if ( m.name == "Cls" ) {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertCls(  args))  +");";
    } else if ( m.name == "Data" ) {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertData(  args))  +");";
-   } else if ( m.name == "_PutImage" ) {
-      js = (await func_CallMethod(  m))  +"("  +(await func_ConvertPutImage(  args))  +");";
+   } else if ( m.name == "Input"  ||  m.name == "Line Input" ) {
+      js = (await func_ConvertInput(  m,   args));
+   } else if ( m.name == "PSet"  ||  m.name == "Circle"  ||  m.name == "PReset"  ||  m.name == "Paint" ) {
+      js = (await func_CallMethod(  m))  +"("  +(await func_ConvertPSet(  args))  +");";
+   } else if ( m.name == "Print" ) {
+      js = (await func_CallMethod(  m))  +"("  +(await func_ConvertPrint(  args))  +");";
+   } else if ( m.name == "Randomize" ) {
+      js = (await func_ConvertRandomize(  m,   args));
+   } else if ( m.name == "Read" ) {
+      js = (await func_ConvertRead(  m,   args));
+   } else if ( m.name == "Swap" ) {
+      js = (await func_ConvertSwap(  m,   args));
    } else if ( m.name == "Window" ) {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertWindow(  args))  +");";
+   } else if ( m.name == "_PrintString" ) {
+      js = (await func_CallMethod(  m))  +"("  +(await func_ConvertPrintString(  args))  +");";
+   } else if ( m.name == "_PutImage" ) {
+      js = (await func_CallMethod(  m))  +"("  +(await func_ConvertPutImage(  args))  +");";
    } else if ( m.name == "_FullScreen" ) {
       js = (await func_CallMethod(  m))  +"("  +(await func_ConvertFullScreen(  args))  +");";
    } else {
@@ -759,6 +761,24 @@ var ConvertData = null;
    }
    ConvertData =  r +"]";
 return ConvertData;
+}
+async function func_ConvertRandomize(m/*METHOD*/,args/*STRING*/) {
+if (QB.halted()) { return; }
+var ConvertRandomize = null;
+   var uusing = ''; // STRING
+   var theseed = ''; // STRING
+   uusing = "false";
+   theseed =  args;
+   if ((QB.func__Trim(  args))  == "" ) {
+      theseed = "undefined";
+   } else {
+      if (((QB.func_UCase( (QB.func__Trim( (QB.func_Left(  args,   5))))))  == "USING") ) {
+         uusing = "true";
+         theseed = (QB.func__Trim( (QB.func_Right(  args,  (QB.func_Len(  args))  - 5))));
+      }
+   }
+   ConvertRandomize = (await func_CallMethod(  m))  +"("  + uusing +", "  + theseed +")";
+return ConvertRandomize;
 }
 async function func_ConvertRead(m/*METHOD*/,args/*STRING*/) {
 if (QB.halted()) { return; }
@@ -2867,6 +2887,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "SUB",  "PReset",   False);
    await sub_AddQBMethod( "SUB",  "Print",   True);
    await sub_AddQBMethod( "SUB",  "PSet",   False);
+   await sub_AddQBMethod( "SUB",  "Randomize",   False);
    await sub_AddQBMethod( "SUB",  "Restore",   False);
    await sub_AddQBMethod( "FUNCTION",  "Right$",   False);
    await sub_AddQBMethod( "FUNCTION",  "RTrim$",   False);

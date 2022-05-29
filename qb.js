@@ -39,6 +39,7 @@ var QB = new function() {
     var _dataBulk = [];
     var _readCursorPosition;
     var _dataLabelMap = new Map();
+    var _randomSeed = 327680;
 
     // Array handling methods
     // ----------------------------------------------------
@@ -1630,9 +1631,31 @@ var QB = new function() {
         return String(value).trimEnd();
     }
 
+    this.sub_Randomize = function(using, n) {
+        const buffer = new ArrayBuffer(8);
+        const view = new DataView(buffer);
+        var m;
+        if (n == undefined) {
+            view.setFloat64(0, 0, false); // TODO: implement prompt
+            m = view.getUint32(0);
+            m ^= (m >> 16);
+            _randomSeed = ((m & 0xffff)<<8) | (_randomSeed & 0xff);
+        } else {
+            view.setFloat64(0, n, false);
+            m = view.getUint32(0);
+            m ^= (m >> 16);
+            if (using == false) {
+                _randomSeed = ((m & 0xffff)<<8) | (_randomSeed & 0xff);
+            } else if (using == true) {
+                _randomSeed = ((m & 0xffff)<<8) | (327680 & 0xff);
+            }
+        }
+    }
+
     this.func_Rnd = function(n) {
         // TODO: implement modifier parameter
-        return Math.random();
+        _randomSeed = (_randomSeed * 16598013 + 12820163) & 0xFFFFFF; 
+        return _randomSeed / 0x1000000; // Inspired by libqb.cpp.
     }
 
     this.sub_Screen = async function(mode) {

@@ -591,17 +591,23 @@ Function ConvertSub$ (m As Method, args As String)
     If m.name = "Line" Then
         js = CallMethod(m) + "(" + ConvertLine(args) + ");"
 
+    ElseIf m.name = "Cls" Then
+        js = CallMethod(m) + "(" + ConvertCls(args) + ");"
+
+    ElseIf m.name = "Data" Then
+        js = CallMethod(m) + "(" + ConvertData(args) + ");"
+
+    ElseIf m.name = "Input" Or m.name = "Line Input" Then
+        js = ConvertInput(m, args)
+
     ElseIf m.name = "PSet" Or m.name = "Circle" Or m.name = "PReset" Or m.name = "Paint" Then
         js = CallMethod(m) + "(" + ConvertPSet(args) + ");"
-
-    ElseIf m.name = "_PrintString" Then
-        js = CallMethod(m) + "(" + ConvertPrintString(args) + ");"
 
     ElseIf m.name = "Print" Then
         js = CallMethod(m) + "(" + ConvertPrint(args) + ");"
 
-    ElseIf m.name = "Input" Or m.name = "Line Input" Then
-        js = ConvertInput(m, args)
+    ElseIf m.name = "Randomize" Then
+        js = ConvertRandomize(m, args)
 
     ElseIf m.name = "Read" Then
         js = ConvertRead(m, args)
@@ -609,17 +615,14 @@ Function ConvertSub$ (m As Method, args As String)
     ElseIf m.name = "Swap" Then
         js = ConvertSwap(m, args)
 
-    ElseIf m.name = "Cls" Then
-        js = CallMethod(m) + "(" + ConvertCls(args) + ");"
+    ElseIf m.name = "Window" Then
+        js = CallMethod(m) + "(" + ConvertWindow(args) + ");"
 
-    ElseIf m.name = "Data" Then
-        js = CallMethod(m) + "(" + ConvertData(args) + ");"
+    ElseIf m.name = "_PrintString" Then
+        js = CallMethod(m) + "(" + ConvertPrintString(args) + ");"
 
     ElseIf m.name = "_PutImage" Then
         js = CallMethod(m) + "(" + ConvertPutImage(args) + ");"
-
-    ElseIf m.name = "Window" Then
-        js = CallMethod(m) + "(" + ConvertWindow(args) + ");"
 
     ElseIf m.name = "_FullScreen" Then
         js = CallMethod(m) + "(" + ConvertFullScreen(args) + ");"
@@ -834,6 +837,22 @@ Function ConvertData$ (args As String)
         If (i < argc) Then r = r + ","
     Next
     ConvertData$ = r + "]"
+End Function
+
+Function ConvertRandomize$ (m As Method, args As String)
+    Dim uusing As String
+    Dim theseed As String
+    uusing = "false"
+    theseed = args
+    If _Trim$(args) = "" Then
+        theseed = "undefined"
+    Else
+        If (UCase$(_Trim$(Left$(args, 5))) = "USING") Then
+            uusing = "true"
+            theseed = _Trim$(Right$(args, Len(args) - 5))
+        End If
+    End If
+    ConvertRandomize = CallMethod(m) + "(" + uusing + ", " + theseed + ")"
 End Function
 
 Function ConvertRead$ (m As Method, args As String)
@@ -2992,6 +3011,7 @@ Sub InitQBMethods
     AddQBMethod "SUB", "PReset", False
     AddQBMethod "SUB", "Print", True
     AddQBMethod "SUB", "PSet", False
+    AddQBMethod "SUB", "Randomize", False
     AddQBMethod "SUB", "Restore", False
     AddQBMethod "FUNCTION", "Right$", False
     AddQBMethod "FUNCTION", "RTrim$", False
