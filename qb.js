@@ -1635,8 +1635,8 @@ var QB = new function() {
         const buffer = new ArrayBuffer(8);
         const view = new DataView(buffer);
         var m;
-        if (n == undefined) { // TODO: implement prompt
-            view.setFloat64(0, 0, false); // assumes n=0
+        if (n == undefined) { // TODO: implement user prompt case
+            view.setFloat64(0, 0, false); // assumes n=0 for now
             m = view.getUint32(0);
             m ^= (m >> 16);
             _rndSeed = ((m & 0xffff)<<8) | (_rndSeed & 0xff);
@@ -1653,21 +1653,16 @@ var QB = new function() {
     }
 
     this.func_Rnd = function(n) {
-        if (n == undefined) { // Normal use.
-            _rndSeed = (_rndSeed * 16598013 + 12820163) & 0xFFFFFF; 
-        } else if (n > 0) { // Identical to above?
-            _rndSeed = (_rndSeed * 16598013 + 12820163) & 0xFFFFFF; 
-      //} else if (n == 0) { // Repeat last value, so change nothing.
-        } else if (n < 0) { // buggy
-            /*
-            m=*((uint32*)&n);
-            rnd_seed=(m&0xFFFFFF)+((m&0xFF000000)>>24);
-            */
-            const buffer = new ArrayBuffer(8);
-            const view = new DataView(buffer);
-            view.setFloat64(0, n, false);
-            var m = view.getUint32(0);
-            _rndSeed = (m & 0xFFFFFF) + ((m & 0xFF000000)>>24);
+        if (n == undefined) {n = 1;}
+        if (n != 0) {
+            if (n < 0) {
+                const buffer = new ArrayBuffer(8);
+                const view = new DataView(buffer);  
+                view.setFloat32(0, n, false);
+                var m = view.getUint32(0);
+                _rndSeed = (m & 0xFFFFFF) + ((m & 0xFF000000) >>> 24);
+            }
+            _rndSeed = (_rndSeed * 16598013 + 12820163) & 0xFFFFFF;
         }
         return _rndSeed / 0x1000000;
     }
