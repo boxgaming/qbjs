@@ -39,7 +39,7 @@ var QB = new function() {
     var _dataBulk = [];
     var _readCursorPosition;
     var _dataLabelMap = new Map();
-    var _randomSeed = 327680;
+    var _rndSeed = 327680;
 
     // Array handling methods
     // ----------------------------------------------------
@@ -59,22 +59,22 @@ var QB = new function() {
 
     this.resizeArray = function(a, dimensions, obj, preserve) {
        if (!preserve) {
-         var props = Object.getOwnPropertyNames(a);
-         for (var i = 0; i < props.length; i++) {
-            if (props[i] != "_newObj") {
-               delete a[props[i]];
+            var props = Object.getOwnPropertyNames(a);
+            for (var i = 0; i < props.length; i++) {
+                if (props[i] != "_newObj") {
+                    delete a[props[i]];
+                }
             }
-         }
-      }
-      if (dimensions && dimensions.length > 0) {
-        a._dimensions = dimensions;
-    }
-    else {
-        // default to single dimension to support Dim myArray() syntax
-        // for convenient hashtable declaration
-        a._dimensions = [{l:1,u:1}];
-    }
-};
+        }
+        if (dimensions && dimensions.length > 0) {
+            a._dimensions = dimensions;
+        }
+        else {
+            // default to single dimension to support Dim myArray() syntax
+            // for convenient hashtable declaration
+            a._dimensions = [{l:1,u:1}];
+        }
+    };
 
     this.arrayValue = function(a, indexes) {
         var value = a;
@@ -1635,27 +1635,41 @@ var QB = new function() {
         const buffer = new ArrayBuffer(8);
         const view = new DataView(buffer);
         var m;
-        if (n == undefined) {
-            view.setFloat64(0, 0, false); // TODO: implement prompt
+        if (n == undefined) { // TODO: implement prompt
+            view.setFloat64(0, 0, false); // assumes n=0
             m = view.getUint32(0);
             m ^= (m >> 16);
-            _randomSeed = ((m & 0xffff)<<8) | (_randomSeed & 0xff);
+            _rndSeed = ((m & 0xffff)<<8) | (_rndSeed & 0xff);
         } else {
             view.setFloat64(0, n, false);
             m = view.getUint32(0);
             m ^= (m >> 16);
             if (using == false) {
-                _randomSeed = ((m & 0xffff)<<8) | (_randomSeed & 0xff);
+                _rndSeed = ((m & 0xffff)<<8) | (_rndSeed & 0xff);
             } else if (using == true) {
-                _randomSeed = ((m & 0xffff)<<8) | (327680 & 0xff);
+                _rndSeed = ((m & 0xffff)<<8) | (327680 & 0xff);
             }
         }
     }
 
     this.func_Rnd = function(n) {
-        // TODO: implement modifier parameter
-        _randomSeed = (_randomSeed * 16598013 + 12820163) & 0xFFFFFF; 
-        return _randomSeed / 0x1000000; // Inspired by libqb.cpp.
+        if (n == undefined) { // Normal use.
+            _rndSeed = (_rndSeed * 16598013 + 12820163) & 0xFFFFFF; 
+        } else if (n > 0) { // Identical to above?
+            _rndSeed = (_rndSeed * 16598013 + 12820163) & 0xFFFFFF; 
+      //} else if (n == 0) { // Repeat last value, so change nothing.
+        } else if (n < 0) { // buggy
+            /*
+            m=*((uint32*)&n);
+            rnd_seed=(m&0xFFFFFF)+((m&0xFF000000)>>24);
+            */
+            const buffer = new ArrayBuffer(8);
+            const view = new DataView(buffer);
+            view.setFloat64(0, n, false);
+            var m = view.getUint32(0);
+            _rndSeed = (m & 0xFFFFFF) + ((m & 0xFF000000)>>24);
+        }
+        return _rndSeed / 0x1000000;
     }
 
     this.sub_Screen = async function(mode) {
