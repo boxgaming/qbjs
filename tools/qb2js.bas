@@ -716,6 +716,8 @@ Function ConvertLine$ (args As String)
     theRest = Replace(theRest, " Bf", " " + Chr$(34) + "BF" + Chr$(34))
     theRest = Replace(theRest, " B", " " + Chr$(34) + "B" + Chr$(34))
     theRest = Replace(theRest, " b", " " + Chr$(34) + "B" + Chr$(34))
+    theRest = Replace(theRest, " T", " " + Chr$(34) + "T" + Chr$(34))
+    theRest = Replace(theRest, " t", " " + Chr$(34) + "T" + Chr$(34))
 
     ConvertLine = sstep + ", " + startCord + ", " + estep + ", " + endCord + ", " + theRest
 End Function
@@ -850,6 +852,7 @@ Function ConvertRandomize$ (m As Method, args As String)
         If (UCase$(_Trim$(Left$(args, 5))) = "USING") Then
             uusing = "true"
             theseed = _Trim$(Right$(args, Len(args) - 5))
+            theseed = ConvertExpression(theseed)
         End If
     End If
     ConvertRandomize = CallMethod(m) + "(" + uusing + ", " + theseed + ")"

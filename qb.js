@@ -1204,7 +1204,7 @@ var QB = new function() {
 
     this.sub_Line = function(sstep, sx, sy, estep, ex, ey, color, style, pattern) {
         var screen = _images[_activeImage];
-        var ctx = screen.ctx;
+        //var ctx = screen.ctx;
         _images[_activeImage].dirty = true;
 
         if (color == undefined) {
@@ -1254,26 +1254,106 @@ var QB = new function() {
         screen.lastX = ex;
         screen.lastY = ey;
 
-        ctx.lineWidth = _strokeLineThickness;
-        if (style == "B") {
-            ctx.strokeStyle = color.rgba();
-            ctx.beginPath();
-            ctx.strokeRect(sx, sy, ex-sx, ey-sy)
-        } 
-        else if (style == "BF") {
+        if (pattern != undefined) { 
+            if (typeof pattern == "number") {
+                var value = pattern;
+                //ptn = ("0000000000000000" + (value >>> 0).toString(2)).slice(-16);
+            }
+        }
+
+        if (pattern == undefined) {
+            var ctx = screen.ctx; 
+            ctx.lineWidth = _strokeLineThickness;
+            if (style == "B") {
+                ctx.strokeStyle = color.rgba();
+                ctx.beginPath();
+                ctx.strokeRect(sx, sy, ex-sx, ey-sy);
+            } 
+            else if (style == "BF") {
+                ctx.fillStyle = color.rgba();
+                ctx.beginPath();
+                ctx.fillRect(sx, sy, ex-sx, ey-sy);
+            } 
+            else {
+                ctx.strokeStyle = color.rgba();
+                ctx.beginPath();
+                ctx.moveTo(sx, sy);
+                ctx.lineTo(ex, ey);
+                ctx.stroke();
+            }
+        } else {
+            var ctx = screen.ctx;
+            ctx.lineWidth = _strokeLineThickness;
             ctx.fillStyle = color.rgba();
             ctx.beginPath();
-            ctx.fillRect(sx, sy, ex-sx, ey-sy)
-        } 
-        else {
-            ctx.strokeStyle = color.rgba();
-            ctx.beginPath();
-            ctx.moveTo(sx, sy);
-            ctx.lineTo(ex, ey);
-            ctx.stroke();
+            var zeroDummy;
+            if (style == "B") {
+                zeroDummy = lineStyle(sx, sy, ex, sy, value);
+                zeroDummy = lineStyle(ex, sy, ex, ey, value);
+                zeroDummy = lineStyle(ex, ey, sx, ey, value);
+                zeroDummy = lineStyle(sx, ey, sx, sy, value);
+            } else {
+                zeroDummy = lineStyle(sx, sy, ex, ey, value);
+            }
         }
+
         _strokeDrawColor = _color(color);
     };
+
+    function lineStyle(x1, y1, x2, y2, sty) {
+        var screen = _images[_activeImage];
+        var ctx = screen.ctx;
+        var lx = Math.abs(x2 - x1);
+        var ly = Math.abs(y2 - y1);
+        var slope;
+        var mi;
+        var xtmp = x1;
+        var ytmp = y1;
+        var ptn = sty;
+        if (lx > ly) {
+            var y1f = y1;
+            if (lx) { slope = (y1 - y2) / lx; }
+            if (x1 < x2) { mi = 1; } else { mi = -1; }
+            lx += 1;
+            while (lx -= 1) {
+                if (y1f < 0) {ytmp = y1f - 0.5; } else { ytmp = y1f + 0.5; }
+                ptn = bitTread(ptn, 1);
+                if (bitTest(ptn, 0) == true) { ctx.fillRect(xtmp, ytmp, 1, 1); }
+                xtmp += mi;
+                y1f -= slope;
+            }
+        } else {
+            var x1f = x1;
+            if (ly) { slope = (x1 - x2) / ly; }
+            if (y1 < y2) { mi = 1; } else { mi = -1; }
+            ly += 1;
+            while (ly -= 1) {
+                if (x1f < 0) {xtmp = x1f - 0.5; } else { xtmp = x1f + 0.5; }
+                ptn = bitTread(ptn, 1);
+                if (bitTest(ptn, 0) == true) { ctx.fillRect(xtmp, ytmp, 1, 1); }
+                ytmp += mi;
+                x1f += slope;
+            }
+        }
+        return 0;
+    }
+
+    function bitTread(num, cnt) { // Bitwise treadmill left.
+        var val = (num << cnt) | (num >>> (32 - cnt));
+        if (~~bitTest(num, 15) == 1) {
+            return bitSet(val, 0);
+        } else {
+            return val;
+        }
+    }
+
+    function bitTest(num, bit) { // true or false
+        return ((num>>bit) % 2 != 0)
+    }
+
+    function bitSet(num, bit) {
+        return num | 1<<bit;
+    }
 
     this.sub_LineInput = async function(values, preventNewline, addQuestionPrompt, prompt) {
         await QB.sub_Input(values, preventNewline, addQuestionPrompt, prompt);

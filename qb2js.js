@@ -618,6 +618,8 @@ var ConvertLine = null;
    theRest = (await func_Replace(  theRest,  " Bf",  " "  +(QB.func_Chr(  34))  +"BF"  +(QB.func_Chr(  34))));
    theRest = (await func_Replace(  theRest,  " B",  " "  +(QB.func_Chr(  34))  +"B"  +(QB.func_Chr(  34))));
    theRest = (await func_Replace(  theRest,  " b",  " "  +(QB.func_Chr(  34))  +"B"  +(QB.func_Chr(  34))));
+   theRest = (await func_Replace(  theRest,  " T",  " "  +(QB.func_Chr(  34))  +"T"  +(QB.func_Chr(  34))));
+   theRest = (await func_Replace(  theRest,  " t",  " "  +(QB.func_Chr(  34))  +"T"  +(QB.func_Chr(  34))));
    ConvertLine =  sstep +", "  + startCord +", "  + estep +", "  + endCord +", "  + theRest;
 return ConvertLine;
 }
@@ -775,6 +777,7 @@ var ConvertRandomize = null;
       if (((QB.func_UCase( (QB.func__Trim( (QB.func_Left(  args,   5))))))  == "USING") ) {
          uusing = "true";
          theseed = (QB.func__Trim( (QB.func_Right(  args,  (QB.func_Len(  args))  - 5))));
+         theseed = (await func_ConvertExpression(  theseed));
       }
    }
    ConvertRandomize = (await func_CallMethod(  m))  +"("  + uusing +", "  + theseed +")";
