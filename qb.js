@@ -1281,35 +1281,44 @@ var QB = new function() {
                 ctx.lineTo(ex, ey);
                 ctx.stroke();
             }
-        } else {
+        } else { // Stylized line.
             var ctx = screen.ctx;
             ctx.lineWidth = _strokeLineThickness;
             ctx.fillStyle = color.rgba();
             ctx.beginPath();
-            var zeroDummy;
+            var nullDummy;
             if (style == "B") {
-                zeroDummy = lineStyle(sx, sy, ex, sy, value);
-                zeroDummy = lineStyle(ex, sy, ex, ey, value);
-                zeroDummy = lineStyle(ex, ey, sx, ey, value);
-                zeroDummy = lineStyle(sx, ey, sx, sy, value);
+                nullDummy = lineStyle(sx, sy, ex, sy, value);
+                nullDummy = lineStyle(ex, sy, ex, ey, value);
+                nullDummy = lineStyle(ex, ey, sx, ey, value);
+                nullDummy = lineStyle(sx, ey, sx, sy, value);
             } else {
-                zeroDummy = lineStyle(sx, sy, ex, ey, value);
+                nullDummy = lineStyle(sx, sy, ex, ey, value);
             }
         }
 
         _strokeDrawColor = _color(color);
     };
 
+    function bitTread(num, cnt) { // Bitwise treadmill left.
+        var val = (num << cnt) | (num >>> (32 - cnt));
+        return (val | (~~bitTest(num, 15))<<0);
+    }
+
+    function bitTest(num, bit) { // true or false
+        return ((num>>bit) % 2 != 0)
+    }
+
     function lineStyle(x1, y1, x2, y2, sty) {
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
         var lx = Math.abs(x2 - x1);
         var ly = Math.abs(y2 - y1);
-        var slope;
-        var mi;
         var xtmp = x1;
         var ytmp = y1;
         var ptn = sty;
+        var slope;
+        var mi;
         if (lx > ly) {
             var y1f = y1;
             if (lx) { slope = (y1 - y2) / lx; }
@@ -1336,23 +1345,6 @@ var QB = new function() {
             }
         }
         return 0;
-    }
-
-    function bitTread(num, cnt) { // Bitwise treadmill left.
-        var val = (num << cnt) | (num >>> (32 - cnt));
-        if (~~bitTest(num, 15) == 1) {
-            return bitSet(val, 0);
-        } else {
-            return val;
-        }
-    }
-
-    function bitTest(num, bit) { // true or false
-        return ((num>>bit) % 2 != 0)
-    }
-
-    function bitSet(num, bit) {
-        return num | 1<<bit;
     }
 
     this.sub_LineInput = async function(values, preventNewline, addQuestionPrompt, prompt) {
