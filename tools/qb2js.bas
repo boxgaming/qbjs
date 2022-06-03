@@ -1712,15 +1712,18 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
 
     ReadLine = rawJS
 
-    If (_Trim$(LCase$(Left$(fline, 4))) = "data") Then
-        AddLineTop dataTicker, fline
-        AddSubLinesTop dataTicker, fline
-        Exit Function
-    End If
-    If (_Trim$(LCase$(Left$(fline, 6))) = "_label") Then
-        AddLineTop dataTicker, fline
-        Exit Function
-    End If
+    'If (_Trim$(LCase$(Left$(fline, 4))) = "data") Then
+    '    'AddLineTop dataTicker, fline
+    '    'AddSubLinesTop dataTicker, fline
+    '    AddLine dataTicker, fline
+    '    AddSubLines dataTicker, fline
+    '    Exit Function
+    'End If
+    'If (_Trim$(LCase$(Left$(fline, 6))) = "_label") Then
+    '    'AddLineTop dataTicker, fline
+    '    AddLine dataTicker, fline
+    '    Exit Function
+    'End If
 
     If _Trim$(fline) = "" Then Exit Function
 
@@ -1802,29 +1805,29 @@ Sub AddSubLines (lineIndex As Integer, fline As String)
     AddLine lineIndex, fline
 End Sub
 
-Sub AddSubLinesTop (lineIndex As Integer, fline As String)
-    Dim quoteDepth As Integer
-    quoteDepth = 0
-    Dim i As Integer
-    For i = 1 To Len(fline)
-        Dim c As String
-        c = Mid$(fline, i, 1)
-        If c = Chr$(34) Then
-            If quoteDepth = 0 Then
-                quoteDepth = 1
-            Else
-                quoteDepth = 0
-            End If
-        End If
-        If quoteDepth = 0 And c = ":" Then
-            AddLineTop lineIndex, Left$(fline, i - 1)
-            fline = Right$(fline, Len(fline) - i)
-            i = 0
-        End If
-    Next i
+'Sub AddSubLinesTop (lineIndex As Integer, fline As String)
+'    Dim quoteDepth As Integer
+'    quoteDepth = 0
+'    Dim i As Integer
+'    For i = 1 To Len(fline)
+'        Dim c As String
+'        c = Mid$(fline, i, 1)
+'        If c = Chr$(34) Then
+'            If quoteDepth = 0 Then
+'                quoteDepth = 1
+'            Else
+'                quoteDepth = 0
+'            End If
+'        End If
+'        If quoteDepth = 0 And c = ":" Then
+'            AddLineTop lineIndex, Left$(fline, i - 1)
+'            fline = Right$(fline, Len(fline) - i)
+'            i = 0
+'        End If
+'    Next i
 
-    AddLineTop lineIndex, fline
-End Sub
+'    AddLineTop lineIndex, fline
+'End Sub
 
 Sub FindMethods
     Dim i As Integer
@@ -2270,18 +2273,18 @@ Sub AddQBMethod (mtype As String, mname As String, sync As Integer)
     AddMethod m, "QB.", sync
 End Sub
 
-Sub AddLineTop (lineIndex As Integer, fline As String)
-    Dim lcount As Integer: lcount = UBound(lines) + 1
-    ReDim _Preserve As CodeLine lines(lcount)
-    Dim j As Integer
-    For j = UBound(lines) To dataTicker Step -1
-        lines(j).line = lines(j - 1).line
-        lines(j).text = lines(j - 1).text
-    Next
-    lines(dataTicker).line = dataTicker
-    lines(dataTicker).text = fline
-    dataTicker = dataTicker + 1
-End Sub
+'Sub AddLineTop (lineIndex As Integer, fline As String)
+'    Dim lcount As Integer: lcount = UBound(lines) + 1
+'    ReDim _Preserve As CodeLine lines(lcount)
+'    Dim j As Integer
+'    For j = UBound(lines) To dataTicker Step -1
+'        lines(j).line = lines(j - 1).line
+'        lines(j).text = lines(j - 1).text
+'    Next
+'    lines(dataTicker).line = dataTicker
+'    lines(dataTicker).text = fline
+'    dataTicker = dataTicker + 1
+'End Sub
 
 Sub AddLine (lineIndex As Integer, fline As String)
     __AddLine lineIndex, fline

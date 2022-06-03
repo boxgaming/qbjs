@@ -1,7 +1,5 @@
 async function _QBCompiler() {
 
-   dataTicker =  1;
-   dataTicker =  1;
    // Option _Explicit
    // $Console
    // Only
@@ -30,6 +28,7 @@ async function _QBCompiler() {
    var currentModule = ''; // STRING
    var programMethods = 0; // INTEGER
    var dataTicker = 0; // INTEGER
+   dataTicker =  1;
    if (QB.func_Command() != "" ) {
       await sub_QBToJS( QB.func_Command(),   FILE,  "");
       await sub_PrintJS();
@@ -1625,15 +1624,6 @@ var ReadLine = null;
       }
    }
    ReadLine =  rawJS;
-   if (((QB.func__Trim( (QB.func_LCase( (QB.func_Left(  fline,   4))))))  == "data") ) {
-      await sub_AddLineTop(  dataTicker,   fline);
-      await sub_AddSubLinesTop(  dataTicker,   fline);
-      return ReadLine;
-   }
-   if (((QB.func__Trim( (QB.func_LCase( (QB.func_Left(  fline,   6))))))  == "_label") ) {
-      await sub_AddLineTop(  dataTicker,   fline);
-      return ReadLine;
-   }
    if ((QB.func__Trim(  fline))  == "" ) {
       return ReadLine;
    }
@@ -1711,29 +1701,6 @@ if (QB.halted()) { return; }
       }
    }
    await sub_AddLine(  lineIndex,   fline);
-}
-async function sub_AddSubLinesTop(lineIndex/*INTEGER*/,fline/*STRING*/) {
-if (QB.halted()) { return; }
-   var quoteDepth = 0; // INTEGER
-   quoteDepth =  0;
-   var i = 0; // INTEGER
-   for ( i= 1;  i <= (QB.func_Len(  fline));  i= i + 1) {  if (QB.halted()) { return; }
-      var c = ''; // STRING
-      c = (QB.func_Mid(  fline,   i,   1));
-      if ( c == (QB.func_Chr(  34)) ) {
-         if ( quoteDepth ==  0) {
-            quoteDepth =  1;
-         } else {
-            quoteDepth =  0;
-         }
-      }
-      if ( quoteDepth ==  0 &&  c == ":" ) {
-         await sub_AddLineTop(  lineIndex,  (QB.func_Left(  fline,   i - 1)));
-         fline = (QB.func_Right(  fline,  (QB.func_Len(  fline))  - i));
-         i =  0;
-      }
-   }
-   await sub_AddLineTop(  lineIndex,   fline);
 }
 async function sub_FindMethods() {
 if (QB.halted()) { return; }
@@ -2131,20 +2098,6 @@ if (QB.halted()) { return; }
    m.type =  mtype;
    m.name =  mname;
    await sub_AddMethod(  m,  "QB.",   sync);
-}
-async function sub_AddLineTop(lineIndex/*INTEGER*/,fline/*STRING*/) {
-if (QB.halted()) { return; }
-   var lcount = 0; // INTEGER
-   lcount = (QB.func_UBound(  lines))  + 1;
-   QB.resizeArray(lines, [{l:1,u:lcount}], {line:0,text:''}, true); // CODELINE
-   var j = 0; // INTEGER
-   for ( j=(QB.func_UBound(  lines)) ;  j >=  dataTicker;  j= j +  -1) {  if (QB.halted()) { return; }
-      QB.arrayValue(lines, [ j]).value .line = QB.arrayValue(lines, [ j - 1]).value .line;
-      QB.arrayValue(lines, [ j]).value .text = QB.arrayValue(lines, [ j - 1]).value .text;
-   }
-   QB.arrayValue(lines, [ dataTicker]).value .line =  dataTicker;
-   QB.arrayValue(lines, [ dataTicker]).value .text =  fline;
-   dataTicker =  dataTicker + 1;
 }
 async function sub_AddLine(lineIndex/*INTEGER*/,fline/*STRING*/) {
 if (QB.halted()) { return; }
