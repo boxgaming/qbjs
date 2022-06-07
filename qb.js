@@ -36,6 +36,10 @@ var QB = new function() {
     var _resizeWidth = 0;
     var _resizeHeight = 0;
     var _currScreenImage = null;
+    var _dataBulk = [];
+    var _readCursorPosition;
+    var _dataLabelMap = new Map();
+    var _rndSeed = 327680;
 
     // Array handling methods
     // ----------------------------------------------------
@@ -55,22 +59,22 @@ var QB = new function() {
 
     this.resizeArray = function(a, dimensions, obj, preserve) {
        if (!preserve) {
-         var props = Object.getOwnPropertyNames(a);
-         for (var i = 0; i < props.length; i++) {
-            if (props[i] != "_newObj") {
-               delete a[props[i]];
+            var props = Object.getOwnPropertyNames(a);
+            for (var i = 0; i < props.length; i++) {
+                if (props[i] != "_newObj") {
+                    delete a[props[i]];
+                }
             }
-         }
-      }
-      if (dimensions && dimensions.length > 0) {
-        a._dimensions = dimensions;
-    }
-    else {
-        // default to single dimension to support Dim myArray() syntax
-        // for convenient hashtable declaration
-        a._dimensions = [{l:1,u:1}];
-    }
-};
+        }
+        if (dimensions && dimensions.length > 0) {
+            a._dimensions = dimensions;
+        }
+        else {
+            // default to single dimension to support Dim myArray() syntax
+            // for convenient hashtable declaration
+            a._dimensions = [{l:1,u:1}];
+        }
+    };
 
     this.arrayValue = function(a, indexes) {
         var value = a;
@@ -1194,9 +1198,13 @@ var QB = new function() {
         _strokeDrawColor = _color(color);
     };
 
+    this.sub__Label = function(t) {
+        _dataLabelMap.set(t, _dataBulk.length);
+    };
+
     this.sub_Line = function(sstep, sx, sy, estep, ex, ey, color, style, pattern) {
         var screen = _images[_activeImage];
-        var ctx = screen.ctx;
+        //var ctx = screen.ctx;
         _images[_activeImage].dirty = true;
 
         if (color == undefined) {
@@ -1246,26 +1254,98 @@ var QB = new function() {
         screen.lastX = ex;
         screen.lastY = ey;
 
-        ctx.lineWidth = _strokeLineThickness;
-        if (style == "B") {
-            ctx.strokeStyle = color.rgba();
-            ctx.beginPath();
-            ctx.strokeRect(sx, sy, ex-sx, ey-sy)
-        } 
-        else if (style == "BF") {
+        if (pattern != undefined) { 
+            if (typeof pattern == "number") {
+                var value = pattern;
+                //ptn = ("0000000000000000" + (value >>> 0).toString(2)).slice(-16);
+            }
+        }
+
+        if (pattern == undefined) {
+            var ctx = screen.ctx; 
+            ctx.lineWidth = _strokeLineThickness;
+            if (style == "B") {
+                ctx.strokeStyle = color.rgba();
+                ctx.beginPath();
+                ctx.strokeRect(sx, sy, ex-sx, ey-sy);
+            } 
+            else if (style == "BF") {
+                ctx.fillStyle = color.rgba();
+                ctx.beginPath();
+                ctx.fillRect(sx, sy, ex-sx, ey-sy);
+            } 
+            else {
+                ctx.strokeStyle = color.rgba();
+                ctx.beginPath();
+                ctx.moveTo(sx, sy);
+                ctx.lineTo(ex, ey);
+                ctx.stroke();
+            }
+        } else { // Stylized line.
+            var ctx = screen.ctx;
+            ctx.lineWidth = _strokeLineThickness;
             ctx.fillStyle = color.rgba();
             ctx.beginPath();
-            ctx.fillRect(sx, sy, ex-sx, ey-sy)
-        } 
-        else {
-            ctx.strokeStyle = color.rgba();
-            ctx.beginPath();
-            ctx.moveTo(sx, sy);
-            ctx.lineTo(ex, ey);
-            ctx.stroke();
+            var nullDummy;
+            if (style == "B") {
+                nullDummy = lineStyle(sx, sy, ex, sy, value);
+                nullDummy = lineStyle(ex, sy, ex, ey, value);
+                nullDummy = lineStyle(ex, ey, sx, ey, value);
+                nullDummy = lineStyle(sx, ey, sx, sy, value);
+            } else {
+                nullDummy = lineStyle(sx, sy, ex, ey, value);
+            }
         }
+
         _strokeDrawColor = _color(color);
     };
+
+    function bitTread(num, cnt) { // Bitwise treadmill left.
+        var val = (num << cnt) | (num >>> (32 - cnt));
+        return (val | (~~bitTest(num, 15))<<0);
+    }
+
+    function bitTest(num, bit) { // true or false
+        return ((num>>bit) % 2 != 0)
+    }
+
+    function lineStyle(x1, y1, x2, y2, sty) {
+        var screen = _images[_activeImage];
+        var ctx = screen.ctx;
+        var lx = Math.abs(x2 - x1);
+        var ly = Math.abs(y2 - y1);
+        var xtmp = x1;
+        var ytmp = y1;
+        var ptn = sty;
+        var slope;
+        var mi;
+        if (lx > ly) {
+            var y1f = y1;
+            if (lx) { slope = (y1 - y2) / lx; }
+            if (x1 < x2) { mi = 1; } else { mi = -1; }
+            lx += 1;
+            while (lx -= 1) {
+                if (y1f < 0) {ytmp = y1f - 0.5; } else { ytmp = y1f + 0.5; }
+                ptn = bitTread(ptn, 1);
+                if (bitTest(ptn, 0) == true) { ctx.fillRect(xtmp, ytmp, 1, 1); }
+                xtmp += mi;
+                y1f -= slope;
+            }
+        } else {
+            var x1f = x1;
+            if (ly) { slope = (x1 - x2) / ly; }
+            if (y1 < y2) { mi = 1; } else { mi = -1; }
+            ly += 1;
+            while (ly -= 1) {
+                if (x1f < 0) {xtmp = x1f - 0.5; } else { xtmp = x1f + 0.5; }
+                ptn = bitTread(ptn, 1);
+                if (bitTest(ptn, 0) == true) { ctx.fillRect(xtmp, ytmp, 1, 1); }
+                ytmp += mi;
+                x1f += slope;
+            }
+        }
+        return 0;
+    }
 
     this.sub_LineInput = async function(values, preventNewline, addQuestionPrompt, prompt) {
         await QB.sub_Input(values, preventNewline, addQuestionPrompt, prompt);
@@ -1588,6 +1668,29 @@ var QB = new function() {
         _strokeDrawColor = _color(color);
     };
 
+    this.sub_Data = function(dat) {
+        if (_dataBulk.length == 0) {
+            _dataBulk = dat;
+        } else {
+            _dataBulk.push.apply(_dataBulk, dat);
+        }
+    };
+
+    this.sub_Read = function(values) {
+        for (var i=0; i < values.length; i++) {
+            values[i] = _dataBulk[_readCursorPosition];
+            _readCursorPosition += 1;
+        }
+    }
+
+    this.sub_Restore = function(t) {
+        if (t == undefined) {
+            _readCursorPosition = 0;
+        } else {
+            _readCursorPosition = (1.0)*_dataLabelMap.get(t);
+        }
+    };
+
     this.func_Right = function(value, n) {
         if (value == undefined) {
             return "";
@@ -1600,9 +1703,40 @@ var QB = new function() {
         return String(value).trimEnd();
     }
 
+    this.sub_Randomize = function(using, n) {
+        const buffer = new ArrayBuffer(8);
+        const view = new DataView(buffer);
+        var m;
+        if (n == undefined) { // TODO: implement user prompt case
+            view.setFloat64(0, 0, false); // assumes n=0 for now
+            m = view.getUint32(0);
+            m ^= (m >> 16);
+            _rndSeed = ((m & 0xffff)<<8) | (_rndSeed & 0xff);
+        } else {
+            view.setFloat64(0, n, false);
+            m = view.getUint32(0);
+            m ^= (m >> 16);
+            if (using == false) {
+                _rndSeed = ((m & 0xffff)<<8) | (_rndSeed & 0xff);
+            } else if (using == true) {
+                _rndSeed = ((m & 0xffff)<<8) | (327680 & 0xff);
+            }
+        }
+    }
+
     this.func_Rnd = function(n) {
-        // TODO: implement modifier parameter
-        return Math.random();
+        if (n == undefined) {n = 1;}
+        if (n != 0) {
+            if (n < 0) {
+                const buffer = new ArrayBuffer(8);
+                const view = new DataView(buffer);  
+                view.setFloat32(0, n, false);
+                var m = view.getUint32(0);
+                _rndSeed = (m & 0xFFFFFF) + ((m & 0xFF000000) >>> 24);
+            }
+            _rndSeed = (_rndSeed * 16598013 + 12820163) & 0xFFFFFF;
+        }
+        return _rndSeed / 0x1000000;
     }
 
     this.sub_Screen = async function(mode) {
@@ -1647,7 +1781,6 @@ var QB = new function() {
         _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0};
         _images[0].lastX = _images[0].canvas.width/2;
         _images[0].lastY = _images[0].canvas.height/2;
-        //_images[0].lineWidth = _strokeLineThickness; // this line does nothing
         
         // initialize the graphics
         _fgColor = _color(7); 
@@ -1665,6 +1798,8 @@ var QB = new function() {
         _inkeyBuffer = [];
         _keyHitBuffer = [];
         _keyDownMap = {};
+
+        _readCursorPosition = 0;
 
     };
 

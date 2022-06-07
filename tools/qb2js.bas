@@ -61,6 +61,8 @@ Dim Shared modLevel As Integer
 Dim Shared As String currentMethod
 Dim Shared As String currentModule
 Dim Shared As Integer programMethods
+Dim Shared As Integer dataTicker
+dataTicker = 1
 
 ' Only execute the conversion from the native version if we have been passed the
 ' source file to convert on the command line
@@ -589,29 +591,38 @@ Function ConvertSub$ (m As Method, args As String)
     If m.name = "Line" Then
         js = CallMethod(m) + "(" + ConvertLine(args) + ");"
 
-    ElseIf m.name = "PSet" Or m.name = "Circle" Or m.name = "PReset" Or m.name = "Paint" Then
-        js = CallMethod(m) + "(" + ConvertPSet(args) + ");"
+    ElseIf m.name = "Cls" Then
+        js = CallMethod(m) + "(" + ConvertCls(args) + ");"
 
-    ElseIf m.name = "_PrintString" Then
-        js = CallMethod(m) + "(" + ConvertPrintString(args) + ");"
-
-    ElseIf m.name = "Print" Then
-        js = CallMethod(m) + "(" + ConvertPrint(args) + ");"
+    ElseIf m.name = "Data" Then
+        js = CallMethod(m) + "(" + ConvertData(args) + ");"
 
     ElseIf m.name = "Input" Or m.name = "Line Input" Then
         js = ConvertInput(m, args)
 
+    ElseIf m.name = "PSet" Or m.name = "Circle" Or m.name = "PReset" Or m.name = "Paint" Then
+        js = CallMethod(m) + "(" + ConvertPSet(args) + ");"
+
+    ElseIf m.name = "Print" Then
+        js = CallMethod(m) + "(" + ConvertPrint(args) + ");"
+
+    ElseIf m.name = "Randomize" Then
+        js = ConvertRandomize(m, args)
+
+    ElseIf m.name = "Read" Then
+        js = ConvertRead(m, args)
+
     ElseIf m.name = "Swap" Then
         js = ConvertSwap(m, args)
 
-    ElseIf m.name = "Cls" Then
-        js = CallMethod(m) + "(" + ConvertCls(args) + ");"
+    ElseIf m.name = "Window" Then
+        js = CallMethod(m) + "(" + ConvertWindow(args) + ");"
+
+    ElseIf m.name = "_PrintString" Then
+        js = CallMethod(m) + "(" + ConvertPrintString(args) + ");"
 
     ElseIf m.name = "_PutImage" Then
         js = CallMethod(m) + "(" + ConvertPutImage(args) + ");"
-
-    ElseIf m.name = "Window" Then
-        js = CallMethod(m) + "(" + ConvertWindow(args) + ");"
 
     ElseIf m.name = "_FullScreen" Then
         js = CallMethod(m) + "(" + ConvertFullScreen(args) + ");"
@@ -705,6 +716,8 @@ Function ConvertLine$ (args As String)
     theRest = Replace(theRest, " Bf", " " + Chr$(34) + "BF" + Chr$(34))
     theRest = Replace(theRest, " B", " " + Chr$(34) + "B" + Chr$(34))
     theRest = Replace(theRest, " b", " " + Chr$(34) + "B" + Chr$(34))
+    theRest = Replace(theRest, " T", " " + Chr$(34) + "T" + Chr$(34))
+    theRest = Replace(theRest, " t", " " + Chr$(34) + "T" + Chr$(34))
 
     ConvertLine = sstep + ", " + startCord + ", " + estep + ", " + endCord + ", " + theRest
 End Function
@@ -808,6 +821,66 @@ Function ConvertCls$ (args As String)
     If argc >= 2 Then bgcolor = ConvertExpression(parts(2))
 
     ConvertCls$ = method + ", " + bgcolor
+End Function
+
+Function ConvertData$ (args As String)
+    Dim argc As Integer
+    ReDim parts(0) As String
+    argc = ListSplit(args, parts())
+    Dim i As Integer
+    Dim r As String
+    Dim q As String
+    r = "["
+    For i = 1 To argc
+        q = parts(i)
+        If (Left$(LTrim$(q), 1) <> Chr$(34)) Then q = Chr$(34) + q
+        If (Right$(RTrim$(q), 1) <> Chr$(34)) Then q = q + Chr$(34)
+        r = r + q
+        If (i < argc) Then r = r + ","
+    Next
+    ConvertData$ = r + "]"
+End Function
+
+Function ConvertRandomize$ (m As Method, args As String)
+    Dim uusing As String
+    Dim theseed As String
+    uusing = "false"
+    theseed = args
+    If _Trim$(args) = "" Then
+        theseed = "undefined"
+    Else
+        If (UCase$(_Trim$(Left$(args, 5))) = "USING") Then
+            uusing = "true"
+            theseed = _Trim$(Right$(args, Len(args) - 5))
+            theseed = ConvertExpression(theseed)
+        End If
+    End If
+    ConvertRandomize = CallMethod(m) + "(" + uusing + ", " + theseed + ")"
+End Function
+
+Function ConvertRead$ (m As Method, args As String)
+    Dim js As String
+    Dim vname As String
+    Dim pcount As Integer
+    ReDim parts(0) As String
+    ReDim vars(0) As String
+    Dim vcount As Integer
+    Dim p As String
+    pcount = ListSplit(args, parts())
+    Dim i As Integer
+    For i = 1 To pcount
+        p = _Trim$(parts(i))
+        vcount = UBound(vars) + 1
+        ReDim _Preserve As String vars(vcount)
+        vars(vcount) = p
+    Next i
+    vname = GenJSVar
+    js = "var " + vname + " = new Array(" + Str$(UBound(vars)) + ");" + LF
+    js = js + CallMethod(m) + "(" + vname + ");" + LF
+    For i = 1 To UBound(vars)
+        js = js + ConvertExpression(vars(i)) + " = " + vname + "[" + Str$(i - 1) + "];" + LF
+    Next i
+    ConvertRead$ = js
 End Function
 
 Function ConvertCoordParam$ (param As String, hasEndCoord As Integer)
@@ -964,7 +1037,6 @@ Function ConvertInput$ (m As Method, args As String)
                 preventNewline = "true"
             Else
                 addQuestionPrompt = "true"
-
             End If
         ElseIf StartsWith(p, Chr$(34)) Then
             prompt = p
@@ -985,7 +1057,6 @@ Function ConvertInput$ (m As Method, args As String)
     Next i
     ConvertInput = js
 End Function
-
 
 Function ConvertSwap$ (m As Method, args As String)
     Dim js As String
@@ -1641,8 +1712,20 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
 
     ReadLine = rawJS
 
-    If _Trim$(fline) = "" Then Exit Function
+    'If (_Trim$(LCase$(Left$(fline, 4))) = "data") Then
+    '    'AddLineTop dataTicker, fline
+    '    'AddSubLinesTop dataTicker, fline
+    '    AddLine dataTicker, fline
+    '    AddSubLines dataTicker, fline
+    '    Exit Function
+    'End If
+    'If (_Trim$(LCase$(Left$(fline, 6))) = "_label") Then
+    '    'AddLineTop dataTicker, fline
+    '    AddLine dataTicker, fline
+    '    Exit Function
+    'End If
 
+    If _Trim$(fline) = "" Then Exit Function
 
     Dim word As String
     Dim words(0) As String
@@ -1722,6 +1805,29 @@ Sub AddSubLines (lineIndex As Integer, fline As String)
     AddLine lineIndex, fline
 End Sub
 
+'Sub AddSubLinesTop (lineIndex As Integer, fline As String)
+'    Dim quoteDepth As Integer
+'    quoteDepth = 0
+'    Dim i As Integer
+'    For i = 1 To Len(fline)
+'        Dim c As String
+'        c = Mid$(fline, i, 1)
+'        If c = Chr$(34) Then
+'            If quoteDepth = 0 Then
+'                quoteDepth = 1
+'            Else
+'                quoteDepth = 0
+'            End If
+'        End If
+'        If quoteDepth = 0 And c = ":" Then
+'            AddLineTop lineIndex, Left$(fline, i - 1)
+'            fline = Right$(fline, Len(fline) - i)
+'            i = 0
+'        End If
+'    Next i
+
+'    AddLineTop lineIndex, fline
+'End Sub
 
 Sub FindMethods
     Dim i As Integer
@@ -2167,6 +2273,18 @@ Sub AddQBMethod (mtype As String, mname As String, sync As Integer)
     AddMethod m, "QB.", sync
 End Sub
 
+'Sub AddLineTop (lineIndex As Integer, fline As String)
+'    Dim lcount As Integer: lcount = UBound(lines) + 1
+'    ReDim _Preserve As CodeLine lines(lcount)
+'    Dim j As Integer
+'    For j = UBound(lines) To dataTicker Step -1
+'        lines(j).line = lines(j - 1).line
+'        lines(j).text = lines(j - 1).text
+'    Next
+'    lines(dataTicker).line = dataTicker
+'    lines(dataTicker).text = fline
+'    dataTicker = dataTicker + 1
+'End Sub
 
 Sub AddLine (lineIndex As Integer, fline As String)
     __AddLine lineIndex, fline
@@ -2872,6 +2990,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Csrlin", False
     AddQBMethod "FUNCTION", "Cvi", False
     AddQBMethod "FUNCTION", "Cvl", False
+    AddQBMethod "SUB", "Data", False
     AddQBMethod "SUB", "Draw", False
     AddQBMethod "FUNCTION", "Exp", False
     AddQBMethod "FUNCTION", "Fix", False
@@ -2898,8 +3017,11 @@ Sub InitQBMethods
     AddQBMethod "SUB", "PReset", False
     AddQBMethod "SUB", "Print", True
     AddQBMethod "SUB", "PSet", False
+    AddQBMethod "SUB", "Randomize", False
+    AddQBMethod "SUB", "Restore", False
     AddQBMethod "FUNCTION", "Right$", False
     AddQBMethod "FUNCTION", "RTrim$", False
+    AddQBMethod "SUB", "Read", False
     AddQBMethod "FUNCTION", "Rnd", False
     AddQBMethod "SUB", "Screen", False
     AddQBMethod "FUNCTION", "Sgn", False
@@ -2919,10 +3041,10 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Varptr", False
     AddQBMethod "SUB", "Window", False
 
-
     ' QBJS-only language features
     ' --------------------------------------------------------------------------------
     AddQBMethod "SUB", "IncludeJS", True
+    AddQBMethod "SUB", "_Label", False
 
     ' Undocumented at present
     AddSystemType "FETCHRESPONSE", "ok:INTEGER,status:INTEGER,statusText:STRING,text:STRING"
