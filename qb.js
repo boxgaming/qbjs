@@ -9,6 +9,7 @@ var QB = new function() {
     var _strokeLineThickness = 2;
     var _windowDef = [];
     var _windowAspect = [];
+    var _screenDiag;
     var _strokeDrawLength = null;
     var _strokeDrawAngle = null;
     var _strokeDrawColor = null;
@@ -1183,7 +1184,7 @@ var QB = new function() {
         screen.lastY = y;
 
         ctx.lineWidth = _strokeLineThickness;
-        ctx.lineWidth += Math.tanh(radius); // Adds some radius to compensate for antialiasing.
+        ctx.lineWidth += Math.tanh(16*radius/_screenDiag); // Adds some radius to compensate for antialiasing. The 16 is arbitrary.
         ctx.strokeStyle = color.rgba();
         ctx.beginPath();
         if (aspect == undefined) {
@@ -1782,6 +1783,8 @@ var QB = new function() {
         _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0};
         _images[0].lastX = _images[0].canvas.width/2;
         _images[0].lastY = _images[0].canvas.height/2;
+
+        _screenDiag = Math.sqrt(_images[0].canvas.width*_images[0].canvas.width + _images[0].canvas.height*_images[0].canvas.height);
         
         // initialize the graphics
         _fgColor = _color(7); 
