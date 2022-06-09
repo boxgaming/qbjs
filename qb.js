@@ -6,41 +6,41 @@ var QB = new function() {
     this.SQUAREPIXELS = Symbol("SQUAREPIXELS");
     this.OFF = Symbol("OFF");
 
-    var _strokeLineThickness = 2;
-    var _windowDef = [];
-    var _windowAspect = [];
-    var _screenDiag;
-    var _strokeDrawLength = null;
-    var _strokeDrawAngle = null;
-    var _strokeDrawColor = null;
-    var _fgColor = null; 
+    var _activeImage = 0;
     var _bgColor = null; 
     var _colormap = [];
-    var _locX = 0;
-    var _locY = 0;
-    var _lastKey = null;
+    var _currScreenImage = null;
+    var _dataBulk = [];
+    var _dataLabelMap;
+    var _fgColor = null;
+    var _haltedFlag = false;
+    var _images = {};
     var _inkeyBuffer = [];
-    var _keyHitBuffer = [];
-    var _keyDownMap = {};
     var _inkeymap = {};
     var _inkeynp = {};
-    var _keyhitmap = {};
     var _inputMode = false;
-    var _haltedFlag = false;
-    var _runningFlag = false;
-    var _images = {};
-    var _activeImage = 0;
-    var _sourceImage = 0;
+    var _keyDownMap = {};
+    var _keyHitBuffer = [];
+    var _keyhitmap = {};
+    var _lastLimitTime;
+    var _lastKey = null;
+    var _locX = 0;
+    var _locY = 0;
     var _nextImageId = 1000;
-    var _lastLimitTime = new Date();
+    var _readCursorPosition;
     var _resize = false;
     var _resizeWidth = 0;
     var _resizeHeight = 0;
-    var _currScreenImage = null;
-    var _dataBulk = [];
-    var _readCursorPosition;
-    var _dataLabelMap = new Map();
-    var _rndSeed = 327680;
+    var _rndSeed;
+    var _runningFlag = false;
+    var _screenDiagInv;
+    var _sourceImage = 0;
+    var _strokeDrawLength = null;
+    var _strokeDrawAngle = null;
+    var _strokeDrawColor = null;
+    var _strokeLineThickness = 2;
+    var _windowAspect = [];
+    var _windowDef = [];
 
     // Array handling methods
     // ----------------------------------------------------
@@ -117,12 +117,16 @@ var QB = new function() {
     };
 
     this.start = function() {
-        _runningFlag = true;
-        _haltedFlag = false;
-        _nextImageId = 1000;
         _activeImage = 0;
-        _sourceImage = 0;
         _currScreenImage = null;
+        _dataLabelMap = new Map();
+        _haltedFlag = false;
+        _lastLimitTime = new Date();
+        _nextImageId = 1000;
+        _readCursorPosition = 0;
+        _rndSeed = 327680;
+        _runningFlag = true;
+        _sourceImage = 0;
         GX._enableTouchMouse(true);
         GX.registerGameEvents(function(e){});
         QB.sub_Screen(0);
@@ -142,12 +146,12 @@ var QB = new function() {
     // --------------------------------------------
     this.func__Alpha = function(rgb, imageHandle) {
         // TODO: implement corresponding logic when an image handle is supplied (maybe)
-        return _color(rgb).a;// * 255;
+        return _color(rgb).a;
     };
 
     this.func__Alpha32 = function(rgb) {
         // TODO: implement corresponding logic when an image handle is supplied (maybe)
-        return _color(rgb).a;// * 255;
+        return _color(rgb).a;
     };
 
     this.func__Atan2 = function(y, x) {
@@ -935,14 +939,12 @@ var QB = new function() {
                                     vy = ux * Math.sin(ang) + uy * Math.cos(ang);
                                     vx *= (_strokeDrawLength/4);
                                     vy *= (_strokeDrawLength/4);
-                                    wx = vx;
-                                    wy = vy;
                                 } else {
                                     vx = ux;
                                     vy = uy;
-                                    wx = vx;
-                                    wy = vy;
                                 }
+                                wx = vx;
+                                wy = vy;
                             }
                         }
                         cursXt = ux0 + wx;
@@ -1184,7 +1186,7 @@ var QB = new function() {
         screen.lastY = y;
 
         ctx.lineWidth = _strokeLineThickness;
-        ctx.lineWidth += Math.tanh(16*radius/_screenDiag); // Adds some radius to compensate for antialiasing. The 16 is arbitrary.
+        ctx.lineWidth += Math.tanh(8*radius*_screenDiagInv); // Adds some radius to compensate for antialiasing. The prefactor is arbitrary. //
         ctx.strokeStyle = color.rgba();
         ctx.beginPath();
         if (aspect == undefined) {
@@ -1263,9 +1265,9 @@ var QB = new function() {
             }
         }
 
+        var ctx = screen.ctx; 
+        ctx.lineWidth = _strokeLineThickness;
         if (pattern == undefined) {
-            var ctx = screen.ctx; 
-            ctx.lineWidth = _strokeLineThickness;
             if (style == "B") {
                 ctx.strokeStyle = color.rgba();
                 ctx.beginPath();
@@ -1284,8 +1286,6 @@ var QB = new function() {
                 ctx.stroke();
             }
         } else { // Stylized line.
-            var ctx = screen.ctx;
-            ctx.lineWidth = _strokeLineThickness;
             ctx.fillStyle = color.rgba();
             ctx.beginPath();
             if (style == "B") {
@@ -1301,12 +1301,12 @@ var QB = new function() {
         _strokeDrawColor = _color(color);
     };
 
-    function bitTread(num, cnt) { // Bitwise treadmill left.
+    function bitTreadLeft(num, cnt) { // Bitwise treadmill left.
         var val = (num << cnt) | (num >>> (32 - cnt));
         return (val | (~~bitTest(num, 15))<<0);
     }
 
-    function bitTest(num, bit) { // true or false
+    function bitTest(num, bit) { // Returns true or false.
         return ((num>>bit) % 2 != 0)
     }
 
@@ -1327,7 +1327,7 @@ var QB = new function() {
             lx += 1;
             while (lx -= 1) {
                 if (y1f < 0) {ytmp = y1f - 0.5; } else { ytmp = y1f + 0.5; }
-                ptn = bitTread(ptn, 1);
+                ptn = bitTreadLeft(ptn, 1);
                 if (bitTest(ptn, 0) == true) { ctx.fillRect(xtmp, ytmp, 1, 1); }
                 xtmp += mi;
                 y1f -= slope;
@@ -1339,7 +1339,7 @@ var QB = new function() {
             ly += 1;
             while (ly -= 1) {
                 if (x1f < 0) {xtmp = x1f - 0.5; } else { xtmp = x1f + 0.5; }
-                ptn = bitTread(ptn, 1);
+                ptn = bitTreadLeft(ptn, 1);
                 if (bitTest(ptn, 0) == true) { ctx.fillRect(xtmp, ytmp, 1, 1); }
                 ytmp += mi;
                 x1f += slope;
@@ -1784,7 +1784,7 @@ var QB = new function() {
         _images[0].lastX = _images[0].canvas.width/2;
         _images[0].lastY = _images[0].canvas.height/2;
 
-        _screenDiag = Math.sqrt(_images[0].canvas.width*_images[0].canvas.width + _images[0].canvas.height*_images[0].canvas.height);
+        _screenDiagInv = 1/Math.sqrt(_images[0].canvas.width*_images[0].canvas.width + _images[0].canvas.height*_images[0].canvas.height);
         
         // initialize the graphics
         _fgColor = _color(7); 
@@ -1802,8 +1802,6 @@ var QB = new function() {
         _inkeyBuffer = [];
         _keyHitBuffer = [];
         _keyDownMap = {};
-
-        _readCursorPosition = 0;
 
     };
 
@@ -1943,17 +1941,17 @@ var QB = new function() {
 
     function windowContendY(v, h) {
         if (_windowAspect[2] < 0) {
-            return h * (1 - (v - _windowDef[1]) / (_windowDef[3] - _windowDef[1]));
+            return h - h * (v - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
         } else {
-            return h * (v - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
+            return 0 + h * (v - _windowDef[1]) / (_windowDef[3] - _windowDef[1]);
         }
     }
 
     function windowUnContendY(v, h) {
         if (_windowAspect[2] < 0) {
-            return _windowDef[1] - (v - h) * (_windowDef[3] - _windowDef[1]) / h;
+            return _windowDef[3] - (v/h) * (_windowDef[3] - _windowDef[1]);
         } else {
-            return _windowDef[1] + v * (_windowDef[3] - _windowDef[1]) / h;
+            return _windowDef[1] + (v/h) * (_windowDef[3] - _windowDef[1]);
         }
     }
 
