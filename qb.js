@@ -1287,14 +1287,13 @@ var QB = new function() {
             ctx.lineWidth = _strokeLineThickness;
             ctx.fillStyle = color.rgba();
             ctx.beginPath();
-            var nullDummy;
             if (style == "B") {
-                nullDummy = lineStyle(sx, sy, ex, sy, value);
-                nullDummy = lineStyle(ex, sy, ex, ey, value);
-                nullDummy = lineStyle(ex, ey, sx, ey, value);
-                nullDummy = lineStyle(sx, ey, sx, sy, value);
+                lineStyle(sx, sy, ex, sy, value);
+                lineStyle(ex, sy, ex, ey, value);
+                lineStyle(ex, ey, sx, ey, value);
+                lineStyle(sx, ey, sx, sy, value);
             } else {
-                nullDummy = lineStyle(sx, sy, ex, ey, value);
+                lineStyle(sx, sy, ex, ey, value);
             }
         }
 
