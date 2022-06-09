@@ -141,12 +141,12 @@ var QB = new function() {
     // --------------------------------------------
     this.func__Alpha = function(rgb, imageHandle) {
         // TODO: implement corresponding logic when an image handle is supplied (maybe)
-        return _color(rgb).a * 255;
+        return _color(rgb).a;// * 255;
     };
 
     this.func__Alpha32 = function(rgb) {
         // TODO: implement corresponding logic when an image handle is supplied (maybe)
-        return _color(rgb).a * 255;
+        return _color(rgb).a;// * 255;
     };
 
     this.func__Atan2 = function(y, x) {
@@ -1183,6 +1183,7 @@ var QB = new function() {
         screen.lastY = y;
 
         ctx.lineWidth = _strokeLineThickness;
+        ctx.lineWidth += Math.tanh(radius); // Adds some radius to compensate for antialiasing.
         ctx.strokeStyle = color.rgba();
         ctx.beginPath();
         if (aspect == undefined) {
@@ -1395,6 +1396,7 @@ var QB = new function() {
     };
 
     this.sub_Paint = function(sstep, startX, startY, fillColor, borderColor) {
+        // See: http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
         _images[_activeImage].dirty = true;
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
@@ -1468,9 +1470,9 @@ var QB = new function() {
 
     function checkPixel(dat, p, c1, c2) {
         var r = dat[p];
-        var g = dat[p+1];	
+        var g = dat[p+1];
         var b = dat[p+2];
-        //var a = dat[p+3];
+        //var a = dat[p+3]; // 0 < a < 255
         var thresh = 2;
         if ((Math.abs(r - c1.r) < thresh) && (Math.abs(g - c1.g) < thresh) && (Math.abs(b - c1.b) < thresh)) { return false; }
         if ((Math.abs(r - c2.r) < thresh) && (Math.abs(g - c2.g) < thresh) && (Math.abs(b - c2.b) < thresh)) { return false; }
@@ -1493,7 +1495,7 @@ var QB = new function() {
                 }
             } else if (x == 3) {
                 if (_windowAspect[0] != false) {
-                    ret = windowUnContendY(screen.lastY, screen.canvas.height)
+                    ret = windowUnContendY(screen.lastY, screen.canvas.height);
                 } else {
                     ret = screen.lastY;
                 }
