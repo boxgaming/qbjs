@@ -46,6 +46,11 @@ Type Variable
     typeId As Integer
 End Type
 
+Type Label
+    text As String
+    index As Integer
+End Type
+
 ReDim Shared As CodeLine lines(0)
 ReDim Shared As CodeLine jsLines(0)
 ReDim Shared As Method methods(0)
@@ -57,6 +62,8 @@ ReDim Shared As CodeLine warnings(0)
 ReDim Shared As String exportLines(0)
 ReDim Shared As Variable exportConsts(0)
 ReDim Shared As Method exportMethods(0)
+ReDim Shared As String dataArray(0)
+ReDim Shared As Label dataLabels(0)
 Dim Shared modLevel As Integer
 Dim Shared As String currentMethod
 Dim Shared As String currentModule
@@ -124,6 +131,8 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
     End If
     AddJSLine 0, ""
 
+    InitData
+
     ConvertLines 1, MainEnd, ""
     If Not selfConvert And Not isGX And moduleName = "" Then AddJSLine 0, "QB.end();"
     'If Not selfConvert And moduleName = "" Then End
@@ -170,12 +179,27 @@ Sub ResetDataStructures
     ReDim As Variable globalVars(0)
     ReDim As Variable localVars(0)
     ReDim As CodeLine warnings(0)
+    ReDim As String dataArray(0)
+    ReDim As Label dataLabels(0)
     If modLevel = 0 Then
         ReDim As Method exportMethods(0)
         ReDim As Variable exportConsts(0)
     End If
     currentMethod = ""
     programMethods = 0
+End Sub
+
+Sub InitData
+    If UBound(dataArray) < 1 Then Exit Sub
+
+    Dim ds As String
+    ds = "[" + Join(dataArray(), 1, -1, ",") + "]"
+    AddJSLine 0, "QB.setData(" + ds + ");"
+
+    Dim i As Integer
+    For i = 1 To UBound(dataLabels)
+        AddJSLine 0, "QB.setDataLabel('" + dataLabels(i).text + "', " + Str$(dataLabels(i).index) + ");"
+    Next i
 End Sub
 
 Sub PrintJS
@@ -594,9 +618,6 @@ Function ConvertSub$ (m As Method, args As String)
     ElseIf m.name = "Cls" Then
         js = CallMethod(m) + "(" + ConvertCls(args) + ");"
 
-    ElseIf m.name = "Data" Then
-        js = CallMethod(m) + "(" + ConvertData(args) + ");"
-
     ElseIf m.name = "Input" Or m.name = "Line Input" Then
         js = ConvertInput(m, args)
 
@@ -611,6 +632,9 @@ Function ConvertSub$ (m As Method, args As String)
 
     ElseIf m.name = "Read" Then
         js = ConvertRead(m, args)
+
+    ElseIf m.name = "Restore" Then
+        js = CallMethod(m) + "('" + UCase$(args) + "');"
 
     ElseIf m.name = "Swap" Then
         js = ConvertSwap(m, args)
@@ -821,24 +845,6 @@ Function ConvertCls$ (args As String)
     If argc >= 2 Then bgcolor = ConvertExpression(parts(2))
 
     ConvertCls$ = method + ", " + bgcolor
-End Function
-
-Function ConvertData$ (args As String)
-    Dim argc As Integer
-    ReDim parts(0) As String
-    argc = ListSplit(args, parts())
-    Dim i As Integer
-    Dim r As String
-    Dim q As String
-    r = "["
-    For i = 1 To argc
-        q = parts(i)
-        If (Left$(LTrim$(q), 1) <> Chr$(34)) Then q = Chr$(34) + q
-        If (Right$(RTrim$(q), 1) <> Chr$(34)) Then q = q + Chr$(34)
-        r = r + q
-        If (i < argc) Then r = r + ","
-    Next
-    ConvertData$ = r + "]"
 End Function
 
 Function ConvertRandomize$ (m As Method, args As String)
@@ -1752,7 +1758,33 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
         Exit Function
     End If
 
-    ' Step 3: Determine whether this line contains a single line if/then or if/then/else statement
+    ' Step 3: Determine whether this line contains a data statement or line label
+    Dim index As Integer
+    If wcount = 1 Then
+        If EndsWith(words(1), ":") Then
+            index = UBound(dataLabels) + 1
+            ReDim _Preserve As Label dataLabels(index)
+            dataLabels(index).text = Left$(UCase$(words(1)), Len(words(1)) - 1)
+            dataLabels(index).index = UBound(dataArray)
+            Exit Function
+        End If
+    End If
+    If UCase$(words(1)) = "DATA" Then
+        Dim dstr As String
+        dstr = Join(words(), 2, -1, " ")
+        Dim dcount As Integer
+        ReDim As String de(0)
+        dcount = ListSplit(dstr, de())
+
+        For i = 1 To dcount
+            index = UBound(dataArray) + 1
+            ReDim _Preserve As String dataArray(index)
+            dataArray(index) = de(i)
+        Next i
+        Exit Function
+    End If
+
+    ' Step 4: Determine whether this line contains a single line if/then or if/then/else statement
     Dim As Integer ifIdx, thenIdx, elseIdx
     For i = 1 To wcount
         word = UCase$(words(i))
@@ -1764,6 +1796,7 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
             elseIdx = i
         End If
     Next i
+
 
     If thenIdx > 0 And thenIdx < wcount Then
         AddLine lineIndex, Join(words(), 1, thenIdx, " ")
@@ -2990,7 +3023,6 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Csrlin", False
     AddQBMethod "FUNCTION", "Cvi", False
     AddQBMethod "FUNCTION", "Cvl", False
-    AddQBMethod "SUB", "Data", False
     AddQBMethod "SUB", "Draw", False
     AddQBMethod "FUNCTION", "Exp", False
     AddQBMethod "FUNCTION", "Fix", False
@@ -3044,7 +3076,6 @@ Sub InitQBMethods
     ' QBJS-only language features
     ' --------------------------------------------------------------------------------
     AddQBMethod "SUB", "IncludeJS", True
-    AddQBMethod "SUB", "_Label", False
 
     ' Undocumented at present
     AddSystemType "FETCHRESPONSE", "ok:INTEGER,status:INTEGER,statusText:STRING,text:STRING"

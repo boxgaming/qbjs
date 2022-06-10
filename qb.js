@@ -38,7 +38,7 @@ var QB = new function() {
     var _currScreenImage = null;
     var _dataBulk = [];
     var _readCursorPosition;
-    var _dataLabelMap = new Map();
+    var _dataLabelMap = {};
     var _rndSeed = 327680;
 
     // Array handling methods
@@ -125,6 +125,14 @@ var QB = new function() {
         GX._enableTouchMouse(true);
         GX.registerGameEvents(function(e){});
         QB.sub_Screen(0);
+    };
+
+    this.setData = function(data) {
+        _dataBulk = data;
+    };
+
+    this.setDataLabel = function(label, dataIndex) {
+        _dataLabelMap[label] = dataIndex;
     }
 
     this.running = function() {
@@ -1198,10 +1206,6 @@ var QB = new function() {
         _strokeDrawColor = _color(color);
     };
 
-    this.sub__Label = function(t) {
-        _dataLabelMap.set(t, _dataBulk.length);
-    };
-
     this.sub_Line = function(sstep, sx, sy, estep, ex, ey, color, style, pattern) {
         var screen = _images[_activeImage];
         //var ctx = screen.ctx;
@@ -1257,11 +1261,10 @@ var QB = new function() {
         if (pattern != undefined) { 
             if (typeof pattern == "number") {
                 var value = pattern;
-                //ptn = ("0000000000000000" + (value >>> 0).toString(2)).slice(-16);
             }
         }
 
-        if (pattern == undefined) {
+        if (pattern == undefined || style == "BF") {
             var ctx = screen.ctx; 
             ctx.lineWidth = _strokeLineThickness;
             if (style == "B") {
@@ -1668,14 +1671,6 @@ var QB = new function() {
         _strokeDrawColor = _color(color);
     };
 
-    this.sub_Data = function(dat) {
-        if (_dataBulk.length == 0) {
-            _dataBulk = dat;
-        } else {
-            _dataBulk.push.apply(_dataBulk, dat);
-        }
-    };
-
     this.sub_Read = function(values) {
         for (var i=0; i < values.length; i++) {
             values[i] = _dataBulk[_readCursorPosition];
@@ -1684,10 +1679,10 @@ var QB = new function() {
     }
 
     this.sub_Restore = function(t) {
-        if (t == undefined) {
+        if (t == undefined || t.trim() == "") {
             _readCursorPosition = 0;
         } else {
-            _readCursorPosition = (1.0)*_dataLabelMap.get(t);
+            _readCursorPosition = _dataLabelMap[t];
         }
     };
 
