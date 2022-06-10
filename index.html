@@ -248,7 +248,6 @@
     <script language="javascript" src="qb.js"></script>
     <script language="javascript" src="qb2js.js"></script>
     <script language="javascript">
-
         var QBCompiler = null; 
         // if code has been passed on the query string load it into the editor
         var qbcode = "";
@@ -257,59 +256,67 @@
         var appMode = "ide";
         var consoleVisible = false;
         var currTab = "console";
+        var editor;
 
-        if (window.innerWidth < 1200) {
-            sizeMode = "max";
-        }
- 
-        if (url && url.indexOf("?")) {
-            var queryString = url.substring(url.indexOf("?")+1);
-            var nvpairs = queryString.split("&");
-            for (var i = 0; i < nvpairs.length; i++) {
-                var nv = nvpairs[i].split("=");
-                if (nv[0] == "qbcode") {
-                    var zin = new Shorty();
-                    qbcode = zin.inflate(atob(nv[1]));
-                    break;
-                }
-                else if (nv[0] == "code") {
-                    qbcode = LZUTF8.decompress(nv[1], { inputEncoding: "Base64" });
-                }
-                else if (nv[0] == "mode") {
-                    appMode = nv[1];
+        async function init() {
+            if (window.innerWidth < 1200) {
+                sizeMode = "max";
+            }
+    
+            if (url && url.indexOf("?")) {
+                var queryString = url.substring(url.indexOf("?")+1);
+                var nvpairs = queryString.split("&");
+                for (var i = 0; i < nvpairs.length; i++) {
+                    var nv = nvpairs[i].split("=");
+                    if (nv[0] == "qbcode") {
+                        var zin = new Shorty();
+                        qbcode = zin.inflate(atob(nv[1]));
+                        break;
+                    }
+                    else if (nv[0] == "code") {
+                        qbcode = LZUTF8.decompress(nv[1], { inputEncoding: "Base64" });
+                    }
+                    else if (nv[0] == "mode") {
+                        appMode = nv[1];
+                    }
+                    else if (nv[0] == "src") {
+                        var res = await fetch(nv[1]);
+                        qbcode = await res.text();
+                    }
                 }
             }
-        }
-        if (appMode == "play") {
-            document.getElementById("gx-load-screen").style.display = "block";
-        }
+            if (appMode == "play") {
+                document.getElementById("gx-load-screen").style.display = "block";
+            }
 
-        // initialize the code editor
-        var editor = CodeMirror(document.querySelector("#code"), {
-            lineNumbers: true,
-            tabSize: 4,
-            indentUnit: 4,
-            value: qbcode,
-            module: "qbjs",
-            theme: "qbjs",
-            height: "auto",
-            styleActiveLine: true,
-            smartIndent: false,
-            extraKeys: {
-                "Tab": function(cm) {
-                    cm.replaceSelection("    ", "end");
+            // initialize the code editor
+            editor = CodeMirror(document.querySelector("#code"), {
+                lineNumbers: true,
+                tabSize: 4,
+                indentUnit: 4,
+                value: qbcode,
+                module: "qbjs",
+                theme: "qbjs",
+                height: "auto",
+                styleActiveLine: true,
+                smartIndent: false,
+                extraKeys: {
+                    "Tab": function(cm) {
+                        cm.replaceSelection("    ", "end");
+                    }
                 }
-            }
-        });
-        editor.setSize(600, 600);
-        editor.on("beforeChange", (cm, change) => {
-            if (change.origin === "paste") {
-                const newText = change.text.map(line => line.replace(/\t/g, "    "));
-                change.update(null, null, newText);
-            }
-        });
+            });
+            editor.setSize(600, 600);
+            editor.on("beforeChange", (cm, change) => {
+                if (change.origin === "paste") {
+                    const newText = change.text.map(line => line.replace(/\t/g, "    "));
+                    change.update(null, null, newText);
+                }
+            });
 
-        var warnCount = 0;
+            var warnCount = 0;
+            window.onresize();
+        }    
 
         async function runProgram() {
             document.getElementById("gx-load-screen").style.display = "none";
@@ -503,6 +510,8 @@
         }
 
         window.onresize = function() {
+            if (!editor) { return; }
+
             var f = document.getElementById("gx-container");
             var jsDiv = document.getElementById("output-container");
 
@@ -599,6 +608,7 @@
         if (appMode == "auto") {
             runProgram();
         }
-
+    
+    init();
     </script>
 </html>
