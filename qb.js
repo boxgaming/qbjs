@@ -152,6 +152,15 @@ var QB = new function() {
 
     // Extended QB64 Keywords
     // --------------------------------------------
+
+    this.func__Acos = function(x) {
+        return Math.acos(x);
+    };
+
+    this.func__Acosh = function(x) {
+        return Math.acosh(x);
+    };
+
     this.func__Alpha = function(rgb, imageHandle) {
         // TODO: implement corresponding logic when an image handle is supplied (maybe)
         return _color(rgb).a;
@@ -160,6 +169,18 @@ var QB = new function() {
     this.func__Alpha32 = function(rgb) {
         // TODO: implement corresponding logic when an image handle is supplied (maybe)
         return _color(rgb).a;
+    };
+
+    this.func__Asin = function(x) {
+        return Math.asin(x);
+    };
+
+    this.func__Asinh = function(x) {
+        return Math.asinh(x);
+    };
+
+    this.func__Atanh = function(x) {
+        return Math.atanh(x);
     };
 
     this.func__Atan2 = function(y, x) {
@@ -191,7 +212,15 @@ var QB = new function() {
     };
 
     this.func__Cosh = function(x) {
-        return (Math.exp(x)+Math.exp(-x))/2;
+        return Math.cosh(x);
+    };
+
+    this.func__Coth = function(x) {
+        return 1/Math.tanh(x);
+    };
+
+    this.func__Csch = function(x) {
+        return 1/Math.sinh(x);
     };
 
     this.func__D2R = function(x) {
@@ -556,8 +585,12 @@ var QB = new function() {
         return true;
     };
 
+    this.func__Sech = function(x) {
+        return 1/Math.cosh(x);
+    };
+
     this.func__Sinh = function(x) {
-        return (Math.exp(x)-Math.exp(-x))/2;
+        return Math.sinh(x);
     };
 
     this.func__Source = function() {
@@ -595,6 +628,9 @@ var QB = new function() {
         GX.soundVolumne(sid, v);
     };
 
+    this.func__Tanh = function(x) {
+        return Math.tanh(x);
+    };
 
     this.sub__Title = function(title) {
         document.title = title;
@@ -616,7 +652,7 @@ var QB = new function() {
         if (imageId == undefined) { imageId = _activeImage; }
         return _images[imageId].canvas.width;
     }
-
+    
 
     // QB45 Keywords
     // --------------------------------------------

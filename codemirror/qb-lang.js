@@ -35,11 +35,11 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
     // TODO: adjust for QB
     var atomWords = ['true', 'false', 'nothing', 'empty', 'null'];
 
-    var builtinFuncsWords = ['_alpha', '_alpha32', '_atan2', '_autodisplay', '_blue', '_blue32', '_continue', '_copyimage', '_cosh', '_d2r', '_delay', '_dest',
+    var builtinFuncsWords = ['_acos', '_acosh', '_alpha', '_alpha32', '_asin', '_asinh', '_atan2', '_atanh', '_autodisplay', '_blue', '_blue32', '_continue', '_copyimage', '_cosh', '_coth', '_csch', '_d2r', '_delay', '_dest',
                              '_display', '_fontwidth', '_freeimage', '_fullscreen', '_green', '_green32', '_height', '_instrrev', '_limit', '_keyclear', '_keydown',
                              '_keyhit', '_loadimage', '_mousebutton', '_mouseinput', '_mousex', '_mousey', '_newimage', '_pi', '_printstring', '_printwidth',
                              '_putimage', '_r2d', '_red', '_red32', '_resize', '_resizewidth', '_resizeheight', '_rgb', '_rgba', '_rgb32', '_rgba32', '_round',
-                             '_screenexists', '_sinh', '_source', '_sndclose', '_sndopen', '_sndplay', '_sndloop', '_sndpause', '_sndstop', '_sndvol', 
+                             '_screenexists', '_sech', '_sinh', '_source', '_sndclose', '_sndopen', '_sndplay', '_sndloop', '_sndpause', '_sndstop', '_sndvol', '_tanh',
                              '_title', '_trim', '_width', 'abs', 'asc', 'atn', 'beep', 'chr', 'circle', 'cls', 'color', 'command', 'cos', 'cvi', 'cvl', 'data', 'draw', 'exp',
                              'fix', 'hex', 'input', 'inkey', 'instr', 'int', 'lbound', 'left', 'lcase', 'len', 'line', 'locate', 'log', 'ltrim', 'mid', 'mki', 'mkl',
                              'oct', 'paint', 'point', 'preset', 'print', 'pset', 'right', 'rtrim', 'randomize', 'read', 'restore', 'rnd', 'screen', 'shared', 'sgn', 'sin', 'sleep', 'space', 'sqr',
