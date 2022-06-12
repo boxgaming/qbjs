@@ -316,6 +316,10 @@
 
             var warnCount = 0;
             window.onresize();
+
+            if (appMode == "auto") {
+                runProgram();
+            }
         }    
 
         async function runProgram() {
@@ -604,11 +608,6 @@
             setTimeout(checkButtonState, 100);
         }
         checkButtonState();
-
-        if (appMode == "auto") {
-            runProgram();
-        }
-    
-    init();
+        init();
     </script>
 </html>
