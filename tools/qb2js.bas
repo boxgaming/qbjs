@@ -2947,6 +2947,11 @@ Sub InitQBMethods
     ' ----------------------------------------------------------
     AddQBMethod "FUNCTION", "_Alpha", False
     AddQBMethod "FUNCTION", "_Alpha32", False
+    AddQBMethod "FUNCTION", "_Acos", False
+    AddQBMethod "FUNCTION", "_Acosh", False
+    AddQBMethod "FUNCTION", "_Atanh", False
+    AddQBMethod "FUNCTION", "_Asin", False
+    AddQBMethod "FUNCTION", "_Asinh", False
     AddQBMethod "FUNCTION", "_Atan2", False
     AddQBMethod "FUNCTION", "_AutoDisplay", False
     AddQBMethod "SUB", "_AutoDisplay", False
@@ -2954,6 +2959,8 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Blue32", False
     AddQBMethod "FUNCTION", "_CopyImage", False
     AddQBMethod "FUNCTION", "_Cosh", False
+    AddQBMethod "FUNCTION", "_Coth", False
+    AddQBMethod "FUNCTION", "_Csch", False
     AddQBMethod "FUNCTION", "_D2R", False
     AddQBMethod "SUB", "_Delay", True
     AddQBMethod "FUNCTION", "_Dest", False
@@ -2994,6 +3001,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_RGBA32", False
     AddQBMethod "FUNCTION", "_Round", False
     AddQBMethod "FUNCTION", "_ScreenExists", False
+    AddQBMethod "FUNCTION", "_Sech", False
     AddQBMethod "FUNCTION", "_Sinh", False
     AddQBMethod "FUNCTION", "_Source", False
     AddQBMethod "SUB", "_Source", False
@@ -3004,6 +3012,7 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_SndPause", False
     AddQBMethod "SUB", "_SndStop", False
     AddQBMethod "SUB", "_SndVol", False
+    AddQBMethod "FUNCTION", "_Tanh", False
     AddQBMethod "SUB", "_Title", False
     AddQBMethod "FUNCTION", "_Trim", False
     AddQBMethod "FUNCTION", "_Width", False

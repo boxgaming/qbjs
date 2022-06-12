@@ -2759,6 +2759,11 @@ async function sub_InitQBMethods() {
 if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "_Alpha",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Alpha32",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Acos",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Acosh",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Atanh",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Asin",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Asinh",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Atan2",   False);
    await sub_AddQBMethod( "FUNCTION",  "_AutoDisplay",   False);
    await sub_AddQBMethod( "SUB",  "_AutoDisplay",   False);
@@ -2766,6 +2771,8 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "_Blue32",   False);
    await sub_AddQBMethod( "FUNCTION",  "_CopyImage",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Cosh",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Coth",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Csch",   False);
    await sub_AddQBMethod( "FUNCTION",  "_D2R",   False);
    await sub_AddQBMethod( "SUB",  "_Delay",   True);
    await sub_AddQBMethod( "FUNCTION",  "_Dest",   False);
@@ -2806,6 +2813,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "_RGBA32",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Round",   False);
    await sub_AddQBMethod( "FUNCTION",  "_ScreenExists",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Sech",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Sinh",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Source",   False);
    await sub_AddQBMethod( "SUB",  "_Source",   False);
@@ -2816,6 +2824,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "SUB",  "_SndPause",   False);
    await sub_AddQBMethod( "SUB",  "_SndStop",   False);
    await sub_AddQBMethod( "SUB",  "_SndVol",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Tanh",   False);
    await sub_AddQBMethod( "SUB",  "_Title",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Trim",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Width",   False);
