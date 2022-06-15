@@ -3020,6 +3020,8 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_SndPause", False
     AddQBMethod "SUB", "_SndStop", False
     AddQBMethod "SUB", "_SndVol", False
+    AddQBMethod "FUNCTION", "_Strcmp", False
+     AddQBMethod "FUNCTION", "_Stricmp", False
     AddQBMethod "FUNCTION", "_Tanh", False
     AddQBMethod "SUB", "_Title", False
     AddQBMethod "FUNCTION", "_Trim", False

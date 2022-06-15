@@ -2832,6 +2832,8 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "SUB",  "_SndPause",   False);
    await sub_AddQBMethod( "SUB",  "_SndStop",   False);
    await sub_AddQBMethod( "SUB",  "_SndVol",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Strcmp",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Stricmp",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Tanh",   False);
    await sub_AddQBMethod( "SUB",  "_Title",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Trim",   False);

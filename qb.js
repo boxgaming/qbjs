@@ -660,6 +660,16 @@ var QB = new function() {
         GX.soundVolumne(sid, v);
     };
 
+    this.func__Strcmp = function(x, y) {
+        return ( ( x == y ) ? 0 : ( ( x > y ) ? 1 : -1 ) );
+    };
+
+    this.func__Stricmp = function(x, y) {
+        var a = x.toLowerCase();
+        var b = y.toLowerCase();
+        return ( ( a == b ) ? 0 : ( ( a > b ) ? 1 : -1 ) );
+    };
+
     this.func__Tanh = function(x) {
         return Math.tanh(x);
     };
