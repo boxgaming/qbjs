@@ -202,6 +202,10 @@ var QB = new function() {
         return _color(rgb).b;
     };
 
+    this.func__Ceil = function(x) {
+        return Math.ceil(x);
+    };
+
     this.func__CopyImage = function(srcImageId) {
         var srcCanvas = _images[srcImageId].canvas;
         var destImageId = QB.func__NewImage(srcCanvas.width, srcCanvas.height);
@@ -296,6 +300,10 @@ var QB = new function() {
         if (imageId == undefined) { imageId = _activeImage; }
         return _images[imageId].canvas.height;
     }
+
+    this.func__Hypot = function(x, y) {
+        return Math.hypot(x, y);
+    };
 
     this.func__InStrRev = function(arg1, arg2, arg3) {
       var startIndex = +Infinity;
@@ -587,6 +595,14 @@ var QB = new function() {
 
     this.func__Sech = function(x) {
         return 1/Math.cosh(x);
+    };
+
+    this.func__Shl = function(x, y) {
+        return x << y;
+    };
+
+    this.func__Shr = function(x, y) {
+        return x >>> y;
     };
 
     this.func__Sinh = function(x) {

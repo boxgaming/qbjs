@@ -2957,6 +2957,7 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_AutoDisplay", False
     AddQBMethod "FUNCTION", "_Blue", False
     AddQBMethod "FUNCTION", "_Blue32", False
+    AddQBMethod "FUNCTION", "_Ceil", False
     AddQBMethod "FUNCTION", "_CopyImage", False
     AddQBMethod "FUNCTION", "_Cosh", False
     AddQBMethod "FUNCTION", "_Coth", False
@@ -2974,6 +2975,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Green", False
     AddQBMethod "FUNCTION", "_Green32", False
     AddQBMethod "FUNCTION", "_Height", False
+    AddQBMethod "FUNCTION", "_Hypot", False
     AddQBMethod "FUNCTION", "_InStrRev", False
     AddQBMethod "SUB", "_Limit", True
     AddQBMethod "SUB", "_KeyClear", False
@@ -3002,6 +3004,8 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Round", False
     AddQBMethod "FUNCTION", "_ScreenExists", False
     AddQBMethod "FUNCTION", "_Sech", False
+    AddQBMethod "FUNCTION", "_Shl", False
+    AddQBMethod "FUNCTION", "_Shr", False
     AddQBMethod "FUNCTION", "_Sinh", False
     AddQBMethod "FUNCTION", "_Source", False
     AddQBMethod "SUB", "_Source", False

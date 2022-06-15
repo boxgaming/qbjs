@@ -2769,6 +2769,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "SUB",  "_AutoDisplay",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Blue",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Blue32",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Ceil",   False);
    await sub_AddQBMethod( "FUNCTION",  "_CopyImage",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Cosh",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Coth",   False);
@@ -2786,6 +2787,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "_Green",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Green32",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Height",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Hypot",   False);
    await sub_AddQBMethod( "FUNCTION",  "_InStrRev",   False);
    await sub_AddQBMethod( "SUB",  "_Limit",   True);
    await sub_AddQBMethod( "SUB",  "_KeyClear",   False);
@@ -2814,6 +2816,8 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "_Round",   False);
    await sub_AddQBMethod( "FUNCTION",  "_ScreenExists",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Sech",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Shl",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Shr",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Sinh",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Source",   False);
    await sub_AddQBMethod( "SUB",  "_Source",   False);
