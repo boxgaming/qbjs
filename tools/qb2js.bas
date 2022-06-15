@@ -2962,6 +2962,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Cosh", False
     AddQBMethod "FUNCTION", "_Coth", False
     AddQBMethod "FUNCTION", "_Csch", False
+    AddQBMethod "FUNCTION", "_D2G", False
     AddQBMethod "FUNCTION", "_D2R", False
     AddQBMethod "SUB", "_Delay", True
     AddQBMethod "FUNCTION", "_Dest", False
@@ -2972,6 +2973,8 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_FreeImage", False
     AddQBMethod "SUB", "_FullScreen", False
     AddQBMethod "FUNCTION", "_FullScreen", False
+    AddQBMethod "FUNCTION", "_G2D", False
+    AddQBMethod "FUNCTION", "_G2R", False
     AddQBMethod "FUNCTION", "_Green", False
     AddQBMethod "FUNCTION", "_Green32", False
     AddQBMethod "FUNCTION", "_Height", False
@@ -2992,6 +2995,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_PrintWidth", False
     AddQBMethod "SUB", "_PutImage", False
     AddQBMethod "FUNCTION", "_R2D", False
+    AddQBMethod "FUNCTION", "_R2G", False
     AddQBMethod "FUNCTION", "_Red", False
     AddQBMethod "FUNCTION", "_Red32", False
     AddQBMethod "FUNCTION", "_Resize", False

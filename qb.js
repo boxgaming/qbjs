@@ -231,6 +231,10 @@ var QB = new function() {
         return x*Math.PI/180;
     };
 
+    this.func__D2G = function(x) {
+        return (x * 10/9);
+    };
+
     this.sub__Delay = async function(seconds) {
         await GX.sleep(seconds*1000);
     };
@@ -277,6 +281,14 @@ var QB = new function() {
         }
         // TODO: implement smooth option (maybe) - the canvas does smooth scaling by default
     }
+
+    this.func__G2D = function(x) {
+        return (x * 9/10);
+    };
+
+    this.func__G2R = function(x) {
+        return (x * 9/10) * Math.PI/180;
+    };
 
     this.func__Green = function(rgb, imageHandle) {
         // TODO: implement corresponding logic when an image handle is supplied (maybe)
@@ -529,6 +541,10 @@ var QB = new function() {
 
     this.func__R2D = function(x) {
         return x*180/Math.PI;
+    };
+
+    this.func__R2G = function(x) {
+        return (x*(9/10))*180/Math.PI;
     };
 
     this.func__Red = function(rgb, imageHandle) {
