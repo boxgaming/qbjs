@@ -2957,10 +2957,12 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_AutoDisplay", False
     AddQBMethod "FUNCTION", "_Blue", False
     AddQBMethod "FUNCTION", "_Blue32", False
+    AddQBMethod "FUNCTION", "_Ceil", False
     AddQBMethod "FUNCTION", "_CopyImage", False
     AddQBMethod "FUNCTION", "_Cosh", False
     AddQBMethod "FUNCTION", "_Coth", False
     AddQBMethod "FUNCTION", "_Csch", False
+    AddQBMethod "FUNCTION", "_D2G", False
     AddQBMethod "FUNCTION", "_D2R", False
     AddQBMethod "SUB", "_Delay", True
     AddQBMethod "FUNCTION", "_Dest", False
@@ -2971,9 +2973,12 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_FreeImage", False
     AddQBMethod "SUB", "_FullScreen", False
     AddQBMethod "FUNCTION", "_FullScreen", False
+    AddQBMethod "FUNCTION", "_G2D", False
+    AddQBMethod "FUNCTION", "_G2R", False
     AddQBMethod "FUNCTION", "_Green", False
     AddQBMethod "FUNCTION", "_Green32", False
     AddQBMethod "FUNCTION", "_Height", False
+    AddQBMethod "FUNCTION", "_Hypot", False
     AddQBMethod "FUNCTION", "_InStrRev", False
     AddQBMethod "SUB", "_Limit", True
     AddQBMethod "SUB", "_KeyClear", False
@@ -2990,8 +2995,11 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_PrintWidth", False
     AddQBMethod "SUB", "_PutImage", False
     AddQBMethod "FUNCTION", "_R2D", False
+    AddQBMethod "FUNCTION", "_R2G", False
+    AddQBMethod "FUNCTION", "_Readbit", False
     AddQBMethod "FUNCTION", "_Red", False
     AddQBMethod "FUNCTION", "_Red32", False
+    AddQBMethod "FUNCTION", "_Resetbit", False
     AddQBMethod "FUNCTION", "_Resize", False
     AddQBMethod "FUNCTION", "_ResizeHeight", False
     AddQBMethod "FUNCTION", "_ResizeWidth", False
@@ -3002,6 +3010,9 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Round", False
     AddQBMethod "FUNCTION", "_ScreenExists", False
     AddQBMethod "FUNCTION", "_Sech", False
+    AddQBMethod "FUNCTION", "_Setbit", False
+    AddQBMethod "FUNCTION", "_Shl", False
+    AddQBMethod "FUNCTION", "_Shr", False
     AddQBMethod "FUNCTION", "_Sinh", False
     AddQBMethod "FUNCTION", "_Source", False
     AddQBMethod "SUB", "_Source", False
@@ -3012,8 +3023,11 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_SndPause", False
     AddQBMethod "SUB", "_SndStop", False
     AddQBMethod "SUB", "_SndVol", False
+    AddQBMethod "FUNCTION", "_Strcmp", False
+    AddQBMethod "FUNCTION", "_Stricmp", False
     AddQBMethod "FUNCTION", "_Tanh", False
     AddQBMethod "SUB", "_Title", False
+    AddQBMethod "FUNCTION", "_Togglebit", False
     AddQBMethod "FUNCTION", "_Trim", False
     AddQBMethod "FUNCTION", "_Width", False
 
