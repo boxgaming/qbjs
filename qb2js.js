@@ -2808,8 +2808,10 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "SUB",  "_PutImage",   False);
    await sub_AddQBMethod( "FUNCTION",  "_R2D",   False);
    await sub_AddQBMethod( "FUNCTION",  "_R2G",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Readbit",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Red",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Red32",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Resetbit",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Resize",   False);
    await sub_AddQBMethod( "FUNCTION",  "_ResizeHeight",   False);
    await sub_AddQBMethod( "FUNCTION",  "_ResizeWidth",   False);
@@ -2820,6 +2822,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "_Round",   False);
    await sub_AddQBMethod( "FUNCTION",  "_ScreenExists",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Sech",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Setbit",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Shl",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Shr",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Sinh",   False);
@@ -2836,6 +2839,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "_Stricmp",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Tanh",   False);
    await sub_AddQBMethod( "SUB",  "_Title",   False);
+   await sub_AddQBMethod( "FUNCTION",  "_Togglebit",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Trim",   False);
    await sub_AddQBMethod( "FUNCTION",  "_Width",   False);
    await sub_AddQBMethod( "FUNCTION",  "Abs",   False);
