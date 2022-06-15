@@ -769,8 +769,8 @@ var ConvertRandomize = null;
       if (((QB.func_UCase( (QB.func__Trim( (QB.func_Left(  args,   5))))))  == "USING") ) {
          uusing = "true";
          theseed = (QB.func__Trim( (QB.func_Right(  args,  (QB.func_Len(  args))  - 5))));
-         theseed = (await func_ConvertExpression(  theseed));
       }
+      theseed = (await func_ConvertExpression(  theseed));
    }
    ConvertRandomize = (await func_CallMethod(  m))  +"("  + uusing +", "  + theseed +")";
 return ConvertRandomize;

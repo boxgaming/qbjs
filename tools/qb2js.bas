@@ -2,6 +2,8 @@ Option _Explicit
 $Console:Only
 '$ExeIcon:'./../gx/resource/gx.ico'
 
+' In console after, creating exe, run:    qb2js qb2js.bas > ../qb2js.js
+
 Const FILE = 1
 Const TEXT = 2
 Const False = 0
@@ -858,8 +860,8 @@ Function ConvertRandomize$ (m As Method, args As String)
         If (UCase$(_Trim$(Left$(args, 5))) = "USING") Then
             uusing = "true"
             theseed = _Trim$(Right$(args, Len(args) - 5))
-            theseed = ConvertExpression(theseed)
         End If
+        theseed = ConvertExpression(theseed)
     End If
     ConvertRandomize = CallMethod(m) + "(" + uusing + ", " + theseed + ")"
 End Function
