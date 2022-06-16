@@ -616,7 +616,11 @@ var QB = new function() {
     }
 
     this.func__Round = function(value) {
-        return Math.round(value);
+        if (value < 0) {
+            return -Math.round(-value);
+        } else {
+            return Math.round(value);
+        }
     };
 
     this.func__ScreenExists = function() {
@@ -830,6 +834,14 @@ var QB = new function() {
             result+=numString.charCodeAt(3-i)<<(8*i);
         }
         return result;
+    }
+
+    this.func_Date = function() {
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0');
+        var yyyy = today.getFullYear();
+        return mm + '-' + dd + '-' + yyyy;
     }
 
     this.sub_Draw = function(t) {
@@ -1259,6 +1271,33 @@ var QB = new function() {
 
     this.func_Log = function(value) {
         return Math.log(value);
+    };
+
+    this.func_Cdbl = function(value) {
+        const buffer = new ArrayBuffer(16);
+        const view = new DataView(buffer);
+        view.setFloat32(1, value);
+        return view.getFloat32(1);
+    };
+
+    this.func_Cint = function(value) {
+        if (value > 0) {
+            return Math.round(value);
+        } else {
+            return -Math.round(-value);
+        }
+    };
+
+    this.func_Clng = function(value) {
+        if (value > 0) {
+            return Math.round(value);
+        } else {
+            return -Math.round(-value);
+        }
+    };
+
+    this.func_Csng = function(value) {
+        return value; // TODO: Implement this.
     };
 
     this.sub_Circle = function(step, x, y, radius, color, startAngle, endAngle, aspect) {
@@ -1783,7 +1822,7 @@ var QB = new function() {
     }
 
     this.sub_Restore = function(t) {
-        if (t == undefined || t.trim() == "") {
+        if ((t == undefined) || (t.trim() == "")) {
             _readCursorPosition = 0;
         } else {
             _readCursorPosition = _dataLabelMap[t];
@@ -1988,6 +2027,7 @@ var QB = new function() {
 
     this.func_Val = function(value) {
         var ret;
+        value = value.toString();
         if (value.substring(0, 2) == "&H") {
             ret = parseInt(value.slice(2), 16);
         } else if (value.substring(0, 2) == "&O") {

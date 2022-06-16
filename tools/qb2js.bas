@@ -2,7 +2,7 @@ Option _Explicit
 $Console:Only
 '$ExeIcon:'./../gx/resource/gx.ico'
 
-' In console after, creating exe, run:    qb2js qb2js.bas > ../qb2js.js
+' In console, after creating qb2js.exe, run:    qb2js qb2js.bas > ../qb2js.js
 
 Const FILE = 1
 Const TEXT = 2
@@ -70,8 +70,6 @@ Dim Shared modLevel As Integer
 Dim Shared As String currentMethod
 Dim Shared As String currentModule
 Dim Shared As Integer programMethods
-Dim Shared As Integer dataTicker
-dataTicker = 1
 
 ' Only execute the conversion from the native version if we have been passed the
 ' source file to convert on the command line
@@ -1720,19 +1718,6 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
 
     ReadLine = rawJS
 
-    'If (_Trim$(LCase$(Left$(fline, 4))) = "data") Then
-    '    'AddLineTop dataTicker, fline
-    '    'AddSubLinesTop dataTicker, fline
-    '    AddLine dataTicker, fline
-    '    AddSubLines dataTicker, fline
-    '    Exit Function
-    'End If
-    'If (_Trim$(LCase$(Left$(fline, 6))) = "_label") Then
-    '    'AddLineTop dataTicker, fline
-    '    AddLine dataTicker, fline
-    '    Exit Function
-    'End If
-
     If _Trim$(fline) = "" Then Exit Function
 
     Dim word As String
@@ -2307,19 +2292,6 @@ Sub AddQBMethod (mtype As String, mname As String, sync As Integer)
     m.name = mname
     AddMethod m, "QB.", sync
 End Sub
-
-'Sub AddLineTop (lineIndex As Integer, fline As String)
-'    Dim lcount As Integer: lcount = UBound(lines) + 1
-'    ReDim _Preserve As CodeLine lines(lcount)
-'    Dim j As Integer
-'    For j = UBound(lines) To dataTicker Step -1
-'        lines(j).line = lines(j - 1).line
-'        lines(j).text = lines(j - 1).text
-'    Next
-'    lines(dataTicker).line = dataTicker
-'    lines(dataTicker).text = fline
-'    dataTicker = dataTicker + 1
-'End Sub
 
 Sub AddLine (lineIndex As Integer, fline As String)
     __AddLine lineIndex, fline
@@ -3040,6 +3012,10 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Atn", False
     AddQBMethod "SUB", "Beep", False
     AddQBMethod "FUNCTION", "Chr$", False
+    AddQBMethod "FUNCTION", "Cdbl", False
+    AddQBMethod "FUNCTION", "Cint", False
+    AddQBMethod "FUNCTION", "Clng", False
+    AddQBMethod "FUNCTION", "Csng", False
     AddQBMethod "SUB", "Circle", False
     AddQBMethod "SUB", "Cls", False
     AddQBMethod "SUB", "Color", False
@@ -3048,6 +3024,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Csrlin", False
     AddQBMethod "FUNCTION", "Cvi", False
     AddQBMethod "FUNCTION", "Cvl", False
+    AddQBMethod "FUNCTION", "Date$", False
     AddQBMethod "SUB", "Draw", False
     AddQBMethod "FUNCTION", "Exp", False
     AddQBMethod "FUNCTION", "Fix", False

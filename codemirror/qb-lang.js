@@ -40,7 +40,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              '_keyhit', '_loadimage', '_mousebutton', '_mouseinput', '_mousex', '_mousey', '_newimage', '_pi', '_printstring', '_printwidth',
                              '_putimage', '_r2d', '_r2g', '_readbit', '_red', '_red32', '_resetbit', '_resize', '_resizewidth', '_resizeheight', '_rgb', '_rgba', '_rgb32', '_rgba32', '_round',
                              '_screenexists', '_sech', '_setbit', '_shl', '_shr', '_sinh', '_source', '_sndclose', '_sndopen', '_sndplay', '_sndloop', '_sndpause', '_sndstop', '_sndvol', '_strcmp', '_stricmp', '_tanh',
-                             '_title', '_trim', '_togglebit', '_width', 'abs', 'asc', 'atn', 'beep', 'chr', 'circle', 'cls', 'color', 'command', 'cos', 'cvi', 'cvl', 'data', 'draw', 'exp',
+                             '_title', '_trim', '_togglebit', '_width', 'abs', 'asc', 'atn', 'beep', 'chr', 'cdbl', 'cint', 'clng', 'csng', 'circle', 'cls', 'color', 'command', 'cos', 'cvi', 'cvl', 'data', 'date', 'draw', 'exp',
                              'fix', 'hex', 'input', 'inkey', 'instr', 'int', 'lbound', 'left', 'lcase', 'len', 'line', 'locate', 'log', 'ltrim', 'mid', 'mki', 'mkl',
                              'oct', 'paint', 'point', 'preset', 'print', 'pset', 'right', 'rtrim', 'randomize', 'read', 'restore', 'rnd', 'screen', 'shared', 'sgn', 'sin', 'sleep', 'space', 'sqr',
                              'str', 'swap', 'tan', 'time', 'timer', 'ubound', 'ucase', 'val', 'varptr', 'window',

@@ -30,8 +30,6 @@ async function _QBCompiler() {
    var currentMethod = ''; // STRING
    var currentModule = ''; // STRING
    var programMethods = 0; // INTEGER
-   var dataTicker = 0; // INTEGER
-   dataTicker =  1;
    if (QB.func_Command() != "" ) {
       await sub_QBToJS( QB.func_Command(),   FILE,  "");
       await sub_PrintJS();
@@ -2847,6 +2845,10 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "Atn",   False);
    await sub_AddQBMethod( "SUB",  "Beep",   False);
    await sub_AddQBMethod( "FUNCTION",  "Chr$",   False);
+   await sub_AddQBMethod( "FUNCTION",  "Cdbl",   False);
+   await sub_AddQBMethod( "FUNCTION",  "Cint",   False);
+   await sub_AddQBMethod( "FUNCTION",  "Clng",   False);
+   await sub_AddQBMethod( "FUNCTION",  "Csng",   False);
    await sub_AddQBMethod( "SUB",  "Circle",   False);
    await sub_AddQBMethod( "SUB",  "Cls",   False);
    await sub_AddQBMethod( "SUB",  "Color",   False);
@@ -2855,6 +2857,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION",  "Csrlin",   False);
    await sub_AddQBMethod( "FUNCTION",  "Cvi",   False);
    await sub_AddQBMethod( "FUNCTION",  "Cvl",   False);
+   await sub_AddQBMethod( "FUNCTION",  "Date$",   False);
    await sub_AddQBMethod( "SUB",  "Draw",   False);
    await sub_AddQBMethod( "FUNCTION",  "Exp",   False);
    await sub_AddQBMethod( "FUNCTION",  "Fix",   False);
