@@ -6,6 +6,7 @@ Const FILE = 1
 Const TEXT = 2
 Const False = 0
 Const True = Not False
+Const OPERATORS = "+-/\*"
 
 Type CodeLine
     line As Integer
@@ -115,6 +116,9 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
 
     ElseIf sourceType = FILE Then
         AddJSLine 0, "async function init() {"
+
+    Else
+        AddJSLine 0, "try {"
     End If
 
     If Not selfConvert And moduleName = "" Then AddJSLine 0, "QB.start();"
@@ -144,7 +148,7 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "   await sub_QBToJS(src, TEXT, '');"
         AddJSLine 0, "   var js = '';"
         AddJSLine 0, "   for (var i=1; i<= QB.func_UBound(jsLines); i++) {"
-        AddJSLine 0, "      js += QB.arrayValue(jsLines, [i]).value.text + '\n';"
+        AddJSLine 0, "      js += '/* ' + i + ':' + this.getSourceLine(i) + ' */ ' + QB.arrayValue(jsLines, [i]).value.text + '\n';"
         AddJSLine 0, "   }"
         AddJSLine 0, "   return js;"
         AddJSLine 0, "};"
@@ -158,6 +162,13 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "   }"
         AddJSLine 0, "   return w;"
         AddJSLine 0, "};"
+        AddJSLine 0, "this.getSourceLine = function(jsLine) {"
+        AddJSLine 0, "   if (jsLine == 0) { return 0; }"
+        AddJSLine 0, "   var line = QB.arrayValue(jsLines, [jsLine]).value.line;"
+        AddJSLine 0, "   line = QB.arrayValue(lines, [line]).value.line;"
+        AddJSLine 0, "   return line;"
+        AddJSLine 0, "};"
+        AddJSLine 0, ""
         AddJSLine 0, "return this;"
         AddJSLine 0, "}"
 
@@ -168,6 +179,9 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
 
     ElseIf sourceType = FILE Then
         AddJSLine 0, "};"
+
+    Else
+        AddJSLine 0, "} catch (error) { console.log(error); throw error; }"
     End If
 End Sub
 
@@ -232,6 +246,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
         ReDim As String parts(0)
         Dim c As Integer
         c = SLSplit(l, parts(), True)
+        If c < 1 Then _Continue
 
         Dim js As String
         js = ""
@@ -263,16 +278,16 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
         Else
             If first = "CONST" Then
                 ' TODO: add support for comma-separated list of constants
-                js = "const " + parts(2) + " = " + ConvertExpression(Join(parts(), 4, -1, " ")) + ";"
+                js = "const " + parts(2) + " = " + ConvertExpression(Join(parts(), 4, -1, " "), i) + ";"
                 AddConst parts(2)
 
             ElseIf first = "DIM" Or first = "REDIM" Or first = "STATIC" Then
-                js = DeclareVar(parts())
+                js = DeclareVar(parts(), i)
 
 
             ElseIf first = "SELECT" Then
                 caseVar = GenJSVar
-                js = "var " + caseVar + " = " + ConvertExpression(Join(parts(), 3, -1, " ")) + ";" + CRLF
+                js = "var " + caseVar + " = " + ConvertExpression(Join(parts(), 3, -1, " "), i) + ";" + CRLF
                 js = js + "switch (" + caseVar + ") {"
                 indent = 1
                 caseCount = 0
@@ -282,7 +297,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 If UCase$(parts(2)) = "ELSE" Then
                     js = js + "default:"
                 ElseIf UCase$(parts(2)) = "IS" Then
-                    js = js + "case " + caseVar + " " + ConvertExpression(Join(parts(), 3, -1, " ")) + ":"
+                    js = js + "case " + caseVar + " " + ConvertExpression(Join(parts(), 3, -1, " "), i) + ":"
                 Else
                     ReDim As String caseParts(0)
                     Dim cscount As Integer
@@ -290,7 +305,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     Dim ci As Integer
                     For ci = 1 To cscount
                         If ci > 1 Then js = js + CRLF
-                        js = js + "case " + ConvertExpression(caseParts(ci)) + ":"
+                        js = js + "case " + ConvertExpression(caseParts(ci), i) + ":"
                     Next ci
                 End If
                 caseCount = caseCount + 1
@@ -312,15 +327,15 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                         toIdx = fi
                     ElseIf fword = "STEP" Then
                         stepIdx = fi
-                        fstep = ConvertExpression(Join(parts(), fi + 1, -1, " "))
+                        fstep = ConvertExpression(Join(parts(), fi + 1, -1, " "), i)
                     End If
                 Next fi
                 Dim fvar As String
-                fvar = ConvertExpression(Join(parts(), 2, eqIdx - 1, " "))
+                fvar = ConvertExpression(Join(parts(), 2, eqIdx - 1, " "), i)
                 Dim sval As String
-                sval = ConvertExpression(Join(parts(), eqIdx + 1, toIdx - 1, " "))
+                sval = ConvertExpression(Join(parts(), eqIdx + 1, toIdx - 1, " "), i)
                 Dim uval As String
-                uval = ConvertExpression(Join(parts(), toIdx + 1, stepIdx - 1, " "))
+                uval = ConvertExpression(Join(parts(), toIdx + 1, stepIdx - 1, " "), i)
 
                 If Left$(_Trim$(fstep), 1) = "-" Then fcond = " >= "
 
@@ -337,11 +352,11 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     If UCase$(parts(thenIndex)) = "THEN" Then Exit For
                 Next thenIndex
 
-                js = "if (" + ConvertExpression(Join(parts(), 2, thenIndex - 1, " ")) + ") {"
+                js = "if (" + ConvertExpression(Join(parts(), 2, thenIndex - 1, " "), i) + ") {"
                 indent = 1
 
             ElseIf first = "ELSEIF" Then
-                js = "} else if (" + ConvertExpression(Join(parts(), 2, UBound(parts) - 1, " ")) + ") {"
+                js = "} else if (" + ConvertExpression(Join(parts(), 2, UBound(parts) - 1, " "), i) + ") {"
                 tempIndent = -1
 
             ElseIf first = "ELSE" Then
@@ -376,9 +391,9 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 loopLevel = loopLevel + 1
                 If UBound(parts) > 1 Then
                     If UCase$(parts(2)) = "WHILE" Then
-                        js = "while (" + ConvertExpression(Join(parts(), 3, -1, " ")) + ") {"
+                        js = "while (" + ConvertExpression(Join(parts(), 3, -1, " "), i) + ") {"
                     Else
-                        js = "while (!(" + ConvertExpression(Join(parts(), 3, -1, " ")) + ")) {"
+                        js = "while (!(" + ConvertExpression(Join(parts(), 3, -1, " "), i) + ")) {"
                     End If
                     loopMode(loopLevel) = 1
                 Else
@@ -391,7 +406,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
             ElseIf first = "WHILE" Then
                 loopLevel = loopLevel + 1
-                js = "while (" + ConvertExpression(Join(parts(), 2, -1, " ")) + ") {"
+                js = "while (" + ConvertExpression(Join(parts(), 2, -1, " "), i) + ") {"
                 indent = 1
                 js = js + "  if (QB.halted()) { return; }"
 
@@ -409,7 +424,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                         js = js + "1));"
                     Else
                         If UCase$(parts(2)) = "UNTIL" Then js = "} while (!("
-                        js = js + ConvertExpression(Join(parts(), 3, UBound(parts), " ")) + "))"
+                        js = js + ConvertExpression(Join(parts(), 3, UBound(parts), " "), i) + "))"
                     End If
                 End If
                 loopLevel = loopLevel - 1
@@ -471,7 +486,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     Else
                         subargs = Mid$(subline, Len(subname) + 2, Len(subline) - Len(subname) - 2)
                     End If
-                    js = ConvertSub(m, subargs)
+                    js = ConvertSub(m, subargs, i)
                 Else
                     AddWarning i, "Missing Sub [" + subname + "], ignoring Call command"
                 End If
@@ -489,24 +504,28 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
                 If assignment > 0 Then
                     'This is a variable assignment
-                    js = RemoveSuffix(ConvertExpression(Join(parts(), 1, assignment - 1, " "))) + " = " + ConvertExpression(Join(parts(), assignment + 1, -1, " ")) + ";"
+                    'If Not FindVariable(parts(1), false) Then
+                    '    If Not FindVariable(parts(1), true) then
+                    '    end if
+                    '    end if
+                    js = RemoveSuffix(ConvertExpression(Join(parts(), 1, assignment - 1, " "), i)) + " = " + ConvertExpression(Join(parts(), assignment + 1, -1, " "), i) + ";"
 
                 Else
                     If FindMethod(parts(1), m, "SUB") Then
-                        js = ConvertSub(m, Join(parts(), 2, -1, " "))
+                        js = ConvertSub(m, Join(parts(), 2, -1, " "), i)
                     Else
                         js = "// " + l
-                        AddWarning i, "Missing/unsupported sub or syntax error"
+                        AddWarning i, "Missing or unsupported method: '" + parts(1) + "' - ignoring line"
                     End If
                 End If
 
 
             Else
                 If FindMethod(parts(1), m, "SUB") Then
-                    js = ConvertSub(m, Join(parts(), 2, -1, " "))
+                    js = ConvertSub(m, Join(parts(), 2, -1, " "), i)
                 Else
                     js = "// " + l
-                    AddWarning i, "Missing/unsupported sub or syntax error"
+                    AddWarning i, "Missing or unsupported method: '" + parts(1) + "' - ignoring line"
                 End If
             End If
 
@@ -591,7 +610,7 @@ Sub RegisterExport (exportName As String, exportedItem As String)
     exportLines(esize) = "this." + exportName + " = " + exportedItem + ";"
 End Sub
 
-Function ConvertSub$ (m As Method, args As String)
+Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
     ' This actually converts the parameters passed to the sub
     Dim js As String
 
@@ -613,46 +632,45 @@ Function ConvertSub$ (m As Method, args As String)
 
     ' Handle special cases for methods which take ranges and optional parameters
     If m.name = "Line" Then
-        js = CallMethod(m) + "(" + ConvertLine(args) + ");"
+        js = CallMethod(m) + "(" + ConvertLine(args, lineNumber) + ");"
 
     ElseIf m.name = "Cls" Then
-        js = CallMethod(m) + "(" + ConvertCls(args) + ");"
+        js = CallMethod(m) + "(" + ConvertCls(args, lineNumber) + ");"
 
     ElseIf m.name = "Input" Or m.name = "Line Input" Then
-        js = ConvertInput(m, args)
+        js = ConvertInput(m, args, lineNumber)
 
     ElseIf m.name = "PSet" Or m.name = "Circle" Or m.name = "PReset" Or m.name = "Paint" Then
-        js = CallMethod(m) + "(" + ConvertPSet(args) + ");"
+        js = CallMethod(m) + "(" + ConvertPSet(args, lineNumber) + ");"
 
     ElseIf m.name = "Print" Then
-        js = CallMethod(m) + "(" + ConvertPrint(args) + ");"
+        js = CallMethod(m) + "(" + ConvertPrint(args, lineNumber) + ");"
 
     ElseIf m.name = "Randomize" Then
-        js = ConvertRandomize(m, args)
+        js = ConvertRandomize(m, args, lineNumber)
 
     ElseIf m.name = "Read" Then
-        js = ConvertRead(m, args)
+        js = ConvertRead(m, args, lineNumber)
 
     ElseIf m.name = "Restore" Then
         js = CallMethod(m) + "('" + UCase$(args) + "');"
 
     ElseIf m.name = "Swap" Then
-        js = ConvertSwap(m, args)
+        js = ConvertSwap(m, args, lineNumber)
 
     ElseIf m.name = "Window" Then
-        js = CallMethod(m) + "(" + ConvertWindow(args) + ");"
+        js = CallMethod(m) + "(" + ConvertWindow(args, lineNumber) + ");"
 
     ElseIf m.name = "_PrintString" Then
-        js = CallMethod(m) + "(" + ConvertPrintString(args) + ");"
+        js = CallMethod(m) + "(" + ConvertPrintString(args, lineNumber) + ");"
 
     ElseIf m.name = "_PutImage" Then
-        js = CallMethod(m) + "(" + ConvertPutImage(args) + ");"
+        js = CallMethod(m) + "(" + ConvertPutImage(args, lineNumber) + ");"
 
     ElseIf m.name = "_FullScreen" Then
         js = CallMethod(m) + "(" + ConvertFullScreen(args) + ");"
     Else
-        'js = CallMethod(m) + "(" + ConvertExpression(args) + ");"
-        js = CallMethod(m) + "(" + ConvertMethodParams(args) + ");"
+        js = CallMethod(m) + "(" + ConvertMethodParams(args, lineNumber) + ");"
     End If
 
     ConvertSub = js
@@ -683,7 +701,7 @@ Function ConvertFullScreen$ (args As String)
     ConvertFullScreen = mode + ", " + doSmooth
 End Function
 
-Function ConvertLine$ (args As String)
+Function ConvertLine$ (args As String, lineNumber As Integer)
     ' TODO: This does not yet handle dash patterns
     Dim firstParam As String
     Dim theRest As String
@@ -723,16 +741,16 @@ Function ConvertLine$ (args As String)
     startCord = Right$(startCord, Len(startCord) - idx)
     idx = _InStrRev(startCord, ")")
     startCord = Left$(startCord, idx - 1)
-    startCord = ConvertExpression(startCord)
+    startCord = ConvertExpression(startCord, lineNumber)
     If (_Trim$(startCord) = "") Then startCord = "undefined, undefined"
 
     idx = InStr(endCord, "(")
     endCord = Right$(endCord, Len(endCord) - idx)
     idx = _InStrRev(endCord, ")")
     endCord = Left$(endCord, idx - 1)
-    endCord = ConvertExpression(endCord)
+    endCord = ConvertExpression(endCord, lineNumber)
 
-    theRest = ConvertExpression(theRest)
+    theRest = ConvertExpression(theRest, lineNumber)
     ' TODO: fix this nonsense
     theRest = Replace(theRest, " BF", " " + Chr$(34) + "BF" + Chr$(34))
     theRest = Replace(theRest, " bf", " " + Chr$(34) + "BF" + Chr$(34))
@@ -746,12 +764,12 @@ Function ConvertLine$ (args As String)
     ConvertLine = sstep + ", " + startCord + ", " + estep + ", " + endCord + ", " + theRest
 End Function
 
-Function ConvertPutImage$ (args As String)
+Function ConvertPutImage$ (args As String, lineNumber As Integer)
     Dim argc As Integer
     ReDim parts(0) As String
     Dim As String startCoord, sourceImage, destImage, destCoord, doSmooth
-    startCoord = ConvertCoordParam("", True)
-    destCoord = ConvertCoordParam("", True)
+    startCoord = ConvertCoordParam("", True, lineNumber)
+    destCoord = ConvertCoordParam("", True, lineNumber)
     sourceImage = "undefined"
     destImage = "undefined"
 
@@ -762,12 +780,12 @@ Function ConvertPutImage$ (args As String)
     End If
 
     argc = ListSplit(args, parts())
-    If argc >= 1 Then startCoord = ConvertCoordParam(parts(1), True)
-    If argc >= 2 Then sourceImage = ConvertExpression(parts(2))
+    If argc >= 1 Then startCoord = ConvertCoordParam(parts(1), True, lineNumber)
+    If argc >= 2 Then sourceImage = ConvertExpression(parts(2), lineNumber)
     If argc >= 3 Then
-        If _Trim$(parts(3)) <> "" Then destImage = ConvertExpression(parts(3))
+        If _Trim$(parts(3)) <> "" Then destImage = ConvertExpression(parts(3), lineNumber)
     End If
-    If argc >= 4 Then destCoord = ConvertCoordParam(parts(4), True)
+    If argc >= 4 Then destCoord = ConvertCoordParam(parts(4), True, lineNumber)
     If argc >= 5 Then
         If _Trim$(UCase$(parts(5))) = "_SMOOTH" Then doSmooth = "true"
     End If
@@ -775,7 +793,7 @@ Function ConvertPutImage$ (args As String)
     ConvertPutImage = startCoord + ", " + sourceImage + ", " + destImage + ", " + destCoord + ", " + doSmooth
 End Function
 
-Function ConvertWindow$ (args As String)
+Function ConvertWindow$ (args As String, lineNumber As Integer)
     Dim As String invertFlag
     Dim firstParam As String
     Dim theRest As String
@@ -818,19 +836,19 @@ Function ConvertWindow$ (args As String)
     startCord = Right$(startCord, Len(startCord) - idx)
     idx = _InStrRev(startCord, ")")
     startCord = Left$(startCord, idx - 1)
-    startCord = ConvertExpression(startCord)
+    startCord = ConvertExpression(startCord, lineNumber)
     If (_Trim$(startCord) = "") Then startCord = "undefined, undefined"
 
     idx = InStr(endCord, "(")
     endCord = Right$(endCord, Len(endCord) - idx)
     idx = _InStrRev(endCord, ")")
     endCord = Left$(endCord, idx - 1)
-    endCord = ConvertExpression(endCord)
+    endCord = ConvertExpression(endCord, lineNumber)
 
     ConvertWindow = invertFlag + ", " + startCord + ", " + endCord
 End Function
 
-Function ConvertCls$ (args As String)
+Function ConvertCls$ (args As String, lineNumber As Integer)
     Dim argc As Integer
     ReDim parts(0) As String
     argc = ListSplit(args, parts())
@@ -840,14 +858,14 @@ Function ConvertCls$ (args As String)
     bgcolor = "undefined"
 
     If argc >= 1 Then
-        If _Trim$(parts(1)) <> "" Then method = ConvertExpression(parts(1))
+        If _Trim$(parts(1)) <> "" Then method = ConvertExpression(parts(1), lineNumber)
     End If
-    If argc >= 2 Then bgcolor = ConvertExpression(parts(2))
+    If argc >= 2 Then bgcolor = ConvertExpression(parts(2), lineNumber)
 
     ConvertCls$ = method + ", " + bgcolor
 End Function
 
-Function ConvertRandomize$ (m As Method, args As String)
+Function ConvertRandomize$ (m As Method, args As String, lineNumber As Integer)
     Dim uusing As String
     Dim theseed As String
     uusing = "false"
@@ -858,13 +876,13 @@ Function ConvertRandomize$ (m As Method, args As String)
         If (UCase$(_Trim$(Left$(args, 5))) = "USING") Then
             uusing = "true"
             theseed = _Trim$(Right$(args, Len(args) - 5))
-            theseed = ConvertExpression(theseed)
         End If
+        theseed = ConvertExpression(theseed, lineNumber)
     End If
     ConvertRandomize = CallMethod(m) + "(" + uusing + ", " + theseed + ")"
 End Function
 
-Function ConvertRead$ (m As Method, args As String)
+Function ConvertRead$ (m As Method, args As String, lineNumber As Integer)
     Dim js As String
     Dim vname As String
     Dim pcount As Integer
@@ -884,12 +902,12 @@ Function ConvertRead$ (m As Method, args As String)
     js = "var " + vname + " = new Array(" + Str$(UBound(vars)) + ");" + LF
     js = js + CallMethod(m) + "(" + vname + ");" + LF
     For i = 1 To UBound(vars)
-        js = js + ConvertExpression(vars(i)) + " = " + vname + "[" + Str$(i - 1) + "];" + LF
+        js = js + ConvertExpression(vars(i), lineNumber) + " = " + vname + "[" + Str$(i - 1) + "];" + LF
     Next i
     ConvertRead$ = js
 End Function
 
-Function ConvertCoordParam$ (param As String, hasEndCoord As Integer)
+Function ConvertCoordParam$ (param As String, hasEndCoord As Integer, lineNumber As Integer)
     If _Trim$(param) = "" Then
         If hasEndCoord Then
             ConvertCoordParam = "false, undefined, undefined, false, undefined, undefined"
@@ -922,7 +940,7 @@ Function ConvertCoordParam$ (param As String, hasEndCoord As Integer)
         startCoord = Right$(startCoord, Len(startCoord) - idx)
         idx = _InStrRev(startCoord, ")")
         startCoord = Left$(startCoord, idx - 1)
-        startCoord = ConvertExpression(startCoord)
+        startCoord = ConvertExpression(startCoord, lineNumber)
         If (_Trim$(startCoord) = "") Then startCoord = "undefined, undefined"
 
         If hasEndCoord Then
@@ -930,7 +948,7 @@ Function ConvertCoordParam$ (param As String, hasEndCoord As Integer)
             endCoord = Right$(endCoord, Len(endCoord) - idx)
             idx = _InStrRev(endCoord, ")")
             endCoord = Left$(endCoord, idx - 1)
-            endCoord = ConvertExpression(endCoord)
+            endCoord = ConvertExpression(endCoord, lineNumber)
             If (_Trim$(endCoord) = "") Then endCoord = "undefined, undefined"
 
             ConvertCoordParam$ = sstep + ", " + startCoord + ", " + estep + ", " + endCoord
@@ -941,7 +959,7 @@ Function ConvertCoordParam$ (param As String, hasEndCoord As Integer)
     End If
 End Function
 
-Function ConvertPSet$ (args As String)
+Function ConvertPSet$ (args As String, lineNumber As Integer)
     Dim firstParam As String
     Dim theRest As String
     Dim idx As Integer
@@ -965,15 +983,15 @@ Function ConvertPSet$ (args As String)
     firstParam = Right$(firstParam, Len(firstParam) - idx)
     idx = _InStrRev(firstParam, ")")
     firstParam = Left$(firstParam, idx - 1)
-    firstParam = ConvertExpression(firstParam)
+    firstParam = ConvertExpression(firstParam, lineNumber)
     If (_Trim$(firstParam) = "") Then firstParam = "undefined, undefined"
 
-    theRest = ConvertExpression(theRest)
+    theRest = ConvertExpression(theRest, lineNumber)
 
     ConvertPSet = sstep + ", " + firstParam + ", " + theRest
 End Function
 
-Function ConvertPrint$ (args As String)
+Function ConvertPrint$ (args As String, lineNumber As Integer)
     Dim pcount As Integer
     Dim parts(0) As String
     pcount = PrintSplit(args, parts())
@@ -992,14 +1010,14 @@ Function ConvertPrint$ (args As String)
             js = js + "QB.PREVENT_NEWLINE"
 
         Else
-            js = js + ConvertExpression(parts(i))
+            js = js + ConvertExpression(parts(i), lineNumber)
         End If
     Next i
 
     ConvertPrint = js + "]"
 End Function
 
-Function ConvertPrintString$ (args As String)
+Function ConvertPrintString$ (args As String, lineNumber As Integer)
     Dim firstParam As String
     Dim theRest As String
     Dim idx As Integer
@@ -1018,10 +1036,10 @@ Function ConvertPrintString$ (args As String)
     idx = _InStrRev(firstParam, ")")
     firstParam = Left$(firstParam, idx - 1)
 
-    ConvertPrintString = ConvertExpression(firstParam) + ", " + ConvertExpression(theRest)
+    ConvertPrintString = ConvertExpression(firstParam, lineNumber) + ", " + ConvertExpression(theRest, lineNumber)
 End Function
 
-Function ConvertInput$ (m As Method, args As String)
+Function ConvertInput$ (m As Method, args As String, lineNumber As Integer)
     Dim js As String
     Dim vname As String
     Dim pcount As Integer
@@ -1058,13 +1076,13 @@ Function ConvertInput$ (m As Method, args As String)
     js = js + CallMethod(m) + "(" + vname + ", " + preventNewline + ", " + addQuestionPrompt + ", " + prompt + ");" + LF
     For i = 1 To UBound(vars)
         If Not StartsWith(_Trim$(vars(i)), "#") Then ' special case to prevent file references from being output during self-compilation
-            js = js + ConvertExpression(vars(i)) + " = " + vname + "[" + Str$(i - 1) + "];" + LF
+            js = js + ConvertExpression(vars(i), lineNumber) + " = " + vname + "[" + Str$(i - 1) + "];" + LF
         End If
     Next i
     ConvertInput = js
 End Function
 
-Function ConvertSwap$ (m As Method, args As String)
+Function ConvertSwap$ (m As Method, args As String, lineNumber As Integer)
     Dim js As String
     Dim swapArray As String: swapArray = GenJSVar
     Dim swapArgs(0) As String
@@ -1072,8 +1090,8 @@ Function ConvertSwap$ (m As Method, args As String)
     swapCount = ListSplit(args, swapArgs())
     Dim var1 As String
     Dim var2 As String
-    var1 = ConvertExpression(swapArgs(1))
-    var2 = ConvertExpression(swapArgs(2))
+    var1 = ConvertExpression(swapArgs(1), lineNumber)
+    var2 = ConvertExpression(swapArgs(2), lineNumber)
     js = "var " + swapArray + " = [" + var1 + "," + var2 + "];" + LF
     js = js + CallMethod(m) + "(" + swapArray + ");" + LF
     js = js + var1 + " = " + swapArray + "[0];" + LF
@@ -1110,7 +1128,7 @@ Function FindParamChar (s As String, char As String)
     FindParamChar = idx
 End Function
 
-Function DeclareVar$ (parts() As String)
+Function DeclareVar$ (parts() As String, lineNumber As Integer)
 
     Dim vname As String
     Dim vtype As String: vtype = ""
@@ -1156,7 +1174,7 @@ Function DeclareVar$ (parts() As String)
             pstart = InStr(vname, "(")
             If pstart > 0 Then
                 bvar.isArray = True
-                arraySize = ConvertExpression(Mid$(vname, pstart + 1, Len(vname) - pstart - 1))
+                arraySize = ConvertExpression(Mid$(vname, pstart + 1, Len(vname) - pstart - 1), lineNumber)
                 bvar.name = RemoveSuffix(Left$(vname, pstart - 1))
             Else
                 bvar.isArray = False
@@ -1222,7 +1240,7 @@ Function DeclareVar$ (parts() As String)
             pstart = InStr(bvar.name, "(")
             If pstart > 0 Then
                 bvar.isArray = True
-                arraySize = ConvertExpression(Mid$(bvar.name, pstart + 1, Len(bvar.name) - pstart - 1))
+                arraySize = ConvertExpression(Mid$(bvar.name, pstart + 1, Len(bvar.name) - pstart - 1), lineNumber)
                 bvar.name = RemoveSuffix(Left$(bvar.name, pstart - 1))
             Else
                 bvar.isArray = False
@@ -1322,17 +1340,20 @@ Function FindTypeId (typeName As String)
     FindTypeId = id
 End Function
 
-Function ConvertExpression$ (ex As String)
+Function ConvertExpression$ (ex As String, lineNumber As Integer)
     Dim c As String
     Dim js As String: js = ""
     Dim word As String: word = ""
     Dim bvar As Variable
     Dim m As Method
+    Dim isOperator As Integer
 
     Dim stringLiteral As Integer
     Dim i As Integer: i = 1
     While i <= Len(ex)
         c = Mid$(ex, i, 1)
+
+        isOperator = InStr(OPERATORS, c)
 
         If c = Chr$(34) Then
             js = js + c
@@ -1342,7 +1363,7 @@ Function ConvertExpression$ (ex As String)
             js = js + c
 
         Else
-            If c = " " Or c = "," Or i = Len(ex) Then
+            If c = " " Or c = "," Or isOperator Or i = Len(ex) Then
                 If i = Len(ex) Then word = word + c
                 Dim uword As String: uword = UCase$(word)
                 If uword = "NOT" Then
@@ -1384,7 +1405,12 @@ Function ConvertExpression$ (ex As String)
 
                     End If
                 End If
-                If c = "," And i <> Len(ex) Then js = js + ","
+                If c = "," And i <> Len(ex) Then
+                    js = js + ","
+                ElseIf isOperator Then
+                    If c = "\" Then c = "/" ' Not fully compatible but will at least perform a division operation
+                    js = js + " " + c + " "
+                End If
                 word = ""
 
             ElseIf c = "(" Then
@@ -1431,15 +1457,15 @@ Function ConvertExpression$ (ex As String)
                         js = js + fneg + bvar.jsname
                     Else
                         ' This is the case where a dimension is specified in order to retrieve or set a value in the array
-                        js = js + fneg + "QB.arrayValue(" + bvar.jsname + ", [" + ConvertExpression(ex2) + "]).value"
+                        js = js + fneg + "QB.arrayValue(" + bvar.jsname + ", [" + ConvertExpression(ex2, lineNumber) + "]).value"
                     End If
                 ElseIf FindMethod(word, m, "FUNCTION") Then
                     'js = js + fneg + "(" + CallMethod(m) + "(" + ConvertExpression(ex2) + "))"
-                    js = js + fneg + "(" + CallMethod(m) + "(" + ConvertMethodParams(ex2) + "))"
+                    js = js + fneg + "(" + CallMethod(m) + "(" + ConvertMethodParams(ex2, lineNumber) + "))"
                 Else
-                    If _Trim$(word) <> "" Then AddWarning i, "Missing function or array [" + word + "]"
+                    If _Trim$(word) <> "" Then AddWarning lineNumber, "Missing function or array [" + word + "]"
                     ' nested condition
-                    js = js + fneg + "(" + ConvertExpression(ex2) + ")"
+                    js = js + fneg + "(" + ConvertExpression(ex2, lineNumber) + ")"
                 End If
                 word = ""
 
@@ -1453,7 +1479,7 @@ Function ConvertExpression$ (ex As String)
 End Function
 
 ' Handle optional parameters
-Function ConvertMethodParams$ (args As String)
+Function ConvertMethodParams$ (args As String, lineNumber As Integer)
     Dim js As String
     ReDim params(0) As String
     Dim argc As Integer
@@ -1464,7 +1490,7 @@ Function ConvertMethodParams$ (args As String)
         If _Trim$(params(i)) = "" Then
             js = js + " undefined"
         Else
-            js = js + " " + ConvertExpression(params(i))
+            js = js + " " + ConvertExpression(params(i), lineNumber)
         End If
     Next i
     ConvertMethodParams = js
@@ -1879,25 +1905,49 @@ Sub FindMethods
         If rawJS Then _Continue
 
         If word = "FUNCTION" Or word = "SUB" Then
+            ' Find start and end parameters, if present to get argument list
+            Dim mstr As String
+            Dim argstr As String
+            Dim pstart As Integer
+            Dim mname As String
+            Dim pend
+            mstr = Join(parts(), 2, -1, " ")
+            pstart = InStr(mstr, "(")
+            'AddJSLine 0, "//// " + Str$(pstart) + ":: " + mstr
+            If pstart = 0 Then
+                argstr = ""
+                mname = mstr
+            Else
+                mname = _Trim$(Left$(mstr, pstart - 1))
+                mstr = Mid$(mstr, pstart + 1)
+                pend = _InStrRev(mstr, ")")
+                argstr = Left$(mstr, pend - 1)
+            End If
+            'AddJSLine 0, "////     pend:   " + Str$(pend)
+            'AddJSLine 0, "////     mname:  " + mname
+            'AddJSLine 0, "////     argstr: " + argstr
+
+            ReDim As String arga(0)
 
             Dim m As Method
             m.line = i
-            m.type = UCase$(parts(1))
-            m.name = parts(2)
-            m.argc = 0
+            m.type = word 'UCase$(parts(1))
+            m.name = mname 'parts(2)
+            m.argc = ListSplit(argstr, arga())
             m.args = ""
             ReDim As Argument args(0)
 
-            If UBound(parts) > 2 Then
+            If UBound(arga) > 0 Then
+                'If UBound(parts) > 2 Then
                 Dim a As Integer
                 Dim args As String
-                args = ""
-                For a = 3 To UBound(parts)
-                    args = args + parts(a) + " "
-                Next a
-                args = Mid$(_Trim$(args), 2, Len(_Trim$(args)) - 2)
-                ReDim As String arga(0)
-                m.argc = ListSplit(args, arga())
+                'args = ""
+                'For a = 3 To UBound(parts)
+                '    args = args + parts(a) + " "
+                'Next a
+                'args = Mid$(_Trim$(args), 2, Len(_Trim$(args)) - 2)
+                'ReDim As String arga(0)
+                'm.argc = ListSplit(args, arga())
                 args = ""
                 For a = 1 To m.argc
                     ReDim As String aparts(0)

@@ -257,6 +257,7 @@
         var consoleVisible = false;
         var currTab = "console";
         var editor;
+        var selectedError = null;
 
         async function init() {
             if (window.innerWidth < 1200) {
@@ -347,12 +348,49 @@
             }
             catch (error) {
                 console.error(error);
-                var wdiv = document.getElementById("warning-container");
-                var html = wdiv.innerHTML;
-                if (html != "") { html += "\n" };
-                html += error.name + ": " + error.message + "\n";
-                html += error.stack;
-                wdiv.innerHTML = html;
+
+                // find the source line, if possible
+                var srcLine = "";
+                var stack = error.stack.split("\n");
+                for (var i=0; i < stack.length; i++) {
+                    // chrome
+                    if (stack[i].trim().startsWith("at eval (eval at runProgram")) {
+                        var idx = stack[i].indexOf("<anonymous>:");
+                        var pos = stack[i].substring(idx + 12); 
+                        pos = pos.substring(0, pos.length - 1);   
+                        pos = pos.split(":");
+                        srcLine = pos[0] - 2;
+                    }
+                    // firefox
+                    else if (stack[i].trim().indexOf("> AsyncFunction:") > -1) {
+                        var idx = stack[i].indexOf("> AsyncFunction:");
+                        var pos = stack[i].substring(idx + 16); 
+                        pos = pos.split(":");
+                        srcLine = pos[0] - 2;
+                    }
+                }
+
+                if (!isNaN(srcLine)) {
+                    srcLine = QBCompiler.getSourceLine(srcLine);
+                }
+
+                var table = document.getElementById("warning-table");
+                if (table) {
+                    tr = document.createElement("tr");
+                    addWarningCell(tr, "ERROR");
+                    addWarningCell(tr, ":");
+                    addWarningCell(tr, srcLine);
+                    addWarningCell(tr, ":");
+                    addWarningCell(tr, "<div style='white-space:pre'>" + error.message + "\n<div style='color:#666'>" + error.stack + "</div></div>", "99%");
+                    tr.codeLine = srcLine - 1;
+                    tr.onclick = gotoWarning;
+                    table.append(tr);
+                }
+
+                /*var wdiv = document.getElementById("warning-container");
+                var div = document.createElement("div");
+                div.innerHTML = error.name + ": " + error.message + "\n" + error.stack;
+                wdiv.appendChild(div); */
                 consoleVisible = true;
                 window.onresize();
                 QB.halt();
@@ -445,15 +483,61 @@
             var wstr = "";
             var w = await QBCompiler.getWarnings();
             warnCount = w.length;
-            for (var i=0; i < w.length; i++) {
-                wstr += w[i].line + ": " + w[i].text + "\n";
-            }
+
             var wdiv = document.getElementById("warning-container");
-            wdiv.innerHTML = wstr;
+            wdiv.innerHTML = "";
+            var table = document.createElement("table");
+            table.width = "100%";
+            table.id = "warning-table";
+            table.cellPadding = 2;
+            table.cellSpacing = 0;
+            table.style.cursor = "default";
+            wdiv.appendChild(table);
+
+            selectedError = null;
+            if (warnCount > 0) {
+                for (var i=0; i < w.length; i++) {
+                    var tr = document.createElement("tr");
+                    var td1 = document.createElement("td");
+                    var td2 = document.createElement("td");
+                    var td3 = document.createElement("td");
+                    addWarningCell(tr, "WARN");
+                    addWarningCell(tr, ":");
+                    addWarningCell(tr, w[i].line);
+                    addWarningCell(tr, ":");
+                    addWarningCell(tr, w[i].text, "99%");
+                    table.append(tr);
+                    tr.codeLine = w[i].line - 1;
+                    tr.onclick = gotoWarning; /*function() {
+                        if (selectedError ) { selectedError.style.backgroundColor = "transparent"; }
+                        editor.setCursor({ line: this.codeLine}); 
+                        this.style.backgroundColor = "#333";
+                        selectedError = this;
+                    };*/
+                }
+            }
             if (!consoleVisible && w.length > 0) {
                 consoleVisible = true;
             }
         }
+
+        function gotoWarning() {
+            if (selectedError ) { selectedError.style.backgroundColor = "transparent"; }
+                        editor.setCursor({ line: this.codeLine}); 
+                        this.style.backgroundColor = "#333";
+                        selectedError = this;
+        };
+
+        function addWarningCell(tr, text, width) {
+            var td = document.createElement("td");
+            td.innerHTML = text;
+            td.vAlign = "top";
+            if (width != undefined) {
+                td.width = width;
+            }
+            tr.append(td);
+        }
+
 
         function showConsole() {
             consoleVisible = !consoleVisible;
