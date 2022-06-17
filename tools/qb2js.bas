@@ -2,6 +2,8 @@ Option _Explicit
 $Console:Only
 '$ExeIcon:'./../gx/resource/gx.ico'
 
+' In console, after creating qb2js.exe, run:    qb2js qb2js.bas > ../qb2js.js
+
 Const FILE = 1
 Const TEXT = 2
 Const False = 0
@@ -69,8 +71,6 @@ Dim Shared modLevel As Integer
 Dim Shared As String currentMethod
 Dim Shared As String currentModule
 Dim Shared As Integer programMethods
-Dim Shared As Integer dataTicker
-dataTicker = 1
 
 ' Only execute the conversion from the native version if we have been passed the
 ' source file to convert on the command line
@@ -1744,19 +1744,6 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
 
     ReadLine = rawJS
 
-    'If (_Trim$(LCase$(Left$(fline, 4))) = "data") Then
-    '    'AddLineTop dataTicker, fline
-    '    'AddSubLinesTop dataTicker, fline
-    '    AddLine dataTicker, fline
-    '    AddSubLines dataTicker, fline
-    '    Exit Function
-    'End If
-    'If (_Trim$(LCase$(Left$(fline, 6))) = "_label") Then
-    '    'AddLineTop dataTicker, fline
-    '    AddLine dataTicker, fline
-    '    Exit Function
-    'End If
-
     If _Trim$(fline) = "" Then Exit Function
 
     Dim word As String
@@ -2355,19 +2342,6 @@ Sub AddQBMethod (mtype As String, mname As String, sync As Integer)
     m.name = mname
     AddMethod m, "QB.", sync
 End Sub
-
-'Sub AddLineTop (lineIndex As Integer, fline As String)
-'    Dim lcount As Integer: lcount = UBound(lines) + 1
-'    ReDim _Preserve As CodeLine lines(lcount)
-'    Dim j As Integer
-'    For j = UBound(lines) To dataTicker Step -1
-'        lines(j).line = lines(j - 1).line
-'        lines(j).text = lines(j - 1).text
-'    Next
-'    lines(dataTicker).line = dataTicker
-'    lines(dataTicker).text = fline
-'    dataTicker = dataTicker + 1
-'End Sub
 
 Sub AddLine (lineIndex As Integer, fline As String)
     __AddLine lineIndex, fline
@@ -3007,10 +2981,12 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_AutoDisplay", False
     AddQBMethod "FUNCTION", "_Blue", False
     AddQBMethod "FUNCTION", "_Blue32", False
+    AddQBMethod "FUNCTION", "_Ceil", False
     AddQBMethod "FUNCTION", "_CopyImage", False
     AddQBMethod "FUNCTION", "_Cosh", False
     AddQBMethod "FUNCTION", "_Coth", False
     AddQBMethod "FUNCTION", "_Csch", False
+    AddQBMethod "FUNCTION", "_D2G", False
     AddQBMethod "FUNCTION", "_D2R", False
     AddQBMethod "SUB", "_Delay", True
     AddQBMethod "FUNCTION", "_Dest", False
@@ -3021,9 +2997,12 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_FreeImage", False
     AddQBMethod "SUB", "_FullScreen", False
     AddQBMethod "FUNCTION", "_FullScreen", False
+    AddQBMethod "FUNCTION", "_G2D", False
+    AddQBMethod "FUNCTION", "_G2R", False
     AddQBMethod "FUNCTION", "_Green", False
     AddQBMethod "FUNCTION", "_Green32", False
     AddQBMethod "FUNCTION", "_Height", False
+    AddQBMethod "FUNCTION", "_Hypot", False
     AddQBMethod "FUNCTION", "_InStrRev", False
     AddQBMethod "SUB", "_Limit", True
     AddQBMethod "SUB", "_KeyClear", False
@@ -3040,8 +3019,11 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_PrintWidth", False
     AddQBMethod "SUB", "_PutImage", False
     AddQBMethod "FUNCTION", "_R2D", False
+    AddQBMethod "FUNCTION", "_R2G", False
+    AddQBMethod "FUNCTION", "_Readbit", False
     AddQBMethod "FUNCTION", "_Red", False
     AddQBMethod "FUNCTION", "_Red32", False
+    AddQBMethod "FUNCTION", "_Resetbit", False
     AddQBMethod "FUNCTION", "_Resize", False
     AddQBMethod "FUNCTION", "_ResizeHeight", False
     AddQBMethod "FUNCTION", "_ResizeWidth", False
@@ -3052,6 +3034,9 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Round", False
     AddQBMethod "FUNCTION", "_ScreenExists", False
     AddQBMethod "FUNCTION", "_Sech", False
+    AddQBMethod "FUNCTION", "_Setbit", False
+    AddQBMethod "FUNCTION", "_Shl", False
+    AddQBMethod "FUNCTION", "_Shr", False
     AddQBMethod "FUNCTION", "_Sinh", False
     AddQBMethod "FUNCTION", "_Source", False
     AddQBMethod "SUB", "_Source", False
@@ -3062,8 +3047,11 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_SndPause", False
     AddQBMethod "SUB", "_SndStop", False
     AddQBMethod "SUB", "_SndVol", False
+    AddQBMethod "FUNCTION", "_Strcmp", False
+    AddQBMethod "FUNCTION", "_Stricmp", False
     AddQBMethod "FUNCTION", "_Tanh", False
     AddQBMethod "SUB", "_Title", False
+    AddQBMethod "FUNCTION", "_Togglebit", False
     AddQBMethod "FUNCTION", "_Trim", False
     AddQBMethod "FUNCTION", "_Width", False
 
@@ -3074,6 +3062,10 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Atn", False
     AddQBMethod "SUB", "Beep", False
     AddQBMethod "FUNCTION", "Chr$", False
+    AddQBMethod "FUNCTION", "Cdbl", False
+    AddQBMethod "FUNCTION", "Cint", False
+    AddQBMethod "FUNCTION", "Clng", False
+    AddQBMethod "FUNCTION", "Csng", False
     AddQBMethod "SUB", "Circle", False
     AddQBMethod "SUB", "Cls", False
     AddQBMethod "SUB", "Color", False
@@ -3082,6 +3074,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Csrlin", False
     AddQBMethod "FUNCTION", "Cvi", False
     AddQBMethod "FUNCTION", "Cvl", False
+    AddQBMethod "FUNCTION", "Date$", False
     AddQBMethod "SUB", "Draw", False
     AddQBMethod "FUNCTION", "Exp", False
     AddQBMethod "FUNCTION", "Fix", False

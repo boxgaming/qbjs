@@ -202,6 +202,10 @@ var QB = new function() {
         return _color(rgb).b;
     };
 
+    this.func__Ceil = function(x) {
+        return Math.ceil(x);
+    };
+
     this.func__CopyImage = function(srcImageId) {
         var srcCanvas = _images[srcImageId].canvas;
         var destImageId = QB.func__NewImage(srcCanvas.width, srcCanvas.height);
@@ -225,6 +229,10 @@ var QB = new function() {
 
     this.func__D2R = function(x) {
         return x*Math.PI/180;
+    };
+
+    this.func__D2G = function(x) {
+        return (x * 10/9);
     };
 
     this.sub__Delay = async function(seconds) {
@@ -274,6 +282,14 @@ var QB = new function() {
         // TODO: implement smooth option (maybe) - the canvas does smooth scaling by default
     }
 
+    this.func__G2D = function(x) {
+        return (x * 9/10);
+    };
+
+    this.func__G2R = function(x) {
+        return (x * 9/10) * Math.PI/180;
+    };
+
     this.func__Green = function(rgb, imageHandle) {
         // TODO: implement corresponding logic when an image handle is supplied (maybe)
         return _color(rgb).g;
@@ -296,6 +312,10 @@ var QB = new function() {
         if (imageId == undefined) { imageId = _activeImage; }
         return _images[imageId].canvas.height;
     }
+
+    this.func__Hypot = function(x, y) {
+        return Math.hypot(x, y);
+    };
 
     this.func__InStrRev = function(arg1, arg2, arg3) {
       var startIndex = +Infinity;
@@ -523,6 +543,19 @@ var QB = new function() {
         return x*180/Math.PI;
     };
 
+    this.func__R2G = function(x) {
+        return (x*(9/10))*180/Math.PI;
+    };
+
+    this.func__Readbit= function(x, y) {
+        var mask = 1 << y;
+        if ((x & mask) != 0) {
+            return -1;
+        } else {
+            return 0;
+        }
+    };
+
     this.func__Red = function(rgb, imageHandle) {
         // TODO: implement corresponding logic when an image handle is supplied (maybe)
         return _color(rgb).r;
@@ -531,6 +564,11 @@ var QB = new function() {
     this.func__Red32 = function(rgb) {
         // TODO: implement corresponding logic when an image handle is supplied (maybe)
         return _color(rgb).r;
+    };
+
+    this.func__Resetbit = function(x, y) {
+        var mask = 1 << y;
+        return x & ~mask;
     };
 
     this.func__Resize = function() {
@@ -578,7 +616,11 @@ var QB = new function() {
     }
 
     this.func__Round = function(value) {
-        return Math.round(value);
+        if (value < 0) {
+            return -Math.round(-value);
+        } else {
+            return Math.round(value);
+        }
     };
 
     this.func__ScreenExists = function() {
@@ -587,6 +629,19 @@ var QB = new function() {
 
     this.func__Sech = function(x) {
         return 1/Math.cosh(x);
+    };
+
+    this.func__Setbit = function(x, y) {
+        var mask = 1 << y;
+        return x | mask;
+    };
+
+    this.func__Shl = function(x, y) {
+        return x << y;
+    };
+
+    this.func__Shr = function(x, y) {
+        return x >>> y;
     };
 
     this.func__Sinh = function(x) {
@@ -628,6 +683,16 @@ var QB = new function() {
         GX.soundVolumne(sid, v);
     };
 
+    this.func__Strcmp = function(x, y) {
+        return (( x == y ) ? 0 : (( x > y ) ? 1 : -1 ));
+    };
+
+    this.func__Stricmp = function(x, y) {
+        var a = x.toLowerCase();
+        var b = y.toLowerCase();
+        return (( a == b ) ? 0 : (( a > b ) ? 1 : -1 ));
+    };
+
     this.func__Tanh = function(x) {
         return Math.tanh(x);
     };
@@ -638,6 +703,11 @@ var QB = new function() {
 
     this.func__Trim = function(value) {
         return value.trim();
+    };
+
+    this.func__Togglebit = function(x, y) {
+        var mask = 1 << y;
+        return x ^ mask;
     };
 
     this.func__Width = function(imageId) {
@@ -764,6 +834,14 @@ var QB = new function() {
             result+=numString.charCodeAt(3-i)<<(8*i);
         }
         return result;
+    }
+
+    this.func_Date = function() {
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0');
+        var yyyy = today.getFullYear();
+        return mm + '-' + dd + '-' + yyyy;
     }
 
     this.sub_Draw = function(t) {
@@ -1193,6 +1271,33 @@ var QB = new function() {
 
     this.func_Log = function(value) {
         return Math.log(value);
+    };
+
+    this.func_Cdbl = function(value) {
+        const buffer = new ArrayBuffer(16);
+        const view = new DataView(buffer);
+        view.setFloat32(1, value);
+        return view.getFloat32(1);
+    };
+
+    this.func_Cint = function(value) {
+        if (value > 0) {
+            return Math.round(value);
+        } else {
+            return -Math.round(-value);
+        }
+    };
+
+    this.func_Clng = function(value) {
+        if (value > 0) {
+            return Math.round(value);
+        } else {
+            return -Math.round(-value);
+        }
+    };
+
+    this.func_Csng = function(value) {
+        return value; // TODO: Implement this.
     };
 
     this.sub_Circle = function(step, x, y, radius, color, startAngle, endAngle, aspect) {
@@ -1717,7 +1822,7 @@ var QB = new function() {
     }
 
     this.sub_Restore = function(t) {
-        if (t == undefined || t.trim() == "") {
+        if ((t == undefined) || (t.trim() == "")) {
             _readCursorPosition = 0;
         } else {
             _readCursorPosition = _dataLabelMap[t];
@@ -1922,6 +2027,7 @@ var QB = new function() {
 
     this.func_Val = function(value) {
         var ret;
+        value = value.toString();
         if (value.substring(0, 2) == "&H") {
             ret = parseInt(value.slice(2), 16);
         } else if (value.substring(0, 2) == "&O") {
