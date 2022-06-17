@@ -351,6 +351,9 @@
 
                 // find the source line, if possible
                 var srcLine = "";
+                if (error.line) {
+                    srcLine = error.line - 1;
+                }
                 var stack = error.stack.split("\n");
                 for (var i=0; i < stack.length; i++) {
                     // chrome
