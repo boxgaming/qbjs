@@ -1335,7 +1335,7 @@ var QB = new function() {
         screen.lastY = y;
 
         ctx.lineWidth = _strokeLineThickness;
-        ctx.lineWidth += Math.tanh(8*radius*_screenDiagInv); // Adds some radius to compensate for antialiasing. The prefactor is arbitrary. //
+        ctx.lineWidth += Math.tanh(8*radius*_screenDiagInv); // Adds some radius to compensate for antialiasing. The prefactor 8 is arbitrary. //
         ctx.strokeStyle = color.rgba();
         ctx.beginPath();
         if (aspect == undefined) {
@@ -1617,7 +1617,7 @@ var QB = new function() {
         var g = dat[p+1];
         var b = dat[p+2];
         //var a = dat[p+3]; // 0 < a < 255
-        var thresh = 2;
+        var thresh = 16; // usually 2
         if ((Math.abs(r - c1.r) < thresh) && (Math.abs(g - c1.g) < thresh) && (Math.abs(b - c1.b) < thresh)) { return false; }
         if ((Math.abs(r - c2.r) < thresh) && (Math.abs(g - c2.g) < thresh) && (Math.abs(b - c2.b) < thresh)) { return false; }
         return true;
