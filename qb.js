@@ -127,6 +127,7 @@ var QB = new function() {
         _rndSeed = 327680;
         _runningFlag = true;
         _sourceImage = 0;
+        _initColorTable();
         GX._enableTouchMouse(true);
         GX.registerGameEvents(function(e){});
         QB.sub_Screen(0);
@@ -410,6 +411,10 @@ var QB = new function() {
         var tmpId = _nextImageId;
         _nextImageId++;
         return tmpId;
+    };
+
+    this.sub__PaletteColor = function(x, y) {
+        _colormap[x] = _color(y);
     };
 
     this.sub__PrintString = function(x, y, s) {
