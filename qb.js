@@ -821,8 +821,8 @@ var QB = new function() {
         if (x != undefined) {
             _fgColor = _color(x);
         }
-        if (bg != undefined) {
-             _bgColor = _color(y);
+        if (y != undefined) {
+            _bgColor = _color(y);
         }
         //}
     };
