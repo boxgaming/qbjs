@@ -2875,6 +2875,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION" ,   "_MouseY" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_NewImage" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Pi" ,    False);
+   await sub_AddQBMethod( "SUB" ,   "_PaletteColor" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_PrintString" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_PrintWidth" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_PutImage" ,    False);

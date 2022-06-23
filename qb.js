@@ -34,6 +34,7 @@ var QB = new function() {
     var _rndSeed;
     var _runningFlag = false;
     var _screenDiagInv;
+    var _screenMode;
     var _sourceImage = 0;
     var _strokeDrawLength = null;
     var _strokeDrawAngle = null;
@@ -127,6 +128,7 @@ var QB = new function() {
         _rndSeed = 327680;
         _runningFlag = true;
         _sourceImage = 0;
+        _initColorTable();
         GX._enableTouchMouse(true);
         GX.registerGameEvents(function(e){});
         QB.sub_Screen(0);
@@ -407,6 +409,10 @@ var QB = new function() {
         var tmpId = _nextImageId;
         _nextImageId++;
         return tmpId;
+    };
+
+    this.sub__PaletteColor = function(x, y) {
+        _colormap[x] = _color(y);
     };
 
     this.sub__PrintString = function(x, y, s) {
@@ -768,7 +774,11 @@ var QB = new function() {
         _images[_activeImage].dirty = true;
         ctx.beginPath();
         ctx.clearRect(0, 0, _width(), _height());
+        //if (_screenMode == 1) { TODO: Finish implementing this.
         ctx.fillStyle = color.rgba();
+        //} else {
+        //    ctx.fillStyle = color.rgba();
+        //}
         ctx.fillRect(0, 0, _width(), _height());
 
         // reset the text position
@@ -794,13 +804,24 @@ var QB = new function() {
         return _rgb(0,0,0);
     }
 
-    this.sub_Color = function(fg, bg) {
-        if (fg != undefined) {
-            _fgColor = _color(fg);
+    this.sub_Color = function(x, y) {
+        /*if (_screenMode == 1) { This code is fine.
+            if (x == 0) {        _bgColor = _rgb(0, 0, 0);
+            } else if (x == 1) { _bgColor = _rgb(0, 0, 168);
+            } else if (x == 2) { _bgColor = _rgb(0, 168, 0);
+            } else if (x == 3) { _bgColor = _rgb(0, 168, 168); }          
+            ctx = _images[_activeImage].ctx;
+            ctx.fillStyle = _bgColor.rgba();
+            ctx.beginPath();
+            ctx.fillRect(0, 0, _width(), _height());
+        } else {*/
+        if (x != undefined) {
+            _fgColor = _color(x);
         }
-        if (bg != undefined) {
-            _bgColor = _color(bg);
+        if (y != undefined) {
+            _bgColor = _color(y);
         }
+        //}
     };
 
     this.func_Command = function() {
@@ -1332,7 +1353,7 @@ var QB = new function() {
         screen.lastY = y;
 
         ctx.lineWidth = _strokeLineThickness;
-        ctx.lineWidth += Math.tanh(8*radius*_screenDiagInv); // Adds some radius to compensate for antialiasing. The prefactor is arbitrary. //
+        ctx.lineWidth += Math.tanh(8*radius*_screenDiagInv); // Adds some radius to compensate for antialiasing. The prefactor 8 is arbitrary. //
         ctx.strokeStyle = color.rgba();
         ctx.beginPath();
         if (aspect == undefined) {
@@ -1614,7 +1635,7 @@ var QB = new function() {
         var g = dat[p+1];
         var b = dat[p+2];
         //var a = dat[p+3]; // 0 < a < 255
-        var thresh = 2;
+        var thresh = 16; // usually 2
         if ((Math.abs(r - c1.r) < thresh) && (Math.abs(g - c1.g) < thresh) && (Math.abs(b - c1.b) < thresh)) { return false; }
         if ((Math.abs(r - c2.r) < thresh) && (Math.abs(g - c2.g) < thresh) && (Math.abs(b - c2.b) < thresh)) { return false; }
         return true;
@@ -1887,7 +1908,11 @@ var QB = new function() {
         if (mode == 0) {
             GX.sceneCreate(640, 400);
         }
-        else if (mode < 2 || mode == 7 || mode == 13) {
+        else if (mode == 1) {
+            GX.sceneCreate(320, 200);
+            _fgColor = _rgb(168, 168, 168);
+        }
+        else if (mode == 2 || mode == 7 || mode == 13) {
             GX.sceneCreate(320, 200);
         }
         else if (mode == 8) {
@@ -1913,13 +1938,14 @@ var QB = new function() {
                 _images[mode] = _images[0];
             }
         }
-        _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0};
+        _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0 };
         _images[0].lastX = _images[0].canvas.width/2;
         _images[0].lastY = _images[0].canvas.height/2;
 
         _screenDiagInv = 1/Math.sqrt(_images[0].canvas.width*_images[0].canvas.width + _images[0].canvas.height*_images[0].canvas.height);
         
         // initialize the graphics
+        _screenMode = mode;
         _fgColor = _color(7); 
         _bgColor = _color(0);
         _locX = 0;
@@ -1936,6 +1962,14 @@ var QB = new function() {
         _keyHitBuffer = [];
         _keyDownMap = {};
 
+        /*
+        if (mode == 1) {
+            ctx = _images[_activeImage].ctx;
+            ctx.beginPath();
+            ctx.fillStyle = _bgColor.rgba();
+            ctx.fillRect(0, 0, _width(), _height());
+        }
+        */
     };
 
     this.func_Sgn = function(value) {

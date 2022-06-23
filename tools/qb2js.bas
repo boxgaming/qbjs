@@ -2,7 +2,9 @@ Option _Explicit
 $Console:Only
 '$ExeIcon:'./../gx/resource/gx.ico'
 
-' In console, after creating qb2js.exe, run:    qb2js qb2js.bas > ../qb2js.js
+'1) Edit this file as needed.
+'2) Compile to EXE only.
+'3) In console, run:    qb2js qb2js.bas > ../qb2js.js
 
 Const FILE = 1
 Const TEXT = 2
@@ -3041,6 +3043,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_MouseY", False
     AddQBMethod "FUNCTION", "_NewImage", False
     AddQBMethod "FUNCTION", "_Pi", False
+    AddQBMethod "SUB", "_PaletteColor", False
     AddQBMethod "SUB", "_PrintString", False
     AddQBMethod "FUNCTION", "_PrintWidth", False
     AddQBMethod "SUB", "_PutImage", False
