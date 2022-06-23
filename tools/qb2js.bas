@@ -8,7 +8,9 @@ Const FILE = 1
 Const TEXT = 2
 Const False = 0
 Const True = Not False
-Const OPERATORS = "+-/\*"
+' Additional Debugging output - should be set to false for final build
+Const PrintLineMapping = False
+Const PrintTokenizedLine = False
 
 Type CodeLine
     line As Integer
@@ -117,8 +119,8 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
     ElseIf sourceType = FILE Then
         AddJSLine 0, "async function init() {"
 
-    Else
-        AddJSLine 0, "try {"
+        'Else
+        '    AddJSLine 0, "try {"
     End If
 
     If Not selfConvert And moduleName = "" Then AddJSLine 0, "QB.start();"
@@ -139,7 +141,6 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
 
     ConvertLines 1, MainEnd, ""
     If Not selfConvert And Not isGX And moduleName = "" Then AddJSLine 0, "QB.end();"
-    'If Not selfConvert And moduleName = "" Then End
     ConvertMethods
 
 
@@ -148,7 +149,11 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "   await sub_QBToJS(src, TEXT, '');"
         AddJSLine 0, "   var js = '';"
         AddJSLine 0, "   for (var i=1; i<= QB.func_UBound(jsLines); i++) {"
-        AddJSLine 0, "      js += '/* ' + i + ':' + this.getSourceLine(i) + ' */ ' + QB.arrayValue(jsLines, [i]).value.text + '\n';"
+        If PrintLineMapping Then
+            AddJSLine 0, "      js += '/* ' + i + ':' + this.getSourceLine(i) + ' */ ' + QB.arrayValue(jsLines, [i]).value.text + '\n';"
+        Else
+            AddJSLine 0, "      js += QB.arrayValue(jsLines, [i]).value.text + '\n';"
+        End If
         AddJSLine 0, "   }"
         AddJSLine 0, "   return js;"
         AddJSLine 0, "};"
@@ -180,8 +185,8 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
     ElseIf sourceType = FILE Then
         AddJSLine 0, "};"
 
-    Else
-        AddJSLine 0, "} catch (error) { console.log(error); throw error; }"
+        'Else
+        '    AddJSLine 0, "} catch (error) { console.log(error); throw error; }"
     End If
 End Sub
 
@@ -248,6 +253,8 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
         c = SLSplit(l, parts(), True)
         If c < 1 Then _Continue
 
+        If PrintTokenizedLine Then AddJSLine 0, "//// " + Join(parts(), 1, -1, "|")
+
         Dim js As String
         js = ""
         Dim first As String
@@ -277,9 +284,24 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
             End If
         Else
             If first = "CONST" Then
-                ' TODO: add support for comma-separated list of constants
-                js = "const " + parts(2) + " = " + ConvertExpression(Join(parts(), 4, -1, " "), i) + ";"
-                AddConst parts(2)
+                ReDim As String constParts(0)
+                Dim As Integer constCount
+                constCount = ListSplit(Join(parts(), 2, -1, " "), constParts())
+                Dim constIdx As Integer
+                For constIdx = 1 To constCount
+                    Dim eqi As Integer
+                    eqi = InStr(constParts(constIdx), "=")
+                    If eqi < 1 Then
+                        AddWarning i, "Invalid Const syntax: [" + constParts(constIdx) + "]"
+                    Else
+                        Dim As String cleft, cright
+                        cleft = Left$(constParts(constIdx), eqi - 1)
+                        cright = Mid$(constParts(constIdx), eqi + 1)
+                        js = js + "const " + cleft + " = " + ConvertExpression(cright, i) + ";"
+                        AddConst cleft
+                    End If
+                    If constIdx <> constCount Then js = js + CRLF
+                Next constIdx
 
             ElseIf first = "DIM" Or first = "REDIM" Or first = "STATIC" Then
                 js = DeclareVar(parts(), i)
@@ -503,11 +525,9 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 Next j
 
                 If assignment > 0 Then
-                    'This is a variable assignment
-                    'If Not FindVariable(parts(1), false) Then
-                    '    If Not FindVariable(parts(1), true) then
-                    '    end if
-                    '    end if
+                    ' This is a variable assignment
+                    ' TODO: implicit variable declaration
+                    ' TODO: special case for Mid$ statement
                     js = RemoveSuffix(ConvertExpression(Join(parts(), 1, assignment - 1, " "), i)) + " = " + ConvertExpression(Join(parts(), assignment + 1, -1, " "), i) + ";"
 
                 Else
@@ -623,7 +643,6 @@ Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
         If plen > 0 Then
             If UCase$(parts(1)) = "INPUT" Then
                 m.name = "Line Input"
-                'm.jsname = "await QB.sub_LineInput"
                 m.jsname = "QB.sub_LineInput"
                 args = Join(parts(), 2, -1, " ")
             End If
@@ -702,66 +721,21 @@ Function ConvertFullScreen$ (args As String)
 End Function
 
 Function ConvertLine$ (args As String, lineNumber As Integer)
-    ' TODO: This does not yet handle dash patterns
-    Dim firstParam As String
-    Dim theRest As String
-    Dim idx As Integer
-    Dim sstep As String
-    Dim estep As String
-    sstep = "false"
-    estep = "false"
+    Dim argc As Integer
+    ReDim parts(0) As String
+    Dim As String coord, lcolor, mode, style
+    coord = ConvertCoordParam("", True, lineNumber)
+    lcolor = "undefined"
+    mode = "undefined"
+    style = "undefined"
 
-    idx = FindParamChar(args, ",")
-    If idx = -1 Then
-        firstParam = args
-        theRest = ""
-    Else
-        firstParam = Left$(args, idx - 1)
-        theRest = Right$(args, Len(args) - idx)
-    End If
+    argc = ListSplit(args, parts())
+    If argc >= 1 Then coord = ConvertCoordParam(parts(1), True, lineNumber)
+    If argc >= 2 Then lcolor = ConvertExpression(parts(2), lineNumber)
+    If argc >= 3 Then mode = "'" + UCase$(_Trim$(parts(3))) + "'"
+    If argc >= 4 Then style = ConvertExpression(parts(4), lineNumber)
 
-    idx = FindParamChar(firstParam, "-")
-    Dim startCord As String
-    Dim endCord As String
-    If idx = -1 Then
-        endCord = firstParam
-    Else
-        startCord = Left$(firstParam, idx - 1)
-        endCord = Right$(firstParam, Len(firstParam) - idx)
-    End If
-
-    If UCase$(_Trim$(Left$(startCord, 4))) = "STEP" Then
-        sstep = "true"
-    End If
-    If UCase$(_Trim$(Left$(endCord, 4))) = "STEP" Then
-        estep = "true"
-    End If
-
-    idx = InStr(startCord, "(")
-    startCord = Right$(startCord, Len(startCord) - idx)
-    idx = _InStrRev(startCord, ")")
-    startCord = Left$(startCord, idx - 1)
-    startCord = ConvertExpression(startCord, lineNumber)
-    If (_Trim$(startCord) = "") Then startCord = "undefined, undefined"
-
-    idx = InStr(endCord, "(")
-    endCord = Right$(endCord, Len(endCord) - idx)
-    idx = _InStrRev(endCord, ")")
-    endCord = Left$(endCord, idx - 1)
-    endCord = ConvertExpression(endCord, lineNumber)
-
-    theRest = ConvertExpression(theRest, lineNumber)
-    ' TODO: fix this nonsense
-    theRest = Replace(theRest, " BF", " " + Chr$(34) + "BF" + Chr$(34))
-    theRest = Replace(theRest, " bf", " " + Chr$(34) + "BF" + Chr$(34))
-    theRest = Replace(theRest, " bF", " " + Chr$(34) + "BF" + Chr$(34))
-    theRest = Replace(theRest, " Bf", " " + Chr$(34) + "BF" + Chr$(34))
-    theRest = Replace(theRest, " B", " " + Chr$(34) + "B" + Chr$(34))
-    theRest = Replace(theRest, " b", " " + Chr$(34) + "B" + Chr$(34))
-    theRest = Replace(theRest, " T", " " + Chr$(34) + "T" + Chr$(34))
-    theRest = Replace(theRest, " t", " " + Chr$(34) + "T" + Chr$(34))
-
-    ConvertLine = sstep + ", " + startCord + ", " + estep + ", " + endCord + ", " + theRest
+    ConvertLine = coord + ", " + lcolor + ", " + mode + ", " + style
 End Function
 
 Function ConvertPutImage$ (args As String, lineNumber As Integer)
@@ -929,10 +903,10 @@ Function ConvertCoordParam$ (param As String, hasEndCoord As Integer, lineNumber
             endCoord = Right$(param, Len(param) - idx)
         End If
 
-        If UCase$(_Trim$(Left$(startCoord, 4))) = "STEP" Then
+        If UCase$(Left$(_Trim$(startCoord), 4)) = "STEP" Then
             sstep = "true"
         End If
-        If UCase$(_Trim$(Left$(endCoord, 4))) = "STEP" Then
+        If UCase$(Left$(_Trim$(endCoord), 4)) = "STEP" Then
             estep = "true"
         End If
 
@@ -1071,7 +1045,7 @@ Function ConvertInput$ (m As Method, args As String, lineNumber As Integer)
         End If
     Next i
 
-    vname = GenJSVar '"___i" + _Trim$(Str$(_Round(Rnd * 10000000)))
+    vname = GenJSVar
     js = "var " + vname + " = new Array(" + Str$(UBound(vars)) + ");" + LF
     js = js + CallMethod(m) + "(" + vname + ", " + preventNewline + ", " + addQuestionPrompt + ", " + prompt + ");" + LF
     For i = 1 To UBound(vars)
@@ -1346,14 +1320,11 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
     Dim word As String: word = ""
     Dim bvar As Variable
     Dim m As Method
-    Dim isOperator As Integer
 
     Dim stringLiteral As Integer
     Dim i As Integer: i = 1
     While i <= Len(ex)
         c = Mid$(ex, i, 1)
-
-        isOperator = InStr(OPERATORS, c)
 
         If c = Chr$(34) Then
             js = js + c
@@ -1363,9 +1334,9 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
             js = js + c
 
         Else
-            If c = " " Or c = "," Or isOperator Or i = Len(ex) Then
+            If c = " " Or c = "," Or i = Len(ex) Then ' isOperator Or i = Len(ex) Then
                 If i = Len(ex) Then word = word + c
-                Dim uword As String: uword = UCase$(word)
+                Dim uword As String: uword = UCase$(_Trim$(word))
                 If uword = "NOT" Then
                     js = js + "!"
                 ElseIf uword = "AND" Then
@@ -1374,17 +1345,20 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                     js = js + " || "
                 ElseIf uword = "MOD" Then
                     js = js + " % "
-                ElseIf word = "=" Then
+                ElseIf uword = "=" Then
                     js = js + " == "
-                ElseIf word = "<>" Then
+                ElseIf uword = "<>" Then
                     js = js + " != "
-                ElseIf word = "^" Then
+                ElseIf uword = "^" Then
                     js = js + " ** "
-                ElseIf word = ">" Or word = ">=" Or word = "<" Or word = "<=" Then
-                    js = js + " " + word + " "
+                ElseIf uword = "\" Then
+                    js = js + " / " ' Not fully compatible but will at least perform a division operation
 
-                ElseIf StartsWith(word, "&H") Or StartsWith(word, "&O") Or StartsWith(word, "&B") Then
-                    js = js + " QB.func_Val('" + word + "') "
+                    'ElseIf uword = ">" Or uword = ">=" Or uword = "<" Or uword = "<=" Then
+                    '    js = js + " " + word + " "
+
+                ElseIf StartsWith(uword, "&H") Or StartsWith(uword, "&O") Or StartsWith(uword, "&B") Then
+                    js = js + " QB.func_Val('" + uword + "') "
 
                 Else
                     If FindVariable(word, bvar, False) Then
@@ -1393,6 +1367,7 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                         ' TODO: Need a more sophisticated way to determine whether
                         '       the return value is being assigned in the method.
                         '       Currently, this does not support recursive calls.
+                        '       (is this still true?)
                         If FindMethod(word, m, "FUNCTION") Then
                             If m.name <> currentMethod Then
                                 js = js + CallMethod$(m) + "()"
@@ -1407,9 +1382,6 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                 End If
                 If c = "," And i <> Len(ex) Then
                     js = js + ","
-                ElseIf isOperator Then
-                    If c = "\" Then c = "/" ' Not fully compatible but will at least perform a division operation
-                    js = js + " " + c + " "
                 End If
                 word = ""
 
@@ -1460,7 +1432,6 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                         js = js + fneg + "QB.arrayValue(" + bvar.jsname + ", [" + ConvertExpression(ex2, lineNumber) + "]).value"
                     End If
                 ElseIf FindMethod(word, m, "FUNCTION") Then
-                    'js = js + fneg + "(" + CallMethod(m) + "(" + ConvertExpression(ex2) + "))"
                     js = js + fneg + "(" + CallMethod(m) + "(" + ConvertMethodParams(ex2, lineNumber) + "))"
                 Else
                     If _Trim$(word) <> "" Then AddWarning lineNumber, "Missing function or array [" + word + "]"
@@ -2016,8 +1987,12 @@ Function SLSplit (sourceString As String, results() As String, escapeStrings As 
     Dim count As Integer
     Dim i As Integer
     For i = 1 To Len(cstr)
-        Dim c As String
+        Dim As String c, c2
         c = Mid$(cstr, i, 1)
+        c2 = Mid$(cstr, i, 2)
+
+        Dim oplen As Integer
+        oplen = FindOperator(c, c2)
 
         If c = Chr$(34) Then
             quoteMode = Not quoteMode
@@ -2042,6 +2017,32 @@ Function SLSplit (sourceString As String, results() As String, escapeStrings As 
                 results(count) = result
                 result = ""
             End If
+
+        ElseIf oplen Then
+            If quoteMode Then
+                If oplen = 2 Then
+                    result = result + c2
+                    i = i + 1
+                Else
+                    result = result + c
+                End If
+            Else
+                If result <> "" Then
+                    count = UBound(results) + 1
+                    ReDim _Preserve As String results(count)
+                    results(count) = result
+                End If
+                count = UBound(results) + 1
+                ReDim _Preserve As String results(count)
+                If oplen = 2 Then
+                    results(count) = c2
+                    i = i + 1
+                Else
+                    results(count) = c
+                End If
+                result = ""
+            End If
+
         Else
             result = result + c
         End If
@@ -2057,6 +2058,35 @@ Function SLSplit (sourceString As String, results() As String, escapeStrings As 
     End If
 
     SLSplit = UBound(results)
+End Function
+
+Function FindOperator (c As String, c2 As String)
+
+    If c2 = ">=" Then
+        FindOperator = 2
+    ElseIf c2 = "<=" Then
+        FindOperator = 2
+    ElseIf c2 = "<>" Then
+        FindOperator = 2
+    ElseIf c = "=" Then
+        FindOperator = 1
+    ElseIf c = "+" Then
+        FindOperator = 1
+    ElseIf c = "-" Then
+        FindOperator = 1
+    ElseIf c = "/" Then
+        FindOperator = 1
+    ElseIf c = "\" Then
+        FindOperator = 1
+    ElseIf c = "*" Then
+        FindOperator = 1
+    ElseIf c = "^" Then
+        FindOperator = 1
+    ElseIf c = "," Then
+        FindOperator = 1
+    Else
+        FindOperator = 0
+    End If
 End Function
 
 ' String literal-aware split - copy
@@ -2652,10 +2682,6 @@ Function GXMethodJS$ (mname As String)
             jsname = jsname + c
         End If
     Next i
-
-    If mname = "GXMapLoad" Or mname = "GXSceneStart" Then
-        jsname = "await " + jsname
-    End If
 
     GXMethodJS = jsname
 End Function
