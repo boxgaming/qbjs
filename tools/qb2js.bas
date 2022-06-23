@@ -13,6 +13,7 @@ Const True = Not False
 ' Additional Debugging output - should be set to false for final build
 Const PrintLineMapping = False
 Const PrintTokenizedLine = False
+Const PrintDataTypes = True
 
 Type CodeLine
     line As Integer
@@ -299,10 +300,9 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                         Dim As String cleft, cright
                         cleft = Left$(constParts(constIdx), eqi - 1)
                         cright = Mid$(constParts(constIdx), eqi + 1)
-                        js = js + "const " + cleft + " = " + ConvertExpression(cright, i) + ";"
+                        js = js + "const " + cleft + " = " + ConvertExpression(cright, i) + "; "
                         AddConst cleft
                     End If
-                    If constIdx <> constCount Then js = js + CRLF
                 Next constIdx
 
             ElseIf first = "DIM" Or first = "REDIM" Or first = "STATIC" Then
@@ -311,13 +311,13 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
             ElseIf first = "SELECT" Then
                 caseVar = GenJSVar
-                js = "var " + caseVar + " = " + ConvertExpression(Join(parts(), 3, -1, " "), i) + ";" + CRLF
+                js = "var " + caseVar + " = " + ConvertExpression(Join(parts(), 3, -1, " "), i) + "; "
                 js = js + "switch (" + caseVar + ") {"
                 indent = 1
                 caseCount = 0
 
             ElseIf first = "CASE" Then
-                If caseCount > 0 Then js = "break;" + LF
+                If caseCount > 0 Then js = "break; "
                 If UCase$(parts(2)) = "ELSE" Then
                     js = js + "default:"
                 ElseIf UCase$(parts(2)) = "IS" Then
@@ -328,8 +328,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     cscount = ListSplit(Join(parts(), 2, -1, " "), caseParts())
                     Dim ci As Integer
                     For ci = 1 To cscount
-                        If ci > 1 Then js = js + CRLF
-                        js = js + "case " + ConvertExpression(caseParts(ci), i) + ":"
+                        js = js + "case " + ConvertExpression(caseParts(ci), i) + ": "
                     Next ci
                 End If
                 caseCount = caseCount + 1
@@ -366,8 +365,6 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 js = "for (" + fvar + "=" + sval + "; " + fvar + fcond + uval + "; " + fvar + "=" + fvar + " + " + fstep + ") {"
                 js = js + "  if (QB.halted()) { return; }"
 
-                'If UBound(parts) = 8 Then fstep = parts(8)
-                'js = "for (" + parts(2) + "=" + parts(4) + "; " + parts(2) + " <= " + ConvertExpression(parts(6)) + "; " + parts(2) + "=" + parts(2) + "+" + fstep + ") {"
                 indent = 1
 
             ElseIf first = "IF" Then
@@ -875,10 +872,10 @@ Function ConvertRead$ (m As Method, args As String, lineNumber As Integer)
         vars(vcount) = p
     Next i
     vname = GenJSVar
-    js = "var " + vname + " = new Array(" + Str$(UBound(vars)) + ");" + LF
-    js = js + CallMethod(m) + "(" + vname + ");" + LF
+    js = "var " + vname + " = new Array(" + Str$(UBound(vars)) + "); " '+ LF
+    js = js + CallMethod(m) + "(" + vname + "); " '+ LF
     For i = 1 To UBound(vars)
-        js = js + ConvertExpression(vars(i), lineNumber) + " = " + vname + "[" + Str$(i - 1) + "];" + LF
+        js = js + ConvertExpression(vars(i), lineNumber) + " = " + vname + "[" + Str$(i - 1) + "]; " '+ LF
     Next i
     ConvertRead$ = js
 End Function
@@ -1048,11 +1045,11 @@ Function ConvertInput$ (m As Method, args As String, lineNumber As Integer)
     Next i
 
     vname = GenJSVar
-    js = "var " + vname + " = new Array(" + Str$(UBound(vars)) + ");" + LF
-    js = js + CallMethod(m) + "(" + vname + ", " + preventNewline + ", " + addQuestionPrompt + ", " + prompt + ");" + LF
+    js = "var " + vname + " = new Array(" + Str$(UBound(vars)) + "); "
+    js = js + CallMethod(m) + "(" + vname + ", " + preventNewline + ", " + addQuestionPrompt + ", " + prompt + "); "
     For i = 1 To UBound(vars)
         If Not StartsWith(_Trim$(vars(i)), "#") Then ' special case to prevent file references from being output during self-compilation
-            js = js + ConvertExpression(vars(i), lineNumber) + " = " + vname + "[" + Str$(i - 1) + "];" + LF
+            js = js + ConvertExpression(vars(i), lineNumber) + " = " + vname + "[" + Str$(i - 1) + "]; "
         End If
     Next i
     ConvertInput = js
@@ -1068,9 +1065,9 @@ Function ConvertSwap$ (m As Method, args As String, lineNumber As Integer)
     Dim var2 As String
     var1 = ConvertExpression(swapArgs(1), lineNumber)
     var2 = ConvertExpression(swapArgs(2), lineNumber)
-    js = "var " + swapArray + " = [" + var1 + "," + var2 + "];" + LF
-    js = js + CallMethod(m) + "(" + swapArray + ");" + LF
-    js = js + var1 + " = " + swapArray + "[0];" + LF
+    js = "var " + swapArray + " = [" + var1 + "," + var2 + "]; "
+    js = js + CallMethod(m) + "(" + swapArray + "); "
+    js = js + var1 + " = " + swapArray + "[0]; "
     js = js + var2 + " = " + swapArray + "[1];"
     ConvertSwap = js
 End Function
@@ -1161,13 +1158,13 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
 
             ' TODO: this code is in two places - refactor into a separate function
             If Not bvar.isArray Then
-                js = js + "var " + bvar.name + " = " + InitTypeValue(bvar.type) + ";"
+                js = js + "var " + bvar.name + " = " + InitTypeValue(bvar.type) + "; "
 
             Else
                 If FindVariable(bvar.name, findVar, True) Then
-                    js = js + "QB.resizeArray(" + bvar.name + ", [" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ", " + preserve + ");"
+                    js = js + "QB.resizeArray(" + bvar.name + ", [" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ", " + preserve + "); "
                 Else
-                    js = js + "var " + bvar.name + " = QB.initArray([" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ");"
+                    js = js + "var " + bvar.name + " = QB.initArray([" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + "); "
                 End If
             End If
 
@@ -1177,9 +1174,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
                 AddVariable bvar, localVars()
             End If
 
-            js = js + " // " + bvar.type
-
-            If i < vnamecount Then js = js + LF
+            If PrintDataTypes Then js = js + " /* " + bvar.type + " */ "
         Next i
 
 
@@ -1221,20 +1216,19 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
             Else
                 bvar.isArray = False
                 arraySize = ""
-                'bvar.name = vname
             End If
             bvar.jsname = ""
 
 
             ' TODO: this code is in two places - refactor into a separate function
             If Not bvar.isArray Then
-                js = js + "var " + bvar.name + " = " + InitTypeValue(bvar.type) + ";"
+                js = js + "var " + bvar.name + " = " + InitTypeValue(bvar.type) + "; "
 
             Else
                 If FindVariable(bvar.name, findVar, True) Then
-                    js = js + "QB.resizeArray(" + bvar.name + ", [" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ", " + preserve + ");"
+                    js = js + "QB.resizeArray(" + bvar.name + ", [" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ", " + preserve + "); "
                 Else
-                    js = js + "var " + bvar.name + " = QB.initArray([" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ");"
+                    js = js + "var " + bvar.name + " = QB.initArray([" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + "); "
                 End If
             End If
 
@@ -1244,9 +1238,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
                 AddVariable bvar, localVars()
             End If
 
-            js = js + " // " + bvar.type
-
-            If i < vnamecount Then js = js + LF
+            If PrintDataTypes Then js = js + " /* " + bvar.type + " */ "
         Next i
     End If
 
@@ -1355,9 +1347,6 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                     js = js + " ** "
                 ElseIf uword = "\" Then
                     js = js + " / " ' Not fully compatible but will at least perform a division operation
-
-                    'ElseIf uword = ">" Or uword = ">=" Or uword = "<" Or uword = "<=" Then
-                    '    js = js + " " + word + " "
 
                 ElseIf StartsWith(uword, "&H") Or StartsWith(uword, "&O") Or StartsWith(uword, "&B") Then
                     js = js + " QB.func_Val('" + uword + "') "
@@ -1564,16 +1553,10 @@ Sub ConvertMethods ()
             ' clear the local variables
             ReDim As Variable localVars(0)
 
-            ' TODO: figure out how to make needed functions have the async modifier
-            '       at the moment just applying it to all subs
-            Dim asyncModifier As String
-            'If methods(i).type = "SUB" Then
-            asyncModifier = "async "
-            'Else
-            'asyncModifier = ""
-            'End If
+            ' All program methods are defined as async as we do not know whether
+            ' a synchronous wait will occur downstream
             Dim methodDec As String
-            methodDec = asyncModifier + "function " + methods(i).jsname + "("
+            methodDec = "async function " + methods(i).jsname + "("
             If methods(i).argc > 0 Then
                 ReDim As String args(0)
                 Dim c As Integer
@@ -1824,30 +1807,6 @@ Sub AddSubLines (lineIndex As Integer, fline As String)
     AddLine lineIndex, fline
 End Sub
 
-'Sub AddSubLinesTop (lineIndex As Integer, fline As String)
-'    Dim quoteDepth As Integer
-'    quoteDepth = 0
-'    Dim i As Integer
-'    For i = 1 To Len(fline)
-'        Dim c As String
-'        c = Mid$(fline, i, 1)
-'        If c = Chr$(34) Then
-'            If quoteDepth = 0 Then
-'                quoteDepth = 1
-'            Else
-'                quoteDepth = 0
-'            End If
-'        End If
-'        If quoteDepth = 0 And c = ":" Then
-'            AddLineTop lineIndex, Left$(fline, i - 1)
-'            fline = Right$(fline, Len(fline) - i)
-'            i = 0
-'        End If
-'    Next i
-
-'    AddLineTop lineIndex, fline
-'End Sub
-
 Sub FindMethods
     Dim i As Integer
     Dim pcount As Integer
@@ -1873,7 +1832,6 @@ Sub FindMethods
             Dim pend
             mstr = Join(parts(), 2, -1, " ")
             pstart = InStr(mstr, "(")
-            'AddJSLine 0, "//// " + Str$(pstart) + ":: " + mstr
             If pstart = 0 Then
                 argstr = ""
                 mname = mstr
@@ -1883,31 +1841,20 @@ Sub FindMethods
                 pend = _InStrRev(mstr, ")")
                 argstr = Left$(mstr, pend - 1)
             End If
-            'AddJSLine 0, "////     pend:   " + Str$(pend)
-            'AddJSLine 0, "////     mname:  " + mname
-            'AddJSLine 0, "////     argstr: " + argstr
 
             ReDim As String arga(0)
 
             Dim m As Method
             m.line = i
-            m.type = word 'UCase$(parts(1))
-            m.name = mname 'parts(2)
+            m.type = word
+            m.name = mname
             m.argc = ListSplit(argstr, arga())
             m.args = ""
             ReDim As Argument args(0)
 
             If UBound(arga) > 0 Then
-                'If UBound(parts) > 2 Then
                 Dim a As Integer
                 Dim args As String
-                'args = ""
-                'For a = 3 To UBound(parts)
-                '    args = args + parts(a) + " "
-                'Next a
-                'args = Mid$(_Trim$(args), 2, Len(_Trim$(args)) - 2)
-                'ReDim As String arga(0)
-                'm.argc = ListSplit(args, arga())
                 args = ""
                 For a = 1 To m.argc
                     ReDim As String aparts(0)
@@ -2518,7 +2465,7 @@ Function RemoveSuffix$ (vname As String)
     i = Len(vname)
     While Not done
         c = Mid$(vname, i, 1)
-        If c = "`" Or c = "%" Or c = "&" Or c = "$" Or c = "~" Or c = "!" Then
+        If c = "`" Or c = "%" Or c = "&" Or c = "$" Or c = "~" Or c = "!" Or c = "#" Then
             i = i - 1
         Else
             done = True
