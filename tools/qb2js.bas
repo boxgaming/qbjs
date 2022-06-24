@@ -512,7 +512,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     AddWarning i, "Missing Sub [" + subname + "], ignoring Call command"
                 End If
 
-            ElseIf c > 2 Then
+            ElseIf c > 2 Or first = "LET" Then
                 Dim assignment As Integer
                 assignment = 0
                 Dim j As Integer
@@ -523,11 +523,15 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     End If
                 Next j
 
+                Dim asnVarIndex
+                asnVarIndex = 1
+                If first = "LET" Then asnVarIndex = 2
+
                 If assignment > 0 Then
                     ' This is a variable assignment
                     ' TODO: implicit variable declaration
                     ' TODO: special case for Mid$ statement
-                    js = RemoveSuffix(ConvertExpression(Join(parts(), 1, assignment - 1, " "), i)) + " = " + ConvertExpression(Join(parts(), assignment + 1, -1, " "), i) + ";"
+                    js = RemoveSuffix(ConvertExpression(Join(parts(), asnVarIndex, assignment - 1, " "), i)) + " = " + ConvertExpression(Join(parts(), assignment + 1, -1, " "), i) + ";"
 
                 Else
                     If FindMethod(parts(1), m, "SUB") Then
@@ -1683,8 +1687,9 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
     quoteDepth = 0
     Dim i As Integer
     For i = 1 To Len(fline)
-        Dim c As String
+        Dim As String c, c4
         c = Mid$(fline, i, 1)
+        c4 = UCase$(Mid$(fline, i, 4))
         If c = Chr$(34) Then
             If quoteDepth = 0 Then
                 quoteDepth = 1
@@ -1692,7 +1697,7 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
                 quoteDepth = 0
             End If
         End If
-        If quoteDepth = 0 And c = "'" Then
+        If quoteDepth = 0 And (c = "'" Or c4 = "REM ") Then
             fline = Left$(fline, i - 1)
             Exit For
         End If

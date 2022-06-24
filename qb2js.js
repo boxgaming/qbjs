@@ -430,7 +430,7 @@ if (QB.halted()) { return; }
             } else {
                await sub_AddWarning(  i,   "Missing Sub ["  +  subname + "], ignoring Call command");
             }
-         } else if ( c > 2) {
+         } else if ( c > 2 ||  first ==  "LET" ) {
             var assignment = 0;  /* INTEGER */ 
             assignment =   0;
             var j = 0;  /* INTEGER */ 
@@ -440,8 +440,13 @@ if (QB.halted()) { return; }
                   break;
                }
             }
+            var asnVarIndex = 0;  /* SINGLE */ 
+            asnVarIndex =   1;
+            if ( first ==  "LET" ) {
+               asnVarIndex =   2;
+            }
             if ( assignment > 0) {
-               js =  (await func_RemoveSuffix( (await func_ConvertExpression( (await func_Join( parts ,    1,    assignment -  1,   " ")) ,    i))))  + " = "  + (await func_ConvertExpression( (await func_Join( parts ,    assignment +  1,    - 1,   " ")) ,    i))  + ";";
+               js =  (await func_RemoveSuffix( (await func_ConvertExpression( (await func_Join( parts ,    asnVarIndex,    assignment -  1,   " ")) ,    i))))  + " = "  + (await func_ConvertExpression( (await func_Join( parts ,    assignment +  1,    - 1,   " ")) ,    i))  + ";";
             } else {
                if ((await func_FindMethod( QB.arrayValue(parts, [ 1]).value ,    m,   "SUB")) ) {
                   js =  (await func_ConvertSub(  m,   (await func_Join( parts ,    2,    - 1,   " ")) ,    i));
@@ -1581,8 +1586,9 @@ var ReadLine = null;
    quoteDepth =   0;
    var i = 0;  /* INTEGER */ 
    for ( i=  1;  i <= (QB.func_Len(  fline));  i= i + 1) {  if (QB.halted()) { return; }
-      var c = '';  /* STRING */ 
+      var c = '';  /* STRING */ var c4 = '';  /* STRING */ 
       c =  (QB.func_Mid(  fline,    i,    1));
+      c4 =  (QB.func_UCase( (QB.func_Mid(  fline,    i,    4))));
       if ( c ==  (QB.func_Chr(  34)) ) {
          if ( quoteDepth ==   0) {
             quoteDepth =   1;
@@ -1590,7 +1596,7 @@ var ReadLine = null;
             quoteDepth =   0;
          }
       }
-      if ( quoteDepth ==   0 &&  c ==  "'" ) {
+      if ( quoteDepth ==   0 && ( c ==  "'"  ||  c4 ==  "REM ") ) {
          fline =  (QB.func_Left(  fline,    i -  1));
          break;
       }
