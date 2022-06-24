@@ -157,14 +157,14 @@ if (QB.halted()) { return; }
    var i = 0;  /* INTEGER */ 
    for ( i=  1;  i <= (QB.func_UBound(  dataLabels));  i= i + 1) {  if (QB.halted()) { return; }
       await sub_AddJSLine(  0,   "QB.setDataLabel('"  + QB.arrayValue(dataLabels, [ i]).value .text + "', "  + (QB.func_Str( QB.arrayValue(dataLabels, [ i]).value .index))  + ");");
-   }
+   } 
 }
 async function sub_PrintJS() {
 if (QB.halted()) { return; }
    var i = 0;  /* INTEGER */ 
    for ( i=  1;  i <= (QB.func_UBound(  jsLines));  i= i + 1) {  if (QB.halted()) { return; }
       await QB.sub_Print([QB.arrayValue(jsLines, [ i]).value .text]);
-   }
+   } 
 }
 async function sub_ConvertLines(firstLine/*INTEGER*/,lastLine/*INTEGER*/,functionName/*STRING*/) {
 if (QB.halted()) { return; }
@@ -243,7 +243,7 @@ if (QB.halted()) { return; }
                   js =   js + "const "  +  cleft + " = "  + (await func_ConvertExpression(  cright,    i))  + "; ";
                   await sub_AddConst(  cleft);
                }
-            }
+            } 
          } else if ( first ==  "DIM"  ||  first ==  "REDIM"  ||  first ==  "STATIC" ) {
             js =  (await func_DeclareVar( parts ,    i));
          } else if ( first ==  "SELECT" ) {
@@ -267,7 +267,7 @@ if (QB.halted()) { return; }
                var ci = 0;  /* INTEGER */ 
                for ( ci=  1;  ci <=  cscount;  ci= ci + 1) {  if (QB.halted()) { return; }
                   js =   js + "case "  + (await func_ConvertExpression( QB.arrayValue(caseParts, [ ci]).value ,    i))  + ": ";
-               }
+               } 
             }
             caseCount =   caseCount +  1;
          } else if ( first ==  "FOR" ) {
@@ -291,7 +291,7 @@ if (QB.halted()) { return; }
                   stepIdx =   fi;
                   fstep =  (await func_ConvertExpression( (await func_Join( parts ,    fi +  1,    - 1,   " ")) ,    i));
                }
-            }
+            } 
             var fvar = '';  /* STRING */ 
             fvar =  (await func_ConvertExpression( (await func_Join( parts ,    2,    eqIdx -  1,   " ")) ,    i));
             var sval = '';  /* STRING */ 
@@ -310,7 +310,7 @@ if (QB.halted()) { return; }
                if ((QB.func_UCase( QB.arrayValue(parts, [ thenIndex]).value))  ==  "THEN" ) {
                   break;
                }
-            }
+            } 
             js =  "if ("  + (await func_ConvertExpression( (await func_Join( parts ,    2,    thenIndex -  1,   " ")) ,    i))  + ") {";
             indent =   1;
          } else if ( first ==  "ELSEIF" ) {
@@ -320,8 +320,19 @@ if (QB.halted()) { return; }
             js =  "} else {";
             tempIndent =   - 1;
          } else if ( first ==  "NEXT" ) {
-            js =   js + "}";
-            indent =   - 1;
+            if ( c > 1) {
+               var nparts = QB.initArray([{l:1,u:0}], '');  /* STRING */ 
+               var npcount = 0;  /* INTEGER */ 
+               var npi = 0;  /* INTEGER */ 
+               npcount =  (await func_ListSplit( (await func_Join( parts ,    2,    - 1,   " ")) ,   nparts));
+               for ( npi=  1;  npi <=  npcount;  npi= npi + 1) {  if (QB.halted()) { return; }
+                  js =   js + "} ";
+                  indent =   indent -  1;
+               } 
+            } else {
+               js =   js + "}";
+               indent =   - 1;
+            }
          } else if ( first ==  "END" ) {
             if ((QB.func_UBound(  parts))  ==   1) {
                js =  "QB.halt(); return;";
@@ -404,7 +415,7 @@ if (QB.halted()) { return; }
                var exi = 0;  /* INTEGER */ 
                for ( exi=  1;  exi <=  excount;  exi= exi + 1) {  if (QB.halted()) { return; }
                   await sub_ParseExport( QB.arrayValue(exparts, [ exi]).value ,    i);
-               }
+               } 
                continue;
             } else {
             }
@@ -439,7 +450,7 @@ if (QB.halted()) { return; }
                   assignment =   j;
                   break;
                }
-            }
+            } 
             var asnVarIndex = 0;  /* SINGLE */ 
             asnVarIndex =   1;
             if ( first ==  "LET" ) {
@@ -460,7 +471,11 @@ if (QB.halted()) { return; }
                js =  (await func_ConvertSub(  m,   (await func_Join( parts ,    2,    - 1,   " ")) ,    i));
             } else {
                js =  "// "  +  l;
-               await sub_AddWarning(  i,   "Missing or unsupported method: '"  + QB.arrayValue(parts, [ 1]).value  + "' - ignoring line");
+               if ( first ==  "GOTO" ) {
+                  await sub_AddWarning(  i,   "Missing or unsupported method: '<a href='https://xkcd.com/292/' target='_blank'>GOTO</a>'");
+               } else {
+                  await sub_AddWarning(  i,   "Missing or unsupported method: '"  + QB.arrayValue(parts, [ 1]).value  + "' - ignoring line");
+               }
             }
          }
          if (( indent < 0) ) {
@@ -471,7 +486,7 @@ if (QB.halted()) { return; }
             totalIndent =   totalIndent +  indent;
          }
       }
-   }
+   } 
 }
 async function sub_ParseExport(s/*STRING*/,lineIndex/*INTEGER*/) {
 if (QB.halted()) { return; }
@@ -790,13 +805,13 @@ var ConvertRead = null;
       vcount =  (QB.func_UBound(  vars))  +  1;
       QB.resizeArray(vars, [{l:1,u:vcount}], '', true);  /* STRING */ 
       QB.arrayValue(vars, [ vcount]).value =   p;
-   }
+   } 
    vname =  await func_GenJSVar();
    js =  "var "  +  vname + " = new Array("  + (QB.func_Str( (QB.func_UBound(  vars))))  + "); ";
    js =   js + (await func_CallMethod(  m))  + "("  +  vname + "); ";
    for ( i=  1;  i <= (QB.func_UBound(  vars));  i= i + 1) {  if (QB.halted()) { return; }
       js =   js + (await func_ConvertExpression( QB.arrayValue(vars, [ i]).value ,    lineNumber))  + " = "  +  vname + "["  + (QB.func_Str(  i -  1))  + "]; ";
-   }
+   } 
    ConvertRead =   js;
 return ConvertRead;
 }
@@ -903,7 +918,7 @@ var ConvertPrint = null;
       } else {
          js =   js + (await func_ConvertExpression( QB.arrayValue(parts, [ i]).value ,    lineNumber));
       }
-   }
+   } 
    ConvertPrint =   js + "]";
 return ConvertPrint;
 }
@@ -963,7 +978,7 @@ var ConvertInput = null;
          QB.resizeArray(vars, [{l:1,u:vcount}], '', true);  /* STRING */ 
          QB.arrayValue(vars, [ vcount]).value =   p;
       }
-   }
+   } 
    vname =  await func_GenJSVar();
    js =  "var "  +  vname + " = new Array("  + (QB.func_Str( (QB.func_UBound(  vars))))  + "); ";
    js =   js + (await func_CallMethod(  m))  + "("  +  vname + ", "  +  preventNewline + ", "  +  addQuestionPrompt + ", "  +  prompt + "); ";
@@ -971,7 +986,7 @@ var ConvertInput = null;
       if (!(await func_StartsWith( (QB.func__Trim( QB.arrayValue(vars, [ i]).value)) ,   "#")) ) {
          js =   js + (await func_ConvertExpression( QB.arrayValue(vars, [ i]).value ,    lineNumber))  + " = "  +  vname + "["  + (QB.func_Str(  i -  1))  + "]; ";
       }
-   }
+   } 
    ConvertInput =   js;
 return ConvertInput;
 }
@@ -1022,7 +1037,7 @@ var FindParamChar = null;
          idx =   i;
          break;
       }
-   }
+   } 
    FindParamChar =   idx;
 return FindParamChar;
 }
@@ -1061,7 +1076,7 @@ var DeclareVar = null;
       if ((QB.func_UCase( QB.arrayValue(parts, [ i]).value))  ==  "SHARED" ) {
          isGlobal =   True;
       }
-   }
+   } 
    if ( asIdx ==   2 || ( asIdx ==   3 && ( isGlobal ||  preserve ==  "true"))  || ( asIdx ==   4 &&  isGlobal &&  preserve ==  "true") ) {
       bvar.type =  (QB.func_UCase( QB.arrayValue(parts, [ asIdx +  1]).value));
       var nextIdx = 0;  /* INTEGER */ 
@@ -1102,7 +1117,7 @@ var DeclareVar = null;
          if ( PrintDataTypes) {
             js =   js + " /* "  +  bvar.type + " */ ";
          }
-      }
+      } 
    } else {
       var vpartcount = 0;  /* INTEGER */ 
       var vparts = QB.initArray([{l:1,u:0}], '');  /* STRING */ 
@@ -1113,7 +1128,7 @@ var DeclareVar = null;
          if ( p ==  "DIM"  ||  p ==  "REDIM"  ||  p ==  "SHARED"  ||  p ==  "_PRESERVE" ) {
             nextIdx =   i +  1;
          }
-      }
+      } 
       vnamecount =  (await func_ListSplit( (await func_Join( parts ,    nextIdx,    - 1,   " ")) ,   varnames));
       for ( i=  1;  i <=  vnamecount;  i= i + 1) {  if (QB.halted()) { return; }
          vpartcount =  (await func_SLSplit2( QB.arrayValue(varnames, [ i]).value ,   vparts));
@@ -1154,7 +1169,7 @@ var DeclareVar = null;
          if ( PrintDataTypes) {
             js =   js + " /* "  +  bvar.type + " */ ";
          }
-      }
+      } 
    }
    DeclareVar =   js;
 return DeclareVar;
@@ -1180,7 +1195,7 @@ var FormatArraySize = null;
       } else {
          sizeParams =   sizeParams + "{l:"  + QB.arrayValue(subparts, [ 1]).value  + ",u:"  + QB.arrayValue(subparts, [ 3]).value  + "}";
       }
-   }
+   } 
    FormatArraySize =   sizeParams;
 return FormatArraySize;
 }
@@ -1203,7 +1218,7 @@ var InitTypeValue = null;
          if ( typeId ==  QB.arrayValue(typeVars, [ i]).value .typeId) {
             value =   value + QB.arrayValue(typeVars, [ i]).value .name + ":"  + (await func_InitTypeValue( QB.arrayValue(typeVars, [ i]).value .type))  + ",";
          }
-      }
+      } 
       value =  (QB.func_Left(  value,   (QB.func_Len(  value))  -  1))  + "}";
    }
    InitTypeValue =   value;
@@ -1220,7 +1235,7 @@ var FindTypeId = null;
          id =   i;
          break;
       }
-   }
+   } 
    FindTypeId =   id;
 return FindTypeId;
 }
@@ -1366,7 +1381,7 @@ var ConvertMethodParams = null;
       } else {
          js =   js + " "  + (await func_ConvertExpression( QB.arrayValue(params, [ i]).value ,    lineNumber));
       }
-   }
+   } 
    ConvertMethodParams =   js;
 return ConvertMethodParams;
 }
@@ -1401,7 +1416,7 @@ var FindVariable = null;
          bvar.typeId =  QB.arrayValue(localVars, [ i]).value .typeId;
          break;
       }
-   }
+   } 
    if (! found) {
       for ( i=  1;  i <= (QB.func_UBound(  globalVars));  i= i + 1) {  if (QB.halted()) { return; }
          if (QB.arrayValue(globalVars, [ i]).value .isArray ==   isArray && (QB.func_UCase( QB.arrayValue(globalVars, [ i]).value .name))  ==   fvarname) {
@@ -1415,7 +1430,7 @@ var FindVariable = null;
             bvar.typeId =  QB.arrayValue(globalVars, [ i]).value .typeId;
             break;
          }
-      }
+      } 
    }
    FindVariable =   found;
 return FindVariable;
@@ -1440,7 +1455,7 @@ var FindMethod = null;
          m.sync =  QB.arrayValue(methods, [ i]).value .sync;
          break;
       }
-   }
+   } 
    if (! found) {
       for ( i=  1;  i <= (QB.func_UBound(  exportMethods));  i= i + 1) {  if (QB.halted()) { return; }
          if (QB.arrayValue(exportMethods, [ i]).value .uname ==  (QB.func__Trim( (QB.func_UCase( (await func_RemoveSuffix(  mname))))))  && QB.arrayValue(exportMethods, [ i]).value .type ==   t) {
@@ -1456,7 +1471,7 @@ var FindMethod = null;
             m.sync =  QB.arrayValue(exportMethods, [ i]).value .sync;
             break;
          }
-      }
+      } 
    }
    FindMethod =   found;
 return FindMethod;
@@ -1497,7 +1512,7 @@ if (QB.halted()) { return; }
                }
                bvar.jsname =  "";
                await sub_AddVariable(  bvar,   localVars);
-            }
+            } 
          }
          methodDec =   methodDec + ") {";
          await sub_AddJSLine( QB.arrayValue(methods, [ i]).value .line,    methodDec);
@@ -1512,10 +1527,10 @@ if (QB.halted()) { return; }
          }
          await sub_AddJSLine(  lastLine,   "}");
       }
-   }
+   } 
    for ( i=  1;  i <= (QB.func_UBound(  exportLines));  i= i + 1) {  if (QB.halted()) { return; }
       await sub_AddJSLine(  i,   QB.arrayValue(exportLines, [ i]).value);
-   }
+   } 
    QB.resizeArray(exportLines, [{l:1,u:0}], '', false);  /* STRING */ 
 }
 async function sub_ReadLinesFromFile(filename/*STRING*/) {
@@ -1577,7 +1592,7 @@ if (QB.halted()) { return; }
          }
          rawJS =  (await func_ReadLine(  i,    fline,    rawJS));
       }
-   }
+   } 
 }
 async function func_ReadLine(lineIndex/*INTEGER*/,fline/*STRING*/,rawJS/*INTEGER*/) {
 if (QB.halted()) { return; }
@@ -1600,7 +1615,7 @@ var ReadLine = null;
          fline =  (QB.func_Left(  fline,    i -  1));
          break;
       }
-   }
+   } 
    ReadLine =   rawJS;
    if ((QB.func__Trim(  fline))  ==  "" ) {
       return ReadLine;
@@ -1649,7 +1664,7 @@ var ReadLine = null;
          index =  (QB.func_UBound(  dataArray))  +  1;
          QB.resizeArray(dataArray, [{l:1,u:index}], '', true);  /* STRING */ 
          QB.arrayValue(dataArray, [ index]).value =  QB.arrayValue(de, [ i]).value;
-      }
+      } 
       return ReadLine;
    }
    var ifIdx = 0;  /* INTEGER */ var thenIdx = 0;  /* INTEGER */ var elseIdx = 0;  /* INTEGER */ 
@@ -1662,7 +1677,7 @@ var ReadLine = null;
       } else if ( word ==  "ELSE" ) {
          elseIdx =   i;
       }
-   }
+   } 
    if ( thenIdx > 0 &&  thenIdx < wcount) {
       await sub_AddLine(  lineIndex,   (await func_Join( words ,    1,    thenIdx,   " ")));
       if ( elseIdx > 0) {
@@ -1698,7 +1713,7 @@ if (QB.halted()) { return; }
          fline =  (QB.func_Right(  fline,   (QB.func_Len(  fline))  -  i));
          i =   0;
       }
-   }
+   } 
    await sub_AddLine(  lineIndex,    fline);
 }
 async function sub_FindMethods() {
@@ -1771,12 +1786,12 @@ if (QB.halted()) { return; }
                if ( a !=   m.argc) {
                   args =   args + ",";
                }
-            }
+            } 
             m.args =   args;
          }
          await sub_AddMethod(  m,   "" ,    True);
       }
-   }
+   } 
 }
 async function func_Split(sourceString/*STRING*/,delimiter/*STRING*/,results/*STRING*/) {
 if (QB.halted()) { return; }
@@ -1870,7 +1885,7 @@ var SLSplit = null;
          result =   result +  c;
       }
       lastChar =   c;
-   }
+   } 
    if ( result !=  "" ) {
       count =  (QB.func_UBound(  results))  +  1;
       QB.resizeArray(results, [{l:1,u:count}], '', true);  /* STRING */ 
@@ -1950,7 +1965,7 @@ var SLSplit2 = null;
          result =   result +  c;
       }
       lastChar =   c;
-   }
+   } 
    if ( result !=  "" ) {
       count =  (QB.func_UBound(  results))  +  1;
       QB.resizeArray(results, [{l:1,u:count}], '', true);  /* STRING */ 
@@ -1995,7 +2010,7 @@ var ListSplit = null;
       } else {
          result =   result +  c;
       }
-   }
+   } 
    if ( result !=  "" ) {
       count =  (QB.func_UBound(  results))  +  1;
       QB.resizeArray(results, [{l:1,u:count}], '', true);  /* STRING */ 
@@ -2045,7 +2060,7 @@ var PrintSplit = null;
       } else {
          result =   result +  c;
       }
-   }
+   } 
    if ( result !=  "" ) {
       count =  (QB.func_UBound(  results))  +  1;
       QB.resizeArray(results, [{l:1,u:count}], '', true);  /* STRING */ 
@@ -2064,7 +2079,7 @@ if (QB.halted()) { return; }
       var m = {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0};  /* METHOD */ 
       m =  QB.arrayValue(methods, [ i]).value;
       await QB.sub_Print([(QB.func_Str(  m.line))  + ": "  +  m.type + " - "  +  m.name + " ["  +  m.jsname + "] - "  +  m.returnType + " - "  +  m.args]);
-   }
+   } 
 }
 async function sub_PrintTypes() {
 if (QB.halted()) { return; }
@@ -2081,8 +2096,8 @@ if (QB.halted()) { return; }
          if (QB.arrayValue(typeVars, [ i]).value .typeId ==   i) {
             await QB.sub_Print(["  -> "  + QB.arrayValue(typeVars, [ v]).value .name + ": "  + QB.arrayValue(typeVars, [ v]).value .type]);
          }
-      }
-   }
+      } 
+   } 
 }
 async function func_CopyMethod(fromMethod/*METHOD*/,toMethod/*METHOD*/) {
 if (QB.halted()) { return; }
@@ -2281,7 +2296,7 @@ if (QB.halted()) { return; }
       tvar.name =  QB.arrayValue(nv, [ 1]).value;
       tvar.type =  (QB.func_UCase( QB.arrayValue(nv, [ 2]).value));
       await sub_AddVariable(  tvar,   typeVars);
-   }
+   } 
 }
 async function func_MainEnd() {
 if (QB.halted()) { return; }
@@ -2391,7 +2406,7 @@ var Join = null;
       if ( i !=  (QB.func_UBound(  parts)) ) {
          s =   s +  delimiter;
       }
-   }
+   } 
    Join =   s;
 return Join;
 }
@@ -2417,7 +2432,7 @@ var Replace = null;
       } else {
          ns =   ns + (QB.func_Mid(  s,    i,    1));
       }
-   }
+   } 
    Replace =   ns;
 return Replace;
 }
@@ -2458,7 +2473,7 @@ var MethodJS = null;
       if (( a >=  65 &&  a <=  90)  || ( a >=  97 &&  a <=  122)  || ( a >=  48 &&  a <=  57)  ||  a ==   95 ||  a ==   46) {
          jsname =   jsname +  c;
       }
-   }
+   } 
    MethodJS =   jsname;
 return MethodJS;
 }
@@ -2484,7 +2499,7 @@ var GXMethodJS = null;
       if (( a >=  65 &&  a <=  90)  || ( a >=  97 &&  a <=  122)  || ( a >=  48 &&  a <=  57)  ||  a ==   95 ||  a ==   46) {
          jsname =   jsname +  c;
       }
-   }
+   } 
    GXMethodJS =   jsname;
 return GXMethodJS;
 }

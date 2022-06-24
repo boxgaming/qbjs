@@ -385,8 +385,19 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 tempIndent = -1
 
             ElseIf first = "NEXT" Then
-                js = js + "}"
-                indent = -1
+                If c > 1 Then
+                    ReDim nparts(0) As String
+                    Dim npcount As Integer
+                    Dim npi As Integer
+                    npcount = ListSplit(Join(parts(), 2, -1, " "), nparts())
+                    For npi = 1 To npcount
+                        js = js + "} "
+                        indent = indent - 1
+                    Next npi
+                Else
+                    js = js + "}"
+                    indent = -1
+                End If
 
             ElseIf first = "END" Then
                 If UBound(parts) = 1 Then
@@ -548,7 +559,11 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     js = ConvertSub(m, Join(parts(), 2, -1, " "), i)
                 Else
                     js = "// " + l
-                    AddWarning i, "Missing or unsupported method: '" + parts(1) + "' - ignoring line"
+                    If first = "GOTO" Then
+                        AddWarning i, "Missing or unsupported method: '<a href='https://xkcd.com/292/' target='_blank'>GOTO</a>'"
+                    Else
+                        AddWarning i, "Missing or unsupported method: '" + parts(1) + "' - ignoring line"
+                    End If
                 End If
             End If
 
