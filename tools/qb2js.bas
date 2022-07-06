@@ -245,6 +245,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
     Dim loopLevel As Integer
     Dim caseVar As String
     Dim currType As Integer
+    Dim loopIndex As String
 
     For i = firstLine To lastLine
         indent = 0
@@ -362,8 +363,12 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
                 If Left$(_Trim$(fstep), 1) = "-" Then fcond = " >= "
 
-                js = "for (" + fvar + "=" + sval + "; " + fvar + fcond + uval + "; " + fvar + "=" + fvar + " + " + fstep + ") {"
-                js = js + "  if (QB.halted()) { return; }"
+                loopIndex = GenJSVar
+                js = "var " + loopIndex + " = 0;"
+                js = js + " for (" + fvar + "=" + sval + "; " + fvar + fcond + uval + "; " + fvar + "=" + fvar + " + " + fstep + ") {"
+                js = js + " if (QB.halted()) { return; } "
+                js = js + loopIndex + "++; "
+                js = js + "  if (" + loopIndex + " % 1000 == 0) { await GX.sleep(1); }"
 
                 indent = 1
 
@@ -421,26 +426,38 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
             ElseIf first = "DO" Then
                 loopLevel = loopLevel + 1
+
+                loopIndex = GenJSVar
+                js = "var " + loopIndex + " = 0;"
+
                 If UBound(parts) > 1 Then
                     If UCase$(parts(2)) = "WHILE" Then
-                        js = "while (" + ConvertExpression(Join(parts(), 3, -1, " "), i) + ") {"
+                        js = js + " while (" + ConvertExpression(Join(parts(), 3, -1, " "), i) + ") {"
                     Else
-                        js = "while (!(" + ConvertExpression(Join(parts(), 3, -1, " "), i) + ")) {"
+                        js = js + " while (!(" + ConvertExpression(Join(parts(), 3, -1, " "), i) + ")) {"
                     End If
                     loopMode(loopLevel) = 1
                 Else
-                    js = "do {"
+                    js = js + " do {"
                     loopMode(loopLevel) = 2
                 End If
                 indent = 1
-                js = js + "  if (QB.halted()) { return; }"
+                js = js + " if (QB.halted()) { return; }"
+                js = js + loopIndex + "++; "
+                js = js + "  if (" + loopIndex + " % 1000 == 0) { await GX.sleep(1); }"
 
 
             ElseIf first = "WHILE" Then
                 loopLevel = loopLevel + 1
-                js = "while (" + ConvertExpression(Join(parts(), 2, -1, " "), i) + ") {"
+
+                loopIndex = GenJSVar
+                js = "var " + loopIndex + " = 0;"
+                js = js + " while (" + ConvertExpression(Join(parts(), 2, -1, " "), i) + ") {"
+                js = js + " if (QB.halted()) { return; }"
+                js = js + loopIndex + "++; "
+                js = js + "  if (" + loopIndex + " % 1000 == 0) { await GX.sleep(1); }"
+
                 indent = 1
-                js = js + "  if (QB.halted()) { return; }"
 
             ElseIf first = "WEND" Then
                 js = "}"
