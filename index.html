@@ -5,11 +5,12 @@
         <style>
             @font-face {
                 font-family: dosvga;
-                src: url(lp-dosvga.ttf);
+                src: url(dosvga.ttf);
             }   
             body { 
                 background-color: rgb(0, 0, 39); 
                 font-family: dosvga, Arial, Helvetica, sans-serif;
+                letter-spacing: -1px;
                 color: #999;
             }
             a, a:link, a:visited {
@@ -37,6 +38,7 @@
                 position: absolute;
                 left: 620px;
                 top: 10px;
+                letter-spacing: 0px;
             }
             #gx-container {
                 border: 1px solid #666;
@@ -168,6 +170,7 @@
             #share-dialog textarea {
                 font-family: dosvga;
                 font-size: 1em;
+                letter-spacing: -1px;
                 background-color: #efefef;
             }
             #share-dialog a { color: #333; }
@@ -318,6 +321,8 @@
                 }
             });
 
+            document.getElementsByClassName("CodeMirror-cursor")[0].innerHTML = " ";
+
             var warnCount = 0;
             window.onresize();
 
@@ -448,7 +453,7 @@
             zip.file("program.js", jsCode);
             zip.file("fullscreen.png", await getFile("export/fullscreen.png", "blob"));
             zip.file("logo.png", await getFile("logo.png", "blob"));
-            zip.file("lp-dosvga.ttf", await getFile("lp-dosvga.ttf", "blob"));
+            zip.file("dosvga.ttf", await getFile("dosvga.ttf", "blob"));
             zip.file("play.png", await getFile("play.png", "blob"));
             zip.file("qbjs.css", await getFile("export/qbjs.css", "text"));
             zip.file("qb.js", await getFile("qb.js", "text"));

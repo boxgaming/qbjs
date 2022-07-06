@@ -1,16 +1,11 @@
-/*@font-face {
-  font-family: dosvga;
-  src: url(lp-dosvga.ttf);
-} */     
-
 .cm-s-qbjs {
   line-height: 1em;
 }
-.cm-s-qbjs.CodeMirror { background: rgb(0, 0, 39); color: rgb(216, 216, 216); text-shadow: 0 -1px 1px #262626; font-family: dosvga; /*letter-spacing: -1px*/}
+.cm-s-qbjs.CodeMirror { background: rgb(0, 0, 39); color: rgb(216, 216, 216); text-shadow: 0 -1px 1px #262626; font-family: dosvga; letter-spacing: -1px}
 .cm-s-qbjs div.CodeMirror-selected { background: #45443B; } /* 33322B*/
 .cm-s-qbjs .CodeMirror-line::selection, .cm-s-qbjs .CodeMirror-line > span::selection, .cm-s-qbjs .CodeMirror-line > span > span::selection { background: rgba(0, 49, 78, .99); }
 .cm-s-qbjs .CodeMirror-line::-moz-selection, .cm-s-qbjs .CodeMirror-line > span::-moz-selection, .cm-s-qbjs .CodeMirror-line > span > span::-moz-selection { background: rgba(69, 68, 59, .99); }
-.cm-s-qbjs .CodeMirror-cursor { border-left: 1px solid #fff; }
+.cm-s-qbjs .CodeMirror-cursor { border-left: 1px solid #fff; overflow: hidden; width: 0px;}
 .cm-s-qbjs pre { padding: 0 8px; }/*editable code holder*/
 
 .cm-s-qbjs.CodeMirror span.CodeMirror-matchingbracket { color: #7EFC7E; }/*65FC65*/
