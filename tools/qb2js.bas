@@ -368,7 +368,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 js = js + " for (" + fvar + "=" + sval + "; " + fvar + fcond + uval + "; " + fvar + "=" + fvar + " + " + fstep + ") {"
                 js = js + " if (QB.halted()) { return; } "
                 js = js + loopIndex + "++; "
-                js = js + "  if (" + loopIndex + " % 1000 == 0) { await GX.sleep(1); }"
+                js = js + "  if (" + loopIndex + " % 100 == 0) { await QB.autoLimit(); }"
 
                 indent = 1
 
@@ -444,7 +444,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 indent = 1
                 js = js + " if (QB.halted()) { return; }"
                 js = js + loopIndex + "++; "
-                js = js + "  if (" + loopIndex + " % 1000 == 0) { await GX.sleep(1); }"
+                js = js + "  if (" + loopIndex + " % 100 == 0) { await QB.autoLimit(); }"
 
 
             ElseIf first = "WHILE" Then
@@ -455,7 +455,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 js = js + " while (" + ConvertExpression(Join(parts(), 2, -1, " "), i) + ") {"
                 js = js + " if (QB.halted()) { return; }"
                 js = js + loopIndex + "++; "
-                js = js + "  if (" + loopIndex + " % 1000 == 0) { await GX.sleep(1); }"
+                js = js + "  if (" + loopIndex + " % 100 == 0) { await GX.autoLimit(); }"
 
                 indent = 1
 

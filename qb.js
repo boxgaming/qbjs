@@ -360,6 +360,14 @@ var QB = new function() {
         _lastLimitTime = new Date();
     };
 
+    this.autoLimit = async function() {
+        var timeElapsed = new Date() - _lastLimitTime;
+        if (timeElapsed > 100) { 
+            await GX.sleep(1);
+            _lastLimitTime = new Date();
+        }
+    };
+
     this.func__LoadImage = async function(url) {
 
         var img = new Image();
