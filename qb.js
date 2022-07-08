@@ -362,7 +362,7 @@ var QB = new function() {
 
     this.autoLimit = async function() {
         var timeElapsed = new Date() - _lastLimitTime;
-        if (timeElapsed > 100) { 
+        if (timeElapsed > 1000) { 
             await GX.sleep(1);
             _lastLimitTime = new Date();
         }

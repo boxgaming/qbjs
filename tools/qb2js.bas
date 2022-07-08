@@ -455,7 +455,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 js = js + " while (" + ConvertExpression(Join(parts(), 2, -1, " "), i) + ") {"
                 js = js + " if (QB.halted()) { return; }"
                 js = js + loopIndex + "++; "
-                js = js + "  if (" + loopIndex + " % 100 == 0) { await GX.autoLimit(); }"
+                js = js + "  if (" + loopIndex + " % 100 == 0) { await QB.autoLimit(); }"
 
                 indent = 1
 

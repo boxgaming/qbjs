@@ -383,7 +383,7 @@ if (QB.halted()) { return; }
             js =   js + " while ("  + (await func_ConvertExpression( (await func_Join( parts ,    2,    - 1,   " ")) ,    i))  + ") {";
             js =   js + " if (QB.halted()) { return; }";
             js =   js +  loopIndex + "++; ";
-            js =   js + "  if ("  +  loopIndex + " % 100 == 0) { await GX.autoLimit(); }";
+            js =   js + "  if ("  +  loopIndex + " % 100 == 0) { await QB.autoLimit(); }";
             indent =   1;
          } else if ( first ==  "WEND" ) {
             js =  "}";
@@ -1265,7 +1265,7 @@ var ConvertExpression = null;
    var stringLiteral = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
    i =   1;
-   var ___v5924582 = 0; while ( i <= (QB.func_Len(  ex))) { if (QB.halted()) { return; }___v5924582++;   if (___v5924582 % 100 == 0) { await GX.autoLimit(); }
+   var ___v5924582 = 0; while ( i <= (QB.func_Len(  ex))) { if (QB.halted()) { return; }___v5924582++;   if (___v5924582 % 100 == 0) { await QB.autoLimit(); }
       c =  (QB.func_Mid(  ex,    i,    1));
       if ( c ==  (QB.func_Chr(  34)) ) {
          js =   js +  c;
@@ -1327,7 +1327,7 @@ var ConvertExpression = null;
             var stringLiteral2 = 0;  /* INTEGER */ 
             stringLiteral2 =   False;
             i =   i +  1;
-            var ___v4687001 = 0; while (! done &&  i <= (QB.func_Len(  ex))) { if (QB.halted()) { return; }___v4687001++;   if (___v4687001 % 100 == 0) { await GX.autoLimit(); }
+            var ___v4687001 = 0; while (! done &&  i <= (QB.func_Len(  ex))) { if (QB.halted()) { return; }___v4687001++;   if (___v4687001 % 100 == 0) { await QB.autoLimit(); }
                c2 =  (QB.func_Mid(  ex,    i,    1));
                if ( c2 ==  (QB.func_Chr(  34)) ) {
                   stringLiteral2 =  ! stringLiteral2;
@@ -1556,7 +1556,7 @@ if (QB.halted()) { return; }
       var ___v9109643 = new Array( 2); QB.sub_LineInput(___v9109643, false, false, undefined);  fline = ___v9109643[ 1]; 
       lineIndex =   lineIndex +  1;
       if ((QB.func__Trim(  fline))  !=  "" ) {
-         var ___v2268660 = 0; while ((await func_EndsWith(  fline,   " _"))) { if (QB.halted()) { return; }___v2268660++;   if (___v2268660 % 100 == 0) { await GX.autoLimit(); }
+         var ___v2268660 = 0; while ((await func_EndsWith(  fline,   " _"))) { if (QB.halted()) { return; }___v2268660++;   if (___v2268660 % 100 == 0) { await QB.autoLimit(); }
             var nextLine = '';  /* STRING */ 
             var ___v6951155 = new Array( 2); QB.sub_LineInput(___v6951155, false, false, undefined);  nextLine = ___v6951155[ 1]; 
             fline =  (QB.func_Left(  fline,   (QB.func_Len(  fline))  -  1))  +  nextLine;
@@ -1597,7 +1597,7 @@ if (QB.halted()) { return; }
                continue;
             }
          }
-         var ___v2439314 = 0; while ((await func_EndsWith(  fline,   "_"))) { if (QB.halted()) { return; }___v2439314++;   if (___v2439314 % 100 == 0) { await GX.autoLimit(); }
+         var ___v2439314 = 0; while ((await func_EndsWith(  fline,   "_"))) { if (QB.halted()) { return; }___v2439314++;   if (___v2439314 % 100 == 0) { await QB.autoLimit(); }
             i =   i +  1;
             var nextLine = '';  /* STRING */ 
             nextLine =  QB.arrayValue(sourceLines, [ i]).value;
@@ -1815,7 +1815,7 @@ var Split = null;
    if ( delimiter ==  " " ) {
       cstr =  (QB.func_RTrim( (QB.func_LTrim(  cstr))));
       p =  (QB.func_InStr(  cstr,   "  "));
-      var ___v1000522 = 0; while ( p > 0) { if (QB.halted()) { return; }___v1000522++;   if (___v1000522 % 100 == 0) { await GX.autoLimit(); }
+      var ___v1000522 = 0; while ( p > 0) { if (QB.halted()) { return; }___v1000522++;   if (___v1000522 % 100 == 0) { await QB.autoLimit(); }
          cstr =  (QB.func_Mid(  cstr,    1,    p -  1))  + (QB.func_Mid(  cstr,    p +  1));
          p =  (QB.func_InStr(  cstr,   "  "));
       }
@@ -2329,7 +2329,7 @@ var RemoveSuffix = null;
    var c = '';  /* STRING */ 
    vname =  (QB.func__Trim(  vname));
    i =  (QB.func_Len(  vname));
-   var ___v4013744 = 0; while (! done) { if (QB.halted()) { return; }___v4013744++;   if (___v4013744 % 100 == 0) { await GX.autoLimit(); }
+   var ___v4013744 = 0; while (! done) { if (QB.halted()) { return; }___v4013744++;   if (___v4013744 % 100 == 0) { await QB.autoLimit(); }
       c =  (QB.func_Mid(  vname,    i,    1));
       if ( c ==  "`"  ||  c ==  "%"  ||  c ==  "&"  ||  c ==  "$"  ||  c ==  "~"  ||  c ==  "!"  ||  c ==  "#" ) {
          i =   i -  1;
