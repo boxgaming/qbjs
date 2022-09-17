@@ -47,6 +47,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              '_screenexists', '_sech', '_setbit', '_shl', '_shr', '_sinh', '_source', '_sndclose', '_sndopen',
                              '_sndplay', '_sndloop', '_sndpause', '_sndstop', '_sndvol', '_strcmp', '_stricmp',
                              '_tanh', '_title', '_trim', '_togglebit', '_width',
+                             '_cwd', '_startdir', '_os', '_direxists', '_fileexists',
                              'abs', 'asc', 'atn', 'beep',
                              'chr', 'cdbl', 'cint', 'clng', 'csng', 'circle', 'cls', 'color', 'command', 'cos', 'cvi', 'cvl',
                              'data', 'date', 'draw', 'exp', 'fix', 'hex', 'input', 'inkey', 'instr', 'int',
@@ -56,10 +57,11 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              'screen', 'shared', 'sgn', 'sin', 'sleep', 'space', 'sqr',
                              'str', 'swap', 'tan', 'time', 'timer', 'ubound', 'ucase',
                              'val', 'varptr', 'window',
+                             'mkdir', 'chdir', 'rmdir', 'kill', 'name', 'files', 'open', 'close', 'lof', 'eof', 'put', 'get', 'freefile',
                              // QBJS-specific
                              'export', 'from', 'import', '_label']
 
-    var builtinConsts = ['_off', '_smooth', '_stretch', '_squarepixels',
+    var builtinConsts = ['_off', '_smooth', '_stretch', '_squarepixels', 'append', 'binary', 'input', 'output', 'random',
                          'gx_true', 'gx_false', 'gxevent_init', 'gxevent_update', 'gxevent_drawbg', 'gxevent_drawmap', 'gxevent_drawscreen',
                          'gxevent_mouseinput', 'gxevent_paintbefore', 'gxevent_paintafter', 'gxevent_collision_tile', 'gxevent_collision_entity',
                          'gxevent_player_action', 'gxevent_animate_complete', 'gxanimate_loop', 'gxanimate_single', 'gxbg_stretch',

@@ -4,7 +4,11 @@ var QB = new function() {
     this.PREVENT_NEWLINE = Symbol("PREVENT_NEWLINE");
     this.STRETCH = Symbol("STRETCH");
     this.SQUAREPIXELS = Symbol("SQUAREPIXELS");
-    this.OFF = Symbol("OFF");
+    this.APPEND = Symbol("APPEND");
+    this.BINARY = Symbol("BINARY");
+    this.INPUT = Symbol("INPUT");
+    this.OUTPUT = Symbol("OUTPUT");
+    this.RANDOM = Symbol("RANDOM");
 
     var _activeImage = 0;
     var _bgColor = null; 
@@ -42,6 +46,10 @@ var QB = new function() {
     var _strokeLineThickness = 2;
     var _windowAspect = [];
     var _windowDef = [];
+    var _vfs = new VFS();
+    var _vfsCwd = null;
+    var _fileHandles = null;
+    var _typeMap = {};
 
     // Array handling methods
     // ----------------------------------------------------
@@ -53,7 +61,7 @@ var QB = new function() {
         else {
             // default to single dimension to support Dim myArray() syntax
             // for convenient hashtable declaration
-            a._dimensions = [{l:1,u:1}];
+            a._dimensions = [{l:0,u:1}];
         }
         a._newObj = { value: obj };
         return a;
@@ -74,7 +82,7 @@ var QB = new function() {
         else {
             // default to single dimension to support Dim myArray() syntax
             // for convenient hashtable declaration
-            a._dimensions = [{l:1,u:1}];
+            a._dimensions = [{l:0,u:1}];
         }
     };
 
@@ -128,6 +136,8 @@ var QB = new function() {
         _rndSeed = 327680;
         _runningFlag = true;
         _sourceImage = 0;
+        _vfsCwd = _vfs.rootDirectory();
+        _fileHandles = {};
         _initColorTable();
         GX._enableTouchMouse(true);
         GX.registerGameEvents(function(e){});
@@ -140,6 +150,10 @@ var QB = new function() {
 
     this.setDataLabel = function(label, dataIndex) {
         _dataLabelMap[label] = dataIndex;
+    }
+
+    this.setTypeMap = function(typeMap) {
+        _typeMap = typeMap;
     }
 
     this.running = function() {
@@ -229,6 +243,10 @@ var QB = new function() {
         return 1/Math.sinh(x);
     };
 
+    this.func__CWD = function() {
+        return _vfs.fullPath(_vfsCwd);
+    };
+
     this.func__D2R = function(x) {
         return x*Math.PI/180;
     };
@@ -243,18 +261,34 @@ var QB = new function() {
 
     this.func__Dest = function() {
         return _activeImage;
-    }
+    };
 
     this.sub__Dest = function(imageId) {
         _activeImage = imageId;
-    }
+    };
+
+    this.func__DirExists = function(path) {
+        var dir = _vfs.getNode(path, _vfsCwd);
+        if (dir && dir.type == _vfs.DIRECTORY) {
+            return -1;
+        }
+        return 0;
+    };
 
     this.func__Display = function() {
         return 0;
-    }
+    };
 
     this.sub__Display = function() {
         // The canvas handles this for us, this method is included for compatibility
+    };
+
+    this.func__FileExists = function(path) {
+        var file = _vfs.getNode(path, _vfsCwd);
+        if (file && file.type == _vfs.FILE) {
+            return -1;
+        }
+        return 0;
     };
 
     this.func__FontHeight = function(fnt) {
@@ -376,6 +410,16 @@ var QB = new function() {
         while (!img.complete) {
             await GX.sleep(10);
         }
+        if (!img.width) {
+            // attempt to read the image from the virtual file system
+            var node = _vfs.getNode(url, _vfsCwd);
+            img = new Image();
+            img.src = await _vfs.getDataURL(node);
+            
+            while (!img.complete) {
+                await GX.sleep(10);
+            }
+        }
 
         var imgId = QB.func__NewImage(img.width, img.height);
         var ctx = _images[imgId].ctx;
@@ -417,6 +461,10 @@ var QB = new function() {
         var tmpId = _nextImageId;
         _nextImageId++;
         return tmpId;
+    };
+
+    this.func__OS = function() {
+        return "[QBJS][64BIT]";
     };
 
     this.sub__PaletteColor = function(x, y) {
@@ -694,6 +742,10 @@ var QB = new function() {
         GX.soundVolumne(sid, v);
     };
 
+    this.func__StartDir = function() {
+        return _vfs.fullPath(_vfs.rootDirectory());
+    }
+
     this.func__Strcmp = function(x, y) {
         return (( x == y ) ? 0 : (( x > y ) ? 1 : -1 ));
     };
@@ -766,8 +818,27 @@ var QB = new function() {
         }, 200);  
     };
 
+    this.sub_ChDir = function(path) {
+        var node = _vfs.getNode(path, _vfsCwd);
+        //alert("CHDIR: " + path + " node: " + node);
+        if (node) {
+            _vfsCwd = node;
+        }
+        else {
+            // TODO: error handling
+        }
+    };
+
     this.func_Chr = function(charCode) {
         return String.fromCharCode(charCode);
+    };
+
+    this.sub_Close = function(fh) {
+        if (!_fileHandles[fh]) {
+            throw new Error("Invalid file handle");
+        }
+
+        delete _fileHandles[fh];
     };
 
     this.sub_Cls = function(method, bgColor) {
@@ -1200,22 +1271,53 @@ var QB = new function() {
         return n.toString(16).toUpperCase();
     };
 
+    this.func_EOF = function(fh) {
+        if (!_fileHandles[fh]) {
+            throw new Error("Invalid file handle");
+        }
+
+        return (_fileHandles[fh].offset >= _fileHandles[fh].file.data.byteLength) ? -1 : 0;
+    };
+
+    this.func_LOF = function(fh) {
+        if (!_fileHandles[fh]) {
+            throw new Error("Invalid file handle");
+        }
+
+        return _fileHandles[fh].file.data.byteLength;
+    };
+
+    this.sub_LineInputFromFile = async function(fh, returnValues) {
+        if (!_fileHandles[fh]) {
+            throw new Error("Invalid file handle");
+        }
+        if (_fileHandles[fh].mode == QB.RANDOM) {
+            throw new Error("Bad file mode");
+        }
+
+        fh = _fileHandles[fh];
+        var text = _vfs.readLine(fh.file, fh.offset);
+        fh.offset += text.length + 1;
+        returnValues[0] = text;
+    };
+
     this.sub_Input = async function(values, preventNewline, addQuestionPrompt, prompt) {
         _lastKey = null;
         var str = "";
         _inputMode = true;
 
         if (prompt != undefined) {
-            QB.sub_Print([prompt, QB.PREVENT_NEWLINE]);
+            await QB.sub_Print([prompt, QB.PREVENT_NEWLINE]);
         }
         if (prompt == undefined || addQuestionPrompt) {
-            QB.sub_Print(["? ", QB.PREVENT_NEWLINE]);
+            await QB.sub_Print(["? ", QB.PREVENT_NEWLINE]);
         }
 
         if (!preventNewline && _locY > _textRows()-1) {
                 await _printScroll();
             _locY = _textRows()-1;
         }
+
 
         while (_lastKey != "Enter") {
 
@@ -1377,6 +1479,20 @@ var QB = new function() {
         _strokeDrawColor = _color(color);
     };
 
+    this.sub_Files = function(path) {
+        var childNodes = null;
+        if (path == undefined) {
+            childNodes = _vfs.getChildren(_vfsCwd);
+        }
+        else {
+            var parent = _vfs.getNode(path, _vfsCwd);
+            childNodes = _vfs.getChildren(parent);
+        }
+        for (var i=0; i < childNodes.length; i++) {
+            this.sub_Print(childNodes[i].name + ((childNodes[i].type == _vfs.DIRECTORY) ? " <DIR>" : ""));
+        }
+    };
+
     this.sub_Line = function(sstep, sx, sy, estep, ex, ey, color, style, pattern) {
         var screen = _images[_activeImage];
         //var ctx = screen.ctx;
@@ -1534,7 +1650,11 @@ var QB = new function() {
 
     this.func_LTrim = function(value) {
         return String(value).trimStart();
-    }
+    };
+
+    this.sub_Kill = function(path) {
+        _vfs.removeFile(path, _vfsCwd);
+    };
 
     this.func_Mid = function(value, n, len) {
       if (len == undefined) {
@@ -1544,6 +1664,14 @@ var QB = new function() {
         return String(value).substring(n-1, n+len-1);
       }
     };
+
+    this.sub_MkDir = function(path) {
+        var parent = _vfs.getParentPath(path);
+        var filename = _vfs.getFileName(path);
+        var parentNode = _vfs.getNode(parent, _vfsCwd);
+        if (!parentNode) { parentNode = _vfsCwd; }
+        _vfs.createDirectory(filename, parentNode);
+    }
 
     this.func_Mki = function(num) {
         var ascii = "";
@@ -1561,8 +1689,41 @@ var QB = new function() {
         return ascii.split("").reverse().join("");
     };
 
+    this.sub_Name = function(oldName, newName) {
+        var node = _vfs.getNode(oldName, _vfsCwd);
+        _vfs.renameNode(node, newName);
+    };
+
     this.func_Oct = function(n) {
         return n.toString(8).toUpperCase();
+    };
+
+    this.sub_Open = function(path, mode, handle) {
+        if (mode == QB.OUTPUT || mode == QB.APPEND || mode == QB.BINARY) {
+            var parent = _vfs.getParentPath(path);
+            var filename = _vfs.getFileName(path);
+            var parentNode = _vfs.getNode(parent, _vfsCwd);
+            if (!parentNode) { parentNode = _vfsCwd; }
+            var file = null;
+            if (mode == QB.APPEND || mode == QB.BINARY) {
+                file = _vfs.getNode(path, _vfsCwd);
+                // TODO: make sure this is not a directory
+            }
+            if (!file) {
+                file = _vfs.createFile(filename, parentNode);
+            }
+            _fileHandles[handle] = { file: file, mode: mode, offset: 0 };
+        }
+        else if (mode == QB.INPUT) {
+            var file = _vfs.getNode(path, _vfsCwd);
+            if (!file || file.type != _vfs.FILE) {
+                throw new Error("File not found");
+            }
+            _fileHandles[handle] = { file: file, mode: mode, offset: 0 };
+        }
+        else {
+            throw new Error("Unsupported Open Method");
+        }
     };
 
     this.sub_Paint = function(sstep, startX, startY, fillColor, borderColor) {
@@ -1720,6 +1881,52 @@ var QB = new function() {
         _strokeDrawColor = _color(color);
     };
 
+    this.vfs = function() { return _vfs; }
+
+    this.sub_PrintToFile = function(fh, args) {
+        if (!_fileHandles[fh]) {
+            throw new Error("Invalid file handle");
+        }
+        if (_fileHandles[fh].mode != QB.OUTPUT && _fileHandles[fh].mode != QB.APPEND) {
+            throw new Error("Bad file mode");
+        }
+        var locX = 0;
+        var file = _fileHandles[fh].file;
+        if (!file) { 
+            throw new Error("Invalid file handle");
+        }
+
+        // Print called with no arguments
+        if (args == undefined || args == null || args.length < 1) {
+            args = [""];
+        }
+
+        var preventNewline = (args[args.length-1] == QB.PREVENT_NEWLINE || args[args.length-1] == QB.COLUMN_ADVANCE);
+
+        for (var ai = 0; ai < args.length; ai++) {
+            if (args[ai] == QB.PREVENT_NEWLINE) {
+                // ignore as we will just concatenate the next arg
+            }
+            else if (args[ai] == QB.COLUMN_ADVANCE) {
+                // advance to the next column offset
+                var chars = 14 - locX % 13;
+                var padStr = "";
+                padStr = padStr.padStart(chars, " ");
+                _vfs.writeText(file, padStr);
+                locX += chars;
+            }
+            else {
+                //alert(args[ai]);
+                locX = args[ai].length;
+                _vfs.writeText(file, args[ai]);
+            }
+        }
+
+        if (!preventNewline) {
+            _vfs.writeText(file, "\r\n");
+        }
+    };
+
     this.sub_Print = async function(args) {
         var screen = _images[_activeImage];
 
@@ -1840,12 +2047,248 @@ var QB = new function() {
         _strokeDrawColor = _color(color);
     };
 
+    this.sub_Get = function(fhi, position, type, valueObj) {
+        if (!_fileHandles[fhi]) {
+            throw new Error("Invalid file handle");
+        }
+        var fh = _fileHandles[fhi];
+
+        if (fh.mode != QB.BINARY && fh.mode != QB.RANDOM) {
+            throw new Error("Bad file mode");
+        }
+
+        if (position == undefined) {
+            position = fh.offset;
+        }
+        else if (position > 0) {
+            position--;
+        }
+
+        var value = valueObj.value;
+        if (value._dimensions) {
+            // this is an array
+            var idx = [];
+            for (var di=0; di < value._dimensions.length; di++) {
+                var d = value._dimensions[di];
+                idx.push({l: d.l, u: d.u, i: d.l});
+            }
+
+            var done = false;
+            while (!done && !QB.func_EOF(fhi)) {
+                var ai = [];
+                for (var i=0; i < idx.length; i++) {
+                    ai.push(idx[i].i);
+                }
+
+                QB.arrayValue(value, ai).value = _readDataElement(fh, position, type);
+                position = fh.offset;
+
+                // increment the indexes
+                var cidx = 0;
+                var incNext = true;
+                while (cidx < idx.length) { 
+                    if (incNext) {
+                        idx[cidx].i++;
+                        if (idx[cidx].i > idx[cidx].u) {
+                            idx[cidx].i = idx[cidx].l;
+                            incNext = true;
+                        }
+                        else {
+                            incNext = false;
+                        }
+                    }
+                    cidx++;
+                }
+                if (incNext) {
+                    done = true;
+                }
+            }
+
+            return;
+        }
+        else {
+            valueObj.value = _readDataElement(fh, position, type);
+        }
+    };
+
+    function _readDataElement(fh, position, type) {
+        var data = null;
+        if (type == "SINGLE") {
+            data = _vfs.readData(fh.file, position, 4);
+            fh.offset = position + data.byteLength;
+            return (new DataView(data)).getFloat32(0, true);
+        }
+        else if (type == "DOUBLE") { 
+            data = _vfs.readData(fh.file, position, 8);
+            fh.offset = position + data.byteLength;
+            return (new DataView(data)).getFloat64(0, true);
+        }
+        else if (type == "_BYTE") { 
+            data = _vfs.readData(fh.file, position, 1);
+            fh.offset = position + data.byteLength;
+            return (new DataView(data)).getInt8(0, true);
+        }
+        else if (type == "_UNSIGNED _BYTE") {
+            data = _vfs.readData(fh.file, position, 1);
+            fh.offset = position + data.byteLength;
+            return (new DataView(data)).getUint8(0, true);
+        }
+        else if (type == "INTEGER") { 
+            data = _vfs.readData(fh.file, position, 2);
+            fh.offset = position + data.byteLength;
+            return (new DataView(data)).getInt16(0, true);
+        }
+        else if (type == "_UNSIGNED INTEGER") {
+            data = _vfs.readData(fh.file, position, 2);
+            fh.offset = position + data.byteLength;
+            return (new DataView(data)).getUint16(0, true);
+        }
+        else if (type == "LONG") {
+            data = _vfs.readData(fh.file, position, 4);
+            fh.offset = position + data.byteLength;
+            return (new DataView(data)).getInt32(0, true);
+        }
+        else if (type == "_UNSIGNED LONG") {
+            data = _vfs.readData(fh.file, position, 4);
+            fh.offset = position + data.byteLength;
+            return (new DataView(data)).getUint32(0, true);
+        }
+        else if (type == "STRING") {
+            throw new Error("Unsupported data type: " + type);
+        }
+        else if (type == "_BIT" || type == "_UNSIGNED _BIT") {
+            // mimicking QB64 error message here
+            throw new Error("Variable/element cannot be BIT aligned on current line");
+        }
+        else if (type == "_INTEGER64" || type == "_UNSIGNED _INTEGER64" ||
+                 type == "_OFFSET" || type == "_UNSIGNED _OFFSET" ||
+                 type == "_MEM") {
+            throw new Error("Unsupported data type for operation: " + type);
+        }
+        else {
+            // handle custom type
+            var tvars = _typeMap[type];
+            if (tvars == undefined) {
+                throw new Error("Unknown type: " + type);
+            }
+
+            var resObj = {};
+            for (var i=0; i < tvars.length; i++) {
+                var tname = tvars[i].name;
+                var ttype = tvars[i].type;
+                resObj[tname] = _readDataElement(fh, position, ttype);
+                position = fh.offset;
+            }
+            return resObj;
+        }
+    }
+
+    this.sub_Put = function(fhi, position, type, value) {
+        if (!_fileHandles[fhi]) {
+            throw new Error("Invalid file handle");
+        }
+        var fh = _fileHandles[fhi];
+
+        if (fh.mode != QB.BINARY && fh.mode != QB.RANDOM) {
+            throw new Error("Bad file mode");
+        }
+
+        if (position == undefined) {
+            position = fh.offset;
+        }
+        else if (position > 0) {
+            position--;
+        }
+
+        if (value._dimensions) {
+            var idx = [];
+            for (var di=0; di < value._dimensions.length; di++) {
+                var d = value._dimensions[di];
+                idx.push({l: d.l, u: d.u, i: d.l});
+            }
+
+            var done = false;
+            while (!done) {
+                var ai = [];
+                for (var i=0; i < idx.length; i++) {
+                    ai.push(idx[i].i);
+                }
+                var v = QB.arrayValue(value, ai);
+                QB.sub_Put(fhi, position+1, type, v.value);
+                position = fh.offset;
+
+                // increment the indexes
+                var cidx = 0;
+                var incNext = true;
+                while (cidx < idx.length) { 
+                    if (incNext) {
+                        idx[cidx].i++;
+                        if (idx[cidx].i > idx[cidx].u) {
+                            idx[cidx].i = idx[cidx].l;
+                            incNext = true;
+                        }
+                        else {
+                            incNext = false;
+                        }
+                    }
+                    cidx++;
+                }
+                if (incNext) {
+                    done = true;
+                }
+            }
+
+            return;
+        }
+
+        var customType = false;
+        var data = null;
+        var bytes = 0;
+        if      (type == "SINGLE")            { data = new Float32Array([value]).buffer; }
+        else if (type == "DOUBLE")            { data = new Float64Array([value]).buffer; }
+        else if (type == "_BYTE")             { data = new Int8Array([value]).buffer; }
+        else if (type == "_UNSIGNED _BYTE")   { data = new Uint8Array([value]).buffer; }
+        else if (type == "INTEGER")           { data = new Int16Array([value]).buffer; }
+        else if (type == "_UNSIGNED INTEGER") { data = new Uint16Array([value]).buffer; }
+        else if (type == "LONG")              { data = new Int32Array([value]).buffer; }
+        else if (type == "_UNSIGNED LONG")    { data = new Uint32Array([value]).buffer; }
+        else if (type == "STRING")            { data = _vfs.textToData(value); }
+        else if (type == "_BIT" || type == "_UNSIGNED _BIT") {
+            // mimicking QB64 error message here
+            throw new Error("Variable/element cannot be BIT aligned on current line");
+        }
+        else if (type == "_INTEGER64" || type == "_UNSIGNED _INTEGER64" ||
+                 type == "_OFFSET" || type == "_UNSIGNED _OFFSET" ||
+                 type == "_MEM") {
+            throw new Error ("Unsupported data type for operation: " + type);
+        }
+        else {
+            // Assume if we got here this is a custom type
+            customType = true;
+            var tvars = _typeMap[type];
+            if (tvars == undefined) {
+                throw new Error("Unknown type: " + type);
+            }
+            for (var i=0; i < tvars.length; i++) {
+                var tname = tvars[i].name;
+                var ttype = tvars[i].type;
+                QB.sub_Put(fhi, position + 1, ttype, value[tname]);
+                position = fh.offset;
+            }
+        }
+
+        if (!customType) {
+            _vfs.writeData(fh.file, data, position);
+            fh.offset = position + data.byteLength;
+        }
+    };
+
     this.sub_Read = function(values) {
         for (var i=0; i < values.length; i++) {
             values[i] = _dataBulk[_readCursorPosition];
             _readCursorPosition += 1;
         }
-    }
+    };
 
     this.sub_Restore = function(t) {
         if ((t == undefined) || (t.trim() == "")) {
@@ -1886,7 +2329,11 @@ var QB = new function() {
                 _rndSeed = ((m & 0xffff)<<8) | (327680 & 0xff);
             }
         }
-    }
+    };
+
+    this.sub_RmDir = function(path) {
+        _vfs.removeDirectory(path, _vfsCwd);
+    };
 
     this.func_Rnd = function(n) {
         if (n == undefined) {n = 1;}
@@ -1901,7 +2348,7 @@ var QB = new function() {
             _rndSeed = (_rndSeed * 16598013 + 12820163) & 0xFFFFFF;
         }
         return _rndSeed / 0x1000000;
-    }
+    };
 
     this.sub_Screen = async function(mode) {
         _activeImage = 0;
@@ -2739,3 +3186,5 @@ var QB = new function() {
 
     _init();
 }
+
+

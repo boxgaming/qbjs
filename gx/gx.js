@@ -562,50 +562,21 @@ var GX = new function() {
     // Background images are displayed in layers based on the order they are added.
     // One of the following modes must be specified:
     //   GXBG_STRETCH - Stretch the background image to the size of the scene.
-    //   GXBG_SCROLL  - Fit the height of the background image to the size of the screen.
-    //                   Scroll the horizontal position relative to the position on the map.
     //   GXBG_WRAP    - Continuously wrap the background as the scene is moved horizontally.
     function _backgroundAdd (imageFilename, mode) {
         var bg = {};
         bg.mode = mode;
         bg.x = 0;
         bg.y = 0;
-        if (mode == GX.BG_WRAP) {
-            _imageLoad(imageFilename, function(img) {
-                var imgCanvas = document.createElement("canvas");
-                imgCanvas.width = img.width * 2;
-                imgCanvas.height = img.height;
-                var imgCtx = imgCanvas.getContext("2d");
-                imgCtx.drawImage(img, 0, 0);
-                imgCtx.drawImage(img, img.width, 0);
-                
-                var dataUrl = imgCanvas.toDataURL("image/png");
-                var img2 = new Image();
-                img2.height = img.height;
-                img2.width = img.width * 2;
-                img2.src = dataUrl;
-                //document.body.append(img2);
-                _images.push(img2);
-                bg.image = _images.length;
-                
-                //_bg.push(bg);
-            });
-        //    Dim w As Integer, h As Integer
-        //    w = _Width(img)
-        //    h = _Height(img)
-        //    Dim newImage As Long
-        //    'newImage = _NewImage(w * 2, h, 32)
-        //    newImage = __GX_HardwareImage(w * 2, h)
-        //    _PutImage (0, 0)-(w, h), img, newImage
-        //    _PutImage (w, 0)-(w * 2, h), img, newImage
-        //    _FreeImage img
-        //    __gx_bg(__gx_bg_count).image = newImage
-        } else {
-            bg.image = _imageLoad(imageFilename);
-        }
+        bg.wrapFactor = 1;
+        bg.image = _imageLoad(imageFilename);
         
         _bg.push(bg);
         return _bg.length;
+    }
+
+    function _backgroundWrapFactor(bi, wrapFactor) {
+        _bg[bi-1].wrapFactor = wrapFactor;
     }
 
     function _backgroundDraw (bi) {
@@ -615,42 +586,50 @@ var GX = new function() {
             _ctx.drawImage(_image(_bg[bi].image), 0, 0, _scene.width, _scene.height); // __gx_scene.image
         }
 
-        else if (_bg[bi].mode == GX.BG_SCROLL) {
-            var img = _image(_bg[bi].image);
-            var factor = GX.sceneWidth() / GX.sceneHeight();
-            var h = img.height;
-            var w = h * factor;
-            var xfactor = GX.sceneX() / (GX.mapColumns() * GX.tilesetWidth())
-            var x = xfactor * (img.width - w); 
-            _ctx.drawImage(img, x, 0, w, h, 0, 0, GX.sceneWidth(), GX.sceneHeight());
-        }
-
         else if (_bg[bi].mode == GX.BG_WRAP) {
-            var img = _image(_bg[bi].image);
-            var h = img.height;
-            var w = GX.sceneWidth();
-            var y = _bg[bi].y;
-            var x = (GX.sceneX() % img.width) / 2;
-            _ctx.drawImage(img, x, 0, w, img.height, 0, y, GX.sceneWidth(), h);
-            _bg[bi].x = x + 1;
-            if (_bg[bi].x > img.width / 2) {
-                _bg[bi].x = 0;
-            }
+            _backgroundDrawWrap(bi);
         }
     }
 
-    function _backgroundY (bi, y) {
-        if (y != undefined) {
-            _bg[bi-1].y = y;
-        }
-        return _bg[bi-1].y;
-    }
+    function _backgroundDrawWrap(bi) {
+        var img;
+        var x, y, x2, y2, xx, yy, w, h;
+        var wrapFactor;
 
-    function _backgroundHeight (bi, height) {
-        if (height != undefined) {
-            _bg[bi-1].height = height;
+        img = _image(_bg[bi].image);
+        wrapFactor = _bg[bi].wrapFactor;
+
+        x = (GX.sceneX() * wrapFactor) % img.width;
+        y = (GX.sceneY() * wrapFactor) % img.height;
+        if (x < 0) { x = img.width + x; }
+        if (y < 0) { y = img.height + y; }
+        x2 = GX.sceneWidth() + x;
+        y2 = GX.sceneHeight() + y;
+
+        _ctx.drawImage(img, x, y, GX.sceneWidth(), GX.sceneHeight(), 0, 0, GX.sceneWidth(), GX.sceneHeight());
+
+        if (x2 > img.width) {
+            w = x2 - img.width;
+            xx = GX.sceneWidth() - w;
+
+            _ctx.drawImage(img, 0, y, w, GX.sceneHeight(), xx, 0, w, GX.sceneHeight());
         }
-        return _bg[bi-1].height;
+
+        if (y2 > img.height) {
+            h = y2 - img.height;
+            yy = GX.sceneHeight() - h;
+
+            _ctx.drawImage(img, x, 0, GX.sceneWidth(), h, 0, yy, GX.sceneWidth(), h);
+        }
+
+        if (x2 > img.width && y2 > img.height) {
+            w = x2 - img.width;
+            h = y2 - img.height;
+            xx = GX.sceneWidth() - w;
+            yy = GX.sceneHeight() - h;
+
+            _ctx.drawImage(img, 0, 0, w, h, xx, yy, w, h);
+        }
     }
 
     // Removes all background images from the scene.
@@ -1653,6 +1632,17 @@ var GX = new function() {
         return move;
     }
 
+    function _entityCollide (eid1, eid2) {
+        return _rectCollide( 
+            GX.entityX(eid1) + GX.entityCollisionOffsetLeft(eid1), 
+            GX.entityY(eid1) + GX.entityCollisionOffsetTop(eid1), 
+            GX.entityWidth(eid1) - GX.entityCollisionOffsetLeft(eid1) - GX.entityCollisionOffsetRight(eid1) - 1,
+            GX.entityHeight(eid1) - GX.entityCollisionOffsetTop(eid1) - GX.entityCollisionOffsetBottom(eid1) - 1,
+            GX.entityX(eid2) + GX.entityCollisionOffsetLeft(eid2),
+            GX.entityY(eid2) + GX.entityCollisionOffsetTop(eid2),
+            GX.entityWidth(eid2) - GX.entityCollisionOffsetLeft(eid2) - GX.entityCollisionOffsetRight(eid2) - 1,
+            GX.entityHeight(eid2) - GX.entityCollisionOffsetTop(eid2) - GX.entityCollisionOffsetBottom(eid2) - 1);
+    }
 
     function _entityCollision(eid, movex, movey, entities) {
         var ecount = 0;
@@ -2412,8 +2402,7 @@ var GX = new function() {
     this.spriteDrawScaled = _spriteDrawScaled;
 
     this.backgroundAdd = _backgroundAdd;
-    this.backgroundY = _backgroundY;
-    this.backgroundHeight = _backgroundHeight;
+    this.backgroundWrapFactor = _backgroundWrapFactor;
     this.backgroundClear = _backgroundClear;
 
     this.soundClose = _soundClose;
@@ -2446,6 +2435,7 @@ var GX = new function() {
     this.entityCollisionOffsetTop = _entityCollisionOffsetTop;
     this.entityCollisionOffsetRight = _entityCollisionOffsetRight;
     this.entityCollisionOffsetBottom = _entityCollisionOffsetBottom;
+    this.entityCollide = _entityCollide;
     this.entityApplyGravity = _entityApplyGravity;
     this.entityVisible = _entityVisible;
     
@@ -2528,9 +2518,7 @@ var GX = new function() {
     this.ANIMATE_SINGLE = 1;
 
     this.BG_STRETCH = 1;
-    this.BG_SCROLL = 2;
-    this.BG_WRAP = 3;
-
+    this.BG_WRAP = 2;
 
     this.KEY_ESC = 'Escape';
     this.KEY_1 = 'Digit1';
