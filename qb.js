@@ -46,8 +46,6 @@ var QB = new function() {
     var _strokeLineThickness = 2;
     var _windowAspect = [];
     var _windowDef = [];
-    var _vfs = new VFS();
-    var _vfsCwd = null;
     var _fileHandles = null;
     var _typeMap = {};
 
@@ -136,7 +134,7 @@ var QB = new function() {
         _rndSeed = 327680;
         _runningFlag = true;
         _sourceImage = 0;
-        _vfsCwd = _vfs.rootDirectory();
+        GX.vfsCwd(GX.vfs().rootDirectory());
         _fileHandles = {};
         _initColorTable();
         GX._enableTouchMouse(true);
@@ -244,7 +242,7 @@ var QB = new function() {
     };
 
     this.func__CWD = function() {
-        return _vfs.fullPath(_vfsCwd);
+        return GX.vfs().fullPath(GX.vfsCwd());
     };
 
     this.func__D2R = function(x) {
@@ -268,8 +266,9 @@ var QB = new function() {
     };
 
     this.func__DirExists = function(path) {
-        var dir = _vfs.getNode(path, _vfsCwd);
-        if (dir && dir.type == _vfs.DIRECTORY) {
+        var vfs = GX.vfs();
+        var dir = vfs.getNode(path, GX.vfsCwd());
+        if (dir && dir.type == vfs.DIRECTORY) {
             return -1;
         }
         return 0;
@@ -284,8 +283,9 @@ var QB = new function() {
     };
 
     this.func__FileExists = function(path) {
-        var file = _vfs.getNode(path, _vfsCwd);
-        if (file && file.type == _vfs.FILE) {
+        var vfs = GX.vfs();
+        var file = vfs.getNode(path, GX.vfsCwd());
+        if (file && file.type == vfs.FILE) {
             return -1;
         }
         return 0;
@@ -403,19 +403,25 @@ var QB = new function() {
     };
 
     this.func__LoadImage = async function(url) {
+        var vfs = GX.vfs();
+        var vfsCwd = GX.vfsCwd();
+        var img = null;
 
-        var img = new Image();
-        img.src = url;
-
-        while (!img.complete) {
-            await GX.sleep(10);
-        }
-        if (!img.width) {
-            // attempt to read the image from the virtual file system
-            var node = _vfs.getNode(url, _vfsCwd);
+        // attempt to read the image from the virtual file system
+        var file = vfs.getNode(url, vfsCwd);
+        if (file && file.type == vfs.FILE) {
             img = new Image();
-            img.src = await _vfs.getDataURL(node);
-            
+            img.src = await vfs.getDataURL(file);
+                
+            while (!img.complete) {
+                await GX.sleep(10);
+            }
+        }
+        else {
+            // otherwise, read it from the url location
+            var img = new Image();
+            img.src = url;
+
             while (!img.complete) {
                 await GX.sleep(10);
             }
@@ -464,7 +470,33 @@ var QB = new function() {
     };
 
     this.func__OS = function() {
-        return "[QBJS][64BIT]";
+
+        var browser = "";
+        if ((navigator.userAgent.indexOf("Opera") || navigator.userAgent.indexOf('OPR')) != -1 )  {
+            browser = "Opera";
+        }
+        else if (navigator.userAgent.indexOf("Edg") != -1 )  {
+            browser = "Edge";
+        }
+        else if (navigator.userAgent.indexOf("Chrome") != -1 ) {
+            browser = "Chrome";
+        }
+        else if (navigator.userAgent.indexOf("Safari") != -1) {
+            browser = "Safari";
+        }
+        else if(navigator.userAgent.indexOf("Firefox") != -1 ) {
+            browser = "Firefox";
+        }
+        else if((navigator.userAgent.indexOf("MSIE") != -1 ) || (!!document.documentMode == true )) //IF IE > 10
+        {
+            browser = "IE"; 
+        }  
+        else 
+        {
+            browser = "Unknown";
+        }
+
+        return "[WEB][" + browser.toUpperCase() + "]";
     };
 
     this.sub__PaletteColor = function(x, y) {
@@ -743,7 +775,7 @@ var QB = new function() {
     };
 
     this.func__StartDir = function() {
-        return _vfs.fullPath(_vfs.rootDirectory());
+        return GX.vfs().fullPath(GX.vfs().rootDirectory());
     }
 
     this.func__Strcmp = function(x, y) {
@@ -819,10 +851,10 @@ var QB = new function() {
     };
 
     this.sub_ChDir = function(path) {
-        var node = _vfs.getNode(path, _vfsCwd);
+        var node = GX.vfs().getNode(path, GX.vfsCwd());
         //alert("CHDIR: " + path + " node: " + node);
         if (node) {
-            _vfsCwd = node;
+            GX.vfsCwd(node);
         }
         else {
             // TODO: error handling
@@ -1287,19 +1319,6 @@ var QB = new function() {
         return _fileHandles[fh].file.data.byteLength;
     };
 
-    this.sub_LineInputFromFile = async function(fh, returnValues) {
-        if (!_fileHandles[fh]) {
-            throw new Error("Invalid file handle");
-        }
-        if (_fileHandles[fh].mode == QB.RANDOM) {
-            throw new Error("Bad file mode");
-        }
-
-        fh = _fileHandles[fh];
-        var text = _vfs.readLine(fh.file, fh.offset);
-        fh.offset += text.length + 1;
-        returnValues[0] = text;
-    };
 
     this.sub_Input = async function(values, preventNewline, addQuestionPrompt, prompt) {
         _lastKey = null;
@@ -1357,6 +1376,30 @@ var QB = new function() {
         _inputMode = false;
         _images[_activeImage].dirty = true;
     }
+
+    this.sub_InputFromFile = async function(fh, returnValues) {
+        if (!_fileHandles[fh]) {
+            throw new Error("Invalid file handle");
+        }
+        if (_fileHandles[fh].mode != QB.INPUT) {
+            throw new Error("Bad file mode");
+        }
+
+        fh = _fileHandles[fh];
+        var text = GX.vfs().readLine(fh.file, fh.offset);
+        fh.offset += text.length + 1;
+        var values = text.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+        for (var i=0; i < returnValues.length; i++) {
+            if (i < values.length) {
+                var v = values[i];
+                // remove surrounding double quotes from string values
+                if (v.startsWith('"') && v.endsWith('"')) {
+                    v = v.substring(1, v.length-1);
+                }
+                returnValues[i] = v;
+            }
+        }
+    };
 
     this.func_InKey = function() {
         if (_inkeyBuffer.length < 1) {
@@ -1480,16 +1523,18 @@ var QB = new function() {
     };
 
     this.sub_Files = function(path) {
+        var vfs = GX.vfs();
+        var vfsCwd = GX.vfsCwd();
         var childNodes = null;
         if (path == undefined) {
-            childNodes = _vfs.getChildren(_vfsCwd);
+            childNodes = vfs.getChildren(vfsCwd);
         }
         else {
-            var parent = _vfs.getNode(path, _vfsCwd);
-            childNodes = _vfs.getChildren(parent);
+            var parent = vfs.getNode(path, vfsCwd);
+            childNodes = vfs.getChildren(parent);
         }
         for (var i=0; i < childNodes.length; i++) {
-            this.sub_Print(childNodes[i].name + ((childNodes[i].type == _vfs.DIRECTORY) ? " <DIR>" : ""));
+            this.sub_Print(childNodes[i].name + ((childNodes[i].type == vfs.DIRECTORY) ? " <DIR>" : ""));
         }
     };
 
@@ -1499,12 +1544,13 @@ var QB = new function() {
         _images[_activeImage].dirty = true;
 
         if (color == undefined) {
-            if (style == "BF") {
+            color = _fgColor;
+            /*if (style == "BF") {
                 color = _bgColor;
             }
             else {
                 color = _fgColor;
-            }
+            }*/
         }
         else {
             color = _color(color);
@@ -1638,6 +1684,20 @@ var QB = new function() {
         await QB.sub_Input(values, preventNewline, addQuestionPrompt, prompt);
     }
 
+    this.sub_LineInputFromFile = async function(fh, returnValues) {
+        if (!_fileHandles[fh]) {
+            throw new Error("Invalid file handle");
+        }
+        if (_fileHandles[fh].mode == QB.RANDOM) {
+            throw new Error("Bad file mode");
+        }
+
+        fh = _fileHandles[fh];
+        var text = GX.vfs().readLine(fh.file, fh.offset);
+        fh.offset += text.length + 1;
+        returnValues[0] = text;
+    };
+
     this.sub_Locate = function(row, col) {
         // TODO: implement cursor positioning/display
         if (row && row > 0 && row <= _textRows()) {
@@ -1653,7 +1713,7 @@ var QB = new function() {
     };
 
     this.sub_Kill = function(path) {
-        _vfs.removeFile(path, _vfsCwd);
+        GX.vfs().removeFile(path, GX.vfsCwd());
     };
 
     this.func_Mid = function(value, n, len) {
@@ -1666,11 +1726,13 @@ var QB = new function() {
     };
 
     this.sub_MkDir = function(path) {
-        var parent = _vfs.getParentPath(path);
-        var filename = _vfs.getFileName(path);
-        var parentNode = _vfs.getNode(parent, _vfsCwd);
-        if (!parentNode) { parentNode = _vfsCwd; }
-        _vfs.createDirectory(filename, parentNode);
+        var vfs = GX.vfs();
+        var vfsCwd = GX.vfsCwd();
+        var parent = vfs.getParentPath(path);
+        var filename = vfs.getFileName(path);
+        var parentNode = vfs.getNode(parent, vfsCwd);
+        if (!parentNode) { parentNode = vfsCwd; }
+        vfs.createDirectory(filename, parentNode);
     }
 
     this.func_Mki = function(num) {
@@ -1690,8 +1752,10 @@ var QB = new function() {
     };
 
     this.sub_Name = function(oldName, newName) {
-        var node = _vfs.getNode(oldName, _vfsCwd);
-        _vfs.renameNode(node, newName);
+        var vfs = GX.vfs();
+        var vfsCwd = GX.vfsCwd();
+        var node = vfs.getNode(oldName, vfsCwd);
+        vfs.renameNode(node, newName);
     };
 
     this.func_Oct = function(n) {
@@ -1699,24 +1763,26 @@ var QB = new function() {
     };
 
     this.sub_Open = function(path, mode, handle) {
-        if (mode == QB.OUTPUT || mode == QB.APPEND || mode == QB.BINARY) {
-            var parent = _vfs.getParentPath(path);
-            var filename = _vfs.getFileName(path);
-            var parentNode = _vfs.getNode(parent, _vfsCwd);
-            if (!parentNode) { parentNode = _vfsCwd; }
+        var vfs = GX.vfs();
+        var vfsCwd = GX.vfsCwd();
+       if (mode == QB.OUTPUT || mode == QB.APPEND || mode == QB.BINARY) {
+            var parent = vfs.getParentPath(path);
+            var filename = vfs.getFileName(path);
+            var parentNode = vfs.getNode(parent, vfsCwd);
+            if (!parentNode) { parentNode = vfsCwd; }
             var file = null;
             if (mode == QB.APPEND || mode == QB.BINARY) {
-                file = _vfs.getNode(path, _vfsCwd);
+                file = vfs.getNode(path, vfsCwd);
                 // TODO: make sure this is not a directory
             }
             if (!file) {
-                file = _vfs.createFile(filename, parentNode);
+                file = vfs.createFile(filename, parentNode);
             }
             _fileHandles[handle] = { file: file, mode: mode, offset: 0 };
         }
         else if (mode == QB.INPUT) {
-            var file = _vfs.getNode(path, _vfsCwd);
-            if (!file || file.type != _vfs.FILE) {
+            var file = vfs.getNode(path, vfsCwd);
+            if (!file || file.type != vfs.FILE) {
                 throw new Error("File not found");
             }
             _fileHandles[handle] = { file: file, mode: mode, offset: 0 };
@@ -1881,7 +1947,7 @@ var QB = new function() {
         _strokeDrawColor = _color(color);
     };
 
-    this.vfs = function() { return _vfs; }
+    this.vfs = function() { return GX.vfs(); }
 
     this.sub_PrintToFile = function(fh, args) {
         if (!_fileHandles[fh]) {
@@ -1912,18 +1978,18 @@ var QB = new function() {
                 var chars = 14 - locX % 13;
                 var padStr = "";
                 padStr = padStr.padStart(chars, " ");
-                _vfs.writeText(file, padStr);
+                GX.vfs().writeText(file, padStr);
                 locX += chars;
             }
             else {
                 //alert(args[ai]);
                 locX = args[ai].length;
-                _vfs.writeText(file, args[ai]);
+                GX.vfs().writeText(file, args[ai]);
             }
         }
 
         if (!preventNewline) {
-            _vfs.writeText(file, "\r\n");
+            GX.vfs().writeText(file, "\r\n");
         }
     };
 
@@ -2112,44 +2178,45 @@ var QB = new function() {
     };
 
     function _readDataElement(fh, position, type) {
+        var vfs = GX.vfs();
         var data = null;
         if (type == "SINGLE") {
-            data = _vfs.readData(fh.file, position, 4);
+            data = vfs.readData(fh.file, position, 4);
             fh.offset = position + data.byteLength;
             return (new DataView(data)).getFloat32(0, true);
         }
         else if (type == "DOUBLE") { 
-            data = _vfs.readData(fh.file, position, 8);
+            data = vfs.readData(fh.file, position, 8);
             fh.offset = position + data.byteLength;
             return (new DataView(data)).getFloat64(0, true);
         }
         else if (type == "_BYTE") { 
-            data = _vfs.readData(fh.file, position, 1);
+            data = vfs.readData(fh.file, position, 1);
             fh.offset = position + data.byteLength;
             return (new DataView(data)).getInt8(0, true);
         }
         else if (type == "_UNSIGNED _BYTE") {
-            data = _vfs.readData(fh.file, position, 1);
+            data = vfs.readData(fh.file, position, 1);
             fh.offset = position + data.byteLength;
             return (new DataView(data)).getUint8(0, true);
         }
         else if (type == "INTEGER") { 
-            data = _vfs.readData(fh.file, position, 2);
+            data = vfs.readData(fh.file, position, 2);
             fh.offset = position + data.byteLength;
             return (new DataView(data)).getInt16(0, true);
         }
         else if (type == "_UNSIGNED INTEGER") {
-            data = _vfs.readData(fh.file, position, 2);
+            data = vfs.readData(fh.file, position, 2);
             fh.offset = position + data.byteLength;
             return (new DataView(data)).getUint16(0, true);
         }
         else if (type == "LONG") {
-            data = _vfs.readData(fh.file, position, 4);
+            data = vfs.readData(fh.file, position, 4);
             fh.offset = position + data.byteLength;
             return (new DataView(data)).getInt32(0, true);
         }
         else if (type == "_UNSIGNED LONG") {
-            data = _vfs.readData(fh.file, position, 4);
+            data = vfs.readData(fh.file, position, 4);
             fh.offset = position + data.byteLength;
             return (new DataView(data)).getUint32(0, true);
         }
@@ -2252,7 +2319,7 @@ var QB = new function() {
         else if (type == "_UNSIGNED INTEGER") { data = new Uint16Array([value]).buffer; }
         else if (type == "LONG")              { data = new Int32Array([value]).buffer; }
         else if (type == "_UNSIGNED LONG")    { data = new Uint32Array([value]).buffer; }
-        else if (type == "STRING")            { data = _vfs.textToData(value); }
+        else if (type == "STRING")            { data = vfs.textToData(value); }
         else if (type == "_BIT" || type == "_UNSIGNED _BIT") {
             // mimicking QB64 error message here
             throw new Error("Variable/element cannot be BIT aligned on current line");
@@ -2278,7 +2345,7 @@ var QB = new function() {
         }
 
         if (!customType) {
-            _vfs.writeData(fh.file, data, position);
+            vfs.writeData(fh.file, data, position);
             fh.offset = position + data.byteLength;
         }
     };
@@ -2332,7 +2399,7 @@ var QB = new function() {
     };
 
     this.sub_RmDir = function(path) {
-        _vfs.removeDirectory(path, _vfsCwd);
+        vfs.removeDirectory(path, vfsCwd);
     };
 
     this.func_Rnd = function(n) {
@@ -2365,7 +2432,6 @@ var QB = new function() {
         }
         else if (mode == 1) {
             GX.sceneCreate(320, 200);
-            _fgColor = _rgb(168, 168, 168);
         }
         else if (mode == 2 || mode == 7 || mode == 13) {
             GX.sceneCreate(320, 200);
@@ -2401,7 +2467,12 @@ var QB = new function() {
         
         // initialize the graphics
         _screenMode = mode;
-        _fgColor = _color(7); 
+        if (mode < 2) {
+            _fgColor = _color(7); 
+        }
+        else {
+            _fgColor = _color(15); 
+        }
         _bgColor = _color(0);
         _locX = 0;
         _locY = 0;
@@ -2425,6 +2496,22 @@ var QB = new function() {
             ctx.fillRect(0, 0, _width(), _height());
         }
         */
+    };
+
+    this.func_Seek = function(fh) {
+        if (!_fileHandles[fh]) {
+            throw new Error("Invalid file handle");
+        }
+
+        return _fileHandles[fh].offset + 1;
+    };
+
+    this.sub_Seek = function(fh, pos) {
+        if (!_fileHandles[fh]) {
+            throw new Error("Invalid file handle");
+        }
+
+        _fileHandles[fh].offset = pos - 1;
     };
 
     this.func_Sgn = function(value) {
@@ -2578,22 +2665,77 @@ var QB = new function() {
         }
     }
 
+    this.sub_Write = function(args) {
+        QB.sub_Print([_getWriteString(args)]);
+    }
+
+    this.sub_WriteToFile = function(fh, args) {
+        if (!_fileHandles[fh]) {
+            throw new Error("Invalid file handle");
+        }
+        if (_fileHandles[fh].mode != QB.OUTPUT && _fileHandles[fh].mode != QB.APPEND) {
+            throw new Error("Bad file mode");
+        }
+
+        fh = _fileHandles[fh];
+        var vfs = GX.vfs();
+        vfs.writeText(fh.file, _getWriteString(args) + "\r\n");
+    }
+
+    function _getWriteString(args) {
+        if (!args || !args.length) { return ""; }
+        var output = "";
+        for (var i=0; i < args.length; i++) {
+            if (i > 0) {
+                output += ","
+            }
+            if (args[i].type == "STRING" && !args[i].value.startsWith('"')) {
+                output += "\"" + args[i].value + "\"";
+            }
+            else {
+                output += args[i].value;
+            }
+        }
+        return output;
+    }
+
     // QBJS-only methods
     // ---------------------------------------------------------------------------------
     this.sub_IncludeJS = async function(url) {
+        var vfs = GX.vfs();
+        var vfsCwd = GX.vfsCwd();
+
         var script = document.createElement("script")
         document.body.appendChild(script);
         script.id = url;
-        script.src = url;
+
+        var file = vfs.getNode(url, vfsCwd);
+        if (file && file.type == vfs.FILE) {
+            script.innerHTML = vfs.readText(file);
+        }
+        else {
+            script.src = url;
+        }
     };
     
     this.sub_Fetch = async function(url, fetchRes) {
-        var response = await fetch(url);
-        var responseText = await(response.text());
-        fetchRes.ok = response.ok;
-        fetchRes.status = response.status;
-        fetchRes.statusText = response.statusText;
-        fetchRes.text = responseText;
+        var vfs = GX.vfs();
+        var vfsCwd = GX.vfsCwd();
+        var file = vfs.getNode(url, vfsCwd);
+        if (file && file.type == vfs.FILE) {
+            fetchRes.ok = true;
+            fetchRes.status = 200;
+            fetchRes.statusText = "";
+            fetchRes.text = vfs.readText(file);
+        }
+        else {
+            var response = await fetch(url);
+            var responseText = await(response.text());
+            fetchRes.ok = response.ok;
+            fetchRes.status = response.status;
+            fetchRes.statusText = response.statusText;
+            fetchRes.text = responseText;
+        }
     };
 
     this.func_Fetch = async function(url) {

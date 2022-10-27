@@ -738,10 +738,11 @@ Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
         '    js = ConvertGet(m, args, lineNumber)
 
     ElseIf m.name = "Input" Then
-        If StartsWith(_Trim$(parts(1)), "#") Then
-            ' TODO
-            'js = ConvertFileInput(m, args, lineNumber)
+        If StartsWith(_Trim$(args), "#") Then
+            m.jsname = "QB.sub_InputFromFile"
+            js = ConvertFileInput(m, args, lineNumber)
         Else
+            m.jsname = "QB.sub_Input"
             js = ConvertInput(m, args, lineNumber)
         End If
 
@@ -749,6 +750,8 @@ Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
         If StartsWith(_Trim$(args), "#") Then
             m.jsname = "QB.sub_LineInputFromFile"
             js = ConvertFileLineInput(m, args, lineNumber)
+            m.name = "Line"
+            m.jsname = "QB.sub_Line"
         Else
             js = ConvertInput(m, args, lineNumber)
             m.name = "Line"
@@ -780,6 +783,9 @@ Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
 
     ElseIf m.name = "Window" Then
         js = CallMethod(m) + "(" + ConvertWindow(args, lineNumber) + ");"
+
+    ElseIf m.name = "Write" Then
+        js = ConvertWrite(m, args, lineNumber)
 
     ElseIf m.name = "_PrintString" Then
         js = CallMethod(m) + "(" + ConvertPrintString(args, lineNumber) + ");"
@@ -914,9 +920,9 @@ Function ConvertLine$ (args As String, lineNumber As Integer)
 
     argc = ListSplit(args, parts())
     If argc >= 1 Then coord = ConvertCoordParam(parts(1), True, lineNumber)
-    If argc >= 2 Then lcolor = ConvertExpression(parts(2), lineNumber)
-    If argc >= 3 Then mode = "'" + UCase$(_Trim$(parts(3))) + "'"
-    If argc >= 4 Then style = ConvertExpression(parts(4), lineNumber)
+    If argc >= 2 And _Trim$(parts(2)) <> "" Then lcolor = ConvertExpression(parts(2), lineNumber)
+    If argc >= 3 And _Trim$(parts(3)) <> "" Then mode = "'" + UCase$(_Trim$(parts(3))) + "'"
+    If argc >= 4 And _Trim$(parts(4)) <> "" Then style = ConvertExpression(parts(4), lineNumber)
 
     ConvertLine = coord + ", " + lcolor + ", " + mode + ", " + style
 End Function
@@ -1195,6 +1201,56 @@ Function ConvertPrint$ (m As Method, args As String, lineNumber As Integer)
     ConvertPrint = js + "]);"
 End Function
 
+Function ConvertWrite$ (m As Method, args As String, lineNumber As Integer)
+    Dim fh As String
+    Dim pcount As Integer
+    Dim startIdx As Integer
+    Dim parts(0) As String
+    pcount = ListSplit(args, parts())
+    startIdx = 1
+
+    m.jsname = "QB.sub_Write"
+    If pcount > 0 Then
+        If StartsWith(_Trim$(parts(1)), "#") Then
+            fh = Replace(_Trim$(parts(1)), "#", "")
+            m.jsname = "QB.sub_WriteToFile"
+            startIdx = 2
+        End If
+    End If
+
+    Dim js As String
+    js = CallMethod(m) + "("
+
+    If fh <> "" Then
+        js = js + fh + ", "
+    End If
+
+    js = js + "["
+    Dim i As Integer
+    For i = startIdx To pcount
+        If i > startIdx Then js = js + ","
+
+        Dim t As String
+        t = "UNKNOWN"
+        Dim v As Variable
+        Dim isVar As Integer
+        isVar = FindVariable(parts(i), v, False)
+        If isVar Then
+            t = v.type
+        ElseIf StartsWith(parts(i), Chr$(34)) Then
+            t = "STRING"
+        End If
+
+        If isVar Then
+            js = js + "{ type:'" + t + "', value:" + _Trim$(ConvertExpression(parts(i), lineNumber)) + "}"
+        Else
+            js = js + "{ type:'" + t + "', value:'" + Replace(_Trim$(ConvertExpression(parts(i), lineNumber)), "'", "\'") + "'}"
+        End If
+    Next i
+
+    ConvertWrite = js + "]);"
+End Function
+
 Function ConvertPrintString$ (args As String, lineNumber As Integer)
     Dim firstParam As String
     Dim theRest As String
@@ -1279,11 +1335,110 @@ Function ConvertInput$ (m As Method, args As String, lineNumber As Integer)
     js = "var " + vname + " = new Array(" + Str$(UBound(vars)) + "); "
     js = js + CallMethod(m) + "(" + vname + ", " + preventNewline + ", " + addQuestionPrompt + ", " + prompt + "); "
     For i = 1 To UBound(vars)
-        If Not StartsWith(_Trim$(vars(i)), "#") Then ' special case to prevent file references from being output during self-compilation
+        'If Not StartsWith(_Trim$(vars(i)), "#") Then ' special case to prevent file references from being output during self-compilation
+        ' Convert to appropriate variable type on assignment
+        Dim vartype As String
+        vartype = GetVarType(vars(i))
+        If vartype = "_BIT" Or vartype = "_BYTE" Or vartype = "INTEGER" Or vartype = "LONG" Or vartype = "_INTEGER64" Or vartype = "_OFFSET" Or _
+           vartype = "_UNSIGNED _BIT" Or vartype = "_UNSIGNED _BYTE" Or vartype = "_UNSIGNED INTEGER" Or vartype = "_UNSIGNED LONG" Or vartype = "_UNSIGNED _INTEGER64" Or vartype = "_UNSIGNED _OFFSET" Then
+            js = js + ConvertExpression(vars(i), lineNumber) + " = parseInt(" + vname + "[" + Str$(i - 1) + "]); "
+        ElseIf vartype = "SINGLE" Or vartype = "DOUBLE" Or vartype = "_FLOAT" Then
+            js = js + ConvertExpression(vars(i), lineNumber) + " = parseFloat(" + vname + "[" + Str$(i - 1) + "]); "
+        Else
             js = js + ConvertExpression(vars(i), lineNumber) + " = " + vname + "[" + Str$(i - 1) + "]; "
         End If
+        'End If
     Next i
     ConvertInput = js
+End Function
+
+Function ConvertFileInput$ (m As Method, args As String, lineNumber As Integer)
+    Dim js As String
+    Dim fh As String
+    Dim vname As String
+    Dim retvar As String
+    Dim pcount As Integer
+    ReDim parts(0) As String
+
+    pcount = ListSplit(args, parts())
+    If pcount < 2 Then
+        AddWarning lineNumber, "Syntax error"
+        ConvertFileInput = ""
+        Exit Function
+    End If
+
+    fh = Replace(_Trim$(parts(1)), "#", "")
+    retvar = _Trim$(parts(2))
+
+    vname = GenJSVar
+    js = "var " + vname + " = new Array(" + Str$(UBound(parts) - 1) + "); "
+    js = js + CallMethod(m) + "(" + fh + ", " + vname + "); "
+
+    Dim i As Integer
+    For i = 2 To UBound(parts)
+        ' Convert to appropriate variable type on assignment
+        Dim vartype As String
+        vartype = GetVarType(parts(i))
+        If vartype = "_BIT" Or vartype = "_BYTE" Or vartype = "INTEGER" Or vartype = "LONG" Or vartype = "_INTEGER64" Or vartype = "_OFFSET" Or _
+           vartype = "_UNSIGNED _BIT" Or vartype = "_UNSIGNED _BYTE" Or vartype = "_UNSIGNED INTEGER" Or vartype = "_UNSIGNED LONG" Or vartype = "_UNSIGNED _INTEGER64" Or vartype = "_UNSIGNED _OFFSET" Then
+            js = js + ConvertExpression(parts(i), lineNumber) + " = parseInt(" + vname + "[" + Str$(i - 2) + "]); "
+        ElseIf vartype = "SINGLE" Or vartype = "DOUBLE" Or vartype = "_FLOAT" Then
+            js = js + ConvertExpression(parts(i), lineNumber) + " = parseFloat(" + vname + "[" + Str$(i - 2) + "]); "
+        Else
+            js = js + ConvertExpression(parts(i), lineNumber) + " = " + vname + "[" + Str$(i - 2) + "]; "
+        End If
+    Next i
+
+    ConvertFileInput = js
+End Function
+
+
+Function GetVarType$ (vname As String)
+    Dim vartype As String
+    vartype = "UNKNOWN"
+
+    ReDim parts(0) As String
+    Dim pcount As Integer
+    Dim found As Integer
+    Dim v As Variable
+    Dim pidx As Integer
+    pcount = Split(vname, ".", parts())
+    If pcount = 1 Then
+        pidx = InStr(vname, "(")
+        If pidx Then vname = Left$(vname, pidx - 1)
+        found = FindVariable(vname, v, False)
+        If Not found Then found = FindVariable(vname, v, True)
+        If found Then
+            vartype = v.type
+        End If
+    Else
+        vname = parts(1)
+        pidx = InStr(vname, "(")
+        If pidx Then vname = Left$(vname, pidx - 1)
+        found = FindVariable(vname, v, False)
+        If Not found Then found = FindVariable(vname, v, True)
+
+        If found Then
+            Dim typeId As Integer
+            typeId = FindTypeId(v.type)
+
+            Dim i As Integer
+            Dim j As Integer
+            For i = 2 To pcount
+
+                For j = 1 To UBound(typeVars)
+                    If typeVars(j).typeId = typeId And typeVars(j).name = parts(i) Then
+                        vartype = typeVars(j).type
+                        typeId = FindTypeId(vartype)
+                    End If
+                Next j
+
+            Next i
+        End If
+    End If
+
+
+    GetVarType = vartype
 End Function
 
 Function ConvertSwap$ (m As Method, args As String, lineNumber As Integer)
@@ -1426,9 +1581,8 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
         For i = 1 To vnamecount
 
             vpartcount = SLSplit2(varnames(i), vparts())
-            bvar.name = RemoveSuffix(vparts(1))
             If vpartcount = 1 Then
-                bvar.type = DataTypeFromName(bvar.name)
+                bvar.type = DataTypeFromName(vparts(1))
             ElseIf vpartcount = 3 Then
                 bvar.type = UCase$(vparts(3))
             ElseIf vpartcount = 4 Then
@@ -1436,6 +1590,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
             Else
                 ' Log error?
             End If
+            bvar.name = RemoveSuffix(vparts(1))
             bvar.typeId = FindTypeId(bvar.type)
 
 
@@ -1570,6 +1725,8 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                     js = js + " || "
                 ElseIf uword = "MOD" Then
                     js = js + " % "
+                ElseIf uword = "XOR" Then
+                    js = js + " ^ "
                 ElseIf uword = "=" Then
                     js = js + " == "
                 ElseIf uword = "<>" Then
@@ -1797,12 +1954,12 @@ Sub ConvertMethods ()
                     Dim v As Integer
                     ReDim As String parts(0)
                     v = Split(args(a), ":", parts())
-                    methodDec = methodDec + parts(1) + "/*" + parts(2) + "*/"
+                    methodDec = methodDec + RemoveSuffix(parts(1)) + "/*" + parts(2) + "*/"
                     If a < c Then methodDec = methodDec + ","
 
                     ' add the parameter to the local variables
                     Dim bvar As Variable
-                    bvar.name = parts(1)
+                    bvar.name = RemoveSuffix(parts(1))
                     bvar.type = parts(2)
                     bvar.typeId = FindTypeId(bvar.type)
                     If parts(3) = "true" Then
@@ -2552,6 +2709,19 @@ Sub AddQBMethod (mtype As String, mname As String, sync As Integer)
     m.type = mtype
     m.name = mname
     AddMethod m, "QB.", sync
+End Sub
+
+Sub AddNativeMethod (mtype As String, mname As String, jsname As String, sync As Integer)
+    Dim m As Method
+    m.type = mtype
+    m.name = mname
+    m.uname = UCase$(m.name)
+    m.jsname = jsname
+    m.sync = sync
+
+    Dim mcount: mcount = UBound(methods) + 1
+    ReDim _Preserve As Method methods(mcount)
+    methods(mcount) = m
 End Sub
 
 Sub AddLine (lineIndex As Integer, fline As String)
@@ -3335,6 +3505,8 @@ Sub InitQBMethods
     AddQBMethod "SUB", "RmDir", False
     AddQBMethod "FUNCTION", "Rnd", False
     AddQBMethod "SUB", "Screen", False
+    AddQBMethod "FUNCTION", "Seek", False
+    AddQBMethod "SUB", "Seek", False
     AddQBMethod "FUNCTION", "Sgn", False
     AddQBMethod "FUNCTION", "Sin", False
     AddQBMethod "SUB", "Sleep", True
@@ -3351,10 +3523,14 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Val", False
     AddQBMethod "FUNCTION", "Varptr", False
     AddQBMethod "SUB", "Window", False
+    AddQBMethod "SUB", "Write", True
 
     ' QBJS-only language features
     ' --------------------------------------------------------------------------------
     AddQBMethod "SUB", "IncludeJS", True
+
+    AddNativeMethod "FUNCTION", "JSON.Parse", "JSON.parse", False
+    AddNativeMethod "FUNCTION", "JSON.Stringify", "JSON.stringify", False
 
     ' Undocumented at present
     AddSystemType "FETCHRESPONSE", "ok:INTEGER,status:INTEGER,statusText:STRING,text:STRING"

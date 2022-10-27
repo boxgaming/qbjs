@@ -51,7 +51,7 @@ a:after { content: " >"; }
 }
 #output-content {
     border: 1px solid #666;
-    overflow: scroll;
+    overflow: auto;
     height: 250px;
 }
 #js-code {
@@ -159,17 +159,20 @@ a:after { content: " >"; }
     font-size: 14px;
 }
 
-#share-dialog {
+#share-dialog,
+#prog-sel-dialog {
     background-color:#ddd;
 }
-#share-dialog textarea {
+#share-dialog textarea,
+#prog-sel-dialog select {
     font-family: dosvga;
     font-size: 1em;
     letter-spacing: -1px;
     background-color: #efefef;
+    padding: 5px;
 }
-#share-dialog a { color: #333; }
-#share-dialog a:hover { color: #000; }
+#share-dialog a, #prog-sel-dialog a { color: #333; }
+#share-dialog a:hover, #prog-sel-dialog a:hover { color: #000; }
 
 #logo {
     position: absolute;
@@ -219,4 +222,38 @@ a:after { content: " >"; }
 
 #fs-refresh {
     float: right;
+}
+
+#toolbar {
+    border: 1px solid #666;
+    border-bottom: 0;
+    padding: 3px 5px 0px;
+    /*background-color: rgb(0, 49, 78);*/
+}
+.toolbar-button {
+    display: inline-block;
+    background-size: 1.25em 1.25em;
+    width: 1.25em;
+    height: 1.25em;
+    background-repeat: no-repeat;
+    margin: 0 !important;
+}
+.toolbar-button:before { content: ""; }
+.toolbar-button:after { content: ""; }
+
+#toolbar-button-open { background-image: url('img/open.svg'); }
+#toolbar-button-save { background-image: url('img/save.svg');  background-size: 1.08em, 1.08em; background-position: .05em .05em; }
+#toolbar-button-run { background-image: url('img/run.svg'); }
+#toolbar-button-share { background-image: url('img/share.svg'); float: right; }
+
+#toolbar-button-open:hover { background-image: url('img/open-hover.svg'); }
+#toolbar-button-save:hover { background-image: url('img/save-hover.svg'); }
+#toolbar-button-run:hover { background-image: url('img/run-hover.svg'); }
+#toolbar-button-share:hover { background-image: url('img/share-hover.svg'); }
+
+#toolbar .spacer {
+    display: inline-block;
+    height: 1.25em;
+    border-left: 1px solid rgba(102,102,102,.6);
+    margin: 0 2px;
 }

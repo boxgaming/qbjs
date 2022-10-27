@@ -23,11 +23,18 @@
     </head>
     <body>
         <div id="code-container">
+            <div id="toolbar">
+                <a href="javascript:openProject()" class="toolbar-button" id="toolbar-button-open" title="Open"></a>
+                <a href="javascript:saveProject()" class="toolbar-button" id="toolbar-button-save" title="Save"></a>
+                <div class="spacer"></div>
+                <a href="javascript:runProgram()" class="toolbar-button" id="toolbar-button-run" title="Run"></a>
+                <a href="javascript:shareProgram()" class="toolbar-button" id="toolbar-button-share" title="Share / Export"></a>
+            </div>
             <div id="code"></div>
-            <a id="edit-button" href="javascript:slideRight()" display="none">Edit</a>
-            <a id="run-button" href="javascript:runProgram()">Run</a>
-            <a id="stop-button" href="javascript:stopProgram()">Stop</a>
-            <a id="share-button" href="javascript:shareProgram()">Share</a>
+                <a id="edit-button" href="javascript:slideRight()" display="none">Edit</a>
+                <a id="run-button" href="javascript:runProgram()">Run</a>
+                <a id="stop-button" href="javascript:stopProgram()">Stop</a>
+                <a id="share-button" href="javascript:shareProgram()">Share</a>
         </div>
         <div id="slider">
             <div id="slider-left" class="slider-button" onclick="slideLeft()">&lt;</div>
@@ -60,6 +67,10 @@
         </div>
         <div id="gx-footer"></div>
 
+        <form style="display:none">
+            <input id="file-input" type="file" accept=".bas, .zip">
+        </form>
+
         <dialog id="share-dialog">
             <div style="margin-bottom:5px">Copy the link below to share your code:</div>
             <div><textarea id="share-code" rows="15" cols="80" readonly></textarea></div>
@@ -74,9 +85,21 @@
             <a href="javascript:closeDialog()" style="display:block; float:right; margin-top: 7px">Close</a>
             <a href="javascript:testShare()" style="display: block; float:right; margin-top: 7px; margin-right: 10px">Test</a>
         </dialog>
+
+        <dialog id="prog-sel-dialog">
+            <div>
+                No main.bas file found.<br/>
+                Select main program source file:
+            </div>
+            <select id="prog-sel-sources" size="10" style="display:block; width:100%; margin-top:10px"></select>
+            <div style="text-align:center; margin-top:10px">
+                <a href="javascript:onSelMainProg()">Ok</a>
+                <a href="javascript:closeProgSelDlg()">Cancel</a>
+            </div>
+        </dialog>
     </body>
-    <script language="javascript" src="gx/gx.js"></script>
     <script language="javascript" src="vfs.js"></script>
+    <script language="javascript" src="gx/gx.js"></script>
     <script language="javascript" src="qb.js"></script>
     <script language="javascript" src="qb2js.js"></script>
     <script language="javascript" src="qbjs-ide.js"></script>

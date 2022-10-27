@@ -31,6 +31,9 @@ var GX = new function() {
     var _touchPos = { x:0, y:0 };
     var _bindTouchToMouse = true;
 
+    var _vfs = new VFS();
+    var _vfsCwd = null;
+
     // javascript specific
     var _onGameEvent = null;
     var _pressedKeys = {};
@@ -81,6 +84,8 @@ var GX = new function() {
         _mousePos = { x:0, y:0 };
         _mouseInputFlag = false;
     
+        _vfsCwd = _vfs.rootDirectory();
+
         // javascript specific
         _onGameEvent = null;
         _pressedKeys = {};
@@ -535,7 +540,17 @@ var GX = new function() {
                 callbackFn(img);
             }
         }
-        img.src = filename;
+
+        var file = _vfs.getNode(filename, _vfsCwd);
+        if (file && file.type == _vfs.FILE) {
+            //img.src = await _vfs.getDataURL(file);
+            _vfs.getDataURL(file).then((dataUrl) => {
+                img.src = dataUrl;
+            });
+        }
+        else {
+            img.src = filename;
+        }
         _images.push(img);
         return _images.length;
     }
@@ -2354,6 +2369,8 @@ var GX = new function() {
     };
 
     function _init() {
+        _vfsCwd = _vfs.rootDirectory();
+
         // init
         _fontCreateDefault(GX.FONT_DEFAULT);
         _fontCreateDefault(GX.FONT_DEFAULT_BLACK);
@@ -2376,6 +2393,13 @@ var GX = new function() {
 
     this.ctx = function() { return _ctx; };
     this.canvas = function() { return _canvas; };
+    this.vfs = function() { return _vfs; };
+    this.vfsCwd = function(cwd) {
+        if (cwd != undefined) {
+            _vfsCwd = cwd;
+        }
+        return _vfsCwd;
+    };
 
     this.frame = _frame;
     this.frameRate = _frameRate;

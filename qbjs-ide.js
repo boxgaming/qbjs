@@ -9,12 +9,14 @@ var currTab = "js";
 var editor;
 var selectedError = null;
 var currPath = "/";
+var mainProg = null;
 
 async function init() {
     if (window.innerWidth < 1200) {
         sizeMode = "max";
     }
 
+    var srcUrl = null;
     if (url && url.indexOf("?")) {
         var queryString = url.substring(url.indexOf("?")+1);
         var nvpairs = queryString.split("&");
@@ -32,9 +34,10 @@ async function init() {
                 appMode = nv[1];
             }
             else if (nv[0] == "src") {
-                var res = await fetch(nv[1]);
-                var decoder = new TextDecoder("iso-8859-1");
-                qbcode = decoder.decode(await res.arrayBuffer());
+                srcUrl = nv[1];
+            }
+            else if (nv[0] == "main") {
+                mainProg = nv[1];
             }
         }
     }
@@ -68,6 +71,24 @@ async function init() {
     });
 
     document.getElementsByClassName("CodeMirror-cursor")[0].innerHTML = " ";
+
+
+    if (srcUrl) {
+        var res = await fetch(nv[1]);
+        var contentType = res.headers.get("Content-Type");
+        if (contentType == "application/zip") {
+            // load a project
+            await loadProject(await res.arrayBuffer(), mainProg);
+            // TODO: shouldn't have to do this
+            //qbcode = editor.getValue();
+        }
+        else {
+            // otherwise, assume a single source file
+            var decoder = new TextDecoder("iso-8859-1");
+            qbcode = decoder.decode(await res.arrayBuffer());
+            editor.setValue(qbcode);
+        }
+    }
 
     var warnCount = 0;
     changeTab("console");
@@ -222,22 +243,166 @@ async function exportProgram() {
         link.click();
         link.remove();
     });
+}
 
-    function addVFSFiles(vfs, zip, parent) {
-        alert("addVFSFiles: " + parent);
-        var files = vfs.getChildren(parent, vfs.FILE);
-        for (var i=0; i < files.length; i++) {
-            var f = files[i];
-            var path = vfs.fullPath(f).substring(1);
-            zip.file(path, f.data);
-        }
+function addVFSFiles(vfs, zip, parent) {
+    //alert("addVFSFiles: " + parent);
+    var files = vfs.getChildren(parent, vfs.FILE);
+    for (var i=0; i < files.length; i++) {
+        var f = files[i];
+        var path = vfs.fullPath(f).substring(1);
+        zip.file(path, f.data);
+    }
 
-        var dirs = vfs.getChildren(parent, vfs.DIRECTORY);
-        for (var i=0; i < dirs.length; i++) {
-            addVFSFiles(vfs, zip, dirs[i]);
-        }
+    var dirs = vfs.getChildren(parent, vfs.DIRECTORY);
+    for (var i=0; i < dirs.length; i++) {
+        addVFSFiles(vfs, zip, dirs[i]);
     }
 }
+
+async function saveProject() {
+    var vfs = QB.vfs();
+    var node = vfs.getNode("/");
+    var count = vfs.getChildren(node, vfs.FILE).length;
+
+    // save a single .bas file
+    if (count == 0) {
+        var progFile = new Blob([ editor.getValue() ]);
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(progFile);
+        link.download = "program.bas";
+        link.click();
+        link.remove();
+    }
+
+    // save a project .zip file
+    else {
+        var zip = new JSZip();
+        zip.file("main.bas", editor.getValue());
+
+        var vfs = QB.vfs();
+        var node = vfs.getNode("/");
+        addVFSFiles(vfs, zip, node);
+        
+        zip.generateAsync({type:"blob"}).then(function(content) {
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(content);
+            link.download = "project.zip";
+            link.click();
+            link.remove();
+        });
+    }
+}
+
+async function openProject() {
+    var f = document.getElementById("file-input");
+    f.click();
+}
+
+async function onOpenProject(event) {
+    var f = event.target.files[0];
+
+    // load a single BASIC source file
+    if (f.name.toLowerCase().endsWith(".bas") || f.type.startsWith("text/")) {
+        var fr = new FileReader();
+        fr.onload = function() {
+            editor.setValue(fr.result);
+        }
+        fr.readAsText(f);
+    }
+
+    // load a project from a zip file
+    else if (f.name.endsWith(".zip") || f.type == "application/x-zip-compressed") {
+        await loadProject(f);
+    }
+
+}
+document.getElementById("file-input").onchange = onOpenProject;
+
+async function loadProject(zipData, mainFilename) {
+    if (!mainFilename) {
+        mainFilename = "main.bas";
+    }
+    else {
+        mainFilename = mainFilename.toLowerCase();
+    }
+    var vfs = GX.vfs();
+    vfs.reset();
+    JSZip.loadAsync(zipData).then(async function(zip) {
+        var basFiles = [];
+        var fnames = "";
+        var mainFound = false;
+        for (let [filename, file] of Object.entries(zip.files)) {
+            fnames += filename + " - " + zip.files[filename].name + "\n";
+            var parentDir = dirFromPath(vfs.getParentPath(filename));
+            if (filename.toLowerCase() == mainFilename) {
+                var text = await zip.file(filename).async("text");
+                editor.setValue(text);
+                mainFound = true;
+            }
+            else {
+                var fdata = await zip.file(filename).async("arraybuffer");
+                var f = vfs.createFile(vfs.getFileName(filename), parentDir);
+                vfs.writeData(f, fdata);
+                if (filename.toLowerCase().endsWith(".bas")) {
+                    basFiles.push(filename);
+                }
+            }
+        }
+        if (!mainFound) {
+            var fileList = document.getElementById("prog-sel-sources");
+            fileList.innerHTML = "";
+            for (var i=0; i < basFiles.length; i++) {
+                var opt = new Option(basFiles[i], basFiles[i]);
+                fileList.append(opt);
+            }
+            var progSelDlg = document.getElementById("prog-sel-dialog");
+            progSelDlg.showModal();
+        }
+
+        refreshFS();
+    });
+
+
+    function dirFromPath(path) {
+        var vfs = GX.vfs();
+        if (path == "") { return vfs.rootDirectory(); }
+        
+        var dirnames = path.split("/");
+        var dirpath = ""
+        var parent = vfs.rootDirectory();
+        for (var i=0; i < dirnames.length; i++) {
+            dirpath += "/" + dirnames[i];
+            var dir = vfs.getNode(dirpath);
+            if (!dir) {
+                dir = vfs.createDirectory(dirnames[i], parent);
+            }
+            parent = dir;   
+        }
+        return parent;
+    }
+}
+
+
+function onSelMainProg() {
+    var fileList = document.getElementById("prog-sel-sources");
+    if (fileList.value == "") {
+        alert("No file selected.");
+    }
+    else {
+        var vfs = GX.vfs();
+        var file = vfs.getNode("/" + fileList.value);
+        editor.setValue(vfs.readText(file));
+        vfs.removeFile(file);
+        closeProgSelDlg();
+    }
+}
+
+function closeProgSelDlg() {
+    var progSelDlg = document.getElementById("prog-sel-dialog");
+    progSelDlg.close();
+}
+
 
 async function getFile(path, type) {
     var file = await fetch(path);
@@ -458,8 +623,9 @@ window.onresize = function() {
         document.getElementById("show-js-container").style.top = (window.innerHeight - 45) + "px";
         document.getElementById("show-js-container").style.right = "5px";
         
-        editor.setSize(cmwidth, window.innerHeight - 50);
-        document.getElementById("code").style.height = (window.innerHeight - 50) + "px";
+        editor.setSize(cmwidth, window.innerHeight - 79);
+        //document.getElementById("code").style.height = (window.innerHeight - 50) + "px";
+        document.getElementById("code").style.height = (window.innerHeight - 79) + "px";
         document.getElementById("slider").style.height = (window.innerHeight - 50) + "px";
     }
     //QB.resize(f.style.width.replace("px", ""), f.style.height.replace("px", ""));

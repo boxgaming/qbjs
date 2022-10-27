@@ -8,6 +8,10 @@ let VFS = function() {
         return _root;
     };
 
+    this.reset = function() {
+        _root = { toString: function() { return "/"; }};
+    }
+
     this.fullPath = function(node) {
         if (node == _root) { return "/" };
 
@@ -98,20 +102,27 @@ let VFS = function() {
         return str;
     };
 
+    this.readText = function(file) {
+        let offset = 0;
+        let view = new Uint8Array(file.data);
+        let c = null;
+        let str = "";
+        while (offset < file.data.byteLength) {
+            c = String.fromCharCode(view[offset]);
+            str += c
+            offset++;
+        }
+        return str;
+    };
+
     this.writeData = function(file, data, offset) {
         if (offset == undefined) { offset = 0; }
-        //else { offset--; }
 
-        /*if (file.data.byteLength == 0) {
-            file.data = data;
-            return;
-        }*/
         let start = file.data.slice(0, offset);
         let end = file.data.slice(offset + data.byteLength, file.data.byteLength);
         file.data = start;
-        //alert("sb: " + start.byteLength + "  o: " + offset);
+
         if (start.byteLength < offset) {
-            //alert(offset - start.byteLength);
             file.data = appendBuffer(file.data, new ArrayBuffer(offset - start.byteLength));
         }
         file.data = appendBuffer(file.data, data);
@@ -147,13 +158,15 @@ let VFS = function() {
             else {
                 node = parent[parts[i]];
                 parent = node;
+                if (node == undefined) {
+                    return null;
+                }
             }
         }
         return node;
     };
 
     this.getDataURL = async function(file) {
-        //return "data:image/jpeg," + base64ArrayBuffer(file.data);
         let blob = new Blob([file.data]);
         let dataUrl = await new Promise(r => {let a=new FileReader(); a.onload=r; a.readAsDataURL(blob)}).then(e => e.target.result);
         return dataUrl;

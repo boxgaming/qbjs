@@ -58,8 +58,9 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              'str', 'swap', 'tan', 'time', 'timer', 'ubound', 'ucase',
                              'val', 'varptr', 'window',
                              'mkdir', 'chdir', 'rmdir', 'kill', 'name', 'files', 'open', 'close', 'lof', 'eof', 'put', 'get', 'freefile',
+                             'seek', 'write',
                              // QBJS-specific
-                             'export', 'from', 'import', '_label']
+                             'export', 'from', 'import']
 
     var builtinConsts = ['_off', '_smooth', '_stretch', '_squarepixels', 'append', 'binary', 'input', 'output', 'random',
                          'gx_true', 'gx_false', 'gxevent_init', 'gxevent_update', 'gxevent_drawbg', 'gxevent_drawmap', 'gxevent_drawscreen',
