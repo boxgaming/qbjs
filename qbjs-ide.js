@@ -677,6 +677,7 @@ function refreshFS() {
         a.fullpath = currPath + "/..";
         a.onclick = function() { chdir(this.fullpath); };
         contents.appendChild(a);
+        contents.appendChild(document.createElement("span"));
     }
 
     var folders = vfs.getChildren(node, vfs.DIRECTORY);
@@ -686,6 +687,11 @@ function refreshFS() {
         a.innerHTML = folders[i].name;
         a.fullpath = vfs.fullPath(folders[i]);
         a.onclick = function() { chdir(this.fullpath); };
+        contents.appendChild(a);
+        a = document.createElement("a");
+        a.className = "fs-delete";
+        a.vfsnode = folders[i];
+        a.onclick = function() { deleteDir(this.vfsnode); };
         contents.appendChild(a);
     }
 
@@ -697,6 +703,39 @@ function refreshFS() {
         a.fullpath = vfs.fullPath(files[i]);
         a.onclick = function() { saveFile(this.fullpath); };
         contents.appendChild(a);
+        a = document.createElement("a");
+        a.className = "fs-delete";
+        a.vfsnode = files[i];
+        a.onclick = function() { deleteFile(this.vfsnode); };
+        contents.appendChild(a);
+    }
+
+    function deleteFile(node) {
+        if (confirm("This will permanently delete file '" + node.name + "'.\nAre you sure you wish to continue?")) {
+            vfs.removeFile(node);
+            refreshFS();
+        }
+    }
+
+    function deleteDir(node) {
+        if (vfs.getChildren(node).length > 0) {
+            alert("Directory is not empty.");
+            return;
+        }
+        if (confirm("This will permanently delete directory '" + node.name + "'.\nAre you sure you wish to continue?")) {
+            vfs.removeDirectory(node);
+            refreshFS();
+        }
+    }
+}
+
+function onNewDirectory() {
+    var vfs = QB.vfs();
+    var parent = vfs.getNode(currPath);
+    var dirname = prompt("Enter new directory name");
+    if (dirname && dirname != "") {
+        vfs.createDirectory(dirname, parent);
+        refreshFS();
     }
 }
 

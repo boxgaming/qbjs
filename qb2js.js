@@ -2988,7 +2988,7 @@ if (QB.halted()) { return; }
    await sub_AddGXMethod( "SUB" ,   "GXSleep" ,    True);
    await sub_AddGXMethod( "FUNCTION" ,   "GXMouseX" ,    False);
    await sub_AddGXMethod( "FUNCTION" ,   "GXMouseY" ,    False);
-   await sub_AddGXMethod( "FUNCTION" ,   "GXSoundLoad" ,    False);
+   await sub_AddGXMethod( "FUNCTION" ,   "GXSoundLoad" ,    True);
    await sub_AddGXMethod( "SUB" ,   "GXSoundPlay" ,    False);
    await sub_AddGXMethod( "SUB" ,   "GXSoundRepeat" ,    False);
    await sub_AddGXMethod( "SUB" ,   "GXSoundVolume" ,    False);

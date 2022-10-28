@@ -183,17 +183,41 @@ a:after { content: " >"; }
 }
 #logo:hover { opacity: 1.0; }
 
+#fs-contents {
+    display: grid;
+    grid-template-columns: auto 1.5em;
+}
+
 #fs-path {
     margin: 5px;
     padding: 5px;
     border: 1px solid #333;
 }
-#fs-refresh {
+#fs-refresh, #fs-new-folder {
+    float: right;
     margin-top: -3px;
     cursor: pointer;
+    height: 20px;
+    width: 20px;
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+}
+#fs-refresh {
+    margin-right: 5px;
+    background-image: url('img/refresh.svg');
+}
+#fs-refresh:hover {
+    background-image: url('img/refresh-hover.svg');
+}
+#fs-new-folder {
+    margin-right: 5px;
+    background-image: url('img/new-folder.svg');
+}
+#fs-new-folder:hover {
+    background-image: url('img/new-folder-hover.svg');
 }
 
-.fs-file, .fs-dir {
+.fs-file, .fs-dir, .fs-delete {
     display: block;
     margin: 0px 5px;
     padding: 5px;
@@ -202,26 +226,36 @@ a:after { content: " >"; }
     cursor: pointer;
 }
 
+
 .fs-file:hover, .fs-dir:hover {
     background-color: rgb(255, 255, 255, .1);
 }
+.fs-delete:hover {
+    background-image: url('img/delete-hover.svg');
+}
 
 .fs-file {
-    background-image: url('file.png');
+    background-image: url('img/file.png');
     background-repeat: no-repeat;
     background-size: 20px 20px;
     background-position: 1px 1px;
 }
 
 .fs-dir {
-    background-image: url('folder.png');
+    background-image: url('img/folder.png');
     background-repeat: no-repeat;
     background-size: 20px 20px;
     background-position: 1px 2px;
 }
 
-#fs-refresh {
-    float: right;
+.fs-delete {
+    background-image: url('img/delete.svg');
+    background-repeat: no-repeat;
+    background-size: 20px 20px;
+    /*background-position: center center;*/
+    padding: 0;
+    width: 100%;
+    margin: 0;
 }
 
 #toolbar {

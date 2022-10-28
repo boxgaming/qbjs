@@ -53,10 +53,12 @@
                     <div id="warning-container"></div>
                     <div id="js-code"></div>
                     <div id="fs-browser">
-                        <div id="fs-path"><span id="fs-url">/</span><img id="fs-refresh" src="refresh.png" title="Refresh" onclick="refreshFS()"/></div>
+                        <div id="fs-path">
+                            <span id="fs-url">/</span>
+                            <div id="fs-refresh" title="Refresh" onclick="refreshFS()"></div>
+                            <div id="fs-new-folder" title="New Directory" onclick="onNewDirectory()"></div>
+                        </div>
                         <div id="fs-contents">
-                            <a class="fs-dir">..</a>
-                            <a class="fs-file">test.txt</a>
                         </div>
                     </div>
                 </div>

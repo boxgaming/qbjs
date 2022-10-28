@@ -3189,7 +3189,7 @@ Sub InitGX
     AddGXMethod "SUB", "GXSleep", True
     AddGXMethod "FUNCTION", "GXMouseX", False
     AddGXMethod "FUNCTION", "GXMouseY", False
-    AddGXMethod "FUNCTION", "GXSoundLoad", False
+    AddGXMethod "FUNCTION", "GXSoundLoad", True
     AddGXMethod "SUB", "GXSoundPlay", False
     AddGXMethod "SUB", "GXSoundRepeat", False
     AddGXMethod "SUB", "GXSoundVolume", False

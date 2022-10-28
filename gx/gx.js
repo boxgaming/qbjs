@@ -660,9 +660,18 @@ var GX = new function() {
         _sounds[sid-1] = undefined;
     }
 
-    function _soundLoad (filename) {
-        var a = new Audio(filename);
-        _sounds.push(a);
+    async function _soundLoad (filename) {
+        var file = _vfs.getNode(filename, _vfsCwd);
+        if (file && file.type == _vfs.FILE) {
+            var dataUrl = await _vfs.getDataURL(file);
+            var a = new Audio(dataUrl);
+            _sounds.push(a);
+        }
+        else {
+            var a = new Audio(filename);
+            _sounds.push(a);
+        }
+
         return _sounds.length;
     }
 
@@ -895,7 +904,15 @@ var GX = new function() {
 
     async function _mapLoad(filename) {
         _map_loading = true;
-        var data = await _getJSON(filename);
+        var data = null;
+
+        var file = _vfs.getNode(filename, _vfsCwd);
+        if (file && file.type == _vfs.FILE) {
+            data = JSON.parse(_vfs.readText(file));
+        }
+        else {
+            data = await _getJSON(filename);
+        }
         var parentPath = filename.substring(0, filename.lastIndexOf("/")+1);
         var imagePath = data.tileset.image.substring(data.tileset.image.lastIndexOf("/")+1);
         GX.tilesetCreate(parentPath + imagePath, data.tileset.width, data.tileset.height);

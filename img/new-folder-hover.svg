@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   fill="none"
+   height="24"
+   viewBox="0 0 29 24"
+   width="29"
+   version="1.1"
+   id="svg5602"
+   sodipodi:docname="new-folder-hover.svg"
+   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs5606" />
+  <sodipodi:namedview
+     id="namedview5604"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="39.875"
+     inkscape:cx="14.495298"
+     inkscape:cy="12.012539"
+     inkscape:window-width="1920"
+     inkscape:window-height="1137"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg5602" />
+  <path
+     d="M6.46501 9H25.1243C26.4323 9 27.3883 10.235 27.0604 11.5013L24.0831 23H1.29191L4.52886 10.4987C4.75733 9.61629 5.55352 9 6.46501 9Z"
+     stroke="black"
+     stroke-width="2"
+     id="path5594"
+     style="stroke:#cccccc;stroke-opacity:1" />
+  <path
+     d="M24 23H1V5.86957C1 4.765 1.89543 3.86957 3 3.86957H4.83333L6.15611 1.88915C6.52719 1.33359 7.15116 1 7.81924 1H12.3891C13.0572 1 13.6811 1.33359 14.0522 1.88915L15.375 3.86957H22C23.1046 3.86957 24 4.765 24 5.86957V9"
+     stroke="black"
+     stroke-width="2"
+     id="path5596"
+     style="stroke:#cccccc;stroke-opacity:1" />
+  <path
+     d="M15 13V19"
+     stroke="black"
+     stroke-linecap="round"
+     stroke-width="2"
+     id="path5598"
+     style="stroke:#cccccc;stroke-opacity:1" />
+  <path
+     d="M12 16H18"
+     stroke="black"
+     stroke-linecap="round"
+     stroke-width="2"
+     id="path5600"
+     style="stroke:#cccccc;stroke-opacity:1" />
+</svg>
