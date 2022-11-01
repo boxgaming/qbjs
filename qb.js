@@ -1652,7 +1652,7 @@ var QB = new function() {
         var ptn = sty;
         var slope;
         var mi;
-        if (lx > ly) {
+        if (lx >= ly) {
             var y1f = y1;
             if (lx) { slope = (y1 - y2) / lx; }
             if (x1 < x2) { mi = 1; } else { mi = -1; }
