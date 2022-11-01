@@ -108,6 +108,23 @@ var QB = new function() {
         _resizeHeight = height;
     }
 
+    // Data type conversions
+    this.toInteger = function(value) {
+        var result = parseInt(value);
+        if (isNaN(result)) {
+            result = 0;
+        }
+        return result;
+    };
+
+    this.toFloat = function(value) {
+        var result = parseFloat(value);
+        if (isNaN(result)) {
+            result = 0;
+        }
+        return result;
+    };
+
     // Process control methods
     // -------------------------------------------
     this.halt = function() {

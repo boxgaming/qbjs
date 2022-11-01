@@ -1214,9 +1214,9 @@ var ConvertInput = null;
       var vartype = '';  /* STRING */ 
       vartype =  (await func_GetVarType( QB.arrayValue(vars, [ i]).value));
       if ( vartype ==  "_BIT"  ||  vartype ==  "_BYTE"  ||  vartype ==  "INTEGER"  ||  vartype ==  "LONG"  ||  vartype ==  "_INTEGER64"  ||  vartype ==  "_OFFSET"  ||  vartype ==  "_UNSIGNED _BIT"  ||  vartype ==  "_UNSIGNED _BYTE"  ||  vartype ==  "_UNSIGNED INTEGER"  ||  vartype ==  "_UNSIGNED LONG"  ||  vartype ==  "_UNSIGNED _INTEGER64"  ||  vartype ==  "_UNSIGNED _OFFSET" ) {
-         js =   js + (await func_ConvertExpression( QB.arrayValue(vars, [ i]).value ,    lineNumber))  + " = parseInt("  +  vname + "["  + (QB.func_Str(  i -  1))  + "]); ";
+         js =   js + (await func_ConvertExpression( QB.arrayValue(vars, [ i]).value ,    lineNumber))  + " = QB.toInteger("  +  vname + "["  + (QB.func_Str(  i -  1))  + "]); ";
       } else if ( vartype ==  "SINGLE"  ||  vartype ==  "DOUBLE"  ||  vartype ==  "_FLOAT" ) {
-         js =   js + (await func_ConvertExpression( QB.arrayValue(vars, [ i]).value ,    lineNumber))  + " = parseFloat("  +  vname + "["  + (QB.func_Str(  i -  1))  + "]); ";
+         js =   js + (await func_ConvertExpression( QB.arrayValue(vars, [ i]).value ,    lineNumber))  + " = QB.toFloat("  +  vname + "["  + (QB.func_Str(  i -  1))  + "]); ";
       } else {
          js =   js + (await func_ConvertExpression( QB.arrayValue(vars, [ i]).value ,    lineNumber))  + " = "  +  vname + "["  + (QB.func_Str(  i -  1))  + "]; ";
       }
@@ -1249,9 +1249,9 @@ var ConvertFileInput = null;
       var vartype = '';  /* STRING */ 
       vartype =  (await func_GetVarType( QB.arrayValue(parts, [ i]).value));
       if ( vartype ==  "_BIT"  ||  vartype ==  "_BYTE"  ||  vartype ==  "INTEGER"  ||  vartype ==  "LONG"  ||  vartype ==  "_INTEGER64"  ||  vartype ==  "_OFFSET"  ||  vartype ==  "_UNSIGNED _BIT"  ||  vartype ==  "_UNSIGNED _BYTE"  ||  vartype ==  "_UNSIGNED INTEGER"  ||  vartype ==  "_UNSIGNED LONG"  ||  vartype ==  "_UNSIGNED _INTEGER64"  ||  vartype ==  "_UNSIGNED _OFFSET" ) {
-         js =   js + (await func_ConvertExpression( QB.arrayValue(parts, [ i]).value ,    lineNumber))  + " = parseInt("  +  vname + "["  + (QB.func_Str(  i -  2))  + "]); ";
+         js =   js + (await func_ConvertExpression( QB.arrayValue(parts, [ i]).value ,    lineNumber))  + " = QB.toInteger("  +  vname + "["  + (QB.func_Str(  i -  2))  + "]); ";
       } else if ( vartype ==  "SINGLE"  ||  vartype ==  "DOUBLE"  ||  vartype ==  "_FLOAT" ) {
-         js =   js + (await func_ConvertExpression( QB.arrayValue(parts, [ i]).value ,    lineNumber))  + " = parseFloat("  +  vname + "["  + (QB.func_Str(  i -  2))  + "]); ";
+         js =   js + (await func_ConvertExpression( QB.arrayValue(parts, [ i]).value ,    lineNumber))  + " = QB.toFloat("  +  vname + "["  + (QB.func_Str(  i -  2))  + "]); ";
       } else {
          js =   js + (await func_ConvertExpression( QB.arrayValue(parts, [ i]).value ,    lineNumber))  + " = "  +  vname + "["  + (QB.func_Str(  i -  2))  + "]; ";
       }
@@ -2859,6 +2859,7 @@ if (QB.halted()) { return; }
    await sub_AddGXConst( "GXANIMATE_LOOP");
    await sub_AddGXConst( "GXANIMATE_SINGLE");
    await sub_AddGXConst( "GXBG_STRETCH");
+   await sub_AddGXConst( "GXBG_SCROLL");
    await sub_AddGXConst( "GXBG_WRAP");
    await sub_AddGXConst( "GXKEY_ESC");
    await sub_AddGXConst( "GXKEY_1");
@@ -3216,7 +3217,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION" ,   "_Source" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_Source" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_SndClose" ,    False);
-   await sub_AddQBMethod( "FUNCTION" ,   "_SndOpen" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_SndOpen" ,    True);
    await sub_AddQBMethod( "SUB" ,   "_SndPlay" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_SndLoop" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_SndPause" ,    False);

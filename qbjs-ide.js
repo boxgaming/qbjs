@@ -264,6 +264,9 @@ async function saveProject() {
     var vfs = QB.vfs();
     var node = vfs.getNode("/");
     var count = vfs.getChildren(node, vfs.FILE).length;
+    if (count < 1) {
+        count = vfs.getChildren(node, vfs.DIRECTORY).length;
+    }
 
     // save a single .bas file
     if (count == 0) {
@@ -341,11 +344,14 @@ async function loadProject(zipData, mainFilename) {
                 mainFound = true;
             }
             else {
-                var fdata = await zip.file(filename).async("arraybuffer");
-                var f = vfs.createFile(vfs.getFileName(filename), parentDir);
-                vfs.writeData(f, fdata);
-                if (filename.toLowerCase().endsWith(".bas")) {
-                    basFiles.push(filename);
+                console.log(filename);
+                if (zip.file(filename)) {
+                    var fdata = await zip.file(filename).async("arraybuffer");
+                    var f = vfs.createFile(vfs.getFileName(filename), parentDir);
+                    vfs.writeData(f, fdata);
+                    if (filename.toLowerCase().endsWith(".bas")) {
+                        basFiles.push(filename);
+                    }
                 }
             }
         }
@@ -773,7 +779,14 @@ async function fileDrop(e) {
     console.log(files.length);
     for (var i=0; i < files.length; i++) {
         console.log("processing[" + i + "]...");
+
         var f = files[i];
+        if (!f.type && f.size%4096 == 0) { 
+            // this is a folder, skip
+            console.log(" -> skipping folder [" + i + "]");
+            continue;
+        }
+        
         var file = vfs.createFile(f.name, parentDir);
         var data = await f.arrayBuffer();
         console.log(data);        

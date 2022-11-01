@@ -98,7 +98,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                         'gxentityx', 'gxentityy', 'gxentitywidth', 'gxentityheight', 'gxentityframenext', 'gxentityframeset', 'gxentitytype',
                         'gxentitytype', 'gxentityuid', 'gxfontuid', 'gxentityapplygravity', 'gxentitycollisionoffset',
                         'gxentitycollisionoffsetleft', 'gxentitycollisionoffsettop', 'gxentitycollisionoffsetright',
-                        'gxentitycollisionoffsetbottom', 'gxfullscreen', 'gxbackgroundadd', 'gxbackgroundy', 'gxbackgroundheight',
+                        'gxentitycollisionoffsetbottom', 'gxfullscreen', 'gxbackgroundadd', 'gxbackgroundwrapfactor',
                         'gxbackgroundclear', 'gxsceneembedded', 'gxscenecreate', 'gxscenewindowsize', 'gxscenescale', 'gxsceneresize',
                         'gxscenedestroy', 'gxcustomdraw', 'gxframerate', 'gxframe', 'gxscenedraw', 'gxscenemove', 'gxscenepos', 'gxscenex',
                         'gxsceney', 'gxscenewidth', 'gxsceneheight', 'gxscenecolumns', 'gxscenerows', 'gxscenestart', 'gxsceneupdate',

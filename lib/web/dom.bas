@@ -125,7 +125,10 @@ $End If
 End Sub
 
 Function Prompt (text, defaultValue)
-$If Javascript Then
-    Prompt = prompt(text, defaultValue);
-$End If
+    Dim result As String
+    $If Javascript Then
+        result = prompt(text, defaultValue);
+        if (!result) { result = ""; }
+    $End If
+    Prompt = result;
 End Function

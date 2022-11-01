@@ -1341,9 +1341,9 @@ Function ConvertInput$ (m As Method, args As String, lineNumber As Integer)
         vartype = GetVarType(vars(i))
         If vartype = "_BIT" Or vartype = "_BYTE" Or vartype = "INTEGER" Or vartype = "LONG" Or vartype = "_INTEGER64" Or vartype = "_OFFSET" Or _
            vartype = "_UNSIGNED _BIT" Or vartype = "_UNSIGNED _BYTE" Or vartype = "_UNSIGNED INTEGER" Or vartype = "_UNSIGNED LONG" Or vartype = "_UNSIGNED _INTEGER64" Or vartype = "_UNSIGNED _OFFSET" Then
-            js = js + ConvertExpression(vars(i), lineNumber) + " = parseInt(" + vname + "[" + Str$(i - 1) + "]); "
+            js = js + ConvertExpression(vars(i), lineNumber) + " = QB.toInteger(" + vname + "[" + Str$(i - 1) + "]); "
         ElseIf vartype = "SINGLE" Or vartype = "DOUBLE" Or vartype = "_FLOAT" Then
-            js = js + ConvertExpression(vars(i), lineNumber) + " = parseFloat(" + vname + "[" + Str$(i - 1) + "]); "
+            js = js + ConvertExpression(vars(i), lineNumber) + " = QB.toFloat(" + vname + "[" + Str$(i - 1) + "]); "
         Else
             js = js + ConvertExpression(vars(i), lineNumber) + " = " + vname + "[" + Str$(i - 1) + "]; "
         End If
@@ -1381,9 +1381,9 @@ Function ConvertFileInput$ (m As Method, args As String, lineNumber As Integer)
         vartype = GetVarType(parts(i))
         If vartype = "_BIT" Or vartype = "_BYTE" Or vartype = "INTEGER" Or vartype = "LONG" Or vartype = "_INTEGER64" Or vartype = "_OFFSET" Or _
            vartype = "_UNSIGNED _BIT" Or vartype = "_UNSIGNED _BYTE" Or vartype = "_UNSIGNED INTEGER" Or vartype = "_UNSIGNED LONG" Or vartype = "_UNSIGNED _INTEGER64" Or vartype = "_UNSIGNED _OFFSET" Then
-            js = js + ConvertExpression(parts(i), lineNumber) + " = parseInt(" + vname + "[" + Str$(i - 2) + "]); "
+            js = js + ConvertExpression(parts(i), lineNumber) + " = QB.toInteger(" + vname + "[" + Str$(i - 2) + "]); "
         ElseIf vartype = "SINGLE" Or vartype = "DOUBLE" Or vartype = "_FLOAT" Then
-            js = js + ConvertExpression(parts(i), lineNumber) + " = parseFloat(" + vname + "[" + Str$(i - 2) + "]); "
+            js = js + ConvertExpression(parts(i), lineNumber) + " = QB.toFloat(" + vname + "[" + Str$(i - 2) + "]); "
         Else
             js = js + ConvertExpression(parts(i), lineNumber) + " = " + vname + "[" + Str$(i - 2) + "]; "
         End If
@@ -3059,6 +3059,7 @@ Sub InitGX
     AddGXConst "GXANIMATE_LOOP"
     AddGXConst "GXANIMATE_SINGLE"
     AddGXConst "GXBG_STRETCH"
+    AddGXConst "GXBG_SCROLL"
     AddGXConst "GXBG_WRAP"
     AddGXConst "GXKEY_ESC"
     AddGXConst "GXKEY_1"
@@ -3423,7 +3424,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Source", False
     AddQBMethod "SUB", "_Source", False
     AddQBMethod "SUB", "_SndClose", False
-    AddQBMethod "FUNCTION", "_SndOpen", False
+    AddQBMethod "FUNCTION", "_SndOpen", True
     AddQBMethod "SUB", "_SndPlay", False
     AddQBMethod "SUB", "_SndLoop", False
     AddQBMethod "SUB", "_SndPause", False
