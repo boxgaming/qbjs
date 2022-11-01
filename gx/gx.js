@@ -601,6 +601,16 @@ var GX = new function() {
             _ctx.drawImage(_image(_bg[bi].image), 0, 0, _scene.width, _scene.height); // __gx_scene.image
         }
 
+        else if (_bg[bi].mode == GX.BG_SCROLL) {
+            var img = _image(_bg[bi].image);
+            var factor = GX.sceneWidth() / GX.sceneHeight();
+            var h = img.height;
+            var w = h * factor;
+            var xfactor = GX.sceneX() / (GX.mapColumns() * GX.tilesetWidth())
+            var x = xfactor * (img.width - w); 
+            _ctx.drawImage(img, x, 0, w, h, 0, 0, GX.sceneWidth(), GX.sceneHeight());
+        }
+
         else if (_bg[bi].mode == GX.BG_WRAP) {
             _backgroundDrawWrap(bi);
         }
@@ -2559,7 +2569,8 @@ var GX = new function() {
     this.ANIMATE_SINGLE = 1;
 
     this.BG_STRETCH = 1;
-    this.BG_WRAP = 2;
+    this.BG_SCROLL = 2;
+    this.BG_WRAP = 3;
 
     this.KEY_ESC = 'Escape';
     this.KEY_1 = 'Digit1';
