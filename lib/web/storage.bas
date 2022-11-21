@@ -18,7 +18,9 @@ End Sub
 
 Function Get (key, stype)
 $If Javascript Then
-    Get = _storage(stype).getItem(key);
+    var result = _storage(stype).getItem(key);
+    if (result == null) { result = ""; }
+    Get = result
 $End If
 End Function
 
