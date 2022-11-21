@@ -137,6 +137,7 @@ var QB = new function() {
     };
 
     this.end = function() {
+        _flushAllScreenCache();
         _runningFlag = false;
     };
 
@@ -407,6 +408,7 @@ var QB = new function() {
     };
 
     this.sub__Limit = async function(fps) {
+        _flushAllScreenCache();
         await GX.sleep((1000 - (new Date() - _lastLimitTime))/fps);
         _lastLimitTime = new Date();
     };
@@ -414,6 +416,7 @@ var QB = new function() {
     this.autoLimit = async function() {
         var timeElapsed = new Date() - _lastLimitTime;
         if (timeElapsed > 1000) { 
+            _flushAllScreenCache();
             await GX.sleep(1);
             _lastLimitTime = new Date();
         }
@@ -524,7 +527,7 @@ var QB = new function() {
         // TODO: check the background opacity mode
         // Draw the text background
         var ctx = _images[_activeImage].ctx;
-        _images[_activeImage].dirty = true;
+        _flushScreenCache(_images[_activeImage]);
         ctx.beginPath();
         ctx.fillStyle = _bgColor.rgba();
         ctx.fillRect(x, y, QB.func__FontWidth(), QB.func__FontHeight());
@@ -625,8 +628,8 @@ var QB = new function() {
         sourceImage.lastX = sx1 + sw;
         sourceImage.lastY = sy2 + sh;
 
+        _flushScreenCache(_images[destImageId]);
         destImage.ctx.drawImage(sourceImage.canvas, sx1, sy1, sw, sh, dx1, dy1, dw, dh);
-        _images[sourceImageId].dirty = true;
     }
 
     function _rgb(r, g, b, a) {
@@ -899,7 +902,7 @@ var QB = new function() {
         }
         
         ctx = _images[_activeImage].ctx;
-        _images[_activeImage].dirty = true;
+        _flushScreenCache(_images[_activeImage]);
         ctx.beginPath();
         ctx.clearRect(0, 0, _width(), _height());
         //if (_screenMode == 1) { TODO: Finish implementing this.
@@ -933,23 +936,12 @@ var QB = new function() {
     }
 
     this.sub_Color = function(x, y) {
-        /*if (_screenMode == 1) { This code is fine.
-            if (x == 0) {        _bgColor = _rgb(0, 0, 0);
-            } else if (x == 1) { _bgColor = _rgb(0, 0, 168);
-            } else if (x == 2) { _bgColor = _rgb(0, 168, 0);
-            } else if (x == 3) { _bgColor = _rgb(0, 168, 168); }          
-            ctx = _images[_activeImage].ctx;
-            ctx.fillStyle = _bgColor.rgba();
-            ctx.beginPath();
-            ctx.fillRect(0, 0, _width(), _height());
-        } else {*/
         if (x != undefined) {
             _fgColor = _color(x);
         }
         if (y != undefined) {
             _bgColor = _color(y);
         }
-        //}
     };
 
     this.func_Command = function() {
@@ -1059,7 +1051,7 @@ var QB = new function() {
                      ["H",Math.PI*(7/4),Math.sqrt(2)]];
 
         // Screen variables.
-        _images[_activeImage].dirty = true;
+        _flushScreenCache(_images[_activeImage]);
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
 
@@ -1342,6 +1334,8 @@ var QB = new function() {
         var str = "";
         _inputMode = true;
 
+        _flushScreenCache(_images[_activeImage]);
+
         if (prompt != undefined) {
             await QB.sub_Print([prompt, QB.PREVENT_NEWLINE]);
         }
@@ -1391,7 +1385,6 @@ var QB = new function() {
             }
         }
         _inputMode = false;
-        _images[_activeImage].dirty = true;
     }
 
     this.sub_InputFromFile = async function(fh, returnValues) {
@@ -1492,7 +1485,7 @@ var QB = new function() {
 
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
-        _images[_activeImage].dirty = true;
+        _flushScreenCache(screen);
 
         if (color == undefined) {
             color = _fgColor;
@@ -1557,17 +1550,10 @@ var QB = new function() {
 
     this.sub_Line = function(sstep, sx, sy, estep, ex, ey, color, style, pattern) {
         var screen = _images[_activeImage];
-        //var ctx = screen.ctx;
-        _images[_activeImage].dirty = true;
+        _flushScreenCache(_images[_activeImage]);
 
         if (color == undefined) {
             color = _fgColor;
-            /*if (style == "BF") {
-                color = _bgColor;
-            }
-            else {
-                color = _fgColor;
-            }*/
         }
         else {
             color = _color(color);
@@ -1811,7 +1797,8 @@ var QB = new function() {
 
     this.sub_Paint = function(sstep, startX, startY, fillColor, borderColor) {
         // See: http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
-        _images[_activeImage].dirty = true;
+        // TODO: this method should probably utilize the same screen cache as PSet
+        _flushScreenCache(_images[_activeImage]);
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
         var data = ctx.getImageData(0, 0, screen.canvas.width, screen.canvas.height).data;
@@ -1915,18 +1902,16 @@ var QB = new function() {
                 }
             }
         } else {
-            if (screen.dirty != false) { 
+            if (!screen.cached) { 
                 var ctx = screen.ctx;
-                screen.data = ctx.getImageData(0, 0, screen.canvas.width, screen.canvas.height).data;
-                screen.dirty = false;
+                screen.imgdata = ctx.getImageData(0, 0, screen.canvas.width, screen.canvas.height);
+                screen.cached = true;
             }
-            //var data = ctx.getImageData(x, y, 1, 1).data;
-            //ret = QB.func__RGBA(data[0],data[1],data[2],data[3]);
             var pixelIndex = (y * screen.canvas.width + x) * 4;
-            ret = _rgb(screen.data[pixelIndex], 
-                       screen.data[pixelIndex + 1], 
-                       screen.data[pixelIndex + 2], 
-                       screen.data[pixelIndex + 3]);
+            ret = _rgb(screen.imgdata.data[pixelIndex], 
+                       screen.imgdata.data[pixelIndex + 1], 
+                       screen.imgdata.data[pixelIndex + 2], 
+                       screen.imgdata.data[pixelIndex + 3]);
         }
         return ret;
     };
@@ -2018,7 +2003,8 @@ var QB = new function() {
             args = [""];
         }
 
-        _images[_activeImage].dirty = true;
+        _flushScreenCache(_images[_activeImage]);
+
         var ctx = _images[_activeImage].ctx;
         var preventNewline = (args[args.length-1] == QB.PREVENT_NEWLINE || args[args.length-1] == QB.COLUMN_ADVANCE);
 
@@ -2095,8 +2081,10 @@ var QB = new function() {
     }
 
     this.sub_PSet = function(sstep, x, y, color) {
-        _images[_activeImage].dirty = true;
         var screen = _images[_activeImage];
+        
+        x = Math.round(x);
+        y = Math.round(y);
 
         if (color == undefined) {
             color = _fgColor;
@@ -2122,13 +2110,37 @@ var QB = new function() {
         screen.lastX = x;
         screen.lastY = y;
 
+        if (!screen.cached) {
         var ctx = screen.ctx;
-        ctx.fillStyle = color.rgba();
-        ctx.beginPath();
-        ctx.fillRect(x, y, 1, 1);
+        screen.imgdata = ctx.getImageData(0, 0, screen.canvas.width, screen.canvas.height);
+        screen.cached = true;
+        }
+        var pixelIndex = (y * screen.canvas.width + x) * 4;
+        screen.imgdata.data[pixelIndex] = color.r;
+        screen.imgdata.data[pixelIndex + 1] = color.g;
+        screen.imgdata.data[pixelIndex + 2] = color.b;
+        screen.imgdata.data[pixelIndex + 3] = color.a * 255;
 
         _strokeDrawColor = _color(color);
     };
+
+    function _flushScreenCache(screen) {
+        if (screen.cached) {
+            var ctx = screen.ctx;
+            ctx.putImageData(screen.imgdata, 0, 0);
+            screen.imgdata = undefined;
+            screen.cached = false;
+        }
+    }
+
+    function _flushAllScreenCache() {
+        // TODO: this is brute force - fix it
+        for (var i=0; i < _nextImageId; i++) {
+            if (_images[i]) {
+                _flushScreenCache(_images[i]);
+            }
+        }
+    }
 
     this.sub_Get = function(fhi, position, type, valueObj) {
         if (!_fileHandles[fhi]) {
