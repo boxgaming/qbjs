@@ -4,14 +4,14 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 	    <link rel="stylesheet" href="qbjs.css"></link>
     </head>
-    <body onload="startProgram()">
+    <body onload="startProgram()" onresize="resizeScreen()">
         <div id="gx-container"></div>
 		<div id="gx-footer" style="display:none"></div>
-		&nbsp;
+        <span style="color:transparent">&nbsp;</span>
     </body>
+    <script language="javascript" src="vfs.js"></script>
     <script language="javascript" src="gx/gx.js"></script>
     <script language="javascript" src="qb.js"></script>
-    <script language="javascript" src="vfs.js"></script>
     <script language="javascript" src="program.js"></script>
 	<script language="javascript">
 		function startProgram() {
