@@ -45,6 +45,7 @@ async function init() {
         document.getElementById("gx-load-screen").style.display = "block";
     }
 
+
     // initialize the code editor
     editor = CodeMirror(document.querySelector("#code"), {
         lineNumbers: true,
@@ -69,6 +70,23 @@ async function init() {
             change.update(null, null, newText);
         }
     });
+
+    // if IDE mode, capture the F5 event
+    if (appMode != "play" && appMode != "auto") {
+        window.addEventListener("keydown", function(event) {
+            // run
+            if (event.code == 'F5') {
+                event.preventDefault();
+                runProgram();
+            }
+            // compile
+            else if (event.code == 'F11') {
+                event.preventDefault();
+                shareProgram();
+            }
+        });
+    }
+    
 
     document.getElementsByClassName("CodeMirror-cursor")[0].innerHTML = " ";
 
