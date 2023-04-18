@@ -214,7 +214,7 @@ var GX = new function() {
         _glcanvas.width = width;
         _glcanvas.height = height;
         _glctx = _glcanvas.getContext("webgl");
-        __GL.init(_glctx);
+        //__GL.init(_glctx);
 
         var footer = document.getElementById("gx-footer");
         footer.style.width = width;
