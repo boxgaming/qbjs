@@ -10,8 +10,14 @@ var editor;
 var selectedError = null;
 var currPath = "/";
 var mainProg = null;
+var theme = "qbjs";
 
 async function init() {
+    var themeCss = document.getElementById("ide-theme");
+    themeCss.href = "codemirror/themes/" + theme + ".css";
+    document.body.style.display = "initial";
+
+    //alert(document.getElementById("ide-theme"));
     if (window.innerWidth < 1200) {
         sizeMode = "max";
     }
@@ -53,7 +59,7 @@ async function init() {
         indentUnit: 4,
         value: qbcode,
         module: "qbjs",
-        theme: "qbjs",
+        theme: theme,
         height: "auto",
         styleActiveLine: true,
         smartIndent: false,
@@ -117,6 +123,54 @@ async function init() {
     }
 }    
 
+async function getErrorLine(error, stackDepth) {
+    if (stackDepth)  {
+        stackDepth = 0;
+    }
+    else if (error._stackDepth) {
+        stackDepth = error._stackDepth;
+    }
+    console.log("_stackDepth: " + error._stackDepth);
+    console.log("stackDepth: " + stackDepth);
+    //console.log(StackTrace.fromError(error));
+
+    var cdepth = 0;
+    var srcLine = "";
+    if (error.line) { // safari
+        srcLine = error.line - 1;
+    }
+    var stack = error.stack.split("\n");
+    for (var i=0; i < stack.length; i++) {
+        // chrome
+        if (stack[i].trim().indexOf("(eval at runProgram") > -1) {
+            if (cdepth == stackDepth) {
+                var idx = stack[i].indexOf("<anonymous>:");
+                var pos = stack[i].substring(idx + 12); 
+                pos = pos.substring(0, pos.length - 1);   
+                pos = pos.split(":");
+                srcLine = pos[0] - 2;
+            }
+            cdepth++;
+        }
+        // firefox
+        else if (stack[i].trim().indexOf("> AsyncFunction:") > -1) {
+            if (cdepth == stackDepth) {
+                var idx = stack[i].indexOf("> AsyncFunction:");
+                var pos = stack[i].substring(idx + 16); 
+                pos = pos.split(":");
+                srcLine = pos[0] - 2;
+            }
+            cdepth++;
+        }
+    }
+
+    if (!isNaN(srcLine)) {
+        srcLine = QBCompiler.getSourceLine(srcLine);
+    }
+
+    return srcLine;
+}
+
 async function runProgram() {
     document.getElementById("gx-load-screen").style.display = "none";
 
@@ -144,32 +198,8 @@ async function runProgram() {
         console.error(error);
 
         // find the source line, if possible
-        var srcLine = "";
-        if (error.line) {
-            srcLine = error.line - 1;
-        }
-        var stack = error.stack.split("\n");
-        for (var i=0; i < stack.length; i++) {
-            // chrome
-            if (stack[i].trim().startsWith("at eval (eval at runProgram")) {
-                var idx = stack[i].indexOf("<anonymous>:");
-                var pos = stack[i].substring(idx + 12); 
-                pos = pos.substring(0, pos.length - 1);   
-                pos = pos.split(":");
-                srcLine = pos[0] - 2;
-            }
-            // firefox
-            else if (stack[i].trim().indexOf("> AsyncFunction:") > -1) {
-                var idx = stack[i].indexOf("> AsyncFunction:");
-                var pos = stack[i].substring(idx + 16); 
-                pos = pos.split(":");
-                srcLine = pos[0] - 2;
-            }
-        }
-
-        if (!isNaN(srcLine)) {
-            srcLine = QBCompiler.getSourceLine(srcLine);
-        }
+        var srcLine = await getErrorLine(error);
+        console.log("returned: " + srcLine);
 
         var table = document.getElementById("warning-table");
         if (table) {
@@ -184,10 +214,6 @@ async function runProgram() {
             table.append(tr);
         }
 
-        /*var wdiv = document.getElementById("warning-container");
-        var div = document.createElement("div");
-        div.innerHTML = error.name + ": " + error.message + "\n" + error.stack;
-        wdiv.appendChild(div); */
         consoleVisible = true;
         window.onresize();
         QB.halt();
@@ -227,6 +253,20 @@ function shareProgram() {
     document.getElementById("export-button").style.display = (exportVisible) ? "block" : "none";
 }
 
+function settings() {
+    var settingsDialog = document.getElementById("options-dialog");
+    if (!settingsDialog.open) {
+        settingsDialog.showModal();
+    }
+}
+
+function changeTheme(newTheme) {
+    theme = newTheme;
+    var themeCss = document.getElementById("ide-theme");
+    themeCss.href = "codemirror/themes/" + theme + ".css";
+    editor.setOption("theme", theme);
+}
+
 async function exportProgram() {
     var zip = new JSZip();
 
@@ -264,7 +304,6 @@ async function exportProgram() {
 }
 
 function addVFSFiles(vfs, zip, parent) {
-    //alert("addVFSFiles: " + parent);
     var files = vfs.getChildren(parent, vfs.FILE);
     for (var i=0; i < files.length; i++) {
         var f = files[i];
@@ -289,11 +328,7 @@ async function saveProject() {
     // save a single .bas file
     if (count == 0) {
         var progFile = new Blob([ editor.getValue() ]);
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(progFile);
-        link.download = "program.bas";
-        link.click();
-        link.remove();
+        QB.downloadFile(progFile, "program.bas");
     }
 
     // save a project .zip file
@@ -306,11 +341,7 @@ async function saveProject() {
         addVFSFiles(vfs, zip, node);
         
         zip.generateAsync({type:"blob"}).then(function(content) {
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(content);
-            link.download = "project.zip";
-            link.click();
-            link.remove();
+            QB.downloadFile(content, "project.zip");
         });
     }
 }
@@ -445,6 +476,7 @@ function testShare() {
 
 function closeDialog() {
     document.getElementById("share-dialog").close();
+    document.getElementById("options-dialog").close();
 }
 
 async function displayWarnings() {
@@ -476,12 +508,7 @@ async function displayWarnings() {
             addWarningCell(tr, w[i].text, "99%");
             table.append(tr);
             tr.codeLine = w[i].line - 1;
-            tr.onclick = gotoWarning; /*function() {
-                if (selectedError ) { selectedError.style.backgroundColor = "transparent"; }
-                editor.setCursor({ line: this.codeLine}); 
-                this.style.backgroundColor = "#333";
-                selectedError = this;
-            };*/
+            tr.onclick = gotoWarning;
         }
     }
     if (!consoleVisible && w.length > 0) {
@@ -490,9 +517,10 @@ async function displayWarnings() {
 }
 
 function gotoWarning() {
-    if (selectedError ) { selectedError.style.backgroundColor = "transparent"; }
+    if (selectedError ) { selectedError.classList.remove("selected"); } //.style.backgroundColor = "transparent"; }
                 editor.setCursor({ line: this.codeLine}); 
-                this.style.backgroundColor = "#333";
+                //this.style.backgroundColor = "#333";
+                this.classList.add("selected");
                 selectedError = this;
 };
 
@@ -510,7 +538,6 @@ function addWarningCell(tr, text, width) {
 function showConsole() {
     consoleVisible = !consoleVisible;
     window.dispatchEvent(new Event('resize'));
-    //window.onresize();
 }
 
 function changeTab(tabName) {
@@ -556,7 +583,6 @@ function slideLeft() {
         sizeMode = "min"
         document.getElementById("slider-left").style.display = "none";
     }
-    //window.onresize();
     window.dispatchEvent(new Event('resize'));
 }
 
@@ -569,7 +595,6 @@ function slideRight() {
         sizeMode = "max"
         document.getElementById("slider-right").style.display = "none";
     }
-    //window.onresize();
     window.dispatchEvent(new Event('resize'));
 }
 
@@ -598,14 +623,14 @@ window.onresize = function() {
         if (sizeMode == "min") {
             cmwidth = 0;
             editor.getWrapperElement().style.display = "none";
-            document.getElementById("code").style.borderRight = "0";
+            //document.getElementById("code").style.borderRight = "0";
             document.getElementById("game-container").style.display = "block";
             document.getElementById("edit-button").style.display = "block";
         }
         else if (sizeMode == "max") {
             cmwidth = window.innerWidth - 25;
             document.getElementById("game-container").style.display = "none";
-            document.getElementById("code").style.borderRight = "1px solid #666";
+            //document.getElementById("code").style.borderRight = "1px solid #666";
             document.getElementById("slider").style.border = "1px solid #666";
             document.getElementById("slider").style.borderLeft = "0";
             editor.getWrapperElement().style.display = "block";
@@ -614,7 +639,7 @@ window.onresize = function() {
         else {
             editor.getWrapperElement().style.display = "block";
             document.getElementById("game-container").style.display = "block";
-            document.getElementById("code").style.borderRight = "1px solid #666";
+            //document.getElementById("code").style.borderRight = "1px solid #666";
             document.getElementById("slider").style.border = "0";
             document.getElementById("edit-button").style.display = "none";
         }
@@ -630,14 +655,6 @@ window.onresize = function() {
             jsDiv.style.display = "block";
             jsDiv.style.top = (window.innerHeight - 327) + "px";
             document.getElementById("toggle-console").innerHTML = "Hide Console";
-            /*if (currTab == "console") {
-                document.getElementById("warning-container").style.display = "block";
-                document.getElementById("js-code").style.display = "none";
-            }
-            else {
-                document.getElementById("warning-container").style.display = "none";
-                document.getElementById("js-code").style.display = "block";
-            }*/
         }
         else {
             f.style.height = (window.innerHeight - 50) + "px";
@@ -648,11 +665,9 @@ window.onresize = function() {
         document.getElementById("show-js-container").style.right = "5px";
         
         editor.setSize(cmwidth, window.innerHeight - 79);
-        //document.getElementById("code").style.height = (window.innerHeight - 50) + "px";
         document.getElementById("code").style.height = (window.innerHeight - 79) + "px";
         document.getElementById("slider").style.height = (window.innerHeight - 50) + "px";
     }
-    //QB.resize(f.style.width.replace("px", ""), f.style.height.replace("px", ""));
     QB.resize(f.clientWidth, f.clientHeight);
 }
 window.onresize();

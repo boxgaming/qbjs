@@ -1,12 +1,14 @@
+<!DOCTYPE html>
 <html>
     <head>
+        <title>QBJS - QBasic for the Web!</title>
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="qbjs-ide.css"></link>
         <link rel="stylesheet" href="codemirror/codemirror.min.css"></link>
         <link rel="stylesheet" href="codemirror/dialog.css">
         <link rel="stylesheet" href="codemirror/matchesonscrollbar.css">
-        <link rel="stylesheet" href="codemirror/qb-ide.css"></link>
+        <link id="ide-theme" rel="stylesheet" href="codemirror/themes/qbjs.css"></link>
 
         <script type="text/javascript" src="codemirror/codemirror.min.js"></script>
         <script type="text/javascript" src="codemirror/qb-lang.js"></script>
@@ -14,6 +16,7 @@
         <script type="text/javascript" src="util/jszip.min.js"></script>
         <script type="text/javascript" src="util/lzutf8.js"></script>
         <script type="text/javascript" src="util/shorty.min.js"></script>
+        <!-- <script type="text/javascript" src="util/stacktrace.js"></script> -->
         
         <script type="text/javascript" src="codemirror/dialog.js"></script>
         <script type="text/javascript" src="codemirror/searchcursor.js"></script>
@@ -21,7 +24,7 @@
         <script type="text/javascript" src="codemirror/annotatescrollbar.js"></script>
         <script type="text/javascript" src="codemirror/matchesonscrollbar.js"></script>
     </head>
-    <body>
+    <body style="display:none">
         <div id="code-container">
             <div id="toolbar">
                 <a href="javascript:openProject()" class="toolbar-button" id="toolbar-button-open" title="Open"></a>
@@ -29,6 +32,7 @@
                 <div class="spacer"></div>
                 <a href="javascript:runProgram()" class="toolbar-button" id="toolbar-button-run" title="Run"></a>
                 <a href="javascript:shareProgram()" class="toolbar-button" id="toolbar-button-share" title="Share / Export"></a>
+                <a href="javascript:settings()" class="toolbar-button" id="toolbar-button-settings" title="Settings"></a>
             </div>
             <div id="code"></div>
                 <a id="edit-button" href="javascript:slideRight()" display="none">Edit</a>
@@ -36,7 +40,7 @@
                 <a id="stop-button" href="javascript:stopProgram()">Stop</a>
                 <a id="share-button" href="javascript:shareProgram()">Share</a>
         </div>
-        <div id="slider">
+        <div id="slider" draggable="true">
             <div id="slider-left" class="slider-button" onclick="slideLeft()">&lt;</div>
             <div id="slider-right" class="slider-button" onclick="slideRight()">&gt;</div>
         </div>
@@ -99,7 +103,21 @@
                 <a href="javascript:closeProgSelDlg()">Cancel</a>
             </div>
         </dialog>
+
+        <dialog id="options-dialog">
+            <div>Select a theme:</div>
+            <select id="theme-picker" onchange="changeTheme(this.value)">
+                <option value="qbjs">Default</option>
+                <option value="qb45">QBasic</option>
+                <option value="win-classic">Windows Classic</option>
+                <option value="vscode-dark">VSCode Dark</option>
+            </select>
+            <div>
+                <a href="javascript:closeDialog()" style="display:block; float:right; margin-top: 7px">Close</a>
+            </div>
+        </dialog>
     </body>
+    <!-- <script language="javascript" src="gl.js"></script> -->
     <script language="javascript" src="vfs.js"></script>
     <script language="javascript" src="gx/gx.js"></script>
     <script language="javascript" src="qb.js"></script>

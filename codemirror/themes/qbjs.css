@@ -45,3 +45,6 @@
 
 .cm-s-qbjs .CodeMirror-search-field { font-family: dosvga; font-size: 1em; }
 .cm-s-qbjs .cm-searching { color: #333 !important; background-color: #ccc; }
+
+body { letter-spacing: -1px; }
+#gx-container { letter-spacing: normal; }
