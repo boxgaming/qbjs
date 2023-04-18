@@ -36,12 +36,12 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
     var atomWords = ['true', 'false', 'nothing', 'empty', 'null'];
 
     var builtinFuncsWords = ['_acos', '_acosh', '_alpha', '_alpha32', '_asin', '_asinh', '_atan2', '_atanh', '_autodisplay',
-                             '_blue', '_blue32', '_ceil', '_continue', '_copyimage', '_cosh', '_coth', '_csch', '_d2g',
-                             '_d2r', '_delay', '_dest', '_display', '_fontwidth', '_freeimage', '_fullscreen',
+                             '_blue', '_blue32', '_ceil', '_continue', '_copyimage', '_cosh', '_coth', '_csch', '_backgroundcolor', '_defaultcolor',
+                             '_d2g', '_d2r', '_delay', '_dest', '_display', '_font', '_loadfont', '_fontwidth', '_fontheight', '_freeimage', '_fullscreen',
                              '_g2d', '_g2r', '_green', '_green32', '_height', '_hypot',
                              '_instrrev', '_limit', '_keyclear', '_keydown', '_keyhit', '_loadimage',
                              '_mousebutton', '_mouseinput', '_mousex', '_mousey', '_newimage',
-                             '_palettecolor', '_pi', '_printstring', '_printwidth', '_putimage',
+                             '_palettecolor', '_pi', '_printstring', '_printwidth', '_printmode', '_putimage',
                              '_r2d', '_r2g', '_readbit', '_red', '_red32', '_resetbit', '_resize', '_resizewidth',
                              '_resizeheight', '_rgb', '_rgba', '_rgb32', '_rgba32', '_round',
                              '_screenexists', '_sech', '_setbit', '_shl', '_shr', '_sinh', '_source', '_sndclose', '_sndopen',
@@ -62,7 +62,8 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              // QBJS-specific
                              'export', 'from', 'import']
 
-    var builtinConsts = ['_off', '_smooth', '_stretch', '_squarepixels', 'append', 'binary', 'input', 'output', 'random',
+    var builtinConsts = ['append', 'binary', 'input', 'output', 'random',
+                         '_off', '_smooth', '_stretch', '_squarepixels', '_keepbackground', '_onlybackground', '_fillbackground',
                          'gx_true', 'gx_false', 'gxevent_init', 'gxevent_update', 'gxevent_drawbg', 'gxevent_drawmap', 'gxevent_drawscreen',
                          'gxevent_mouseinput', 'gxevent_paintbefore', 'gxevent_paintafter', 'gxevent_collision_tile', 'gxevent_collision_entity',
                          'gxevent_player_action', 'gxevent_animate_complete', 'gxanimate_loop', 'gxanimate_single', 'gxbg_stretch',

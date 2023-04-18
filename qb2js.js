@@ -277,7 +277,7 @@ if (QB.halted()) { return; }
                   cleft =  (QB.func_Left( QB.arrayValue(constParts, [ constIdx]).value ,    eqi -  1));
                   cright =  (QB.func_Mid( QB.arrayValue(constParts, [ constIdx]).value ,    eqi +  1));
                   js =   js + "const "  +  cleft + " = "  + (await func_ConvertExpression(  cright,    i))  + "; ";
-                  await sub_AddConst(  cleft);
+                  await sub_AddConst( (QB.func__Trim(  cleft)));
                }
             } 
          } else if ( first ==  "DIM"  ||  first ==  "REDIM"  ||  first ==  "STATIC" ) {
@@ -548,6 +548,7 @@ if (QB.halted()) { return; }
    found =   False;
    var c = 0;  /* INTEGER */ 
    c =  (await func_SLSplit(  s,   parts ,    False));
+   await sub_AddWarning(  lineIndex,   "ParseExport: ["  +  s + "]");
    if ((await func_FindMethod( QB.arrayValue(parts, [ 1]).value ,    es,   "SUB")) ) {
       if ( c > 2) {
          exportName =  QB.arrayValue(parts, [ 3]).value;
@@ -3140,6 +3141,13 @@ if (QB.halted()) { return; }
 }
 async function sub_InitQBMethods() {
 if (QB.halted()) { return; }
+   await sub_AddQBConst( "_KEEPBACKGROUND");
+   await sub_AddQBConst( "_ONLYBACKGROUND");
+   await sub_AddQBConst( "_FILLBACKGROUND");
+   await sub_AddQBConst( "_OFF");
+   await sub_AddQBConst( "_STRETCH");
+   await sub_AddQBConst( "_SQUAREPIXELS");
+   await sub_AddQBConst( "_SMOOTH");
    await sub_AddQBMethod( "FUNCTION" ,   "_Alpha" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Alpha32" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Acos" ,    False);
@@ -3150,6 +3158,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION" ,   "_Atan2" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_AutoDisplay" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_AutoDisplay" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_BackgroundColor" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Blue" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Blue32" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Ceil" ,    False);
@@ -3160,6 +3169,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION" ,   "_CWD$" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_D2G" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_D2R" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_DefaultColor" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_Delay" ,    True);
    await sub_AddQBMethod( "FUNCTION" ,   "_Dest" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_Dest" ,    False);
@@ -3167,6 +3177,9 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION" ,   "_Display" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_Display" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_FileExists" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_Font" ,    False);
+   await sub_AddQBMethod( "SUB" ,   "_Font" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_FontHeight" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_FontWidth" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_FreeImage" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_FullScreen" ,    False);
@@ -3182,6 +3195,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "SUB" ,   "_KeyClear" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_KeyDown" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_KeyHit" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_LoadFont" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_LoadImage" ,    True);
    await sub_AddQBMethod( "FUNCTION" ,   "_MouseButton" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_MouseInput" ,    False);
@@ -3191,6 +3205,8 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION" ,   "_OS$" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Pi" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_PaletteColor" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_PrintMode" ,    False);
+   await sub_AddQBMethod( "SUB" ,   "_PrintMode" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_PrintString" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_PrintWidth" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_PutImage" ,    False);

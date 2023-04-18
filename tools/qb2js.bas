@@ -338,7 +338,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                         cleft = Left$(constParts(constIdx), eqi - 1)
                         cright = Mid$(constParts(constIdx), eqi + 1)
                         js = js + "const " + cleft + " = " + ConvertExpression(cright, i) + "; "
-                        AddConst cleft
+                        AddConst _Trim$(cleft)
                     End If
                 Next constIdx
 
@@ -642,6 +642,8 @@ Sub ParseExport (s As String, lineIndex As Integer)
     Dim c As Integer
     c = SLSplit(s, parts(), False)
 
+    AddWarning lineIndex, "ParseExport: [" + s + "]"
+
     If FindMethod(parts(1), es, "SUB") Then
         If c > 2 Then
             exportName = parts(3)
@@ -689,6 +691,7 @@ Sub ParseExport (s As String, lineIndex As Integer)
     End If
 
     If Not found Then
+        ' TODO: this is not actually being reported - warnings seem to be cleared after module compilation is complete
         AddWarning lineIndex, "Invalid export [" + parts(1) + "].  Exported items must be a Sub, Function or Const in the current module."
     End If
 
@@ -3345,6 +3348,16 @@ Sub InitGX
 End Sub
 
 Sub InitQBMethods
+    ' QB64 Constants
+    ' ----------------------------------------------------------
+    AddQBConst "_KEEPBACKGROUND"
+    AddQBConst "_ONLYBACKGROUND"
+    AddQBConst "_FILLBACKGROUND"
+    AddQBConst "_OFF"
+    AddQBConst "_STRETCH"
+    AddQBConst "_SQUAREPIXELS"
+    AddQBConst "_SMOOTH"
+
     ' QB64 Methods
     ' ----------------------------------------------------------
     AddQBMethod "FUNCTION", "_Alpha", False
@@ -3357,6 +3370,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Atan2", False
     AddQBMethod "FUNCTION", "_AutoDisplay", False
     AddQBMethod "SUB", "_AutoDisplay", False
+    AddQBMethod "FUNCTION", "_BackgroundColor", False
     AddQBMethod "FUNCTION", "_Blue", False
     AddQBMethod "FUNCTION", "_Blue32", False
     AddQBMethod "FUNCTION", "_Ceil", False
@@ -3367,6 +3381,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_CWD$", False
     AddQBMethod "FUNCTION", "_D2G", False
     AddQBMethod "FUNCTION", "_D2R", False
+    AddQBMethod "FUNCTION", "_DefaultColor", False
     AddQBMethod "SUB", "_Delay", True
     AddQBMethod "FUNCTION", "_Dest", False
     AddQBMethod "SUB", "_Dest", False
@@ -3374,6 +3389,9 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Display", False
     AddQBMethod "SUB", "_Display", False
     AddQBMethod "FUNCTION", "_FileExists", False
+    AddQBMethod "FUNCTION", "_Font", False
+    AddQBMethod "SUB", "_Font", False
+    AddQBMethod "FUNCTION", "_FontHeight", False
     AddQBMethod "FUNCTION", "_FontWidth", False
     AddQBMethod "SUB", "_FreeImage", False
     AddQBMethod "SUB", "_FullScreen", False
@@ -3389,6 +3407,7 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_KeyClear", False
     AddQBMethod "FUNCTION", "_KeyDown", False
     AddQBMethod "FUNCTION", "_KeyHit", False
+    AddQBMethod "FUNCTION", "_LoadFont", False
     AddQBMethod "FUNCTION", "_LoadImage", True
     AddQBMethod "FUNCTION", "_MouseButton", False
     AddQBMethod "FUNCTION", "_MouseInput", False
@@ -3398,6 +3417,8 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_OS$", False
     AddQBMethod "FUNCTION", "_Pi", False
     AddQBMethod "SUB", "_PaletteColor", False
+    AddQBMethod "FUNCTION", "_PrintMode", False
+    AddQBMethod "SUB", "_PrintMode", False
     AddQBMethod "SUB", "_PrintString", False
     AddQBMethod "FUNCTION", "_PrintWidth", False
     AddQBMethod "SUB", "_PutImage", False

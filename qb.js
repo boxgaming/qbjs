@@ -1,4 +1,9 @@
 var QB = new function() {
+    // QB public constants
+    this._KEEPBACKGROUND = 1;
+    this._ONLYBACKGROUND = 2;
+    this._FILLBACKGROUND = 3;
+
     // QB constants
     this.COLUMN_ADVANCE = Symbol("COLUMN_ADVANCE");
     this.PREVENT_NEWLINE = Symbol("PREVENT_NEWLINE");
@@ -16,7 +21,9 @@ var QB = new function() {
     var _currScreenImage = null;
     var _dataBulk = [];
     var _dataLabelMap;
+    var _font = 16;
     var _fgColor = null;
+    var _fonts = {};
     var _haltedFlag = false;
     var _images = {};
     var _inkeyBuffer = [];
@@ -31,6 +38,8 @@ var QB = new function() {
     var _locX = 0;
     var _locY = 0;
     var _nextImageId = 1000;
+    var _nextFontId = 1000;
+    var _printMode = this._FILLBACKGROUND;
     var _readCursorPosition;
     var _resize = false;
     var _resizeWidth = 0;
@@ -49,6 +58,7 @@ var QB = new function() {
     var _fileHandles = null;
     var _typeMap = {};
 
+    
     // Array handling methods
     // ----------------------------------------------------
     this.initArray = function(dimensions, obj) {
@@ -148,10 +158,19 @@ var QB = new function() {
         _haltedFlag = false;
         _lastLimitTime = new Date();
         _nextImageId = 1000;
+        _printMode = QB._FILLBACKGROUND;
         _readCursorPosition = 0;
         _rndSeed = 327680;
         _runningFlag = true;
         _sourceImage = 0;
+        _strokeLineThickness = 2;
+        // initialize the default fonts
+        _nextFontId = 1000;
+        _font = 16;
+        _fonts = {};
+        _fonts[8] = { name: "dosvga", size: "16px", style: "", offset: 3 };
+        _fonts[14] = { name: "dosvga", size: "16px", style: "", offset: 3 };
+        _fonts[16] = { name: "dosvga", size: "16px", style: "", offset: 3 };
         GX.vfsCwd(GX.vfs().rootDirectory());
         _fileHandles = {};
         _initColorTable();
@@ -181,6 +200,35 @@ var QB = new function() {
     this.getImage = function(imageId) {
         return _images[imageId].canvas;
     };
+
+    this.defaultLineWidth = function(width) {
+        if (width != undefined) {
+            _strokeLineThickness = width;
+        }
+        return _strokeLineThickness;
+    };
+
+    this.colorToRGB = _color;
+
+    this.vfs = function() { return GX.vfs(); }
+    this.vfsCwd = function() { return GX.vfsCwd(); }
+
+    this.downloadFile = async function(data, defaultName) {
+        if (window.showSaveFilePicker) {
+            const handle = await showSaveFilePicker({ suggestedName: defaultName });
+            const writable = await handle.createWritable();
+            await writable.write(data);
+            writable.close();
+        }
+        else {
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(data);
+            link.download = defaultName;
+            link.click();
+            link.remove();
+        }
+    };
+
 
     // Extended QB64 Keywords
     // --------------------------------------------
@@ -223,6 +271,10 @@ var QB = new function() {
     // between _display and _autodisplay, included here for compatibility
     this.func__AutoDisplay = function() { return -1; }
     this.sub__AutoDisplay = function() {}
+
+    this.func__BackgroundColor = function() {
+        return _bgColor;
+    };
 
     this.func__Blue = function(rgb, imageHandle) {
         // TODO: implement corresponding logic when an image handle is supplied (maybe)
@@ -271,6 +323,12 @@ var QB = new function() {
         return (x * 10/9);
     };
 
+    this.func__DefaultColor = function(imageHandle) {
+        // TODO: implement imageHandle version?
+        //       at present we have a global default color rather than one per image
+        return _fgColor;
+    };
+
     this.sub__Delay = async function(seconds) {
         await GX.sleep(seconds*1000);
     };
@@ -298,6 +356,9 @@ var QB = new function() {
 
     this.sub__Display = function() {
         // The canvas handles this for us, this method is included for compatibility
+
+        // TODO: update comment and documentation
+        //__GL.drawScene(GX.gl());
     };
 
     this.func__FileExists = function(path) {
@@ -309,12 +370,38 @@ var QB = new function() {
         return 0;
     };
 
+    this.sub__Font = function(fnt) {
+        if (fnt < 1000) {
+            GX.canvas().style.letterSpacing = "-1px";
+        }
+        else {
+            GX.canvas().style.letterSpacing = "normal";
+        }
+        _font = fnt;
+    };
+
+    this.func__Font = function() {
+        return _font;
+    };
+
     this.func__FontHeight = function(fnt) {
-        return 16;
+        if (fnt == undefined) {
+            fnt = _font;
+        }
+        if (fnt < 1000) {
+            return 16;
+        }
+        return _fonts[fnt].height;
     };
 
     this.func__FontWidth = function(fnt) {
-        return 8;
+        if (fnt == undefined) {
+            fnt = _font;
+        }
+        if (fnt < 1000) {
+            return 8;
+        }
+        return _fonts[fnt].width;
     };
 
     this.sub__FreeImage = function(imageId) {
@@ -422,6 +509,32 @@ var QB = new function() {
         }
     };
 
+    this.func__LoadFont = function(name, size, opts) {
+        if (!isNaN(size)) {
+            size = size + "px";
+        }
+        var id = _nextFontId;
+        _nextFontId++;
+        _fonts[id] = { name: name, size: size, style: ""};
+        // determine the font width and height
+        var ctx = GX.ctx();
+        ctx.font = size + " " + name;
+        var tm = ctx.measureText("M");
+        //_fonts[id].height = tm.actualBoundingBoxAscent + tm.actualBoundingBoxDescent;
+        _fonts[id].height = tm.fontBoundingBoxAscent + tm.fontBoundingBoxDescent;
+        _fonts[id].offset = tm.fontBoundingBoxAscent - tm.actualBoundingBoxAscent;
+
+        if (tm.width != ctx.measureText("i").width) {
+            _fonts[id].width = 0;
+            _fonts[id].monospace = false;
+        }
+        else {
+            _fonts[id].width = tm.width;
+            _fonts[id].monospace = true;
+        }
+        return id;
+    };
+
     this.func__LoadImage = async function(url) {
         var vfs = GX.vfs();
         var vfsCwd = GX.vfsCwd();
@@ -454,6 +567,13 @@ var QB = new function() {
         return imgId;
     };
 
+    /*
+    this.mapTriangle3d = function(imageId, tx1, ty1, tx2, ty2, tx3, ty3, x1, y1, z1, x2, y2, z2, x3, y3, z3) {
+        var img =  _images[imageId].canvas;
+        __GL.mapTriangle(img, tx1, ty1, tx2, ty2, tx3, ty3, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+    };
+    */
+   
     this.func__MouseInput = function() {
         return GX._mouseInput();
     };
@@ -482,6 +602,7 @@ var QB = new function() {
             canvas.height = iheight;
         }
         ctx = canvas.getContext("2d");
+        ctx.lineCap = "butt";
 
         _images[_nextImageId] = { canvas: canvas, ctx: ctx, lastX: 0, lastY: 0, charSizeMode: (mode == 0), dirty: true };
         var tmpId = _nextImageId;
@@ -523,24 +644,47 @@ var QB = new function() {
         _colormap[x] = _color(y);
     };
 
+    this.func__PrintMode = function(imageHandle) {
+        return _printMode;
+    };
+
+    this.sub__PrintMode = function(mode, imageHandle) {
+        // TODO: implement imageHandle?
+        //       currently only one global mode instead of per image
+        _printMode = mode;
+    };
+
     this.sub__PrintString = function(x, y, s) {
-        // TODO: check the background opacity mode
-        // Draw the text background
         var ctx = _images[_activeImage].ctx;
         _flushScreenCache(_images[_activeImage]);
         ctx.beginPath();
-        ctx.fillStyle = _bgColor.rgba();
-        ctx.fillRect(x, y, QB.func__FontWidth(), QB.func__FontHeight());
-
-        // Draw the string
-        ctx.font = "16px dosvga";
-        ctx.fillStyle = _fgColor.rgba();
-        ctx.fillText(s, x, y+QB.func__FontHeight()-6);
+        var f = _fonts[_font];
+        ctx.font = f.size + " " + f.name;
+        var tm = ctx.measureText(s);
+        //var fheight = tm.actualBoundingBoxAscent + tm.actualBoundingBoxDescent;
+        var fheight = tm.fontBoundingBoxAscent + tm.fontBoundingBoxDescent;
+ 
+        if (_printMode != QB._KEEPBACKGROUND) {
+            ctx.fillStyle = _bgColor.rgba();
+            //ctx.fillRect(x, y, QB.func__FontWidth(), QB.func__FontHeight());
+            ctx.fillRect(x, y, tm.width, fheight);
+        }
+        if (_printMode != QB._ONLYBACKGROUND) {
+            // Draw the string
+            //ctx.font = "16px dosvga";
+            ctx.fillStyle = _fgColor.rgba();
+            ctx.fillText(s, x, y + fheight - f.offset);//+QB.func__FontHeight()-6);
+        }
     };
 
     this.func__PrintWidth = function(s) {
         if (!s) { return 0; }
-        return String(s).length * QB.func__FontWidth();
+        //return String(s).length * QB.func__FontWidth();
+        var ctx = GX.ctx();
+        var f = _fonts[_font];
+        ctx.font = f.size + " " + f.name;
+        var tm = ctx.measureText(s);
+        return tm.width;
     };
 
     this.func__Pi = function(m) {
@@ -877,7 +1021,7 @@ var QB = new function() {
             GX.vfsCwd(node);
         }
         else {
-            // TODO: error handling
+            throw new Error("Path not found: [" + path + "]");
         }
     };
 
@@ -1949,8 +2093,6 @@ var QB = new function() {
         _strokeDrawColor = _color(color);
     };
 
-    this.vfs = function() { return GX.vfs(); }
-
     this.sub_PrintToFile = function(fh, args) {
         if (!_fileHandles[fh]) {
             throw new Error("Invalid file handle");
@@ -2031,14 +2173,27 @@ var QB = new function() {
                         y = (_locY) * QB.func__FontHeight();
                     }
 
-                    // TODO: check the background opacity mode
                     // Draw the text background
                     ctx.beginPath();
-                    ctx.fillStyle = _bgColor.rgba();
-                    ctx.fillRect(x, y, QB.func__FontWidth() * lines[i].length, QB.func__FontHeight());
-                    ctx.font = "16px dosvga";
-                    ctx.fillStyle = _fgColor.rgba();
-                    ctx.fillText(lines[i], x, (y+QB.func__FontHeight()-6));
+                    var f = _fonts[_font];
+                    ctx.font = f.size + " " + f.name; //"16px dosvga";
+                    if (_printMode != QB._KEEPBACKGROUND) {
+                        ctx.fillStyle = _bgColor.rgba();
+                        var tm = ctx.measureText(lines[i]);
+                        //ctx.fillRect(x, y, QB.func__FontWidth() * lines[i].length, QB.func__FontHeight());
+                        ctx.fillRect(x, y, tm.width, QB.func__FontHeight());
+                    }
+                    if (_printMode != QB._ONLYBACKGROUND) {
+                        //var f = _fonts[_font];
+                        //ctx.font = f.size + " " + f.name; //"16px dosvga";
+                        ctx.fillStyle = _fgColor.rgba();
+                        //if (_font < 1000) {
+                        //    ctx.fillText(lines[i], x, (y+QB.func__FontHeight()-6));
+                        //}
+                        //else {
+                            ctx.fillText(lines[i], x, (y + QB.func__FontHeight() - f.offset));
+                        //}
+                    }
 
                     _locX += lines[i].length;
 
@@ -2517,6 +2672,8 @@ var QB = new function() {
         _keyHitBuffer = [];
         _keyDownMap = {};
 
+        // TODO: set the appropriate default font for the selected screen mode above instead of here
+        GX.canvas().style.letterSpacing = "-1px";
         /*
         if (mode == 1) {
             ctx = _images[_activeImage].ctx;
@@ -2554,6 +2711,12 @@ var QB = new function() {
     }
 
     this.func_String = function(ccount, s) {
+        if (typeof s === "string") {
+            s = s.substring(0, 1);
+        }
+        else {
+            s = String.fromCharCode(s);
+        }
         return "".padStart(ccount, s);
     };
 
@@ -3357,5 +3520,3 @@ var QB = new function() {
 
     _init();
 }
-
-
