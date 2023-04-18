@@ -141,6 +141,9 @@ Sub http_do_get (c)
     Close #fh
     http_send_status c, 200, "OK"
     http_send_header c, "Content-Length", LTrim$(Str$(Len(filedata)))
+    If InStr(filepath, ".svg") Then
+        http_send_header c, "Content-Type", "image/svg+xml"
+    End If
     http_send_header c, "Access-Control-Allow-Origin", "true"
     http_send_header c, "Connection", "close"
     http_end_headers c
@@ -211,7 +214,7 @@ Function get_requested_filesystem_path$ (c)
 
     'Print "--> " + Left$(raw_path, path_len)
 
-    get_requested_filesystem_path = _STARTDIR$ + cannonicalise_path(percent_decode(Left$(raw_path, path_len)))
+    get_requested_filesystem_path = _StartDir$ + cannonicalise_path(percent_decode(Left$(raw_path, path_len)))
 End Function
 
 Function percent_decode$ (raw_string As String)
