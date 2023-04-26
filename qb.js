@@ -378,6 +378,8 @@ var QB = new function() {
             GX.canvas().style.letterSpacing = "normal";
         }
         _font = fnt;
+        _locX = 0;
+        _locY = 0;
     };
 
     this.func__Font = function() {
@@ -520,9 +522,16 @@ var QB = new function() {
         var ctx = GX.ctx();
         ctx.font = size + " " + name;
         var tm = ctx.measureText("M");
-        //_fonts[id].height = tm.actualBoundingBoxAscent + tm.actualBoundingBoxDescent;
-        _fonts[id].height = tm.fontBoundingBoxAscent + tm.fontBoundingBoxDescent;
-        _fonts[id].offset = tm.fontBoundingBoxAscent - tm.actualBoundingBoxAscent;
+
+        if (tm.fontBoundingBoxAscent) {
+            _fonts[id].height = tm.fontBoundingBoxAscent + tm.fontBoundingBoxDescent;
+            _fonts[id].offset = tm.fontBoundingBoxAscent - tm.actualBoundingBoxAscent;
+        }
+        else {
+            // sad, firefox does not support fontBoundingBox... so it will just not work as well
+            _fonts[id].height = tm.actualBoundingBoxAscent + tm.actualBoundingBoxDescent + 2;
+            _fonts[id].offset = 0;
+        }
 
         if (tm.width != ctx.measureText("i").width) {
             _fonts[id].width = 0;
@@ -661,17 +670,20 @@ var QB = new function() {
         var f = _fonts[_font];
         ctx.font = f.size + " " + f.name;
         var tm = ctx.measureText(s);
-        //var fheight = tm.actualBoundingBoxAscent + tm.actualBoundingBoxDescent;
-        var fheight = tm.fontBoundingBoxAscent + tm.fontBoundingBoxDescent;
+        var fheight = 0;
+        if (tm.fontBoundingBoxAscent) {
+            fheight = tm.fontBoundingBoxAscent + tm.fontBoundingBoxDescent;
+        }
+        else {
+            fheight = tm.actualBoundingBoxAscent + tm.actualBoundingBoxDescent;
+        }
  
         if (_printMode != QB._KEEPBACKGROUND) {
             ctx.fillStyle = _bgColor.rgba();
-            //ctx.fillRect(x, y, QB.func__FontWidth(), QB.func__FontHeight());
             ctx.fillRect(x, y, tm.width, fheight);
         }
         if (_printMode != QB._ONLYBACKGROUND) {
             // Draw the string
-            //ctx.font = "16px dosvga";
             ctx.fillStyle = _fgColor.rgba();
             ctx.fillText(s, x, y + fheight - f.offset);//+QB.func__FontHeight()-6);
         }
@@ -679,7 +691,6 @@ var QB = new function() {
 
     this.func__PrintWidth = function(s) {
         if (!s) { return 0; }
-        //return String(s).length * QB.func__FontWidth();
         var ctx = GX.ctx();
         var f = _fonts[_font];
         ctx.font = f.size + " " + f.name;
@@ -2150,6 +2161,7 @@ var QB = new function() {
         var ctx = _images[_activeImage].ctx;
         var preventNewline = (args[args.length-1] == QB.PREVENT_NEWLINE || args[args.length-1] == QB.COLUMN_ADVANCE);
 
+        var x = _locX * QB.func__FontWidth();
         for (var ai = 0; ai < args.length; ai++) {
             if (args[ai] == QB.PREVENT_NEWLINE) {
                 // ignore as we will just concatenate the next arg
@@ -2162,7 +2174,7 @@ var QB = new function() {
                 var str = args[ai];
                 var lines = String(str).split("\n");
                 for (var i=0; i < lines.length; i++) {
-                    var x = _locX * QB.func__FontWidth();
+                    //var x = _locX * QB.func__FontWidth();
                     var y = -1;
         
                     // scroll the screen
@@ -2177,9 +2189,9 @@ var QB = new function() {
                     ctx.beginPath();
                     var f = _fonts[_font];
                     ctx.font = f.size + " " + f.name; //"16px dosvga";
+                    var tm = ctx.measureText(lines[i]);
                     if (_printMode != QB._KEEPBACKGROUND) {
                         ctx.fillStyle = _bgColor.rgba();
-                        var tm = ctx.measureText(lines[i]);
                         //ctx.fillRect(x, y, QB.func__FontWidth() * lines[i].length, QB.func__FontHeight());
                         ctx.fillRect(x, y, tm.width, QB.func__FontHeight());
                     }
@@ -2195,12 +2207,14 @@ var QB = new function() {
                         //}
                     }
 
+                    x += tm.width;
                     _locX += lines[i].length;
 
                     if (i < lines.length-1) {
                         if (_locY < _textRows()-1) {
                             _locY = _locY + 1;
                             _locX = 0;
+                            x = 0;
                         }
                         else {
                             await _printScroll();
@@ -2222,6 +2236,7 @@ var QB = new function() {
     };
 
     async function _printScroll() {
+/*        
         var img = new Image();
         img.src = GX.canvas().toDataURL("image/png");
         while (!img.complete) {
@@ -2233,6 +2248,13 @@ var QB = new function() {
         ctx.fillStyle = _bgColor.rgba();
         ctx.fillRect(0, 0, _width(), _height());
         ctx.drawImage(img, 0, -QB.func__FontHeight());
+*/
+        var ctx = _images[_activeImage].ctx;
+        ctx.globalCompositeOperation = "copy";
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(ctx.canvas, 0, -QB.func__FontHeight(), ctx.canvas.width, ctx.canvas.height);
+        ctx.globalCompositeOperation = "source-over";
+        //await GX.sleep(1);
     }
 
     this.sub_PSet = function(sstep, x, y, color) {
