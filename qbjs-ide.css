@@ -7,6 +7,7 @@ body {
     font-family: dosvga, Arial, Helvetica, sans-serif;
     /* letter-spacing: -1px; */
     color: #999;
+    overflow: hidden;
 }
 a, a:link, a:visited {
     text-decoration: none;
@@ -22,8 +23,10 @@ a:after { content: " >"; }
 
 #code-container {
     position: absolute;
-    left: 10px;
-    top: 10px;
+    /*left: 10px;
+    top: 10px; */
+    left: 5px;
+    top: 33px;
 }
 #code {
     margin-bottom: 5px;
@@ -32,12 +35,14 @@ a:after { content: " >"; }
 #game-container {
     position: absolute;
     left: 620px;
-    top: 10px;
+    /*top: 10px; */
+    top: 33px;
 }
 #gx-container {
     border: 1px solid #666;
     text-align: center; 
     background-color: #000;
+    overflow: auto;
 }
 #gx-canvas {
     border: 1px solid #222; 
@@ -86,8 +91,14 @@ a:after { content: " >"; }
 }
 #slider {
     position: absolute;
-    top: 10px;
+    top: 33px;
     color: #666;
+    cursor: col-resize;
+    width: 8px;
+}
+#vslider {
+    height: 8px;
+    cursor: row-resize;
 }
 .slider-button {
     padding-top: 2px;
@@ -115,6 +126,7 @@ a:after { content: " >"; }
     margin-right: 2px;
     color: #999;
     cursor: pointer;
+    user-select: none;
 }
 .tab:hover {
     color: #fff;
@@ -184,10 +196,10 @@ dialog a:hover { color: #000 !important; }
 
 #logo {
     position: absolute;
-    right: 1px;
-    top: 1px;
+    right: 15px;
+    top: 15px;
     cursor: pointer;
-    opacity: 0.33;
+    opacity: 0.75;
 }
 #logo:hover { opacity: 1.0; }
 
@@ -268,8 +280,12 @@ dialog a:hover { color: #000 !important; }
 
 #toolbar {
     border: 1px solid #666;
-    border-bottom: 0;
+    /*border-bottom: 0;*/
     padding: 3px 5px 0px;
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    right: 5px;
     /*background-color: rgb(0, 49, 78);*/
 }
 .toolbar-button {
@@ -286,14 +302,26 @@ dialog a:hover { color: #000 !important; }
 #toolbar-button-open { background-image: url('img/open.svg'); }
 #toolbar-button-save { background-image: url('img/save.svg');  background-size: 1.08em, 1.08em; background-position: .05em .05em; }
 #toolbar-button-run { background-image: url('img/run.svg'); }
+#toolbar-button-stop { background-image: url('img/stop.svg'); }
 #toolbar-button-share { background-image: url('img/share.svg'); }
-#toolbar-button-settings { background-image: url('img/settings.svg'); float: right; }
+#toolbar-button-settings { background-image: url('img/settings.svg'); }
+#toolbar-button-console-show { background-image: url('img/console-show.svg'); float: right; margin-right: 4px !important; }
+#toolbar-button-console-hide { background-image: url('img/console-hide.svg'); float: right; margin-right: 4px !important; }
+#toolbar-button-about { background-image: url('img/about.svg'); float: right; margin-left: 4px !important; }
+#toolbar-button-slide-right { background-image: url('img/slide-right.svg'); float: right; margin-right: 4px !important; }
+#toolbar-button-slide-left { background-image: url('img/slide-left.svg'); float: right; margin-right: 4px !important; }
 
 #toolbar-button-open:hover { background-image: url('img/open-hover.svg'); }
 #toolbar-button-save:hover { background-image: url('img/save-hover.svg'); }
 #toolbar-button-run:hover { background-image: url('img/run-hover.svg'); }
+#toolbar-button-stop:hover { background-image: url('img/stop-hover.svg'); }
+#toolbar-button-console-show:hover { background-image: url('img/console-show-hover.svg'); }
+#toolbar-button-console-hide:hover { background-image: url('img/console-hide-hover.svg'); }
 #toolbar-button-share:hover { background-image: url('img/share-hover.svg'); }
+#toolbar-button-about:hover { background-image: url('img/about-hover.svg'); }
 #toolbar-button-settings:hover { background-image: url('img/settings-hover.svg'); }
+#toolbar-button-slide-left:hover { background-image: url('img/slide-left-hover.svg'); }
+#toolbar-button-slide-right:hover { background-image: url('img/slide-right-hover.svg'); }
 
 #toolbar .spacer {
     display: inline-block;

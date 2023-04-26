@@ -55,7 +55,7 @@ body {
     font-family: Arial, helvetica, sans-serif; 
     font-size: 14px;
 }
-#gx-container { background-color: #1e1e1e; }
+#gx-container { background-color: #1e1e1e; /*border-top: 0px;*/ }
 
 #slider { 
     font-family: dosvga;
@@ -85,14 +85,13 @@ a, #tabs {
     color: #ccc;
 }
 
-#toolbar a { font-size: 16px; }
+#toolbar a { font-size: 17px; } 
 
 dialog textarea { 
     font-family: Consolas, 'Courier New', monospace; 
     letter-spacing: normal;
     background-color: #1e1e1e;
     color: #ccc;
-    /* border: 1px solid #ccc; */
 }
 
 dialog {
@@ -109,3 +108,7 @@ a:hover { text-decoration: underline; }
 
 #fs-contents a { font-variant: normal; font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 13px; }
 #fs-contents a:hover { text-decoration: none; }
+
+/* #code {
+    border-top: 0px;
+} */

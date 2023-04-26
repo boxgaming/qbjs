@@ -1,0 +1,99 @@
+{
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "build",
+				"type": "shell",
+				"command": "${config:qb64.installPath}/qb64.exe",
+				"args": [
+					"-c",
+					"'${fileDirname}/${fileBasename}'",
+					"-x",
+					"-o",
+					"'${fileDirname}/${fileBasenameNoExtension}.exe'"
+				],
+				"linux": {
+					"command": "${config:qb64.installPath}/qb64",
+					"args": [
+						"-c",
+						"'${fileDirname}/${fileBasename}'",
+						"-x",
+						"-o",
+						"'${fileDirname}/${fileBasenameNoExtension}'"
+					]
+				},
+				"osx": {
+					"command": "${config:qb64.installPath}/qb64",
+					"args": [
+						"-c",
+						"'{fileDirname}/${fileBasename}'",
+						"-x",
+						"-o",
+						"'${fileDirname}/${fileBasenameNoExtension}'"
+					]
+				},
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				},
+				"presentation": {
+					"reveal": "always",
+					"panel": "new"
+				}
+			},
+			{
+				"label": "Clean QB64",
+				"type": "shell",
+				"options": {
+					"cwd": "${config:qb64.installPath}/internal",
+				},
+				"command": "${config:qb64.installPath}/internal/clean.bat",
+				"linux": {
+					"command":"${config:qb64.installPath}/internal/clean.sh",
+				},
+				"osx": {
+					"command":"${config:qb64.installPath}/internal/clean.sh",
+				},
+				"group": {
+					"kind": "build",
+					"isDefault": false
+				},
+				"presentation": {
+					"reveal": "always",
+					"panel": "new"
+				}
+			},
+			{
+			"label": "Exe Compact",
+			"type": "shell",
+			"windows": {
+				"command": "compact",
+				"args": [
+					"/c",
+					"/exe:lzx",
+					"\"${fileDirname}\\${fileBasenameNoExtension}.exe\""
+				]
+			},
+			"linux": {
+				"command": "upx",
+				"args": [
+					"${fileDirname}/${fileBasenameNoExtension}.exe"
+				]
+			},
+			"osx": {
+				"command": "upx",
+				"args": [
+					"${fileDirname}/${fileBasenameNoExtension}.exe"
+				]
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			}
+		}
+		]
+	}

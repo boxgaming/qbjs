@@ -11,13 +11,52 @@ var selectedError = null;
 var currPath = "/";
 var mainProg = null;
 var theme = "qbjs";
+var splitWidth = 600;
+var splitHeight = 327;
+var sliding = false;
+var vsliding = false;
+var _e = {
+    ideTheme:         _el("ide-theme"),
+    loadScreen:       _el("gx-load-screen"),
+    jsCode:           _el("js-code"),
+    warningContainer: _el("warning-container"),
+    gxContainer:      _el("gx-container"),
+    shareMode:        _el("share-mode"),
+    shareCode:        _el("share-code"),
+    shareDialog:      _el("share-dialog"),
+    exportButton:     _el("export-button"),
+    fileInput:        _el("file-input"),
+    progSelSources:   _el("prog-sel-sources"),
+    progSelDialog:    _el("prog-sel-dialog"),
+    optionsDialog:    _el("options-dialog"),
+    aboutDialog:      _el("about-dialog"),
+    toolbar:          _el("toolbar"),
+    tbConsoleShow:    _el("toolbar-button-console-show"),
+    tbConsoleHide:    _el("toolbar-button-console-hide"),
+    tbSlideRight:     _el("toolbar-button-slide-right"),
+    tbSlideLeft:      _el("toolbar-button-slide-left"),
+    tbRun:            _el("toolbar-button-run"),
+    tbStop:           _el("toolbar-button-stop"),
+    outputContainer:  _el("output-container"),
+    outputContent:    _el("output-content"),
+    codeContainer:    _el("code-container"),
+    rightPanel:       _el("game-container"),
+    slider:           _el("slider"),
+    vslider:          _el("vslider"),
+    fsBrowser:        _el("fs-browser"),
+    fsContents:       _el("fs-contents"),
+    fsUrl:            _el("fs-url"),
+    code:             _el("code"),
+};
+
+function _el(id) {
+    return document.getElementById(id);
+}
 
 async function init() {
-    var themeCss = document.getElementById("ide-theme");
-    themeCss.href = "codemirror/themes/" + theme + ".css";
+    _e.ideTheme.href = "codemirror/themes/" + theme + ".css";
     document.body.style.display = "initial";
 
-    //alert(document.getElementById("ide-theme"));
     if (window.innerWidth < 1200) {
         sizeMode = "max";
     }
@@ -48,9 +87,8 @@ async function init() {
         }
     }
     if (appMode == "play") {
-        document.getElementById("gx-load-screen").style.display = "block";
+        _e.loadScreen.style.display = "block";
     }
-
 
     // initialize the code editor
     editor = CodeMirror(document.querySelector("#code"), {
@@ -93,10 +131,6 @@ async function init() {
         });
     }
     
-
-    document.getElementsByClassName("CodeMirror-cursor")[0].innerHTML = " ";
-
-
     if (srcUrl) {
         var res = await fetch(nv[1]);
         var contentType = res.headers.get("Content-Type");
@@ -124,15 +158,12 @@ async function init() {
 }    
 
 async function getErrorLine(error, stackDepth) {
-    if (stackDepth)  {
+    if (!stackDepth)  {
         stackDepth = 0;
     }
     else if (error._stackDepth) {
         stackDepth = error._stackDepth;
     }
-    console.log("_stackDepth: " + error._stackDepth);
-    console.log("stackDepth: " + stackDepth);
-    //console.log(StackTrace.fromError(error));
 
     var cdepth = 0;
     var srcLine = "";
@@ -172,7 +203,7 @@ async function getErrorLine(error, stackDepth) {
 }
 
 async function runProgram() {
-    document.getElementById("gx-load-screen").style.display = "none";
+    _e.loadScreen.style.display = "none";
 
     if (sizeMode == "max") {
         slideLeft();
@@ -185,8 +216,7 @@ async function runProgram() {
 
     await displayWarnings();
 
-    var jsDiv = document.getElementById("js-code");
-    jsDiv.innerHTML = jsCode;
+    _e.jsCode.innerHTML = jsCode;
     window.onresize();
 
     try {
@@ -201,7 +231,7 @@ async function runProgram() {
         var srcLine = await getErrorLine(error);
         console.log("returned: " + srcLine);
 
-        var table = document.getElementById("warning-table");
+        var table = _el("warning-table");
         if (table) {
             tr = document.createElement("tr");
             addWarningCell(tr, "ERROR");
@@ -219,7 +249,7 @@ async function runProgram() {
         QB.halt();
         GX.sceneStop();
     }
-    document.getElementById("gx-container").focus();
+    _e.gxContainer.focus();
 
     return false;
 }
@@ -234,37 +264,37 @@ function shareProgram() {
     var b64 = LZUTF8.compress(editor.getValue(), { outputEncoding: "Base64" });
     var baseUrl = location.href.split('?')[0];
 
-    var mode = document.getElementById("share-mode").value;
-    var codeShare = document.getElementById("share-code");
+    var mode = _e.shareMode.value;
+    var codeShare = _e.shareCode;
     var url = baseUrl + "?";
     if (mode) {
         url += "mode=" + mode + "&";
     }
     url += "code=" + b64;
     codeShare.value = url;
-    var shareDialog = document.getElementById("share-dialog");
-    if (!shareDialog.open) {
-        shareDialog.showModal();
+    if (!_e.shareDialog.open) {
+        _e.shareDialog.showModal();
     }
     codeShare.focus();
     codeShare.select();
 
     var exportVisible = (mode == "play" || mode == "auto");
-    document.getElementById("export-button").style.display = (exportVisible) ? "block" : "none";
-}
-
-function settings() {
-    var settingsDialog = document.getElementById("options-dialog");
-    if (!settingsDialog.open) {
-        settingsDialog.showModal();
-    }
+    _e.exportButton.style.display = (exportVisible) ? "block" : "none";
 }
 
 function changeTheme(newTheme) {
     theme = newTheme;
-    var themeCss = document.getElementById("ide-theme");
-    themeCss.href = "codemirror/themes/" + theme + ".css";
+    _e.ideTheme.href = "codemirror/themes/" + theme + ".css";
     editor.setOption("theme", theme);
+}
+
+function showDialog(dlg) {
+    if (typeof dlg == "string") {
+        dlg = _el(dlg);
+    }
+    if (!dlg.open) {
+        dlg.showModal();
+    }
 }
 
 async function exportProgram() {
@@ -274,7 +304,7 @@ async function exportProgram() {
     if (!QBCompiler) { QBCompiler = await _QBCompiler(); }
     var jsCode = "async function __qbjs_run() {\n" + await QBCompiler.compile(qbCode) + "\n}";
 
-    var mode = document.getElementById("share-mode").value;
+    var mode = _e.shareMode.value;
     zip.file("index.html", await getFile("export/" + mode + ".html", "text"));
     zip.file("program.js", jsCode);
     zip.file("fullscreen.png", await getFile("export/fullscreen.png", "blob"));
@@ -347,8 +377,7 @@ async function saveProject() {
 }
 
 async function openProject() {
-    var f = document.getElementById("file-input");
-    f.click();
+    _e.fileInput.click();
 }
 
 async function onOpenProject(event) {
@@ -369,7 +398,7 @@ async function onOpenProject(event) {
     }
 
 }
-document.getElementById("file-input").onchange = onOpenProject;
+_e.fileInput.onchange = onOpenProject;
 
 async function loadProject(zipData, mainFilename) {
     if (!mainFilename) {
@@ -405,19 +434,17 @@ async function loadProject(zipData, mainFilename) {
             }
         }
         if (!mainFound) {
-            var fileList = document.getElementById("prog-sel-sources");
+            var fileList = _e.progSelSources;
             fileList.innerHTML = "";
             for (var i=0; i < basFiles.length; i++) {
                 var opt = new Option(basFiles[i], basFiles[i]);
                 fileList.append(opt);
             }
-            var progSelDlg = document.getElementById("prog-sel-dialog");
-            progSelDlg.showModal();
+            showDialog(_e.progSelDialog);
         }
 
         refreshFS();
     });
-
 
     function dirFromPath(path) {
         var vfs = GX.vfs();
@@ -438,9 +465,8 @@ async function loadProject(zipData, mainFilename) {
     }
 }
 
-
 function onSelMainProg() {
-    var fileList = document.getElementById("prog-sel-sources");
+    var fileList = _e.progSelSources;
     if (fileList.value == "") {
         alert("No file selected.");
     }
@@ -453,12 +479,6 @@ function onSelMainProg() {
     }
 }
 
-function closeProgSelDlg() {
-    var progSelDlg = document.getElementById("prog-sel-dialog");
-    progSelDlg.close();
-}
-
-
 async function getFile(path, type) {
     var file = await fetch(path);
     if (type == "text") {
@@ -470,13 +490,14 @@ async function getFile(path, type) {
 }
 
 function testShare() {
-    var url = document.getElementById("share-code").value;
-    open(url, "_blank");
+    open(_e.shareCode.value, "_blank");
 }
 
 function closeDialog() {
-    document.getElementById("share-dialog").close();
-    document.getElementById("options-dialog").close();
+    _e.shareDialog.close();
+    _e.progSelDialog.close();
+    _e.optionsDialog.close();
+    _e.aboutDialog.close();
 }
 
 async function displayWarnings() {
@@ -484,10 +505,10 @@ async function displayWarnings() {
     var w = await QBCompiler.getWarnings();
     warnCount = w.length;
 
-    var wdiv = document.getElementById("warning-container");
+    var wdiv = _e.warningContainer;
     wdiv.innerHTML = "";
     var table = document.createElement("table");
-    table.width = "100%";
+    table.style.width = "100%";
     table.id = "warning-table";
     table.cellPadding = 2;
     table.cellSpacing = 0;
@@ -517,11 +538,10 @@ async function displayWarnings() {
 }
 
 function gotoWarning() {
-    if (selectedError ) { selectedError.classList.remove("selected"); } //.style.backgroundColor = "transparent"; }
-                editor.setCursor({ line: this.codeLine}); 
-                //this.style.backgroundColor = "#333";
-                this.classList.add("selected");
-                selectedError = this;
+    if (selectedError ) { selectedError.classList.remove("selected"); }
+    editor.setCursor({ line: this.codeLine}); 
+    this.classList.add("selected");
+    selectedError = this;
 };
 
 function addWarningCell(tr, text, width) {
@@ -534,32 +554,39 @@ function addWarningCell(tr, text, width) {
     tr.append(td);
 }
 
-
 function showConsole() {
     consoleVisible = !consoleVisible;
+    if (!consoleVisible) {
+        _e.tbConsoleShow.style.display = "inline-block";
+        _e.tbConsoleHide.style.display = "none";
+    }
+    else {
+        _e.tbConsoleHide.style.display = "inline-block";
+        _e.tbConsoleShow.style.display = "none";
+    }
     window.dispatchEvent(new Event('resize'));
 }
 
 function changeTab(tabName) {
     if (tabName == currTab) { return; }
-    document.getElementById("tab-" + currTab).classList.remove("active");
-    document.getElementById("tab-" + tabName).classList.add("active");
+    _el("tab-" + currTab).classList.remove("active");
+    _el("tab-" + tabName).classList.add("active");
     currTab = tabName;
 
     if (currTab == "console") {
-        document.getElementById("warning-container").style.display = "block";
-        document.getElementById("js-code").style.display = "none";
-        document.getElementById("fs-browser").style.display = "none";
+        _e.warningContainer.style.display = "block";
+        _e.jsCode.style.display = "none";
+        _e.fsBrowser.style.display = "none";
     }
     else if (currTab == "js") {
-        document.getElementById("warning-container").style.display = "none";
-        document.getElementById("fs-browser").style.display = "none";
-        document.getElementById("js-code").style.display = "block";
+        _e.warningContainer.style.display = "none";
+        _e.fsBrowser.style.display = "none";
+        _e.jsCode.style.display = "block";
     }
     else if (currTab == "fs") {
-        document.getElementById("fs-browser").style.display = "block";
-        document.getElementById("warning-container").style.display = "none";
-        document.getElementById("js-code").style.display = "none";
+        _e.fsBrowser.style.display = "block";
+        _e.warningContainer.style.display = "none";
+        _e.jsCode.style.display = "none";
         refreshFS();
     }
 }
@@ -570,30 +597,30 @@ function displayTypes() {
     for (var i=0; i < t.length; i++) {
         tstr += t[i].name
     }
-    var wdiv = document.getElementById("warning-container");
+    var wdiv = _e.warningContainer;
     wdiv.innerHTML = tstr;
 }
 
 function slideLeft() {
-    document.getElementById("slider-right").style.display = "block";
+    _e.tbSlideRight.style.display = "inline-block";
     if (sizeMode == "max" && window.innerWidth >= 1200) {
         sizeMode = "normal"
     }
     else {
         sizeMode = "min"
-        document.getElementById("slider-left").style.display = "none";
+        _e.tbSlideLeft.style.display = "none";
     }
     window.dispatchEvent(new Event('resize'));
 }
 
 function slideRight() {
-    document.getElementById("slider-left").style.display = "block";
+    _e.tbSlideLeft.style.display = "inline-block";
     if (sizeMode == "min" && window.innerWidth >= 1200) {
         sizeMode = "normal"
     }
     else {
         sizeMode = "max"
-        document.getElementById("slider-right").style.display = "none";
+        _e.tbSlideRight.style.display = "none";
     }
     window.dispatchEvent(new Event('resize'));
 }
@@ -601,8 +628,8 @@ function slideRight() {
 window.onresize = function() {
     if (!editor) { return; }
 
-    var f = document.getElementById("gx-container");
-    var jsDiv = document.getElementById("output-container");
+    var f = _e.gxContainer;
+    var jsDiv = _e.outputContainer;
 
     if (appMode == "play" || appMode == "auto") {
         f.style.left = "0px";
@@ -610,82 +637,77 @@ window.onresize = function() {
         f.style.width = window.innerWidth;
         f.style.height = window.innerHeight;
         f.style.border = "0px";
-        document.getElementById("code-container").style.display = "none";
-        document.getElementById("slider").style.display = "none";
-        document.getElementById("show-js-container").style.display = "none";
-        document.getElementById("game-container").style.left = "0px";
-        document.getElementById("game-container").style.top = "0px";
+        _e.codeContainer.style.display = "none";
+        _e.slider.style.display = "none";
+        _e.rightPanel.style.left = "0px";
+        _e.rightPanel.style.top = "0px";
+        _e.rightPanel.style.right = "0px";
+        _e.rightPanel.style.bottom = "0px";
+        _e.rightPanel.style.backgroundColor = "#000";
+        _e.toolbar.style.display = "none";
         jsDiv.style.display = "none";
-        document.getElementById("logo").style.display = "none";
     }
     else {
-        var cmwidth = 600;
+        var cmwidth = splitWidth;
         if (sizeMode == "min") {
-            cmwidth = 0;
+            cmwidth = -10;
             editor.getWrapperElement().style.display = "none";
-            //document.getElementById("code").style.borderRight = "0";
-            document.getElementById("game-container").style.display = "block";
-            document.getElementById("edit-button").style.display = "block";
+            _e.rightPanel.style.display = "block";
+            _e.slider.style.display = "none";
         }
         else if (sizeMode == "max") {
-            cmwidth = window.innerWidth - 25;
-            document.getElementById("game-container").style.display = "none";
-            //document.getElementById("code").style.borderRight = "1px solid #666";
-            document.getElementById("slider").style.border = "1px solid #666";
-            document.getElementById("slider").style.borderLeft = "0";
+            cmwidth = window.innerWidth - 12;
+            _e.rightPanel.style.display = "none";
+            _e.slider.style.display = "none";
             editor.getWrapperElement().style.display = "block";
-            document.getElementById("edit-button").style.display = "none";
         }
         else {
             editor.getWrapperElement().style.display = "block";
-            document.getElementById("game-container").style.display = "block";
-            //document.getElementById("code").style.borderRight = "1px solid #666";
-            document.getElementById("slider").style.border = "0";
-            document.getElementById("edit-button").style.display = "none";
+            _e.rightPanel.style.display = "block";
+            _e.slider.style.display = "block";
         }
 
-        document.getElementById("game-container").style.left = (cmwidth + 20) + "px";
-        f.style.width = (window.innerWidth - (cmwidth + 35)) + "px";
+        _e.rightPanel.style.left = (cmwidth + 15) + "px";
+        f.style.width = (window.innerWidth - (cmwidth + 22)) + "px";
         jsDiv.style.width = f.style.width;            
 
-        document.getElementById("slider").style.left = (cmwidth + 12) + "px";
+        _e.slider.style.left = (cmwidth + 7) + "px";
 
         if (consoleVisible) { 
-            f.style.height = (window.innerHeight - 337) + "px";
+            f.style.height = (window.innerHeight - splitHeight) + "px";
             jsDiv.style.display = "block";
-            jsDiv.style.top = (window.innerHeight - 327) + "px";
-            document.getElementById("toggle-console").innerHTML = "Hide Console";
+            jsDiv.style.top = (window.innerHeight - splitHeight + 10) + "px";
+            _e.outputContent.style.height = (splitHeight - 77) + "px";
         }
         else {
-            f.style.height = (window.innerHeight - 50) + "px";
+            f.style.height = (window.innerHeight - 40) + "px";
             jsDiv.style.display = "none";
-            document.getElementById("toggle-console").innerHTML = "Show Console";
         }
-        document.getElementById("show-js-container").style.top = (window.innerHeight - 45) + "px";
-        document.getElementById("show-js-container").style.right = "5px";
         
-        editor.setSize(cmwidth, window.innerHeight - 79);
-        document.getElementById("code").style.height = (window.innerHeight - 79) + "px";
-        document.getElementById("slider").style.height = (window.innerHeight - 50) + "px";
+        editor.setSize(cmwidth, window.innerHeight - 40);
+        _e.code.style.height = (window.innerHeight - 40) + "px";
+        _e.slider.style.height = (window.innerHeight - 40) + "px";
     }
     QB.resize(f.clientWidth, f.clientHeight);
 }
 window.onresize();
 
+
 function checkButtonState() {
-    var stopButton = document.getElementById("stop-button");
+    var stopButton = _e.tbStop;
+    var runButton = _e.tbRun;
     if (GX.sceneActive() || QB.running()) {
-        stopButton.style.display = "inline";
+        stopButton.style.display = "inline-block";
+        runButton.style.display = "none";
     }
     else {
         stopButton.style.display = "none";
+        runButton.style.display = "inline-block";
     }
-
     setTimeout(checkButtonState, 100);
 }
 checkButtonState();
 init();
-
 
 // Virtual File System Viewer
 function refreshFS() {
@@ -696,7 +718,7 @@ function refreshFS() {
         node = vfs.getNode(currPath);
     }
 
-    var contents = document.getElementById("fs-contents");
+    var contents = _e.fsContents;
     while (contents.firstChild) {
         contents.removeChild(contents.firstChild);
     }
@@ -707,7 +729,7 @@ function refreshFS() {
     }
 
     currPath = vfs.fullPath(node)
-    document.getElementById("fs-url").innerHTML = currPath;
+    _e.fsUrl.innerHTML = currPath;
 
     if (currPath != "/") {
         var a = document.createElement("a");
@@ -829,6 +851,32 @@ async function fileDrop(e) {
     refreshFS();
 }
 
+_e.slider.addEventListener("mousedown", function(event) {
+    sliding = true;
+});
+_e.vslider.addEventListener("mousedown", function(event) {
+    vsliding = true;
+});
+
+window.addEventListener("mousemove", function(event) {
+    if (!sliding && !vsliding) { return; }
+    if (sliding) {
+        splitWidth = event.pageX - 10;
+        window.onresize();
+    }
+    else {
+        splitHeight = window.innerHeight - event.pageY + 35;
+        window.onresize();
+    }
+});
+
+window.addEventListener("mouseup", function() {
+    sliding = false;
+    vsliding = false;
+});
+
+
+
 function fileDragEnter(e) {
     if (currTab != "fs") { return; }
     e.stopPropagation();
@@ -851,7 +899,7 @@ function fileDragOver(e) {
     e.preventDefault();
 }
 
-var dropArea = document.getElementById("output-content");
+var dropArea = _e.outputContent;
 dropArea.addEventListener("drop", fileDrop, false);
 dropArea.addEventListener("dragover", fileDragOver, false);
 dropArea.addEventListener("dragenter", fileDragEnter, false);

@@ -44,6 +44,9 @@ a:hover { color: #000; }
 a:before { content: ""; }
 a:after { content: ""; }
 
+li a, li a:link, li a:visited { border: 0; text-decoration: underline; }
+li a:active { border: 0; }
+
 dialog textarea { 
   font-family: 'Courier New', monospace; 
   font-size: 14px;
@@ -61,11 +64,11 @@ dialog {
 
 #code {
   border: 2px inset;
-  border-top: 0;
+  /*border-top: 0;*/
   font-size: 14px;
 }
 
-#logo { right: 2px; top: 2px; }
+#logo { right: 10px; top: 10px; }
 
 #output-content, #warning-container {
   font-family: 'Courier New', monospace;

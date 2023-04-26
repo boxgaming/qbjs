@@ -16,7 +16,7 @@
         <script type="text/javascript" src="util/jszip.min.js"></script>
         <script type="text/javascript" src="util/lzutf8.js"></script>
         <script type="text/javascript" src="util/shorty.min.js"></script>
-        <!-- <script type="text/javascript" src="util/stacktrace.js"></script> -->
+        <script type="text/javascript" src="util/stacktrace.js"></script>
         
         <script type="text/javascript" src="codemirror/dialog.js"></script>
         <script type="text/javascript" src="codemirror/searchcursor.js"></script>
@@ -25,30 +25,33 @@
         <script type="text/javascript" src="codemirror/matchesonscrollbar.js"></script>
     </head>
     <body style="display:none">
-        <div id="code-container">
-            <div id="toolbar">
-                <a href="javascript:openProject()" class="toolbar-button" id="toolbar-button-open" title="Open"></a>
-                <a href="javascript:saveProject()" class="toolbar-button" id="toolbar-button-save" title="Save"></a>
-                <div class="spacer"></div>
-                <a href="javascript:runProgram()" class="toolbar-button" id="toolbar-button-run" title="Run"></a>
-                <a href="javascript:shareProgram()" class="toolbar-button" id="toolbar-button-share" title="Share / Export"></a>
-                <a href="javascript:settings()" class="toolbar-button" id="toolbar-button-settings" title="Settings"></a>
-            </div>
-            <div id="code"></div>
-                <a id="edit-button" href="javascript:slideRight()" display="none">Edit</a>
-                <a id="run-button" href="javascript:runProgram()">Run</a>
-                <a id="stop-button" href="javascript:stopProgram()">Stop</a>
-                <a id="share-button" href="javascript:shareProgram()">Share</a>
+        <div id="toolbar">
+            <a href="javascript:openProject()" class="toolbar-button" id="toolbar-button-open" title="Open"></a>
+            <a href="javascript:saveProject()" class="toolbar-button" id="toolbar-button-save" title="Save"></a>
+            <div class="spacer"></div>
+            <a href="javascript:runProgram()" class="toolbar-button" id="toolbar-button-run" title="Run"></a>
+            <a href="javascript:stopProgram()" class="toolbar-button" id="toolbar-button-stop" title="Stop"></a>
+            <a href="javascript:shareProgram()" class="toolbar-button" id="toolbar-button-share" title="Share / Export"></a>
+            <div class="spacer"></div>
+            <a href="javascript:showDialog('options-dialog')" class="toolbar-button" id="toolbar-button-settings" title="Settings"></a>
+
+            <a href="javascript:showDialog('about-dialog')" class="toolbar-button" id="toolbar-button-about" title="About QBJS"></a>
+            <div class="spacer" style="float:right"></div>
+            <a href="javascript:showConsole()" class="toolbar-button" id="toolbar-button-console-show" title="Show Console"></a>
+            <a href="javascript:showConsole()" class="toolbar-button" id="toolbar-button-console-hide" title="Hide Console" style="display:none"></a>
+            <a href="javascript:slideRight()" class="toolbar-button" id="toolbar-button-slide-right" title="Slide View Right"></a>
+            <a href="javascript:slideLeft()" class="toolbar-button" id="toolbar-button-slide-left" title="Slide View Left"></a>
         </div>
-        <div id="slider" draggable="true">
-            <div id="slider-left" class="slider-button" onclick="slideLeft()">&lt;</div>
-            <div id="slider-right" class="slider-button" onclick="slideRight()">&gt;</div>
+        <div id="code-container">
+            <div id="code"></div>
+        </div>
+        <div id="slider">
         </div>
         <div id="game-container">
             <div id="gx-container">
                 <a href="javascript:runProgram()" id="gx-load-screen">&nbsp;</a>
-                <img id="logo" src="logo.png" title="Version 0.6.0" onclick="window.open('https://github.com/boxgaming/qbjs/wiki', '_blank')">
             </div>
+            <div id="vslider"></div>
             <div id="output-container">
                 <div id="tabs">
                     <div id="tab-console" class="tab active" onclick="changeTab('console')">Console</div><div id="tab-js" class="tab" onclick="changeTab('js')">Javascript</div><div id="tab-fs" class="tab" onclick="changeTab('fs')">Files</div>
@@ -67,9 +70,6 @@
                     </div>
                 </div>
             </div>
-            <div id="show-js-container">
-                <a id="toggle-console" href="javascript:showConsole()">Show Console</a>
-            </div> 
         </div>
         <div id="gx-footer"></div>
 
@@ -100,7 +100,7 @@
             <select id="prog-sel-sources" size="10" style="display:block; width:100%; margin-top:10px"></select>
             <div style="text-align:center; margin-top:10px">
                 <a href="javascript:onSelMainProg()">Ok</a>
-                <a href="javascript:closeProgSelDlg()">Cancel</a>
+                <a href="javascript:closeDialog()">Cancel</a>
             </div>
         </dialog>
 
@@ -116,8 +116,29 @@
                 <a href="javascript:closeDialog()" style="display:block; float:right; margin-top: 7px">Close</a>
             </div>
         </dialog>
+
+        <dialog id="about-dialog">
+            <div>
+                <img id="logo" src="logo.png" onclick="window.open('https://github.com/boxgaming/qbjs/wiki', '_blank')">
+                <p>QBJS - QBasic for the Web!</p>
+                <p>Version: 0.7.0</p>
+                <p></p>
+                <p>
+                    QBJS brings the fun and accessibility of QBasic to the browser.<br/>
+                    Learn more:<br/>
+                    <ul>
+                        <li><a href="https://github.com/boxgaming/qbjs/wiki/QBasic-Language-Support" target="_blank">QBasic Language Support</a></li>
+                        <li><a href="https://github.com/boxgaming/qbjs/wiki/Supported-Keywords" target="_blank">Supported Keywords</a></li>
+                        <li><a href="https://github.com/boxgaming/qbjs/wiki/Samples" target="_blank">Samples</a></li>
+                    </ul>
+                </p>
+                <p>Copyright (c) 2022-2023 boxgaming</p>
+                <div>
+                    <a href="javascript:closeDialog()" style="display:block; float:right">Close</a>
+                </div>
+            </div>
+        </dialog>
     </body>
-    <!-- <script language="javascript" src="gl.js"></script> -->
     <script language="javascript" src="vfs.js"></script>
     <script language="javascript" src="gx/gx.js"></script>
     <script language="javascript" src="qb.js"></script>

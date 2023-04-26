@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="15 15 225 225"
+   version="1.1"
+   id="svg28927"
+   width="256"
+   height="256"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs28931" />
+  <rect
+     fill="none"
+     height="256"
+     width="256"
+     id="rect28923"
+     x="0"
+     y="-256"
+     transform="rotate(90)" />
+  <rect
+     fill="none"
+     height="176"
+     rx="8"
+     stroke="#000"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     stroke-width="16"
+     width="176"
+     x="40"
+     y="-216"
+     id="rect28925"
+     style="stroke:#cecece;stroke-opacity:1"
+     transform="rotate(90)" />
+  <rect
+     style="fill:#cecece;fill-opacity:1;stroke:#cecece;stroke-width:15;stroke-opacity:1"
+     id="rect29562"
+     width="1.3375131"
+     height="164.78162"
+     x="162.90909"
+     y="-211.86206"
+     transform="rotate(90)" />
+  <rect
+     style="fill:#cecece;stroke:#cecece;stroke-width:13.1836;stroke-opacity:1;fill-opacity:1"
+     id="rect46697"
+     width="163.40126"
+     height="38.793102"
+     x="45.564266"
+     y="168.99687" />
+</svg>
