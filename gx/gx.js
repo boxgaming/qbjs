@@ -102,13 +102,13 @@ var GX = new function() {
         if (!_canvas) {
 		    _canvas = document.createElement("canvas");
             _canvas.id = "gx-canvas";
-            _canvas.style.position = "absolute";
+            //_canvas.style.position = "absolute";
             document.getElementById("gx-container").appendChild(_canvas);
 
-            _glcanvas = document.createElement("canvas");
-            _glcanvas.id = "gl-canvas";
-            //_glcanvas.style.position = "absolute";
-            document.getElementById("gx-container").appendChild(_glcanvas);
+            //_glcanvas = document.createElement("canvas");
+            //_glcanvas.id = "gl-canvas";
+            ////_glcanvas.style.position = "absolute";
+            //document.getElementById("gx-container").appendChild(_glcanvas);
 
             _canvas.addEventListener("mousemove", function(event) {
                 _mousePos.x = event.offsetX;
@@ -211,10 +211,10 @@ var GX = new function() {
         _canvas.height = height;
         _ctx = _canvas.getContext("2d");
 
-        _glcanvas.width = width;
-        _glcanvas.height = height;
-        _glctx = _glcanvas.getContext("webgl");
-        //__GL.init(_glctx);
+        //_glcanvas.width = width;
+        //_glcanvas.height = height;
+        //_glctx = _glcanvas.getContext("webgl");
+        ////__GL.init(_glctx);
 
         var footer = document.getElementById("gx-footer");
         footer.style.width = width;
