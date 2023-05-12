@@ -511,12 +511,33 @@ var QB = new function() {
         }
     };
 
-    this.func__LoadFont = function(name, size, opts) {
+    this.func__LoadFont = async function(name, size, opts) {
         if (!isNaN(size)) {
             size = size + "px";
         }
+
         var id = _nextFontId;
         _nextFontId++;
+
+        var nameLower = name.toLowerCase();
+        if (nameLower.startsWith("http://") || nameLower.startsWith("https://") || nameLower.startsWith("data:")) {
+            // load the font from the url
+            var url = name;
+            name = "Font-" + id;
+            await _loadFont(name, url);
+        }
+        else if (nameLower.endsWith(".ttf") || nameLower.endsWith(".otf") || nameLower.endsWith("woff") || nameLower.endsWith("woff2")) {
+            // attempt to load the font from the vfs
+            // TODO: what if it is a local URL?
+            var vfs = GX.vfs();
+            var f = vfs.getNode(name, GX.vfsCwd());
+            if (f && f.type == vfs.FILE) {
+                var url = await vfs.getDataURL(f);
+                name = "Font-" + id;
+                await _loadFont(name, url);
+            }
+        }
+        
         _fonts[id] = { name: name, size: size, style: ""};
         // determine the font width and height
         var ctx = GX.ctx();
@@ -542,7 +563,14 @@ var QB = new function() {
             _fonts[id].monospace = true;
         }
         return id;
+
+        async function _loadFont(name, url) {
+            var fontFace = new FontFace(name, "url(" + url + ")");
+            document.fonts.add(fontFace);
+            await fontFace.load();
+        }
     };
+
 
     this.func__LoadImage = async function(url) {
         var vfs = GX.vfs();
@@ -1758,15 +1786,21 @@ var QB = new function() {
         var ctx = screen.ctx; 
         ctx.lineWidth = _strokeLineThickness;
         if (pattern == undefined || pattern == "BF") {
+            
+            var width = ex-sx;
+            var height = ey-sy;
+            if (width < 0) { width--; } else { width++; }
+            if (height < 0) { height--; } else { height++; }
+
             if (style == "B") {
                 ctx.strokeStyle = color.rgba();
                 ctx.beginPath();
-                ctx.strokeRect(sx, sy, ex-sx, ey-sy);
+                ctx.strokeRect(sx, sy, width, height);
             } 
             else if (style == "BF") {
                 ctx.fillStyle = color.rgba();
                 ctx.beginPath();
-                ctx.fillRect(sx, sy, ex-sx, ey-sy);
+                ctx.fillRect(sx, sy, width, height);
             } 
             else {
                 ctx.strokeStyle = color.rgba();
