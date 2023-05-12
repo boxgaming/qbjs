@@ -270,6 +270,7 @@ End Sub
 Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As String)
     Dim typeMode As Integer: typeMode = False
     Dim jsMode As Integer: jsMode = False
+    Dim ignoreMode As Integer: ignoreMode = False
     Dim i As Integer
     Dim indent As Integer
     Dim tempIndent As Integer
@@ -302,11 +303,22 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
         If jsMode = True Then
             If first = "$END" Then
-                jsMode = False
-                AddJSLine 0, "//-------- END JS native code block --------"
+                If jsMode Then
+                    jsMode = False
+                    AddJSLine 0, "//-------- END JS native code block --------"
+                End If
             Else
                 AddJSLine i, lines(i).text
             End If
+
+        ElseIf ignoreMode = True Then
+            If first = "$END" Then ignoreMode = False
+
+        ElseIf first = "$END" Then
+            ' shrug
+
+        ElseIf first = "$ELSE" Or first = "$ELSEIF" Then
+            ignoreMode = True
 
         ElseIf typeMode = True Then
             If first = "END" Then
@@ -457,6 +469,8 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     If UCase$(parts(2)) = "JAVASCRIPT" Then
                         jsMode = True
                         js = "//-------- BEGIN JS native code block --------"
+                    ElseIf UCase$(parts(2)) <> "WEB" Then
+                        ignoreMode = True
                     End If
                 End If
 
@@ -1650,7 +1664,15 @@ Function FormatArraySize$ (sizeString As String)
         If scount = 1 Then
             sizeParams = sizeParams + "{l:0,u:" + subparts(1) + "}"
         Else
-            sizeParams = sizeParams + "{l:" + subparts(1) + ",u:" + subparts(3) + "}"
+            ' This must be the "x To y" format
+            Dim toIndex As Integer
+            For toIndex = 0 To scount
+                If "TO" = UCase$(subparts(toIndex)) Then Exit For
+            Next toIndex
+            Dim As String lb, ub
+            lb = Join(subparts(), 1, toIndex - 1, " ")
+            ub = Join(subparts(), toIndex + 1, -1, " ")
+            sizeParams = sizeParams + "{l:" + lb + ",u:" + ub + "}"
         End If
     Next i
     FormatArraySize = sizeParams
@@ -2036,7 +2058,7 @@ Sub ReadLinesFromText (sourceText As String)
             Dim lineIndex As Integer
             lineIndex = i
 
-            If StartsWith(UCase$(fline), "IMPORT") Then
+            If StartsWith(LTrim$(UCase$(fline)), "IMPORT") Then
                 ReDim parts(0) As String
                 Dim pcount As Integer
                 pcount = SLSplit(fline, parts(), False)
@@ -3407,7 +3429,7 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_KeyClear", False
     AddQBMethod "FUNCTION", "_KeyDown", False
     AddQBMethod "FUNCTION", "_KeyHit", False
-    AddQBMethod "FUNCTION", "_LoadFont", False
+    AddQBMethod "FUNCTION", "_LoadFont", True
     AddQBMethod "FUNCTION", "_LoadImage", True
     AddQBMethod "FUNCTION", "_MouseButton", False
     AddQBMethod "FUNCTION", "_MouseInput", False
