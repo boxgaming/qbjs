@@ -47,6 +47,7 @@ var _e = {
     fsContents:       _el("fs-contents"),
     fsUrl:            _el("fs-url"),
     code:             _el("code"),
+    themePicker:      _el("theme-picker")
 };
 
 function _el(id) {
@@ -54,6 +55,10 @@ function _el(id) {
 }
 
 async function init() {
+    var stheme = localStorage.getItem("@@_theme");
+    if (stheme && stheme != "") {
+        theme = stheme;
+    }
     _e.ideTheme.href = "codemirror/themes/" + theme + ".css";
     document.body.style.display = "initial";
 
@@ -170,6 +175,9 @@ async function getErrorLine(error, stackDepth) {
     if (error.line) { // safari
         srcLine = error.line - 1;
     }
+
+    if (!error.stack) { return 0; }
+
     var stack = error.stack.split("\n");
     for (var i=0; i < stack.length; i++) {
         // chrome
@@ -286,6 +294,12 @@ function changeTheme(newTheme) {
     theme = newTheme;
     _e.ideTheme.href = "codemirror/themes/" + theme + ".css";
     editor.setOption("theme", theme);
+    localStorage.setItem("@@_theme", theme);
+}
+
+function showOptionDialog() {
+    _e.themePicker.value = theme;
+    showDialog(_e.optionsDialog);
 }
 
 function showDialog(dlg) {
@@ -559,6 +573,7 @@ function showConsole() {
     if (!consoleVisible) {
         _e.tbConsoleShow.style.display = "inline-block";
         _e.tbConsoleHide.style.display = "none";
+
     }
     else {
         _e.tbConsoleHide.style.display = "inline-block";
@@ -674,12 +689,14 @@ window.onresize = function() {
         _e.slider.style.left = (cmwidth + 7) + "px";
 
         if (consoleVisible) { 
+            _e.vslider.style.display = "block";
             f.style.height = (window.innerHeight - splitHeight) + "px";
             jsDiv.style.display = "block";
             jsDiv.style.top = (window.innerHeight - splitHeight + 10) + "px";
             _e.outputContent.style.height = (splitHeight - 77) + "px";
         }
         else {
+            _e.vslider.style.display = "none";
             f.style.height = (window.innerHeight - 40) + "px";
             jsDiv.style.display = "none";
         }
@@ -904,3 +921,8 @@ dropArea.addEventListener("drop", fileDrop, false);
 dropArea.addEventListener("dragover", fileDragOver, false);
 dropArea.addEventListener("dragenter", fileDragEnter, false);
 dropArea.addEventListener("dragleave", fileDragLeave, false);
+
+addEventListener("beforeunload", function(e) {
+    e.preventDefault();
+    return e.returnValue = "stop";
+});

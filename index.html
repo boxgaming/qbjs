@@ -16,7 +16,6 @@
         <script type="text/javascript" src="util/jszip.min.js"></script>
         <script type="text/javascript" src="util/lzutf8.js"></script>
         <script type="text/javascript" src="util/shorty.min.js"></script>
-        <script type="text/javascript" src="util/stacktrace.js"></script>
         
         <script type="text/javascript" src="codemirror/dialog.js"></script>
         <script type="text/javascript" src="codemirror/searchcursor.js"></script>
@@ -33,7 +32,7 @@
             <a href="javascript:stopProgram()" class="toolbar-button" id="toolbar-button-stop" title="Stop"></a>
             <a href="javascript:shareProgram()" class="toolbar-button" id="toolbar-button-share" title="Share / Export"></a>
             <div class="spacer"></div>
-            <a href="javascript:showDialog('options-dialog')" class="toolbar-button" id="toolbar-button-settings" title="Settings"></a>
+            <a href="javascript:showOptionDialog()" class="toolbar-button" id="toolbar-button-settings" title="Settings"></a>
 
             <a href="javascript:showDialog('about-dialog')" class="toolbar-button" id="toolbar-button-about" title="About QBJS"></a>
             <div class="spacer" style="float:right"></div>
@@ -79,7 +78,7 @@
 
         <dialog id="share-dialog">
             <div style="margin-bottom:5px">Copy the link below to share your code:</div>
-            <div><textarea id="share-code" rows="15" cols="80" readonly></textarea></div>
+            <div><textarea id="share-code" rows="15" cols="60" readonly></textarea></div>
             <div style="margin-top: 5px; float:left">Launch Mode:
                 <select id="share-mode" onchange="shareProgram()">
                     <option value="">IDE (Default)</option>
