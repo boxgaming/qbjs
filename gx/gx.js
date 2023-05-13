@@ -1921,7 +1921,7 @@ var GX = new function() {
     // -----------------------------------------------------------------
     function _mouseInput() {
         // TODO: need to decide whether to keep this here
-        //       it is not needed for GX only to support QB64
+        //       it is not needed for GX - only to support QB64
         var mi = _mouseInputFlag;
         _mouseInputFlag = false;
         return mi;
