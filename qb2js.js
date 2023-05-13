@@ -3221,6 +3221,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION" ,   "_LoadImage" ,    True);
    await sub_AddQBMethod( "FUNCTION" ,   "_MouseButton" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_MouseInput" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_MouseWheel" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_MouseX" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_MouseY" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_NewImage" ,    False);

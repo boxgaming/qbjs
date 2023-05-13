@@ -627,6 +627,10 @@ var QB = new function() {
         return GX.mouseButton(button);
     };
 
+    this.func__MouseWheel = function() {
+        return GX.mouseWheel();
+    };
+    
     this.func__NewImage = function(iwidth, iheight, mode) {
         var canvas = document.createElement("canvas");
         canvas.id = "qb-canvas-" + _nextImageId;

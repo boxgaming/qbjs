@@ -3433,6 +3433,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_LoadImage", True
     AddQBMethod "FUNCTION", "_MouseButton", False
     AddQBMethod "FUNCTION", "_MouseInput", False
+    addqbmethod "FUNCTION", "_MouseWheel", false
     AddQBMethod "FUNCTION", "_MouseX", False
     AddQBMethod "FUNCTION", "_MouseY", False
     AddQBMethod "FUNCTION", "_NewImage", False

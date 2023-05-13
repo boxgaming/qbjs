@@ -26,6 +26,7 @@ var GX = new function() {
     var _sounds = [];
     var _sound_muted = false;
     var _mouseButtons = [0,0,0];
+    var _mouseWheelFlag = 0;
     var _mousePos = { x:0, y:0 };
     var _mouseInputFlag = false;
     var _touchInputFlag = false;
@@ -85,6 +86,7 @@ var GX = new function() {
         _sounds = [];
         _sound_muted = false;
         _mouseButtons = [0,0,0];
+        _mouseWheelFlag = 0;
         _mousePos = { x:0, y:0 };
         _mouseInputFlag = false;
     
@@ -128,6 +130,15 @@ var GX = new function() {
                 if (event.button == 0) { _mouseButtons[0] = 0; }
                 else if (event.button == 1) { _mouseButtons[2] = 0; }
                 else if (event.button == 2) { _mouseButtons[1] = 0; }
+                _mouseInputFlag = true;
+            });
+
+            _canvas.addEventListener("wheel", function(event) {
+                event.preventDefault();
+                var move = event.deltaY;
+                if (move > 0) { move = 1; }
+                else if (move < 0) { move = -1; }
+                _mouseWheelFlag = move;
                 _mouseInputFlag = true;
             });
 
@@ -1930,6 +1941,9 @@ var GX = new function() {
         return _mouseButtons[button-1];
     };
 
+    function _mouseWheel() {
+        return _mouseWheelFlag;
+    }
     function _touchInput() {
         var ti = _touchInputFlag;
         _touchInputFlag = false;
@@ -2528,6 +2542,7 @@ var GX = new function() {
     this.mouseX = _mouseX;
     this.mouseY = _mouseY;
     this.mouseButton = _mouseButton;
+    this.mouseWheel = _mouseWheel;
     this._mouseInput = _mouseInput;
     this.touchX = _touchX;
     this.touchY = _touchY
