@@ -2200,21 +2200,21 @@ var QB = new function() {
             else if (args[ai] == QB.COLUMN_ADVANCE) {
                 // advance to the next column offset
                 _locX += 14 - _locX % 13;
-                if (_locX > _textColumns()-1) {
-                    _locX = 0;
-                    if (_locY < _textRows()-1) {
-                        _locY = _locY + 1;
-                    }
-                    else {
-                        await _printScroll();
-                    }
-                }
             }
             else {
                 var str = args[ai];
                 var lines = String(str).split("\n");
                 for (var i=0; i < lines.length; i++) {
                     //var x = _locX * QB.func__FontWidth();
+                    if (_locX > _textColumns()-1 || _locX + lines[i].length > _textColumns()) {
+                        _locX = 0;
+                        if (_locY < _textRows()-1) {
+                            _locY = _locY + 1;
+                        }
+                        else {
+                            await _printScroll();
+                        }
+                    }
                     var y = -1;
         
                     // scroll the screen
