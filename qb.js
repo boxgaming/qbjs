@@ -604,13 +604,6 @@ var QB = new function() {
         return imgId;
     };
 
-    /*
-    this.mapTriangle3d = function(imageId, tx1, ty1, tx2, ty2, tx3, ty3, x1, y1, z1, x2, y2, z2, x3, y3, z3) {
-        var img =  _images[imageId].canvas;
-        __GL.mapTriangle(img, tx1, ty1, tx2, ty2, tx3, ty3, x1, y1, z1, x2, y2, z2, x3, y3, z3);
-    };
-    */
-   
     this.func__MouseInput = function() {
         return GX._mouseInput();
     };
