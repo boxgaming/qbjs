@@ -776,6 +776,9 @@ Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
             m.sync = False
         End If
 
+    ElseIf m.name = "Name" Then
+        js = CallMethod(m) + "(" + ConvertSubName(args, lineNumber) + ");"
+
     ElseIf m.name = "PSet" Or m.name = "Circle" Or m.name = "PReset" Or m.name = "Paint" Then
         js = CallMethod(m) + "(" + ConvertPSet(args, lineNumber) + ");"
 
@@ -1043,6 +1046,29 @@ Function ConvertCls$ (args As String, lineNumber As Integer)
     If argc >= 2 Then bgcolor = ConvertExpression(parts(2), lineNumber)
 
     ConvertCls$ = method + ", " + bgcolor
+End Function
+
+Function ConvertSubName$ (args As String, lineNumber As Integer)
+    Dim argc As Integer
+    ReDim parts(0) As String
+    Dim asIndex As Integer
+
+    argc = SLSplit2(args, parts())
+
+    Dim i As Integer
+    For i = 1 To argc
+        If UCase$(parts(i)) = "AS" Then asIndex = i
+    Next i
+
+    If asIndex = 0 Or asIndex = argc Then
+        AddWarning lineNumber, "Syntax Error"
+        ConvertSubName$ = "undefined, undefined"
+    Else
+        Dim As String oldname, newname
+        oldname = Join(parts(), 1, asIndex - 1, " ")
+        newname = Join(parts(), asIndex + 1, -1, " ")
+        ConvertSubName$ = ConvertExpression(oldname, lineNumber) + ", " + ConvertExpression(newname, lineNumber)
+    End If
 End Function
 
 Function ConvertRandomize$ (m As Method, args As String, lineNumber As Integer)
@@ -3433,7 +3459,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_LoadImage", True
     AddQBMethod "FUNCTION", "_MouseButton", False
     AddQBMethod "FUNCTION", "_MouseInput", False
-    addqbmethod "FUNCTION", "_MouseWheel", false
+    AddQBMethod "FUNCTION", "_MouseWheel", False
     AddQBMethod "FUNCTION", "_MouseX", False
     AddQBMethod "FUNCTION", "_MouseY", False
     AddQBMethod "FUNCTION", "_NewImage", False
