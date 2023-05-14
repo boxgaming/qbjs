@@ -2205,7 +2205,16 @@ var QB = new function() {
                 var str = args[ai];
                 var lines = String(str).split("\n");
                 for (var i=0; i < lines.length; i++) {
-                    //var x = _locX * QB.func__FontWidth();
+                    if (_locX > _textColumns()-1 || _locX + lines[i].length > _textColumns()) {
+                        _locX = 0;
+                        if (_locY < _textRows()-1) {
+                            _locY = _locY + 1;
+                        }
+                        else {
+                            await _printScroll();
+                        }
+                    }
+                    x = _locX * QB.func__FontWidth();
                     var y = -1;
         
                     // scroll the screen
