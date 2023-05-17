@@ -36,6 +36,7 @@ var QB = new function() {
     var _lastLimitTime;
     var _lastKey = null;
     var _locX = 0;
+    var _lastTextX = 0;
     var _locY = 0;
     var _nextImageId = 1000;
     var _nextFontId = 1000;
@@ -379,6 +380,7 @@ var QB = new function() {
         }
         _font = fnt;
         _locX = 0;
+        _lastTextX = 0;
         _locY = 0;
     };
 
@@ -1052,7 +1054,6 @@ var QB = new function() {
 
     this.sub_ChDir = function(path) {
         var node = GX.vfs().getNode(path, GX.vfsCwd());
-        //alert("CHDIR: " + path + " node: " + node);
         if (node) {
             GX.vfsCwd(node);
         }
@@ -1094,6 +1095,7 @@ var QB = new function() {
 
         // reset the text position
         _locX = 0;
+        _lastTextX = 0;
         _locY = 0;
     };
 
@@ -1481,6 +1483,9 @@ var QB = new function() {
     };
 
     function _textColumns() {
+        if (!_font.monospace) {
+            return Math.floor(_width() / QB.func__FontWidth(8));    
+        }
         return Math.floor(_width() / QB.func__FontWidth());
     }
 
@@ -1528,23 +1533,27 @@ var QB = new function() {
             _locY = _textRows()-1;
         }
 
+        var ctx = _images[_activeImage].ctx;
 
         while (_lastKey != "Enter") {
 
             if (_lastKey == "Backspace" && str.length > 0) {
                 _locX--;
                 
-                var ctx = _images[_activeImage].ctx;
+                var tm = ctx.measureText(str);
+                str = str.substring(0, str.length-1);
                 ctx.beginPath();
                 ctx.fillStyle = _bgColor.rgba();
-                ctx.fillRect(_locX * QB.func__FontWidth(), _locY * QB.func__FontHeight(), QB.func__FontWidth() , QB.func__FontHeight());
-                str = str.substring(0, str.length-1);
+                //ctx.fillRect(_locX * QB.func__FontWidth(), _locY * QB.func__FontHeight(), QB.func__FontWidth() , QB.func__FontHeight());
+                ctx.fillRect(_lastTextX, _locY * QB.func__FontHeight(), tm.width, QB.func__FontHeight());
+                QB.sub__PrintString(_lastTextX, _locY * QB.func__FontHeight(), str);
             }
 
             else if (_lastKey && _lastKey.length < 2) {
-                QB.sub__PrintString(_locX * QB.func__FontWidth(), _locY * QB.func__FontHeight(), _lastKey);
-                _locX++;
                 str += _lastKey;
+                //QB.sub__PrintString(_locX * QB.func__FontWidth(), _locY * QB.func__FontHeight(), _lastKey);
+                QB.sub__PrintString(_lastTextX, _locY * QB.func__FontHeight(), str);
+                _locX++;
             }
 
             _lastKey = null;
@@ -1553,6 +1562,11 @@ var QB = new function() {
         if (!preventNewline) {
             _locY++;
             _locX = 0;
+            _lastTextX = 0;
+        }
+        else {
+            var tm = ctx.measureText(str);
+            _lastTextX += tm.width;
         }
 
         if (values.length < 2) {
@@ -2168,7 +2182,6 @@ var QB = new function() {
                 locX += chars;
             }
             else {
-                //alert(args[ai]);
                 locX = args[ai].length;
                 GX.vfs().writeText(file, args[ai]);
             }
@@ -2192,67 +2205,60 @@ var QB = new function() {
         var ctx = _images[_activeImage].ctx;
         var preventNewline = (args[args.length-1] == QB.PREVENT_NEWLINE || args[args.length-1] == QB.COLUMN_ADVANCE);
 
-        var x = _locX * QB.func__FontWidth();
+        var x = _lastTextX;
         for (var ai = 0; ai < args.length; ai++) {
             if (args[ai] == QB.PREVENT_NEWLINE) {
                 // ignore as we will just concatenate the next arg
             }
             else if (args[ai] == QB.COLUMN_ADVANCE) {
                 // advance to the next column offset
-                _locX += 14 - _locX % 13;
+                _locX += 14 - _locX % 14;
+                x = _locX * QB.func__FontWidth(8);
             }
             else {
                 var str = args[ai];
                 var lines = String(str).split("\n");
                 for (var i=0; i < lines.length; i++) {
-                    if (_locX > _textColumns()-1 || _locX + lines[i].length > _textColumns()) {
-                        _locX = 0;
-                        if (_locY < _textRows()-1) {
-                            _locY = _locY + 1;
-                        }
-                        else {
-                            await _printScroll();
-                        }
-                    }
-                    x = _locX * QB.func__FontWidth();
-                    var y = -1;
-        
-                    // scroll the screen
-                    if (_locY < _textRows()-1) {
-                        y = _locY * QB.func__FontHeight();
-                    }
-                    else {
-                        y = (_locY) * QB.func__FontHeight();
-                    }
-
-                    // Draw the text background
                     ctx.beginPath();
                     var f = _fonts[_font];
-                    ctx.font = f.size + " " + f.name; //"16px dosvga";
-                    var tm = ctx.measureText(lines[i]);
-                    if (_printMode != QB._KEEPBACKGROUND) {
-                        ctx.fillStyle = _bgColor.rgba();
-                        //ctx.fillRect(x, y, QB.func__FontWidth() * lines[i].length, QB.func__FontHeight());
-                        ctx.fillRect(x, y, tm.width, QB.func__FontHeight());
-                    }
-                    if (_printMode != QB._ONLYBACKGROUND) {
-                        //var f = _fonts[_font];
-                        //ctx.font = f.size + " " + f.name; //"16px dosvga";
-                        ctx.fillStyle = _fgColor.rgba();
-                        //if (_font < 1000) {
-                        //    ctx.fillText(lines[i], x, (y+QB.func__FontHeight()-6));
-                        //}
-                        //else {
-                            ctx.fillText(lines[i], x, (y + QB.func__FontHeight() - f.offset));
-                        //}
-                    }
+                    ctx.font = f.size + " " + f.name;
 
-                    x += tm.width;
-                    _locX += lines[i].length;
+                    var sublines = _fitLines(x, lines[i], ctx);
+
+                    for (var j=0; j < sublines.length; j++) {
+                        var subline = sublines[j];
+
+                        if (j > 0) {
+                            if (_locY < _textRows()-2) {
+                                _locY++;
+                                _locX = 0;
+                                x = 0;
+                            }
+                            else {
+                                _locY--;
+                                await _printScroll();
+                            }
+                        }
+                        var y =  _locY * QB.func__FontHeight();
+
+                        // Draw the text background
+                        var tm = ctx.measureText(subline);
+                        if (_printMode != QB._KEEPBACKGROUND) {
+                            ctx.fillStyle = _bgColor.rgba();
+                            ctx.fillRect(x, y, tm.width, QB.func__FontHeight());
+                        }
+                        if (_printMode != QB._ONLYBACKGROUND) {
+                            ctx.fillStyle = _fgColor.rgba();
+                            ctx.fillText(subline, x, (y + QB.func__FontHeight() - f.offset));
+                        }
+
+                        x += tm.width;
+                        _locX += subline.length;
+                    }
 
                     if (i < lines.length-1) {
                         if (_locY < _textRows()-1) {
-                            _locY = _locY + 1;
+                            _locY++;
                             _locX = 0;
                             x = 0;
                         }
@@ -2264,8 +2270,11 @@ var QB = new function() {
             }
         }
 
+        _lastTextX = x;
+
         if (!preventNewline) {
             _locX = 0;
+            _lastTextX = 0;
             if (_locY < _textRows()-1) {
                 _locY = _locY + 1;
             }
@@ -2275,26 +2284,38 @@ var QB = new function() {
         }
     };
 
-    async function _printScroll() {
-/*        
-        var img = new Image();
-        img.src = GX.canvas().toDataURL("image/png");
-        while (!img.complete) {
-            await GX.sleep(10);
+    function _fitLines(startX, line, ctx) {
+        // TODO: could be optimized for fixed width fonts which would not require measureText
+        var lines = [];
+        var tm = ctx.measureText(line);
+        if (tm.width < QB.func__Width() - startX) {
+            lines.push(line);
+            return lines;
         }
 
-        var ctx = _images[_activeImage].ctx;
-        ctx.beginPath();
-        ctx.fillStyle = _bgColor.rgba();
-        ctx.fillRect(0, 0, _width(), _height());
-        ctx.drawImage(img, 0, -QB.func__FontHeight());
-*/
+        var start = 0; end = 1;
+        for (var i=0; i < line.length; i++) {
+            var s = line.substring(start, end);
+            tm = ctx.measureText(s);
+            if (tm.width > QB.func__Width() - startX) {
+                lines.push(line.substring(start, end-1));
+                start = end - 1;
+                startX = 0;
+            }
+            else {
+                end++;
+            }
+        }
+        lines.push(line.substring(start));
+        return lines;
+    }
+
+    async function _printScroll() {
         var ctx = _images[_activeImage].ctx;
         ctx.globalCompositeOperation = "copy";
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(ctx.canvas, 0, -QB.func__FontHeight(), ctx.canvas.width, ctx.canvas.height);
         ctx.globalCompositeOperation = "source-over";
-        //await GX.sleep(1);
     }
 
     this.sub_PSet = function(sstep, x, y, color) {
@@ -2720,6 +2741,7 @@ var QB = new function() {
             _fgColor = _color(15); 
         }
         _bgColor = _color(0);
+        _lastTextX = 0;
         _locX = 0;
         _locY = 0;
 
