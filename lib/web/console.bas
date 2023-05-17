@@ -70,7 +70,7 @@ Function EscapeHtml (text As String)
     text = GXSTR_Replace(text, "&", "&amp;")
     text = GXSTR_Replace(text, "<", "&lt;")
     text = GXSTR_Replace(text, ">", "&gt;")
-    text = GXSTR_Replace(text, Chr$(34), "&quote;")
+    text = GXSTR_Replace(text, Chr$(34), "&quot;")
     text = GXSTR_Replace(text, "'", "&#039;")
     EscapeHtml = text
 End Function
