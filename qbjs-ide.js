@@ -55,11 +55,6 @@ function _el(id) {
 }
 
 async function init() {
-    var stheme = localStorage.getItem("@@_theme");
-    if (stheme && stheme != "") {
-        theme = stheme;
-    }
-    _e.ideTheme.href = "codemirror/themes/" + theme + ".css";
     document.body.style.display = "initial";
 
     if (window.innerWidth < 1200) {
@@ -93,6 +88,13 @@ async function init() {
     }
     if (appMode == "play") {
         _e.loadScreen.style.display = "block";
+    }
+    else if (appMode == "ide") {
+        var stheme = localStorage.getItem("@@_theme");
+        if (stheme && stheme != "") {
+            theme = stheme;
+        }
+        _e.ideTheme.href = "codemirror/themes/" + theme + ".css";
     }
 
     // initialize the code editor

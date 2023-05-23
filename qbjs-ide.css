@@ -71,7 +71,7 @@ a:after { content: " >"; }
     padding-top: 3px;
 }
 #warning-container {
-    white-space: pre;
+    white-space: pre-wrap;
     font-family: dosvga;
     color: #999;
     padding: 5px;

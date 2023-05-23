@@ -26,6 +26,10 @@ Sub LogLevel (newLevel)
     level = levelMap(newLevel)
 End Sub
 
+Function LogLevel
+    LogLevel = level
+End Function
+
 Sub Log (msg As String, msgType As String)
     If msgType = undefined Then msgType = INFO
     Dim ll As Integer
@@ -34,10 +38,12 @@ Sub Log (msg As String, msgType As String)
 
     $If Javascript Then
         var t = document.querySelector("#warning-container table");
-        if (!t) { return; }
-        var tr = document.createElement("tr");
         var errorLine = await getErrorLine(new Error(), 1);
-        console.log(errorLine);
+        if (!t || appMode != "ide") { 
+            console.log(msgType + ":" + errorLine + ":" + msg);
+            return; 
+        }
+        var tr = document.createElement("tr");
         addWarningCell(tr, msgType);
         addWarningCell(tr, ":");
         addWarningCell(tr, errorLine);
@@ -55,7 +61,10 @@ End Sub
 Sub Echo (msg As String)
     $If Javascript Then
         var t = document.querySelector("#warning-container table");
-        if (!t) { return; }
+        if (!t || appMode != "ide") {
+            console.log(msg); 
+            return;
+        }
         var tr = document.createElement("tr");
         addWarningCell(tr, await func_EscapeHtml(msg));
         tr.firstChild.colSpan = "5";
