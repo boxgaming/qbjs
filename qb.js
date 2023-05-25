@@ -357,9 +357,6 @@ var QB = new function() {
 
     this.sub__Display = function() {
         // The canvas handles this for us, this method is included for compatibility
-
-        // TODO: update comment and documentation
-        //__GL.drawScene(GX.gl());
     };
 
     this.func__FileExists = function(path) {
@@ -712,7 +709,7 @@ var QB = new function() {
         if (_printMode != QB._ONLYBACKGROUND) {
             // Draw the string
             ctx.fillStyle = _fgColor.rgba();
-            ctx.fillText(s, x, y + fheight - f.offset);//+QB.func__FontHeight()-6);
+            ctx.fillText(s, x, y + fheight - f.offset);
         }
     };
 
@@ -1544,14 +1541,12 @@ var QB = new function() {
                 str = str.substring(0, str.length-1);
                 ctx.beginPath();
                 ctx.fillStyle = _bgColor.rgba();
-                //ctx.fillRect(_locX * QB.func__FontWidth(), _locY * QB.func__FontHeight(), QB.func__FontWidth() , QB.func__FontHeight());
                 ctx.fillRect(_lastTextX, _locY * QB.func__FontHeight(), tm.width, QB.func__FontHeight());
                 QB.sub__PrintString(_lastTextX, _locY * QB.func__FontHeight(), str);
             }
 
             else if (_lastKey && _lastKey.length < 2) {
                 str += _lastKey;
-                //QB.sub__PrintString(_locX * QB.func__FontWidth(), _locY * QB.func__FontHeight(), _lastKey);
                 QB.sub__PrintString(_lastTextX, _locY * QB.func__FontHeight(), str);
                 _locX++;
             }
@@ -2217,6 +2212,12 @@ var QB = new function() {
             }
             else {
                 var str = args[ai];
+                // non-negative numbers are prefixed with a space
+                if (typeof str != "string" && !isNaN(str)) {
+                    if (str >= 0) {
+                        str = " " + str;
+                    }
+                }
                 var lines = String(str).split("\n");
                 for (var i=0; i < lines.length; i++) {
                     ctx.beginPath();
@@ -2758,14 +2759,6 @@ var QB = new function() {
 
         // TODO: set the appropriate default font for the selected screen mode above instead of here
         GX.canvas().style.letterSpacing = "-1px";
-        /*
-        if (mode == 1) {
-            ctx = _images[_activeImage].ctx;
-            ctx.beginPath();
-            ctx.fillStyle = _bgColor.rgba();
-            ctx.fillRect(0, 0, _width(), _height());
-        }
-        */
     };
 
     this.func_Seek = function(fh) {
