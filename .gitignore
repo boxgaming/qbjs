@@ -3,3 +3,4 @@ tools/qb2js.exe
 qbjs.zip
 .vscode/launch.json
 .vscode/settings.json
+.vscode/tasks.json

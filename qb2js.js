@@ -3366,6 +3366,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION" ,   "Sgn" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "Sin" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Sleep" ,    True);
+   await sub_AddQBMethod( "SUB" ,   "Sound" ,    True);
    await sub_AddQBMethod( "FUNCTION" ,   "Space" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "String" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "Sqr" ,    False);

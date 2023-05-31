@@ -3581,6 +3581,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Sgn", False
     AddQBMethod "FUNCTION", "Sin", False
     AddQBMethod "SUB", "Sleep", True
+    AddQBMethod "SUB", "Sound", True
     AddQBMethod "FUNCTION", "Space", False
     AddQBMethod "FUNCTION", "String", False
     AddQBMethod "FUNCTION", "Sqr", False
