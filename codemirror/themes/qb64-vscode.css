@@ -8,10 +8,10 @@
 
 .cm-s-qb64-vscode.CodeMirror span.CodeMirror-matchingbracket { color: #7EFC7E; }/*65FC65*/
 
-.cm-s-qb64-vscode .CodeMirror-gutters { background: rgb(0, 0, 170); border-right:1px solid rgb(177, 177, 177); }
+.cm-s-qb64-vscode .CodeMirror-gutters { background: rgba(0, 0, 0, 0.5); border-right:1px solid rgba(177, 177, 177, 0.5); }
 .cm-s-qb64-vscode .CodeMirror-guttermarker { color: #599eff; }
 .cm-s-qb64-vscode .CodeMirror-guttermarker-subtle { color: #777; }
-.cm-s-qb64-vscode .CodeMirror-linenumber { color: rgb(177, 177, 177); }
+.cm-s-qb64-vscode .CodeMirror-linenumber { color: rgba(177, 177, 177, 0.6); }
 
 .cm-s-qb64-vscode span.cm-header { color: #a0a; }
 .cm-s-qb64-vscode span.cm-quote { color: #090; }
