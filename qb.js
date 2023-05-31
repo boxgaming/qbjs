@@ -2815,6 +2815,30 @@ var QB = new function() {
         }
     };
 
+    this.sub_Sound = async function(freq, duration, shape) {
+        if (shape == undefined) { shape = "square"; }
+        if (!(freq == 0 || (freq >= 32 && freq <= 32767))) {
+            throw new Error("Frequency invalid - valid: 0 (delay), 32 to 32767");
+        }
+        var valid_shapes = ["sine", "square", "sawtooth", "triangle"];
+        if (!valid_shapes.includes(shape.toLowerCase())) {
+            throw new Error("Shape invalid - valid: " + valid_shapes.join(', '));
+        }
+        if (freq == 0) {
+            await GX.sleep(duration);
+        } else {
+            var context = new AudioContext();
+            var oscillator = context.createOscillator();
+            oscillator.type = shape;
+            oscillator.frequency.value = freq;
+            oscillator.connect(context.destination);
+            oscillator.start(); 
+            setTimeout(await function () {
+                oscillator.stop();
+            }, duration);  
+        }
+    };
+
     this.func_Sqr = function(value) {
         return Math.sqrt(value);
     };

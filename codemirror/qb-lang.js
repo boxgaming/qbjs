@@ -54,7 +54,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              'lbound', 'left', 'lcase', 'len', 'line', 'locate', 'log', 'ltrim', 'mid', 'mki', 'mkl',
                              'oct', 'paint', 'point', 'preset', 'print', 'pset',
                              'right', 'rtrim', 'randomize', 'read', 'restore', 'rnd',
-                             'screen', 'shared', 'sgn', 'sin', 'sleep', 'space', 'sqr',
+                             'screen', 'shared', 'sgn', 'sin', 'sleep', 'sound', 'space', 'sqr',
                              'str', 'swap', 'tan', 'time', 'timer', 'ubound', 'ucase',
                              'val', 'varptr', 'window',
                              'mkdir', 'chdir', 'rmdir', 'kill', 'name', 'files', 'open', 'close', 'lof', 'eof', 'put', 'get', 'freefile',
