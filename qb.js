@@ -2817,9 +2817,9 @@ var QB = new function() {
 
 
     this.sub_Sound = async function(freq, duration, shape, decay, gain) {
-        if (shape == undefined) { shape = "square"; }
-        if (decay == undefined) { decay = 0.0; }
-        if (gain  == undefined) { gain = 1.0; }
+        if (shape == undefined || (typeof shape != 'string')) { shape = "square"; }
+        if (decay == undefined || (typeof decay != 'number')) { decay = 0.0; }
+        if (gain  == undefined || (typeof gain != 'number')) { gain = 1.0; }
         if (!(freq == 0 || (freq >= 32 && freq <= 32767))) {
             throw new Error("Frequency invalid - valid: 0 (delay), 32 to 32767");
         }
