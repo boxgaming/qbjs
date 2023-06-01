@@ -1064,6 +1064,12 @@ var QB = new function() {
     };
 
     this.sub_Close = function(fh) {
+        if (!fh) {
+            for (const key in _fileHandles) {
+                delete _fileHandles[key];
+            }
+            return;
+        }
         if (!_fileHandles[fh]) {
             throw new Error("Invalid file handle");
         }
