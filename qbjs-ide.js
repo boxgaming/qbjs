@@ -137,6 +137,9 @@ async function init() {
             }
         });
     }
+    if (appMode == "ide") {
+        editor.focus();
+    }
     
     if (srcUrl) {
         var res = await fetch(nv[1]);
