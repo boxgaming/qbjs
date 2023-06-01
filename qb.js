@@ -1064,6 +1064,11 @@ var QB = new function() {
     };
 
     this.sub_Close = function(fh) {
+        if (!fh) {
+            _fileHandles.length = 0; //must be rethought once FREEFILE gets implemented.
+            return;
+        }
+        
         if (!_fileHandles[fh]) {
             throw new Error("Invalid file handle");
         }
