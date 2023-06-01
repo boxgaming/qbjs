@@ -2447,11 +2447,16 @@ var QB = new function() {
             return;
         }
         else {
-            valueObj.value = _readDataElement(fh, position, type);
+            if (type == "STRING") {
+                var bytestoread = String(value).length;
+            } else {
+                var bytestoread = 0;
+            }
+            valueObj.value = _readDataElement(fh, position, type, bytestoread);
         }
     };
 
-    function _readDataElement(fh, position, type) {
+    function _readDataElement(fh, position, type, bytestoread) {
         var vfs = GX.vfs();
         var data = null;
         if (type == "SINGLE") {
@@ -2495,7 +2500,12 @@ var QB = new function() {
             return (new DataView(data)).getUint32(0, true);
         }
         else if (type == "STRING") {
-            throw new Error("Unsupported data type: " + type);
+            if (bytestoread > 0) {
+                data = vfs.readData(fh.file, position, bytestoread);
+                fh.offset = position + data.byteLength;
+                return String.fromCharCode.apply(null, new Uint8Array(data));
+            }
+            return '';
         }
         else if (type == "_BIT" || type == "_UNSIGNED _BIT") {
             // mimicking QB64 error message here
