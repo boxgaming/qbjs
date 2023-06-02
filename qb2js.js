@@ -1550,15 +1550,17 @@ var FormatArraySize = null;
       if ( i > 1) {
          sizeParams =   sizeParams + ",";
       }
-      if ( scount ==   1) {
+      var j = 0;  /* INTEGER */ var toIndex = 0;  /* INTEGER */ 
+      toIndex =   0;
+      var ___v2793420 = 0; for ( j=  0;  j <=  scount;  j= j + 1) { if (QB.halted()) { return; } ___v2793420++;   if (___v2793420 % 100 == 0) { await QB.autoLimit(); }
+         if ("TO"  ==  (QB.func_UCase( QB.arrayValue(subparts, [ j]).value)) ) {
+            toIndex =   j;
+            break;
+         }
+      } 
+      if ( toIndex ==   0) {
          sizeParams =   sizeParams + "{l:0,u:"  + QB.arrayValue(subparts, [ 1]).value  + "}";
       } else {
-         var toIndex = 0;  /* INTEGER */ 
-         var ___v2793420 = 0; for ( toIndex=  0;  toIndex <=  scount;  toIndex= toIndex + 1) { if (QB.halted()) { return; } ___v2793420++;   if (___v2793420 % 100 == 0) { await QB.autoLimit(); }
-            if ("TO"  ==  (QB.func_UCase( QB.arrayValue(subparts, [ toIndex]).value)) ) {
-               break;
-            }
-         } 
          var lb = '';  /* STRING */ var ub = '';  /* STRING */ 
          lb =  (await func_Join( subparts ,    1,    toIndex -  1,   " "));
          ub =  (await func_Join( subparts ,    toIndex +  1,    - 1,   " "));
