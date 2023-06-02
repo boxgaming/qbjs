@@ -1687,14 +1687,19 @@ Function FormatArraySize$ (sizeString As String)
 
         If i > 1 Then sizeParams = sizeParams + ","
 
-        If scount = 1 Then
+        Dim As Integer j, toIndex
+        toIndex = 0
+        For j = 0 To scount
+            If "TO" = UCase$(subparts(j)) Then
+                toIndex = j
+                Exit For
+            End If
+        Next j
+
+        If toIndex = 0 Then
             sizeParams = sizeParams + "{l:0,u:" + subparts(1) + "}"
         Else
             ' This must be the "x To y" format
-            Dim toIndex As Integer
-            For toIndex = 0 To scount
-                If "TO" = UCase$(subparts(toIndex)) Then Exit For
-            Next toIndex
             Dim As String lb, ub
             lb = Join(subparts(), 1, toIndex - 1, " ")
             ub = Join(subparts(), toIndex + 1, -1, " ")
