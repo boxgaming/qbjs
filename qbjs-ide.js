@@ -924,7 +924,17 @@ dropArea.addEventListener("dragover", fileDragOver, false);
 dropArea.addEventListener("dragenter", fileDragEnter, false);
 dropArea.addEventListener("dragleave", fileDragLeave, false);
 
-addEventListener("beforeunload", function(e) {
-    e.preventDefault();
-    return e.returnValue = "stop";
-});
+if (!inIframe()) {
+    addEventListener("beforeunload", function(e) {
+        e.preventDefault();
+        return e.returnValue = "stop";
+    });
+}
+
+function inIframe () {
+    try {
+        return window.self !== window.top;
+    } catch (e) {
+        return true;
+    }
+}
