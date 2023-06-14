@@ -169,9 +169,9 @@ var QB = new function() {
         _nextFontId = 1000;
         _font = 16;
         _fonts = {};
-        _fonts[8] = { name: "dosvga", size: "16px", style: "", offset: 3 };
-        _fonts[14] = { name: "dosvga", size: "16px", style: "", offset: 3 };
-        _fonts[16] = { name: "dosvga", size: "16px", style: "", offset: 3 };
+        _fonts[8] = { name: "dosvga", size: "16px", style: "", offset: 3, monospace: true };
+        _fonts[14] = { name: "dosvga", size: "16px", style: "", offset: 3, monospace: true };
+        _fonts[16] = { name: "dosvga", size: "16px", style: "", offset: 3, monospace: true };
         GX.vfsCwd(GX.vfs().rootDirectory());
         _fileHandles = {};
         _initColorTable();
@@ -558,7 +558,7 @@ var QB = new function() {
             _fonts[id].monospace = false;
         }
         else {
-            _fonts[id].width = tm.width;
+            _fonts[id].width = tm.width + 1;
             _fonts[id].monospace = true;
         }
         return id;
@@ -1909,6 +1909,7 @@ var QB = new function() {
         }
         if (col && col > 0 && col <= _textColumns()) {
             _locX = col-1;
+            _lastTextX = _locX * QB.func__FontWidth();
         }
     };
 
