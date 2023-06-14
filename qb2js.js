@@ -1,4 +1,5 @@
 async function _QBCompiler() {
+/* static method variables: */ 
 
    // Option _Explicit
    // $Console
@@ -33,6 +34,7 @@ async function _QBCompiler() {
    var currentMethod = '';  /* STRING */ 
    var currentModule = '';  /* STRING */ 
    var programMethods = 0;  /* INTEGER */ 
+   var staticVarLine = 0;  /* INTEGER */ 
    if (QB.func_Command() !=  "" ) {
       await sub_QBToJS( QB.func_Command(),    FILE,   "");
       await sub_PrintJS();
@@ -68,6 +70,8 @@ if (QB.halted()) { return; }
    } else if ( sourceType ==   FILE) {
       await sub_AddJSLine(  0,   "async function init() {");
    }
+   await sub_AddJSLine(  0,   "/* static method variables: */ ");
+   staticVarLine =  (QB.func_UBound(  jsLines));
    if (! selfConvert &&  moduleName ==  "" ) {
       await sub_AddJSLine(  0,   "QB.start();");
    }
@@ -180,6 +184,7 @@ if (QB.halted()) { return; }
    }
    currentMethod =  "";
    programMethods =   0;
+   staticVarLine =   0;
 }
 async function sub_InitData() {
 if (QB.halted()) { return; }
@@ -291,7 +296,7 @@ if (QB.halted()) { return; }
                   await sub_AddConst( (QB.func__Trim(  cleft)));
                }
             } 
-         } else if ( first ==  "DIM"  ||  first ==  "REDIM"  ||  first ==  "STATIC" ) {
+         } else if ( first ==  "DIM"  ||  first ==  "REDIM"  ||  first ==  "STATIC"  ||  first ==  "SHARED" ) {
             js =  (await func_DeclareVar( parts ,    i));
          } else if ( first ==  "SELECT" ) {
             caseVar =  await func_GenJSVar();
@@ -1413,6 +1418,8 @@ var DeclareVar = null;
    isGlobal =   False;
    var isArray = 0;  /* INTEGER */ 
    isArray =   False;
+   var isStatic = 0;  /* INTEGER */ 
+   isStatic =   False;
    var arraySize = '';  /* STRING */ 
    var pstart = 0;  /* INTEGER */ 
    var bvar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
@@ -1425,6 +1432,23 @@ var DeclareVar = null;
    js =  "";
    var preserve = '';  /* STRING */ 
    preserve =  "false";
+   if ((QB.func_UCase( QB.arrayValue(parts, [ 1]).value))  ==  "STATIC" ) {
+      if ( currentMethod ==  "" ) {
+         await sub_AddWarning(  lineNumber,   "STATIC must be used within a SUB/FUNCTION");
+         DeclareVar =  "";
+         return DeclareVar;
+      } else {
+         isStatic =   True;
+      }
+   } else if ((QB.func_UCase( QB.arrayValue(parts, [ 1]).value))  ==  "SHARED" ) {
+      if ( currentMethod ==  "" ) {
+         await sub_AddWarning(  lineNumber,   "SHARED must be used within a SUB/FUNCTION");
+         DeclareVar =  "";
+      } else {
+         DeclareVar =  "/* shared variable(s): "  + (await func_Join( parts ,    1,    - 1,   " "))  + " */";
+      }
+      return DeclareVar;
+   }
    var i = 0;  /* INTEGER */ 
    var ___v4687001 = 0; for ( i=  1;  i <= (QB.func_UBound(  parts));  i= i + 1) { if (QB.halted()) { return; } ___v4687001++;   if (___v4687001 % 100 == 0) { await QB.autoLimit(); }
       if ((QB.func_UCase( QB.arrayValue(parts, [ i]).value))  ==  "AS" ) {
@@ -1459,24 +1483,7 @@ var DeclareVar = null;
             arraySize =  "";
             bvar.name =   vname;
          }
-         bvar.jsname =  "";
-         if (! bvar.isArray) {
-            js =   js + "var "  +  bvar.name + " = "  + (await func_InitTypeValue(  bvar.type))  + "; ";
-         } else {
-            if ((await func_FindVariable(  bvar.name,    findVar,    True)) ) {
-               js =   js + "QB.resizeArray("  +  bvar.name + ", ["  + (await func_FormatArraySize(  arraySize))  + "], "  + (await func_InitTypeValue(  bvar.type))  + ", "  +  preserve + "); ";
-            } else {
-               js =   js + "var "  +  bvar.name + " = QB.initArray(["  + (await func_FormatArraySize(  arraySize))  + "], "  + (await func_InitTypeValue(  bvar.type))  + "); ";
-            }
-         }
-         if ( isGlobal) {
-            await sub_AddVariable(  bvar,   globalVars);
-         } else {
-            await sub_AddVariable(  bvar,   localVars);
-         }
-         if ( PrintDataTypes) {
-            js =   js + " /* "  +  bvar.type + " */ ";
-         }
+         js =  (await func_RegisterVar(  bvar,    js,    isGlobal,    isStatic,    preserve,    arraySize));
       } 
    } else {
       var vpartcount = 0;  /* INTEGER */ 
@@ -1485,7 +1492,7 @@ var DeclareVar = null;
       var ___v6226967 = 0; for ( i=  1;  i <= (QB.func_UBound(  parts));  i= i + 1) { if (QB.halted()) { return; } ___v6226967++;   if (___v6226967 % 100 == 0) { await QB.autoLimit(); }
          var p = '';  /* STRING */ 
          p =  (QB.func_UCase( QB.arrayValue(parts, [ i]).value));
-         if ( p ==  "DIM"  ||  p ==  "REDIM"  ||  p ==  "SHARED"  ||  p ==  "_PRESERVE" ) {
+         if ( p ==  "DIM"  ||  p ==  "REDIM"  ||  p ==  "SHARED"  ||  p ==  "_PRESERVE"  ||  p ==  "STATIC" ) {
             nextIdx =   i +  1;
          }
       } 
@@ -1511,28 +1518,44 @@ var DeclareVar = null;
             bvar.isArray =   False;
             arraySize =  "";
          }
-         bvar.jsname =  "";
-         if (! bvar.isArray) {
-            js =   js + "var "  +  bvar.name + " = "  + (await func_InitTypeValue(  bvar.type))  + "; ";
-         } else {
-            if ((await func_FindVariable(  bvar.name,    findVar,    True)) ) {
-               js =   js + "QB.resizeArray("  +  bvar.name + ", ["  + (await func_FormatArraySize(  arraySize))  + "], "  + (await func_InitTypeValue(  bvar.type))  + ", "  +  preserve + "); ";
-            } else {
-               js =   js + "var "  +  bvar.name + " = QB.initArray(["  + (await func_FormatArraySize(  arraySize))  + "], "  + (await func_InitTypeValue(  bvar.type))  + "); ";
-            }
-         }
-         if ( isGlobal) {
-            await sub_AddVariable(  bvar,   globalVars);
-         } else {
-            await sub_AddVariable(  bvar,   localVars);
-         }
-         if ( PrintDataTypes) {
-            js =   js + " /* "  +  bvar.type + " */ ";
-         }
+         js =  (await func_RegisterVar(  bvar,    js,    isGlobal,    isStatic,    preserve,    arraySize));
       } 
    }
-   DeclareVar =   js;
+   if ( isStatic) {
+      QB.arrayValue(jsLines, [ staticVarLine]).value .text =  QB.arrayValue(jsLines, [ staticVarLine]).value .text +  js;
+      DeclareVar =  "/* static variable(s): "  + (await func_Join( parts ,    1,    - 1,   " "))  + " */";
+   } else {
+      DeclareVar =   js;
+   }
 return DeclareVar;
+}
+async function func_RegisterVar(bvar/*VARIABLE*/,js/*STRING*/,isGlobal/*INTEGER*/,isStatic/*INTEGER*/,preserve/*STRING*/,arraySize/*STRING*/) {
+if (QB.halted()) { return; }
+var RegisterVar = null;
+   var findVar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
+   bvar.jsname =  (await func_RemoveSuffix(  bvar.name));
+   if ( isStatic) {
+      bvar.jsname =  "$"  +  currentMethod + "__"  +  bvar.jsname;
+   }
+   if (! bvar.isArray) {
+      js =   js + "var "  +  bvar.jsname + " = "  + (await func_InitTypeValue(  bvar.type))  + "; ";
+   } else {
+      if ((await func_FindVariable(  bvar.name,    findVar,    True)) ) {
+         js =   js + "QB.resizeArray("  +  bvar.jsname + ", ["  + (await func_FormatArraySize(  arraySize))  + "], "  + (await func_InitTypeValue(  bvar.type))  + ", "  +  preserve + "); ";
+      } else {
+         js =   js + "var "  +  bvar.jsname + " = QB.initArray(["  + (await func_FormatArraySize(  arraySize))  + "], "  + (await func_InitTypeValue(  bvar.type))  + "); ";
+      }
+   }
+   if ( isGlobal) {
+      await sub_AddVariable(  bvar,   globalVars);
+   } else {
+      await sub_AddVariable(  bvar,   localVars);
+   }
+   if ( PrintDataTypes) {
+      js =   js + " /* "  +  bvar.type + " */ ";
+   }
+   RegisterVar =   js;
+return RegisterVar;
 }
 async function func_FormatArraySize(sizeString/*STRING*/) {
 if (QB.halted()) { return; }

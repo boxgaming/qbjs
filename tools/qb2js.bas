@@ -76,6 +76,7 @@ Dim Shared modLevel As Integer
 Dim Shared As String currentMethod
 Dim Shared As String currentModule
 Dim Shared As Integer programMethods
+Dim Shared As Integer staticVarLine
 
 ' Only execute the conversion from the native version if we have been passed the
 ' source file to convert on the command line
@@ -125,6 +126,12 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         'Else
         '    AddJSLine 0, "try {"
     End If
+
+    ' Add a placeholder line for static method variables
+    ' This line will be appended to as static variable declarations are encountered
+    AddJSLine 0, "/* static method variables: */ "
+    staticVarLine = UBound(jsLines)
+
 
     If Not selfConvert And moduleName = "" Then AddJSLine 0, "QB.start();"
 
@@ -245,6 +252,7 @@ Sub ResetDataStructures
     End If
     currentMethod = ""
     programMethods = 0
+    staticVarLine = 0
 End Sub
 
 Sub InitData
@@ -354,7 +362,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     End If
                 Next constIdx
 
-            ElseIf first = "DIM" Or first = "REDIM" Or first = "STATIC" Then
+            ElseIf first = "DIM" Or first = "REDIM" Or first = "STATIC" Or first = "SHARED" Then
                 js = DeclareVar(parts(), i)
 
 
@@ -1537,6 +1545,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
     Dim vtypeIndex As Integer: vtypeIndex = 4
     Dim isGlobal As Integer: isGlobal = False
     Dim isArray As Integer: isArray = False
+    Dim isStatic As Integer: isStatic = False
     Dim arraySize As String
     Dim pstart As Integer
     Dim bvar As Variable
@@ -1547,6 +1556,28 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
     asIdx = 0
     Dim js As String: js = ""
     Dim preserve As String: preserve = "false"
+
+    If UCase$(parts(1)) = "STATIC" Then
+        If currentMethod = "" Then
+            AddWarning lineNumber, "STATIC must be used within a SUB/FUNCTION"
+            DeclareVar = ""
+            Exit Function
+        Else
+            isStatic = True
+        End If
+    ElseIf UCase$(parts(1)) = "SHARED" Then
+        If currentMethod = "" Then
+            AddWarning lineNumber, "SHARED must be used within a SUB/FUNCTION"
+            DeclareVar = ""
+        Else
+            ' We get this for "free" due to the fact that all variables
+            ' declared in the main module are effectively shared.
+            ' This will need to be revisited when support for
+            ' implicit variable declaration is added
+            DeclareVar = "/* shared variable(s): " + Join(parts(), 1, -1, " ") + " */"
+        End If
+        Exit Function
+    End If
 
     Dim i As Integer
     For i = 1 To UBound(parts)
@@ -1583,27 +1614,8 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
                 arraySize = ""
                 bvar.name = vname
             End If
-            bvar.jsname = ""
 
-            ' TODO: this code is in two places - refactor into a separate function
-            If Not bvar.isArray Then
-                js = js + "var " + bvar.name + " = " + InitTypeValue(bvar.type) + "; "
-
-            Else
-                If FindVariable(bvar.name, findVar, True) Then
-                    js = js + "QB.resizeArray(" + bvar.name + ", [" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ", " + preserve + "); "
-                Else
-                    js = js + "var " + bvar.name + " = QB.initArray([" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + "); "
-                End If
-            End If
-
-            If isGlobal Then
-                AddVariable bvar, globalVars()
-            Else
-                AddVariable bvar, localVars()
-            End If
-
-            If PrintDataTypes Then js = js + " /* " + bvar.type + " */ "
+            js = RegisterVar(bvar, js, isGlobal, isStatic, preserve, arraySize)
         Next i
 
 
@@ -1615,7 +1627,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
         For i = 1 To UBound(parts)
             Dim p As String
             p = UCase$(parts(i))
-            If p = "DIM" Or p = "REDIM" Or p = "SHARED" Or p = "_PRESERVE" Then
+            If p = "DIM" Or p = "REDIM" Or p = "SHARED" Or p = "_PRESERVE" Or p = "STATIC" Then
                 nextIdx = i + 1
             End If
         Next i
@@ -1646,32 +1658,47 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
                 bvar.isArray = False
                 arraySize = ""
             End If
-            bvar.jsname = ""
 
-
-            ' TODO: this code is in two places - refactor into a separate function
-            If Not bvar.isArray Then
-                js = js + "var " + bvar.name + " = " + InitTypeValue(bvar.type) + "; "
-
-            Else
-                If FindVariable(bvar.name, findVar, True) Then
-                    js = js + "QB.resizeArray(" + bvar.name + ", [" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ", " + preserve + "); "
-                Else
-                    js = js + "var " + bvar.name + " = QB.initArray([" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + "); "
-                End If
-            End If
-
-            If isGlobal Then
-                AddVariable bvar, globalVars()
-            Else
-                AddVariable bvar, localVars()
-            End If
-
-            If PrintDataTypes Then js = js + " /* " + bvar.type + " */ "
+            js = RegisterVar(bvar, js, isGlobal, isStatic, preserve, arraySize)
         Next i
     End If
 
-    DeclareVar = js
+    If isStatic Then
+        jsLines(staticVarLine).text = jsLines(staticVarLine).text + js
+        DeclareVar = "/* static variable(s): " + Join(parts(), 1, -1, " ") + " */"
+    Else
+        DeclareVar = js
+    End If
+End Function
+
+Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isStatic As Integer, preserve As String, arraySize As String)
+    Dim findVar As Variable
+
+    bvar.jsname = RemoveSuffix(bvar.name)
+    If isStatic Then
+        bvar.jsname = "$" + currentMethod + "__" + bvar.jsname
+    End If
+
+    If Not bvar.isArray Then
+        js = js + "var " + bvar.jsname + " = " + InitTypeValue(bvar.type) + "; "
+
+    Else
+        If FindVariable(bvar.name, findVar, True) Then
+            js = js + "QB.resizeArray(" + bvar.jsname + ", [" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ", " + preserve + "); "
+        Else
+            js = js + "var " + bvar.jsname + " = QB.initArray([" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + "); "
+        End If
+    End If
+
+    If isGlobal Then
+        AddVariable bvar, globalVars()
+    Else
+        AddVariable bvar, localVars()
+    End If
+
+    If PrintDataTypes Then js = js + " /* " + bvar.type + " */ "
+
+    RegisterVar = js
 End Function
 
 Function FormatArraySize$ (sizeString As String)
