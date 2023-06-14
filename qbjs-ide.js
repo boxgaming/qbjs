@@ -62,27 +62,38 @@ async function init() {
     }
 
     var srcUrl = null;
-    if (url && url.indexOf("?")) {
-        var queryString = url.substring(url.indexOf("?")+1);
+    if (url && (url.indexOf("?") || url.indexOf("#"))) {
+        var pindex = url.indexOf("?");
+        if (pindex == -1) {
+            pindex = url.indexOf("#");
+        }
+        var queryString = url.substring(pindex + 1);
         var nvpairs = queryString.split("&");
         for (var i = 0; i < nvpairs.length; i++) {
-            var nv = nvpairs[i].split("=");
-            if (nv[0] == "qbcode") {
-                var zin = new Shorty();
-                qbcode = zin.inflate(atob(nv[1]));
-                break;
-            }
-            else if (nv[0] == "code") {
-                qbcode = LZUTF8.decompress(nv[1], { inputEncoding: "Base64" });
-            }
-            else if (nv[0] == "mode") {
-                appMode = nv[1];
-            }
-            else if (nv[0] == "src") {
-                srcUrl = nv[1];
-            }
-            else if (nv[0] == "main") {
-                mainProg = nv[1];
+            var pname = "";
+            var pvalue = "";
+            var nvidx = nvpairs[i].indexOf("=");
+            if (nvidx > -1) {
+                pname = nvpairs[i].substring(0, nvidx);
+                pvalue = nvpairs[i].substring(nvidx + 1);
+
+                if (pname == "qbcode") {
+                    var zin = new Shorty();
+                    qbcode = zin.inflate(atob(pvalue));
+                    break;
+                }
+                else if (pname == "code") {
+                    qbcode = LZUTF8.decompress(pvalue, { inputEncoding: "Base64" });
+                }
+                else if (pname == "mode") {
+                    appMode = pvalue;
+                }
+                else if (pname == "src") {
+                    srcUrl = decodeURIComponent(pvalue);
+                }
+                else if (pname == "main") {
+                    mainProg = pvalue;
+                }
             }
         }
     }
@@ -139,13 +150,13 @@ async function init() {
     }
     
     if (srcUrl) {
-        var res = await fetch(nv[1]);
+        var res = await fetch(srcUrl);
         var contentType = res.headers.get("Content-Type");
-        if (contentType == "application/zip") {
+        if (contentType == "application/zip" ||
+            contentType == "application/zip-compressed" ||
+            contentType == "application/x-zip-compressed") {
             // load a project
             await loadProject(await res.arrayBuffer(), mainProg);
-            // TODO: shouldn't have to do this
-            //qbcode = editor.getValue();
         }
         else {
             // otherwise, assume a single source file
@@ -651,8 +662,8 @@ window.onresize = function() {
     if (appMode == "play" || appMode == "auto") {
         f.style.left = "0px";
         f.style.top = "0px";
-        f.style.width = window.innerWidth;
-        f.style.height = window.innerHeight;
+        f.style.width = window.innerWidth + "px";
+        f.style.height = window.innerHeight + "px";
         f.style.border = "0px";
         _e.codeContainer.style.display = "none";
         _e.slider.style.display = "none";
@@ -663,6 +674,8 @@ window.onresize = function() {
         _e.rightPanel.style.backgroundColor = "#000";
         _e.toolbar.style.display = "none";
         jsDiv.style.display = "none";
+        _e.vslider.style.display = "none";
+        splitHeight = 0;
     }
     else {
         var cmwidth = splitWidth;
