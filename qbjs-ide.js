@@ -937,7 +937,7 @@ dropArea.addEventListener("dragover", fileDragOver, false);
 dropArea.addEventListener("dragenter", fileDragEnter, false);
 dropArea.addEventListener("dragleave", fileDragLeave, false);
 
-if (!inIframe()) {
+if (!inIframe() && appMode == "ide") {
     addEventListener("beforeunload", function(e) {
         e.preventDefault();
         return e.returnValue = "stop";
