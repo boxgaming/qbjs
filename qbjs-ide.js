@@ -253,7 +253,6 @@ async function runProgram() {
 
         // find the source line, if possible
         var srcLine = await getErrorLine(error);
-        console.log("returned: " + srcLine);
 
         var table = _el("warning-table");
         if (table) {
@@ -452,7 +451,6 @@ async function loadProject(zipData, mainFilename) {
                 mainFound = true;
             }
             else {
-                console.log(filename);
                 if (zip.file(filename)) {
                     var fdata = await zip.file(filename).async("arraybuffer");
                     var f = vfs.createFile(vfs.getFileName(filename), parentDir);
@@ -860,7 +858,6 @@ async function fileDrop(e) {
 
     var dt = e.dataTransfer;
     var files = dt.files;
-    console.log(files);
 
     var vfs = QB.vfs();
     var parentDir = vfs.getNode(currPath);
@@ -868,18 +865,14 @@ async function fileDrop(e) {
 
     console.log(files.length);
     for (var i=0; i < files.length; i++) {
-        console.log("processing[" + i + "]...");
-
         var f = files[i];
         if (!f.type && f.size%4096 == 0) { 
             // this is a folder, skip
-            console.log(" -> skipping folder [" + i + "]");
             continue;
         }
         
         var file = vfs.createFile(f.name, parentDir);
         var data = await f.arrayBuffer();
-        console.log(data);        
         vfs.writeData(file, data);
     }
 
