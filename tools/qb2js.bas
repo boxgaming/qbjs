@@ -3454,6 +3454,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Blue", False
     AddQBMethod "FUNCTION", "_Blue32", False
     AddQBMethod "FUNCTION", "_Ceil", False
+    AddQBMethod "FUNCTION", "_CommandCount", False
     AddQBMethod "FUNCTION", "_CopyImage", False
     AddQBMethod "FUNCTION", "_Cosh", False
     AddQBMethod "FUNCTION", "_Coth", False
@@ -3463,11 +3464,15 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_D2R", False
     AddQBMethod "FUNCTION", "_DefaultColor", False
     AddQBMethod "SUB", "_Delay", True
+    AddQBMethod "FUNCTION", "_DesktopHeight", False
+    AddQBMethod "FUNCTION", "_DesktopWidth", False
     AddQBMethod "FUNCTION", "_Dest", False
     AddQBMethod "SUB", "_Dest", False
+    AddQBMethod "FUNCTION", "_Dir", False
     AddQBMethod "FUNCTION", "_DirExists", False
     AddQBMethod "FUNCTION", "_Display", False
     AddQBMethod "SUB", "_Display", False
+    AddQBMethod "SUB", "_Echo", False
     AddQBMethod "FUNCTION", "_FileExists", False
     AddQBMethod "FUNCTION", "_Font", False
     AddQBMethod "SUB", "_Font", False
@@ -3491,6 +3496,8 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_LoadImage", True
     AddQBMethod "FUNCTION", "_MouseButton", False
     AddQBMethod "FUNCTION", "_MouseInput", False
+    AddQBMethod "SUB", "_MouseShow", False
+    AddQBMethod "SUB", "_MouseHide", False
     AddQBMethod "FUNCTION", "_MouseWheel", False
     AddQBMethod "FUNCTION", "_MouseX", False
     AddQBMethod "FUNCTION", "_MouseY", False
@@ -3518,6 +3525,9 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_RGBA32", False
     AddQBMethod "FUNCTION", "_Round", False
     AddQBMethod "FUNCTION", "_ScreenExists", False
+    AddQBMethod "SUB", "_ScreenMove", False
+    AddQBMethod "FUNCTION", "_ScreenX", False
+    AddQBMethod "FUNCTION", "_ScreenY", False
     AddQBMethod "FUNCTION", "_Sech", False
     AddQBMethod "FUNCTION", "_Setbit", False
     AddQBMethod "FUNCTION", "_Shl", False
@@ -3536,6 +3546,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Strcmp", False
     AddQBMethod "FUNCTION", "_Stricmp", False
     AddQBMethod "FUNCTION", "_Tanh", False
+    AddQBMethod "FUNCTION", "_Title", False
     AddQBMethod "SUB", "_Title", False
     AddQBMethod "FUNCTION", "_Togglebit", False
     AddQBMethod "FUNCTION", "_Trim", False
@@ -3564,6 +3575,9 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Cvl", False
     AddQBMethod "FUNCTION", "Date$", False
     AddQBMethod "SUB", "Draw", False
+    AddQBMethod "FUNCTION", "Environ", False
+    AddQBMethod "SUB", "Environ", False
+    AddQBMethod "SUB", "Error", False
     AddQBMethod "FUNCTION", "EOF", False
     AddQBMethod "FUNCTION", "Exp", False
     AddQBMethod "SUB", "Files", True

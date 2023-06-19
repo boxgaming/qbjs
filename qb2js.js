@@ -3235,6 +3235,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION" ,   "_Blue" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Blue32" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Ceil" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_CommandCount" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_CopyImage" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Cosh" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Coth" ,    False);
@@ -3244,11 +3245,15 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION" ,   "_D2R" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_DefaultColor" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_Delay" ,    True);
+   await sub_AddQBMethod( "FUNCTION" ,   "_DesktopHeight" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_DesktopWidth" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Dest" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_Dest" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_Dir" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_DirExists" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Display" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_Display" ,    False);
+   await sub_AddQBMethod( "SUB" ,   "_Echo" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_FileExists" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Font" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_Font" ,    False);
@@ -3272,6 +3277,8 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION" ,   "_LoadImage" ,    True);
    await sub_AddQBMethod( "FUNCTION" ,   "_MouseButton" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_MouseInput" ,    False);
+   await sub_AddQBMethod( "SUB" ,   "_MouseShow" ,    False);
+   await sub_AddQBMethod( "SUB" ,   "_MouseHide" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_MouseWheel" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_MouseX" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_MouseY" ,    False);
@@ -3299,6 +3306,9 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION" ,   "_RGBA32" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Round" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_ScreenExists" ,    False);
+   await sub_AddQBMethod( "SUB" ,   "_ScreenMove" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_ScreenX" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_ScreenY" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Sech" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Setbit" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Shl" ,    False);
@@ -3317,6 +3327,7 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION" ,   "_Strcmp" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Stricmp" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Tanh" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_Title" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_Title" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Togglebit" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Trim" ,    False);
@@ -3342,6 +3353,9 @@ if (QB.halted()) { return; }
    await sub_AddQBMethod( "FUNCTION" ,   "Cvl" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "Date$" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Draw" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "Environ" ,    False);
+   await sub_AddQBMethod( "SUB" ,   "Environ" ,    False);
+   await sub_AddQBMethod( "SUB" ,   "Error" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "EOF" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "Exp" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Files" ,    True);

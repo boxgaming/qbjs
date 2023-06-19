@@ -291,6 +291,10 @@ var QB = new function() {
         return Math.ceil(x);
     };
 
+    this.func__CommandCount = function() {
+        return 0;
+    };
+
     this.func__CopyImage = function(srcImageId) {
         var srcCanvas = _images[srcImageId].canvas;
         var destImageId = QB.func__NewImage(srcCanvas.width, srcCanvas.height);
@@ -334,12 +338,24 @@ var QB = new function() {
         await GX.sleep(seconds*1000);
     };
 
+    this.func__DesktopHeight = function() {
+        return window.screen.height * window.devicePixelRatio;
+    };
+
+    this.func__DesktopWidth = function() {
+        return window.screen.width * window.devicePixelRatio;
+    };
+
     this.func__Dest = function() {
         return _activeImage;
     };
 
     this.sub__Dest = function(imageId) {
         _activeImage = imageId;
+    };
+
+    this.func__Dir = function(folder) {
+        return "./";
     };
 
     this.func__DirExists = function(path) {
@@ -357,6 +373,10 @@ var QB = new function() {
 
     this.sub__Display = function() {
         // The canvas handles this for us, this method is included for compatibility
+    };
+
+    this.sub__Echo = function(msg) {
+        console.log(msg); 
     };
 
     this.func__FileExists = function(path) {
@@ -605,6 +625,37 @@ var QB = new function() {
 
     this.func__MouseInput = function() {
         return GX._mouseInput();
+    };
+
+    this.sub__MouseHide = function() {
+        var canvas = _images[0].canvas;
+        canvas.style.cursor = "none";
+    };
+
+    this.sub__MouseShow = function(style) {
+        if (style == undefined) {
+            style = "DEFAULT";
+        }
+        else {
+            style = style.trim().toUpperCase();
+        }
+        var canvas = _images[0].canvas;
+        if      (style == "LINK")                { canvas.style.cursor = "pointer"; }
+        else if (style == "TEXT")                { canvas.style.cursor = "text"; }
+        else if (style == "CROSSHAIR")           { canvas.style.cursor = "crosshair"; }
+        else if (style == "VERTICAL")            { canvas.style.cursor = "ns-resize"; }
+        else if (style == "HORIZONTAL")          { canvas.style.cursor = "ew-resize"; }
+        else if (style == "TOPLEFT_BOTTOMRIGHT") { canvas.style.cursor = "nwse-resize"; }
+        else if (style == "TOPRIGHT_BOTTOMLEFT") { canvas.style.cursor = "nesw-resize"; }
+        else if (style == "PROGRESS")            { canvas.style.cursor = "progress"; }
+        else if (style == "WAIT")                { canvas.style.cursor = "wait"; }
+        else if (style == "MOVE")                { canvas.style.cursor = "move"; }
+        else if (style == "NOT_ALLOWED")         { canvas.style.cursor = "not-allowed"; }
+        else if (style == "GRAB")                { canvas.style.cursor = "grab"; }
+        else if (style == "GRABBING")            { canvas.style.cursor = "grabbing"; }
+        else if (style == "ZOOM_IN")             { canvas.style.cursor = "zoom-in"; }
+        else if (style == "ZOOM_OUT")            { canvas.style.cursor = "zoom-out"; }
+        else                                     { canvas.style.cursor = "default"; }
     };
 
     this.func__MouseX = function() {
@@ -917,6 +968,18 @@ var QB = new function() {
         return true;
     };
 
+    this.sub__ScreenMove = function() {
+        /* no-op: included for compatibility */
+    };
+
+    this.func__ScreenX = function() {
+        return window.screenX;
+    };
+
+    this.func__ScreenY = function() {
+        return window.screenY;
+    };
+
     this.func__Sech = function(x) {
         return 1/Math.cosh(x);
     };
@@ -989,6 +1052,10 @@ var QB = new function() {
 
     this.func__Tanh = function(x) {
         return Math.tanh(x);
+    };
+
+    this.func__Title = function() {
+        return document.title;
     };
 
     this.sub__Title = function(title) {
@@ -1139,7 +1206,7 @@ var QB = new function() {
 
     this.func_Csrlin = function() {
         return _locY + 1;
-    }
+    };
 
     this.func_Cvi = function(numString) {
         var result = 0;
@@ -1148,7 +1215,7 @@ var QB = new function() {
             result+=numString.charCodeAt(1-i)<<(8*i);
         }
         return result;
-    }
+    };
 
     this.func_Cvl = function(numString) {
         var result = 0;
@@ -1157,7 +1224,7 @@ var QB = new function() {
             result+=numString.charCodeAt(3-i)<<(8*i);
         }
         return result;
-    }
+    };
 
     this.func_Date = function() {
         var today = new Date();
@@ -1165,7 +1232,7 @@ var QB = new function() {
         var mm = String(today.getMonth() + 1).padStart(2, '0');
         var yyyy = today.getFullYear();
         return mm + '-' + dd + '-' + yyyy;
-    }
+    };
 
     this.sub_Draw = function(t) {
         
@@ -1470,6 +1537,19 @@ var QB = new function() {
         }
         screen.lastX = cursX;
         screen.lastY = cursY;
+    };
+
+    this.func_Environ = function(param) {
+        /* no-op: included for compatibility */
+        return "";
+    };
+
+    this.sub_Environ = function(value) {
+        /* no-op: included for compatibility */
+    };
+
+    this.sub_Error = function(errorNumber) {
+        throw new Error("Unhandled Error #" + errorNumber);
     };
 
     this.func_Exp = function(value) {
@@ -2747,6 +2827,7 @@ var QB = new function() {
         _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0 };
         _images[0].lastX = _images[0].canvas.width/2;
         _images[0].lastY = _images[0].canvas.height/2;
+        _images[0].canvas.style.cursor = "default";
 
         _screenDiagInv = 1/Math.sqrt(_images[0].canvas.width*_images[0].canvas.width + _images[0].canvas.height*_images[0].canvas.height);
         
@@ -2775,7 +2856,7 @@ var QB = new function() {
         _keyDownMap = {};
 
         // TODO: set the appropriate default font for the selected screen mode above instead of here
-        GX.canvas().style.letterSpacing = "-1px";
+        //GX.canvas().style.letterSpacing = "-1px";
     };
 
     this.func_Seek = function(fh) {
