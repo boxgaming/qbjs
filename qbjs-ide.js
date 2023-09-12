@@ -159,7 +159,11 @@ async function init() {
             contentType == "application/zip-compressed" ||
             contentType == "application/x-zip-compressed") {
             // load a project
-            await loadProject(await res.arrayBuffer(), mainProg);
+            await loadProject(await res.arrayBuffer(), mainProg, function() {
+                if (appMode == "auto") {
+                    runProgram();
+                }
+            });
         }
         else {
             // otherwise, assume a single source file
@@ -429,7 +433,7 @@ async function onOpenProject(event) {
 }
 _e.fileInput.onchange = onOpenProject;
 
-async function loadProject(zipData, mainFilename) {
+async function loadProject(zipData, mainFilename, fnCallback) {
     if (!mainFilename) {
         mainFilename = "main.bas";
     }
@@ -472,6 +476,9 @@ async function loadProject(zipData, mainFilename) {
         }
 
         refreshFS();
+        if (fnCallback) {
+            fnCallback();
+        }
     });
 
     function dirFromPath(path) {
