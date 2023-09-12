@@ -2022,6 +2022,8 @@ Sub ConvertMethods ()
 
             ' clear the local variables
             ReDim As Variable localVars(0)
+            Dim intConv As String
+            intConv = ""
 
             ' All program methods are defined as async as we do not know whether
             ' a synchronous wait will occur downstream
@@ -2050,11 +2052,28 @@ Sub ConvertMethods ()
                     bvar.jsname = ""
                     AddVariable bvar, localVars()
 
+                    ' convert integer parameters from floating point (or string)
+                    If Not bvar.isArray Then
+                        Dim typeName As String
+                        typeName = UCase$(bvar.type)
+                        If typeName = "BIT" Or typeName = "UNSIGNED BIT" Or _
+                           typeName = "BYTE" Or typeName = "UNSIGNED BYTE" Or _
+                           typeName = "INTEGER" Or typeName = "UNSIGNED INTEGER" Or _
+                           typeName = "LONG" Or typeName = "UNSIGNED LONG" Or _
+                           typeName = "_INTEGER64" Or typeName = "UNSIGNED _INTEGER64" Then
+                            ' lookup the variable to get the jsname
+                            Dim varIsArray As Integer
+                            If FindVariable(bvar.name, bvar, varIsArray) Then
+                                intConv = intConv + bvar.jsname + " = Math.round(" + bvar.jsname + "); "
+                            End If
+                        End If
+                    End If
                 Next a
             End If
             methodDec = methodDec + ") {"
+
             AddJSLine methods(i).line, methodDec
-            AddJSLine methods(i).line, "if (QB.halted()) { return; }"
+            AddJSLine methods(i).line, "if (QB.halted()) { return; }; " + intConv
             If methods(i).type = "FUNCTION" Then
                 AddJSLine methods(i).line, "var " + RemoveSuffix(methods(i).name) + " = null;"
             End If
