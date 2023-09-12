@@ -1386,7 +1386,6 @@ Function ConvertInput$ (m As Method, args As String, lineNumber As Integer)
     js = "var " + vname + " = new Array(" + Str$(UBound(vars)) + "); "
     js = js + CallMethod(m) + "(" + vname + ", " + preventNewline + ", " + addQuestionPrompt + ", " + prompt + "); "
     For i = 1 To UBound(vars)
-        'If Not StartsWith(_Trim$(vars(i)), "#") Then ' special case to prevent file references from being output during self-compilation
         ' Convert to appropriate variable type on assignment
         Dim vartype As String
         vartype = GetVarType(vars(i))
@@ -3080,10 +3079,14 @@ Function MethodJS$ (m As Method, prefix As String)
     For i = 1 To Len(m.name)
         c = Mid$(m.name, i, 1)
         a = Asc(c)
-        ' uppercase, lowercase, numbers, - and .
-        If (a >= 65 And a <= 90) Or (a >= 97 And a <= 122) Or _
-           (a >= 48 And a <= 57) Or _
-           a = 95 Or a = 46 Then
+
+        If a = 46 Then
+            ' replace period with underscore
+            jsname = jsname + "_"
+
+        ElseIf (a >= 65 And a <= 90) Or (a >= 97 And a <= 122) Or _
+           (a >= 48 And a <= 57) Or a = 95 Then
+            ' uppercase, lowercase, numbers, and -
             jsname = jsname + c
         End If
     Next i
