@@ -525,6 +525,14 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
             if ( assignment > 0) {
                js =  (await func_RemoveSuffix( (await func_ConvertExpression( (await func_Join( parts ,    asnVarIndex,    assignment -  1,   " ")) ,    i))))  + " = "  + (await func_ConvertExpression( (await func_Join( parts ,    assignment +  1,    - 1,   " ")) ,    i))  + ";";
             } else {
+               var parendx = 0;  /* INTEGER */ 
+               parendx =  (QB.func_InStr( QB.arrayValue(parts, [ 1]).value ,   "("));
+               if ( parendx > 0) {
+                  var sname = '';  /* STRING */ var arg1 = '';  /* STRING */ 
+                  sname =  (QB.func_Mid( QB.arrayValue(parts, [ 1]).value ,    1,    parendx -  1));
+                  arg1 =  (QB.func_Mid( QB.arrayValue(parts, [ 1]).value ,    parendx));
+                  c =  (await func_SLSplit(  sname + " "  +  arg1 + (await func_Join( parts ,    2,    - 1,   " ")) ,   parts ,    True));
+               }
                if ((await func_FindMethod( QB.arrayValue(parts, [ 1]).value ,    m,   "SUB")) ) {
                   js =  (await func_ConvertSub(  m,   (await func_Join( parts ,    2,    - 1,   " ")) ,    i));
                } else {

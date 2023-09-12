@@ -620,6 +620,17 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     js = RemoveSuffix(ConvertExpression(Join(parts(), asnVarIndex, assignment - 1, " "), i)) + " = " + ConvertExpression(Join(parts(), assignment + 1, -1, " "), i) + ";"
 
                 Else
+                    ' Check to see if there was no space left between the sub name and initial paren
+                    Dim parendx As Integer
+                    parendx = InStr(parts(1), "(")
+                    If parendx > 0 Then
+                        ' If so, resplit the line with a space between
+                        Dim As String sname, arg1
+                        sname = Mid$(parts(1), 1, parendx - 1)
+                        arg1 = Mid$(parts(1), parendx)
+                        c = SLSplit(sname + " " + arg1 + Join(parts(), 2, -1, " "), parts(), True)
+                    End If
+
                     If FindMethod(parts(1), m, "SUB") Then
                         js = ConvertSub(m, Join(parts(), 2, -1, " "), i)
                     Else
