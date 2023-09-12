@@ -640,8 +640,8 @@ var GX = new function() {
         img = _image(_bg[bi].image);
         wrapFactor = _bg[bi].wrapFactor;
 
-        x = (GX.sceneX() * wrapFactor) % img.width;
-        y = (GX.sceneY() * wrapFactor) % img.height;
+        x = Math.floor((GX.sceneX() * wrapFactor) % img.width);
+        y = Math.floor((GX.sceneY() * wrapFactor) % img.height);
         if (x < 0) { x = img.width + x; }
         if (y < 0) { y = img.height + y; }
         x2 = GX.sceneWidth() + x;
@@ -1124,8 +1124,8 @@ var GX = new function() {
                             var t1 = t;
                             t = _tileFrame(t);
                             GX.tilesetPos(t, tpos);
-                            tx = scol * GX.tilesetWidth() - xoffset - colOffset;
-                            ty = srow * GX.tilesetHeight() - yoffset - rowOffset;
+                            tx = Math.floor(scol * GX.tilesetWidth() - xoffset - colOffset);
+                            ty = Math.floor(srow * GX.tilesetHeight() - yoffset - rowOffset);
                             GX.spriteDraw(GX.tilesetImage(), tx, ty, tpos.y, tpos.x, GX.tilesetWidth(), GX.tilesetHeight());//, __gx_scene.image
                         }
                         scol = scol + 1;
