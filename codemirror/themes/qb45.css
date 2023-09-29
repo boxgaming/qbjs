@@ -77,3 +77,8 @@ body {
 
 #fs-contents a, #fs-contents a:visited, #fs-contents a:active { color: rgb(177, 177, 177); }
 #fs-contents a:hover { color: #efefef; }
+
+#help-nav a:hover { color: #fff;  }
+#help-nav a:before { content: "< "; }
+#help-nav a:after { content: " >"; }
+#help-nav a { margin-right: 0px; }

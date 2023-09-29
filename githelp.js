@@ -5,7 +5,10 @@ var GitHelp = new function() {
     var sconverter = new showdown.Converter();
     sconverter.setFlavor("github");
     
-    baseUrl = window.location.origin;
+    baseUrl = location.protocol + "//" + location.host + location.pathname;
+    if (baseUrl.endsWith("/index.html")) {
+        baseUrl = baseUrl.replace("/index.html", "");
+    }
     
     function fixlinks(div, project) {
         var a = div.getElementsByTagName("a");

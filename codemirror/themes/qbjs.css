@@ -48,3 +48,8 @@
 
 body { letter-spacing: -1px; }
 #gx-container { letter-spacing: normal; }
+
+#help-nav a:hover { color: #fff;  }
+#help-nav a:before { content: "< "; }
+#help-nav a:after { content: " >"; }
+#help-nav a { margin-right: 0px; }

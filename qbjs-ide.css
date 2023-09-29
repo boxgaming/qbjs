@@ -348,8 +348,8 @@ dialog a:hover { color: #000 !important; }
 .help th, .help td { border: 1px solid #444; border-spacing: 0; padding: 4px }
 .help a:hover { text-decoration: underline; }
 .help a { color: #4E91E6 !important; }
-.help a:after { display: none; }
-.help a:before { display: none; }
+/*.help a:after { display: none; }
+.help a:before { display: none; }*/
 .help code { 
     display: inline-block; 
     border: 1px solid #444;
