@@ -77,6 +77,7 @@ Dim Shared As String currentMethod
 Dim Shared As String currentModule
 Dim Shared As Integer programMethods
 Dim Shared As Integer staticVarLine
+Dim Shared As String condWords(4)
 
 ' Only execute the conversion from the native version if we have been passed the
 ' source file to convert on the command line
@@ -89,6 +90,7 @@ End If
 '$Include: 'qb2js.bi'
 
 Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
+    condWords(1) = "IF": condWords(2) = "ELSEIF": condWords(3) = "WHILE": condWords(4) = "UNTIL"
     currentModule = moduleName
 
     ResetDataStructures
@@ -279,7 +281,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
     Dim typeMode As Integer: typeMode = False
     Dim jsMode As Integer: jsMode = False
     Dim ignoreMode As Integer: ignoreMode = False
-    Dim i As Integer
+    Dim As Integer i, j
     Dim indent As Integer
     Dim tempIndent As Integer
     Dim m As Method
@@ -291,6 +293,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
     Dim caseVar As String
     Dim currType As Integer
     Dim loopIndex As String
+    Dim sfix As String
 
     For i = firstLine To lastLine
         indent = 0
@@ -308,6 +311,9 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
         js = ""
         Dim first As String
         first = UCase$(parts(1))
+
+        sfix = FixCondition(first, parts(), 1, "")
+        If sfix <> "" Then first = sfix
 
         If jsMode = True Then
             If first = "$END" Then
@@ -489,6 +495,8 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 js = "var " + loopIndex + " = 0;"
 
                 If UBound(parts) > 1 Then
+                    sfix = FixCondition(UCase$(parts(2)), parts(), 2, "DO ")
+
                     If UCase$(parts(2)) = "WHILE" Then
                         js = js + " while (" + ConvertExpression(Join(parts(), 3, -1, " "), i) + ") {"
                     Else
@@ -526,6 +534,8 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 If loopMode(loopLevel) = 1 Then
                     js = "}"
                 Else
+                    sfix = FixCondition(UCase$(parts(2)), parts(), 2, "LOOP ")
+
                     js = "} while (("
                     If UBound(parts) < 2 Then
                         js = js + "1));"
@@ -601,7 +611,6 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
             ElseIf c > 2 Or first = "LET" Then
                 Dim assignment As Integer
                 assignment = 0
-                Dim j As Integer
                 For j = 1 To UBound(parts)
                     If parts(j) = "=" Then
                         assignment = j
@@ -662,6 +671,23 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
     Next i
 
 End Sub
+
+Function FixCondition$ (word As String, parts() As String, idx As Integer, prefix As String)
+    ' The fact that we are doing this probably means we need to improve the initial "tokenizer"
+    ' Is this is a condition keyword with no space between the keyword and the open paren?
+    FixCondition = ""
+    Dim As Integer c, j
+    For j = 0 To UBound(condWords)
+        If InStr(word, condWords(j) + "(") = 1 Then
+            ' If so, resplit the line with a space between
+            Dim As String a1
+            a1 = Mid$(parts(idx), Len(condWords(j)) + 1)
+            c = SLSplit(prefix + condWords(j) + " " + a1 + Join(parts(), idx + 1, -1, " "), parts(), True)
+            FixCondition = condWords(j)
+            Exit For
+        End If
+    Next j
+End Function
 
 Sub ParseExport (s As String, lineIndex As Integer)
     Dim exportedItem As String
@@ -841,20 +867,6 @@ Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
 
     ConvertSub = js
 End Function
-
-'Function ConvertGet$ (m As Method, args As String, lineNumber As Integer)
-'    ReDim parts(0) As String
-'    Dim argc As Integer
-'    argc = ListSplit(args, parts())
-
-'    If argc < 3 Then
-'        AddWarning lineNumber, "Syntax error"
-'        Exit Function
-'    End If
-
-
-'    AddWarning lineNumber, "Unsupported method: GET"
-'End Function
 
 Function ConvertPut$ (m As Method, args As String, lineNumber As Integer)
     ReDim parts(0) As String
@@ -1839,7 +1851,7 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                         ' TODO: Need a more sophisticated way to determine whether
                         '       the return value is being assigned in the method.
                         '       Currently, this does not support recursive calls.
-                        '       (is this still true?)
+                        '       (is this comment still true?)
                         If FindMethod(word, m, "FUNCTION") Then
                             If m.name <> currentMethod Then
                                 js = js + CallMethod$(m) + "()"
@@ -2267,9 +2279,16 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
         End If
     Next i
 
+    ' If there is content before the IF, split it into individual lines
+    If ifIdx > 1 Then
+        ' Unless it is an END IF
+        If UCase$(words(ifIdx - 1)) <> "END" Then
+            AddSubLines lineIndex, Join(words(), 1, ifIdx - 1, " ")
+        End If
+    End If
 
     If thenIdx > 0 And thenIdx < wcount Then
-        AddLine lineIndex, Join(words(), 1, thenIdx, " ")
+        AddLine lineIndex, Join(words(), ifIdx, thenIdx, " ")
         If elseIdx > 0 Then
             AddSubLines lineIndex, Join(words(), thenIdx + 1, elseIdx - 1, " ")
             AddLine lineIndex, "Else"
@@ -3687,7 +3706,5 @@ Sub InitQBMethods
     AddSystemType "FETCHRESPONSE", "ok:INTEGER,status:INTEGER,statusText:STRING,text:STRING"
     AddQBMethod "FUNCTION", "Fetch", True
     AddQBMethod "SUB", "Fetch", True
-    AddQBMethod "FUNCTION", "FromJSON", False
-    AddQBMethod "FUNCTION", "ToJSON", False
 
 End Sub

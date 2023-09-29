@@ -3142,14 +3142,6 @@ var QB = new function() {
         return fetchRes;
     };
 
-    this.func_FromJSON = function(s) {
-        return JSON.parse(s);
-    };
-
-    this.func_ToJSON = function(a) {
-        return JSON.stringify(a);
-    };
-
     function _addInkeyPress(e) {
         var shift = e.getModifierState("Shift");
         var ctrl = e.getModifierState("Control");
