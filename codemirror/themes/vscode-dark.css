@@ -109,6 +109,7 @@ a:hover { text-decoration: underline; }
 #fs-contents a { font-variant: normal; font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 13px; }
 #fs-contents a:hover { text-decoration: none; }
 
+.help a { font-variant: normal; font-size: 15px }
 /* #code {
     border-top: 0px;
 } */

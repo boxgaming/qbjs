@@ -47,7 +47,11 @@ var _e = {
     fsContents:       _el("fs-contents"),
     fsUrl:            _el("fs-url"),
     code:             _el("code"),
-    themePicker:      _el("theme-picker")
+    themePicker:      _el("theme-picker"),
+    help:             _el("help"),
+    helpSidebar:      _el("help-sidebar"),
+    helpPage:         _el("help-page"),
+    helpContainer:    _el("help-container")
 };
 
 function _el(id) {
@@ -106,6 +110,7 @@ async function init() {
             theme = stheme;
         }
         _e.ideTheme.href = "codemirror/themes/" + theme + ".css";
+        GitHelp.navhome();
     }
 
     // initialize the code editor
@@ -613,18 +618,38 @@ function changeTab(tabName) {
         _e.warningContainer.style.display = "block";
         _e.jsCode.style.display = "none";
         _e.fsBrowser.style.display = "none";
+        _e.help.style.display = "none";
     }
     else if (currTab == "js") {
         _e.warningContainer.style.display = "none";
         _e.fsBrowser.style.display = "none";
         _e.jsCode.style.display = "block";
+        _e.help.style.display = "none";
     }
     else if (currTab == "fs") {
         _e.fsBrowser.style.display = "block";
         _e.warningContainer.style.display = "none";
         _e.jsCode.style.display = "none";
+        _e.help.style.display = "none";
         refreshFS();
     }
+    else if (currTab == "help") { 
+        _e.warningContainer.style.display = "none";
+        _e.jsCode.style.display = "none";
+        _e.fsBrowser.style.display = "none";
+        _e.help.style.display = "block";
+    }
+}
+
+function showHelp(page) {
+    changeTab("help");
+    var helpUrl = "";
+    if (page == "language")      { GitHelp.wikinav("https://raw.githubusercontent.com/wiki/boxgaming/qbjs/QBasic-Language-Support.md"); }
+    else if (page == "keywords") { GitHelp.wikinav("https://raw.githubusercontent.com/wiki/boxgaming/qbjs/Supported-Keywords.md"); }
+    else if (page == "samples")  { GitHelp.wikinav("https://raw.githubusercontent.com/wiki/boxgaming/qbjs/Samples.md"); }
+    else                         { GitHelp.navhome(); }
+    consoleVisible = false;
+    showConsole();
 }
 
 function displayTypes() {
@@ -717,6 +742,7 @@ window.onresize = function() {
             jsDiv.style.display = "block";
             jsDiv.style.top = (window.innerHeight - splitHeight + 10) + "px";
             _e.outputContent.style.height = (splitHeight - 77) + "px";
+            _e.helpContainer.style.height = (splitHeight - 110) + "px";
         }
         else {
             _e.vslider.style.display = "none";

@@ -22,6 +22,8 @@
         <script type="text/javascript" src="codemirror/search.js"></script>
         <script type="text/javascript" src="codemirror/annotatescrollbar.js"></script>
         <script type="text/javascript" src="codemirror/matchesonscrollbar.js"></script>
+
+        <script type="text/javascript" src="util/showdown.min.js"></script>
     </head>
     <body style="display:none">
         <div id="toolbar">
@@ -53,7 +55,7 @@
             <div id="vslider"></div>
             <div id="output-container">
                 <div id="tabs">
-                    <div id="tab-console" class="tab active" onclick="changeTab('console')">Console</div><div id="tab-js" class="tab" onclick="changeTab('js')">Javascript</div><div id="tab-fs" class="tab" onclick="changeTab('fs')">Files</div>
+                    <div id="tab-console" class="tab active" onclick="changeTab('console')">Console</div><div id="tab-js" class="tab" onclick="changeTab('js')">Javascript</div><div id="tab-fs" class="tab" onclick="changeTab('fs')">Files</div><div id="tab-help" class="tab" onclick="changeTab('help')">Help</div>
                 </div>
                 <div id="output-content">
                     <div id="warning-container"></div>
@@ -65,6 +67,16 @@
                             <div id="fs-new-folder" title="New Directory" onclick="onNewDirectory()"></div>
                         </div>
                         <div id="fs-contents">
+                        </div>
+                    </div>
+                    <div id="help">
+                        <div id="help-nav" class="help-nav">
+                            <a href="javascript:GitHelp.navhome()">Home</a>
+                            <a href="javascript:GitHelp.navback()">Back</a>
+                        </div>
+                        <div id="help-container" class="help">
+                            <div id="help-sidebar" class="help-sidebar"></div>
+                            <div id="help-page" class="help-page"></div>
                         </div>
                     </div>
                 </div>
@@ -127,9 +139,9 @@
                     QBJS brings the fun and accessibility of QBasic to the browser.<br/>
                     Learn more:<br/>
                     <ul>
-                        <li><a href="https://github.com/boxgaming/qbjs/wiki/QBasic-Language-Support" target="_blank">QBasic Language Support</a></li>
-                        <li><a href="https://github.com/boxgaming/qbjs/wiki/Supported-Keywords" target="_blank">Supported Keywords</a></li>
-                        <li><a href="https://github.com/boxgaming/qbjs/wiki/Samples" target="_blank">Samples</a></li>
+                        <li><a href="javascript:showHelp('language')">QBasic Language Support</a></li>
+                        <li><a href="javascript:showHelp('keywords')">Supported Keywords</a></li>
+                        <li><a href="javascript:showHelp('samples')">Samples</a></li>
                     </ul>
                 </p>
                 <p>Copyright (c) 2022-2023 boxgaming</p>
@@ -143,5 +155,6 @@
     <script language="javascript" src="gx/gx.js?v=0.8.0"></script>
     <script language="javascript" src="qb.js?v=0.8.0"></script>
     <script language="javascript" src="qb2js.js?v=0.8.0"></script>
+    <script language="javascript" src="githelp.js?v=0.8.0"></script>
     <script language="javascript" src="qbjs-ide.js?v=0.8.0"></script>
 </html>

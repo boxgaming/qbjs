@@ -121,3 +121,15 @@ dialog {
 #fs-contents a:hover { background-color: #ddd; }
 #fs-contents { top: 70px; color: #333; grid-auto-rows: 25px; padding-top: 5px; padding-right: 5px; }
 .fs-delete:hover { background-color: transparent; }
+
+.help { background-color: #f6f6f6; color: #333; }
+.help a, .help a:link, .help a:visited { border: 0; padding: 0; user-select: auto; }
+.help a:active { border: 0;}
+.help a:hover { color: #000; text-decoration: underline; }
+.help a:before { content: ""; }
+.help a:after { content: ""; }
+
+.help tr:nth-child(even) { background: rgba(175, 175, 175, .5) }
+.help code { background-color: rgba(175, 175, 175, .5); }
+.help-nav { padding-left: 5px; }
+.help-nav a { color: #333 !important; font-family: Verdana, Geneva, Tahoma, sans-serif; margin-right: 0px; }
