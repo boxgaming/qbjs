@@ -38,11 +38,11 @@ Sub Log (msg As String, msgType As String)
 
     $If Javascript Then
         var t = document.querySelector("#warning-container table");
-        var errorLine = await getErrorLine(new Error(), 1);
         if (!t || appMode != "ide") { 
-            console.log(msgType + ":" + errorLine + ":" + msg);
+            console.log(msgType + ":" + msg);
             return; 
         }
+        var errorLine = await getErrorLine(new Error(), 1);
         var tr = document.createElement("tr");
         addWarningCell(tr, msgType);
         addWarningCell(tr, ":");
