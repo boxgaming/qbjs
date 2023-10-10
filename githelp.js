@@ -9,8 +9,10 @@ var GitHelp = new function() {
     if (baseUrl.endsWith("/index.html")) {
         baseUrl = baseUrl.replace("/index.html", "");
     }
-    alert(baseUrl);
-    
+    if (baseUrl.endsWith("/")) {
+        baseUrl = baseUrl.slice(0, 1);
+    }
+
     function fixlinks(div, project) {
         var a = div.getElementsByTagName("a");
         for (var i=0; i < a.length; i++) {
