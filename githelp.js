@@ -10,7 +10,7 @@ var GitHelp = new function() {
         baseUrl = baseUrl.replace("/index.html", "");
     }
     if (baseUrl.endsWith("/")) {
-        baseUrl = baseUrl.slice(0, 1);
+        baseUrl = baseUrl.slice(0, -1);
     }
 
     function fixlinks(div, project) {
