@@ -66,7 +66,11 @@ Sub UploadFile(destpath As String, filter As String, fnCallback)
     $If Javascript Then
         var vfs = QB.vfs();
         var parentDir = null;
-        if (destpath == undefined || destpath == "") {
+        if (destpath == "/") {
+            parentDir = QB.vfs().rootDirectory();
+            destpath = "";
+        }
+        else if (destpath == undefined || destpath == "") {
             parentDir = QB.vfsCwd();
         }
         else {
