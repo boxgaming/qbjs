@@ -105,6 +105,8 @@ dialog a:hover { color: #fff !important; }
 a:before { content: ""; }
 a:after { content: ""; }
 a:hover { text-decoration: underline; }
+dialog a.disabled, dialog a.disabled:hover { color: #999 !important; }
+dialog a.disabled:hover { text-decoration: none; }
 
 #fs-contents a { font-variant: normal; font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 13px; }
 #fs-contents a:hover { text-decoration: none; }

@@ -193,6 +193,7 @@ dialog textarea,
 }
 dialog a { color: #333 !important; }
 dialog a:hover { color: #000 !important; }
+dialog a.disabled, dialog a.disabled:hover { color: #999 !important; }
 
 #logo {
     position: absolute;
@@ -213,7 +214,7 @@ dialog a:hover { color: #000 !important; }
     padding: 5px;
     border: 1px solid #333;
 }
-#fs-refresh, #fs-new-folder {
+#fs-refresh, #fs-new-folder, #fs-upload {
     float: right;
     margin-top: -3px;
     cursor: pointer;
@@ -235,6 +236,13 @@ dialog a:hover { color: #000 !important; }
 }
 #fs-new-folder:hover {
     background-image: url('img/new-folder-hover.svg');
+}
+#fs-upload {
+    margin-right: 8px;
+    background-image: url('img/upload.svg');
+}
+#fs-upload:hover {
+    background-image: url('img/upload-hover.svg');
 }
 
 .fs-file, .fs-dir, .fs-delete {

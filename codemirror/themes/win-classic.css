@@ -43,6 +43,7 @@ a:active { border: 2px inset;}
 a:hover { color: #000; }
 a:before { content: ""; }
 a:after { content: ""; }
+dialog a.disabled:active { border: 2px outset; }
 
 li a, li a:link, li a:visited { border: 0; text-decoration: underline; }
 li a:active { border: 0; }

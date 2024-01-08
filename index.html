@@ -27,21 +27,21 @@
     </head>
     <body style="display:none">
         <div id="toolbar">
-            <a href="javascript:openProject()" class="toolbar-button" id="toolbar-button-open" title="Open"></a>
-            <a href="javascript:saveProject()" class="toolbar-button" id="toolbar-button-save" title="Save"></a>
+            <a href="javascript:IDE.openProject()" class="toolbar-button" id="toolbar-button-open" title="Open"></a>
+            <a href="javascript:IDE.saveProject()" class="toolbar-button" id="toolbar-button-save" title="Save"></a>
             <div class="spacer"></div>
-            <a href="javascript:runProgram()" class="toolbar-button" id="toolbar-button-run" title="Run"></a>
-            <a href="javascript:stopProgram()" class="toolbar-button" id="toolbar-button-stop" title="Stop"></a>
-            <a href="javascript:shareProgram()" class="toolbar-button" id="toolbar-button-share" title="Share / Export"></a>
+            <a href="javascript:IDE.runProgram()" class="toolbar-button" id="toolbar-button-run" title="Run"></a>
+            <a href="javascript:IDE.stopProgram()" class="toolbar-button" id="toolbar-button-stop" title="Stop"></a>
+            <a href="javascript:IDE.shareProgram()" class="toolbar-button" id="toolbar-button-share" title="Share / Export"></a>
             <div class="spacer"></div>
-            <a href="javascript:showOptionDialog()" class="toolbar-button" id="toolbar-button-settings" title="Settings"></a>
+            <a href="javascript:IDE.showOptionDialog()" class="toolbar-button" id="toolbar-button-settings" title="Settings"></a>
 
-            <a href="javascript:showDialog('about-dialog')" class="toolbar-button" id="toolbar-button-about" title="About QBJS"></a>
+            <a href="javascript:IDE.showDialog('about-dialog')" class="toolbar-button" id="toolbar-button-about" title="About QBJS"></a>
             <div class="spacer" style="float:right"></div>
-            <a href="javascript:showConsole()" class="toolbar-button" id="toolbar-button-console-show" title="Show Console"></a>
-            <a href="javascript:showConsole()" class="toolbar-button" id="toolbar-button-console-hide" title="Hide Console" style="display:none"></a>
-            <a href="javascript:slideRight()" class="toolbar-button" id="toolbar-button-slide-right" title="Slide View Right"></a>
-            <a href="javascript:slideLeft()" class="toolbar-button" id="toolbar-button-slide-left" title="Slide View Left"></a>
+            <a href="javascript:IDE.showConsole()" class="toolbar-button" id="toolbar-button-console-show" title="Show Console"></a>
+            <a href="javascript:IDE.showConsole()" class="toolbar-button" id="toolbar-button-console-hide" title="Hide Console" style="display:none"></a>
+            <a href="javascript:IDE.slideRight()" class="toolbar-button" id="toolbar-button-slide-right" title="Slide View Right"></a>
+            <a href="javascript:IDE.slideLeft()" class="toolbar-button" id="toolbar-button-slide-left" title="Slide View Left"></a>
         </div>
         <div id="code-container">
             <div id="code"></div>
@@ -55,7 +55,7 @@
             <div id="vslider"></div>
             <div id="output-container">
                 <div id="tabs">
-                    <div id="tab-console" class="tab active" onclick="changeTab('console')">Console</div><div id="tab-js" class="tab" onclick="changeTab('js')">Javascript</div><div id="tab-fs" class="tab" onclick="changeTab('fs')">Files</div><div id="tab-help" class="tab" onclick="changeTab('help')">Help</div>
+                    <div id="tab-console" class="tab active" onclick="IDE.changeTab('console')">Console</div><div id="tab-js" class="tab" onclick="IDE.changeTab('js')">Javascript</div><div id="tab-fs" class="tab" onclick="IDE.changeTab('fs')">Files</div><div id="tab-help" class="tab" onclick="IDE.changeTab('help')">Help</div>
                 </div>
                 <div id="output-content">
                     <div id="warning-container"></div>
@@ -63,8 +63,9 @@
                     <div id="fs-browser">
                         <div id="fs-path">
                             <span id="fs-url">/</span>
-                            <div id="fs-refresh" title="Refresh" onclick="refreshFS()"></div>
-                            <div id="fs-new-folder" title="New Directory" onclick="onNewDirectory()"></div>
+                            <div id="fs-refresh" title="Refresh" onclick="IDE.refreshFS()"></div>
+                            <div id="fs-new-folder" title="New Directory" onclick="IDE.onNewDirectory()"></div>
+                            <div id="fs-upload" title="Upload" onclick="IDE.onUploadFile()"></div>
                         </div>
                         <div id="fs-contents">
                         </div>
@@ -92,15 +93,15 @@
             <div style="margin-bottom:5px">Copy the link below to share your code:</div>
             <div><textarea id="share-code" rows="15" cols="60" readonly></textarea></div>
             <div style="margin-top: 5px; float:left">Launch Mode:
-                <select id="share-mode" onchange="shareProgram()">
+                <select id="share-mode" onchange="IDE.shareProgram()">
                     <option value="">IDE (Default)</option>
                     <option value="play">Play</option>
                     <option value="auto">Auto</option>
                 </select>
             </div>
-            <a id="export-button" href="javascript:exportProgram()" style="display: none; float:left; margin-top: 7px; margin-left: 10px">Export</a>
-            <a href="javascript:closeDialog()" style="display:block; float:right; margin-top: 7px">Close</a>
-            <a href="javascript:testShare()" style="display: block; float:right; margin-top: 7px; margin-right: 10px">Test</a>
+            <a id="export-button" href="javascript:IDE.exportProgram()" style="float:left; margin-top: 7px; margin-left: 10px">Export</a>
+            <a href="javascript:IDE.closeDialog()" style="display:block; float:right; margin-top: 7px">Close</a>
+            <a href="javascript:IDE.testShare()" style="display: block; float:right; margin-top: 7px; margin-right: 10px">Test</a>
         </dialog>
 
         <dialog id="prog-sel-dialog">
@@ -110,14 +111,14 @@
             </div>
             <select id="prog-sel-sources" size="10" style="display:block; width:100%; margin-top:10px"></select>
             <div style="text-align:center; margin-top:10px">
-                <a href="javascript:onSelMainProg()">Ok</a>
-                <a href="javascript:closeDialog()">Cancel</a>
+                <a href="javascript:IDE.onSelMainProg()">Ok</a>
+                <a href="javascript:IDE.closeDialog()">Cancel</a>
             </div>
         </dialog>
 
         <dialog id="options-dialog">
             <div>Select a theme:</div>
-            <select id="theme-picker" onchange="changeTheme(this.value)">
+            <select id="theme-picker" onchange="IDE.changeTheme(this.value)">
                 <option value="qbjs">Default</option>
                 <option value="qb45">QBasic</option>
                 <option value="qb64-vscode">QB64 VSCode</option>
@@ -125,7 +126,7 @@
                 <option value="vscode-dark">VSCode Dark</option>
             </select>
             <div>
-                <a href="javascript:closeDialog()" style="display:block; float:right; margin-top: 7px">Close</a>
+                <a href="javascript:IDE.closeDialog()" style="display:block; float:right; margin-top: 7px">Close</a>
             </div>
         </dialog>
 
@@ -139,14 +140,14 @@
                     QBJS brings the fun and accessibility of QBasic to the browser.<br/>
                     Learn more:<br/>
                     <ul>
-                        <li><a href="javascript:showHelp('language')">QBasic Language Support</a></li>
-                        <li><a href="javascript:showHelp('keywords')">Supported Keywords</a></li>
-                        <li><a href="javascript:showHelp('samples')">Samples</a></li>
+                        <li><a href="javascript:IDE.showHelp('language')">QBasic Language Support</a></li>
+                        <li><a href="javascript:IDE.showHelp('keywords')">Supported Keywords</a></li>
+                        <li><a href="javascript:IDE.showHelp('samples')">Samples</a></li>
                     </ul>
                 </p>
                 <p>Copyright (c) 2022-2023 boxgaming</p>
                 <div>
-                    <a href="javascript:closeDialog()" style="display:block; float:right">Close</a>
+                    <a href="javascript:IDE.closeDialog()" style="display:block; float:right">Close</a>
                 </div>
             </div>
         </dialog>

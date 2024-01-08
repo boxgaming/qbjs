@@ -42,19 +42,20 @@ Sub Log (msg As String, msgType As String)
             console.log(msgType + ":" + msg);
             return; 
         }
-        var errorLine = await getErrorLine(new Error(), 1);
+        var errorLine = await IDE.getErrorLine(new Error(), 1);
         var tr = document.createElement("tr");
-        addWarningCell(tr, msgType);
-        addWarningCell(tr, ":");
-        addWarningCell(tr, errorLine);
-        addWarningCell(tr, ":");
-        addWarningCell(tr, await func_EscapeHtml(msg), "99%");
+        IDE.addWarningCell(tr, msgType);
+        IDE.addWarningCell(tr, ":");
+        IDE.addWarningCell(tr, errorLine);
+        IDE.addWarningCell(tr, ":");
+        IDE.addWarningCell(tr, await func_EscapeHtml(msg), "99%");
         tr.codeLine = errorLine - 1;
-        tr.onclick = gotoWarning;
+        tr.onclick = IDE.gotoWarning;
         t.append(tr);
         var container = document.getElementById("output-content");
         container.scrollTop = container.scrollHeight;
-        changeTab("console");
+        IDE.changeTab("console");
+        IDE.showConsole();
     $End If
 End Sub
 
@@ -66,12 +67,13 @@ Sub Echo (msg As String)
             return;
         }
         var tr = document.createElement("tr");
-        addWarningCell(tr, await func_EscapeHtml(msg));
+        IDE.addWarningCell(tr, await func_EscapeHtml(msg));
         tr.firstChild.colSpan = "5";
         t.append(tr);
         var container = document.getElementById("output-content");
         container.scrollTop = container.scrollHeight;
-        changeTab("console");
+        IDE.changeTab("console");
+        IDE.showConsole();
     $End If
 End Sub
 
