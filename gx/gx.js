@@ -5,6 +5,7 @@ var GX = new function() {
     var _bg = [];
     var _images = [];
     var _entities = [];
+    var _entity_animations = [];
     var _scene = {};
     var _tileset = {};
     var _tileset_animations = [];
@@ -61,6 +62,7 @@ var GX = new function() {
         _bg = [];
         _images = [];
         _entities = [];
+        _entity_animations = [];
         _scene = {};
         _tileset = {};
         _tileset_animations = [];
@@ -104,13 +106,7 @@ var GX = new function() {
         if (!_canvas) {
 		    _canvas = document.createElement("canvas");
             _canvas.id = "gx-canvas";
-            //_canvas.style.position = "absolute";
             document.getElementById("gx-container").appendChild(_canvas);
-
-            //_glcanvas = document.createElement("canvas");
-            //_glcanvas.id = "gl-canvas";
-            ////_glcanvas.style.position = "absolute";
-            //document.getElementById("gx-container").appendChild(_glcanvas);
 
             _canvas.addEventListener("mousemove", function(event) {
                 _mousePos.x = event.offsetX;
@@ -152,18 +148,14 @@ var GX = new function() {
                 var rect = event.target.getBoundingClientRect();
                 _touchPos.x = touch.pageX - rect.x;
                 _touchPos.y = touch.pageY - rect.y;
-                //alert(_touchPos.x + "," + _touchPos.y);
                 _touchInputFlag = true;
                 if (_bindTouchToMouse) {
-                    //_mousePos.x = event.offsetX;
-                    //_mousePos.y = event.offsetY;
                     _mousePos = _touchPos;
                     _mouseInputFlag = true;
                 }
             });
     
             _canvas.addEventListener("touchstart", function(event) {
-                //alert("touchstart");
                 event.preventDefault();
                 var touch = event.touches[0];
                 var rect = event.target.getBoundingClientRect();
@@ -253,8 +245,10 @@ var GX = new function() {
         _scene.height = sheight;
         _canvas.width = _scene.width;
         _canvas.height = _scene.height;
-        _glcanvas.width = _scene.width;
-        _glcanvas.height = _scene.height;
+        if (_scene.scaleX != 1) {
+            _ctx.imageSmoothingEnabled = false;
+            _ctx.scale(_scene.scaleX, _scene.scaleY);
+        }
         _updateSceneSize();
     }
 
@@ -274,11 +268,13 @@ var GX = new function() {
 
     // Scale the scene by the specified scale factor.
     function _sceneScale (scale) {
+        var lastScale = _scene.scaleX;
         _scene.scaleX = scale;
         _scene.scaleY = scale;
         _canvas.width = _scene.width * _scene.scaleX;
         _canvas.height = _scene.height * _scene.scaleY;
         _ctx.imageSmoothingEnabled = false;
+        if (lastScale > 1) { _ctx.scale(1/lastScale, 1/lastScale); }
         _ctx.scale(_scene.scaleX, _scene.scaleY);
 
         var footer = document.getElementById("gx-footer");
@@ -725,7 +721,7 @@ var GX = new function() {
 
     function _soundStop (sid) {
         _sounds[sid-1].pause();
-        // TODO: reset playback position to beginning
+        _sounds[sid-1].currentTime = 0;
     }
 
     function _soundMuted (muted) {
@@ -747,7 +743,10 @@ var GX = new function() {
         newent.jumpstart = 0;
         newent.height = height;
         newent.width = ewidth;
-        newent.image = _imageLoad(imageFilename);
+        newent.sequences = 1;
+        newent.image = _imageLoad(imageFilename, function() {
+            newent.sequences = Math.floor(_images[newent.image-1].height / height);
+        });
         newent.spriteFrame = 1;
         newent.spriteSeq = 1;
         newent.seqFrames = seqFrames;
@@ -760,8 +759,17 @@ var GX = new function() {
         newent.applyGravity = false;
         _entities.push(newent);
         
-        // TODO: reincorporate uid
-        
+        var animation = [];
+        _entity_animations.push(animation);
+
+        /*
+            newent.sequences = Math.floor(_images[newent.image-1].height / height);
+            console.log(newent.sequences);
+            for (var i=0; i < newent.sequences; i++) {
+                animation.push({ frames: seqFrames });
+            }
+        */
+
         return _entities.length;
     }
     
@@ -787,7 +795,21 @@ var GX = new function() {
     function _entityAnimate (eid, seq, a) {
         _entities[eid-1].animate = a;
         _entities[eid-1].spriteSeq = seq;
+        _entities[eid-1].seqFrames = _entityGetFrames(eid, seq); //_entity_animations[eid-1][seq-1].frames;
         _entities[eid-1].prevFrame = -1;
+        if (_entities[eid-1].spriteFrame > _entities[eid-1].seqFrames) {
+            _entities[eid-1].spriteFrame = 1;
+        }
+    }
+
+    function _entityGetFrames (eid, seq) {
+        var a = _entity_animations[eid-1];
+        if (a[seq-1] == undefined) {
+            return _entities[eid-1].seqFrames;
+        }
+        else {
+            return _entity_animations[eid-1].frames;
+        }
     }
 
     function _entityAnimateStop (eid) {
@@ -863,8 +885,29 @@ var GX = new function() {
 
     function _entityFrameSet (eid, seq, frame) {
         _entities[eid-1].spriteSeq = seq;
+        _entities[eid-1].seqFrames = _entityGetFrames(eid, seq); //_entity_animations[eid-1][seq-1].frames;
         _entities[eid-1].spriteFrame = frame;
         _entities[eid-1].prevFrame = frame - 1;
+    }
+
+    function _entityFrame (eid) {
+        return _entities[eid-1].spriteFrame;
+    }
+
+    function _entitySequence (eid) {
+        return _entities[eid-1].spriteSeq;
+    }
+
+    function _entitySequences (eid) {
+        return _entities[eid-1].sequences;
+    }
+
+    function _entityFrames (eid, seq) {
+        return _entityGetFrames(eid, seq); //_entity_animations[eid-1][seq-1].frames;
+    }
+
+    function _entityFrames (eid, seq, frames) {
+        _entity_animations[eid-1][seq-1] = { frames: frames };
     }
 
     function _entityType (eid, etype) {
@@ -2479,7 +2522,7 @@ var GX = new function() {
     this.soundRepeat = _soundRepeat;
     this.soundPause = _soundPause;
     this.soundStop = _soundStop;
-    this.soundVolumne = _soundVolume;
+    this.soundVolume = _soundVolume;
     this.soundMuted = _soundMuted;
 
     this.entityCreate = _entityCreate;
@@ -2506,6 +2549,12 @@ var GX = new function() {
     this.entityCollide = _entityCollide;
     this.entityApplyGravity = _entityApplyGravity;
     this.entityVisible = _entityVisible;
+
+    this.entityFrame = _entityFrame;
+    this.entitySequence = _entitySequence;
+    this.entitySequences = _entitySequences;
+    this.entityFrames = _entityFrames;
+
     
     this.mapColumns = _mapColumns;
     this.mapCreate = _mapCreate;
