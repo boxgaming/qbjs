@@ -2632,6 +2632,8 @@ var QB = new function() {
             position--;
         }
 
+        var vfs = GX.vfs();
+
         if (value._dimensions) {
             var idx = [];
             for (var di=0; di < value._dimensions.length; di++) {
@@ -3106,6 +3108,7 @@ var QB = new function() {
         var script = document.createElement("script")
         document.body.appendChild(script);
         script.id = url;
+        script.async = false;
 
         var file = vfs.getNode(url, vfsCwd);
         if (file && file.type == vfs.FILE) {
