@@ -362,8 +362,9 @@ var IDE = new function() {
         var mode = _e.shareMode.value;
         zip.file("index.html", await getFile("export/" + mode + ".html", "text"));
         zip.file("program.js", jsCode);
-        zip.file("fullscreen.png", await getFile("export/fullscreen.png", "blob"));
-        zip.file("logo.png", await getFile("logo.png", "blob"));
+        zip.file("fullscreen.svg", await getFile("export/fullscreen.svg", "blob"));
+        zip.file("fullscreen-hover.svg", await getFile("export/fullscreen-hover.svg", "blob"));
+        zip.file("logo.png", await getFile("export/logo.png", "blob"));
         zip.file("dosvga.ttf", await getFile("dosvga.ttf", "blob"));
         zip.file("play.png", await getFile("play.png", "blob"));
         zip.file("qbjs.css", await getFile("export/qbjs.css", "text"));

@@ -6,7 +6,10 @@
     </head>
     <body onload="startProgram()" onresize="resizeScreen()">
         <div id="gx-container"></div>
-		<div id="gx-footer" style="display:none"></div>
+        <div id="gx-footer" style="display:none">
+            <div id="gx-link"><a href="https://github.com/boxgaming/qbjs/wiki" target="_blank" title="Powered by QBJS"><img src="logo.png"></a></div>    
+            <div id="gx-fullscreen" onclick="GX.fullScreen(true)" title="Full Screen Mode"></div>
+        </div>
         <span style="color:transparent">&nbsp;</span>
     </body>
     <script language="javascript" src="vfs.js"></script>
@@ -17,12 +20,22 @@
 		function startProgram() {
 			resizeScreen();
             __qbjs_run();
+            resizeScreen();
 		}
-		function resizeScreen() {
+        function resizeScreen() {
 			var c = document.getElementById("gx-container");
             c.style.width = window.innerWidth;
             c.style.height = window.innerHeight;
-			QB.resize(c.clientWidth, c.clientHeight);
+            var cv = GX.canvas();
+            if (cv) {
+                var footer = document.getElementById("gx-footer");
+                if (footer.parentNode != c) {
+                    footer.style.display = "flex";
+                    c.appendChild(footer);
+                }
+                QB.resize(c.clientWidth, c.clientHeight);
+            }
 		}
+        resizeScreen();
     </script>
 </html>
