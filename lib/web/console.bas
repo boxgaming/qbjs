@@ -38,7 +38,7 @@ Sub Log (msg As String, msgType As String)
 
     $If Javascript Then
         var t = document.querySelector("#warning-container table");
-        if (!t || appMode != "ide") { 
+        if (!t || IDE.mode() != "ide") { 
             console.log(msgType + ":" + msg);
             return; 
         }
@@ -55,14 +55,14 @@ Sub Log (msg As String, msgType As String)
         var container = document.getElementById("output-content");
         container.scrollTop = container.scrollHeight;
         IDE.changeTab("console");
-        IDE.showConsole();
+        IDE.showConsole(true);
     $End If
 End Sub
 
 Sub Echo (msg As String)
     $If Javascript Then
         var t = document.querySelector("#warning-container table");
-        if (!t || appMode != "ide") {
+        if (!t || IDE.mode() != "ide") {
             console.log(msg); 
             return;
         }
@@ -73,7 +73,7 @@ Sub Echo (msg As String)
         var container = document.getElementById("output-content");
         container.scrollTop = container.scrollHeight;
         IDE.changeTab("console");
-        IDE.showConsole();
+        IDE.showConsole(true);
     $End If
 End Sub
 

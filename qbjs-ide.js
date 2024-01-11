@@ -612,8 +612,11 @@ var IDE = new function() {
         tr.append(td);
     }
 
-    function _showConsole() {
+    function _showConsole(force) {
         consoleVisible = !consoleVisible;
+        if (force != undefined) {
+            consoleVisible = force;
+        }
         if (!consoleVisible) {
             _e.tbConsoleShow.style.display = "inline-block";
             _e.tbConsoleHide.style.display = "none";
@@ -1047,6 +1050,7 @@ var IDE = new function() {
         }
     }
 
+    this.mode = function() { return appMode; }
     this.getErrorLine = _getErrorLine;
     this.runProgram = _runProgram;
     this.stopProgram = _stopProgram;
