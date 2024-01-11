@@ -30,6 +30,8 @@ var QB = new function() {
     var _inkeymap = {};
     var _inkeynp = {};
     var _inputMode = false;
+    var _inputCursor = false;
+    var _inputTimeout = false;
     var _keyDownMap = {};
     var _keyHitBuffer = [];
     var _keyhitmap = {};
@@ -141,6 +143,8 @@ var QB = new function() {
     this.halt = function() {
         _haltedFlag = true;
         _runningFlag = false;
+        _inputMode = false;
+        toggleCursor(true);
     };
 
     this.halted = function() {
@@ -169,9 +173,9 @@ var QB = new function() {
         _nextFontId = 1000;
         _font = 16;
         _fonts = {};
-        _fonts[8] = { name: "dosvga", size: "16px", style: "", offset: 3, monospace: true };
-        _fonts[14] = { name: "dosvga", size: "16px", style: "", offset: 3, monospace: true };
-        _fonts[16] = { name: "dosvga", size: "16px", style: "", offset: 3, monospace: true };
+        _fonts[8] = { name: "dosvga", size: "16px", style: "", offset: 4, monospace: true };
+        _fonts[14] = { name: "dosvga", size: "16px", style: "", offset: 4, monospace: true };
+        _fonts[16] = { name: "dosvga", size: "16px", style: "", offset: 4, monospace: true };
         GX.vfsCwd(GX.vfs().rootDirectory());
         _fileHandles = {};
         _initColorTable();
@@ -390,9 +394,11 @@ var QB = new function() {
 
     this.sub__Font = function(fnt) {
         if (fnt < 1000) {
+            GX.ctx().letterSpacing = "-1px";
             GX.canvas().style.letterSpacing = "-1px";
         }
         else {
+            GX.ctx().letterSpacing = "0px";
             GX.canvas().style.letterSpacing = "normal";
         }
         _font = fnt;
@@ -1597,6 +1603,36 @@ var QB = new function() {
     };
 
 
+    function blinkCursor() {
+        if (_inputMode == true) {
+            _inputTimeout = true;
+            toggleCursor();
+            setTimeout(blinkCursor, 400);
+        }
+        else {
+            _inputTimeout = false;
+        }
+    }
+
+    function toggleCursor(off) {
+        if (!off || off != _inputCursor) {
+            var ctx = _images[_activeImage].ctx;
+            ctx.beginPath();
+            ctx.globalCompositeOperation="difference";
+            ctx.fillStyle = "white";
+            var w = QB.func__FontWidth();
+            if (w < 1) {
+                var tm = ctx.measureText("A");
+                w = tm.width;
+            }
+            ctx.rect(_lastTextX, (_locY + 1) * QB.func__FontHeight() - 2, w, 2);
+            
+            ctx.fill();
+            ctx.globalCompositeOperation = "source-over";
+            _inputCursor = !_inputCursor;
+        }
+    }
+
     this.sub_Input = async function(values, preventNewline, addQuestionPrompt, prompt) {
         _lastKey = null;
         var str = "";
@@ -1612,42 +1648,65 @@ var QB = new function() {
         }
 
         if (!preventNewline && _locY > _textRows()-1) {
-                await _printScroll();
+            await _printScroll();
             _locY = _textRows()-1;
         }
 
-        var ctx = _images[_activeImage].ctx;
+        if (!_inputTimeout) {
+            setTimeout(blinkCursor, 400);
+        }
 
-        while (_lastKey != "Enter") {
+        var ctx = _images[_activeImage].ctx;
+        var copy = document.createElement("canvas");
+        copy.width = _images[_activeImage].canvas.width;
+        copy.height = _images[_activeImage].canvas.height;
+        var copyCtx = copy.getContext("2d");
+        copyCtx.drawImage(_images[_activeImage].canvas, 0, 0);
+
+        var beginTextX = _lastTextX;
+        while (_lastKey != "Enter" && _inputMode) {
 
             if (_lastKey == "Backspace" && str.length > 0) {
+                toggleCursor(true);
                 _locX--;
                 
                 var tm = ctx.measureText(str);
                 str = str.substring(0, str.length-1);
-                ctx.beginPath();
-                ctx.fillStyle = _bgColor.rgba();
-                ctx.fillRect(_lastTextX, _locY * QB.func__FontHeight(), tm.width, QB.func__FontHeight());
-                QB.sub__PrintString(_lastTextX, _locY * QB.func__FontHeight(), str);
+                var tm = ctx.measureText(str);
+                _lastTextX = beginTextX + tm.width;
+                ctx.clearRect(0, 0, copy.width, copy.height);
+                ctx.drawImage(copy, 0, 0);
+                QB.sub__PrintString(beginTextX, _locY * QB.func__FontHeight(), str);
             }
 
             else if (_lastKey && _lastKey.length < 2) {
+                toggleCursor(true);
                 str += _lastKey;
-                QB.sub__PrintString(_lastTextX, _locY * QB.func__FontHeight(), str);
+                var tm = ctx.measureText(str);
+                ctx.clearRect(0, 0, copy.width, copy.height);
+                ctx.drawImage(copy, 0, 0);
+                QB.sub__PrintString(beginTextX, _locY * QB.func__FontHeight(), str);
                 _locX++;
+                _lastTextX = beginTextX + tm.width;
             }
 
             _lastKey = null;
-            await GX.sleep(10);
+            await GX.sleep(5);
         }
+        if (!_inputMode) { return; }
+
+        _inputMode = false;
+        toggleCursor(true);
+
         if (!preventNewline) {
-            _locY++;
             _locX = 0;
             _lastTextX = 0;
-        }
-        else {
-            var tm = ctx.measureText(str);
-            _lastTextX += tm.width;
+            if (_locY < _textRows()-1) {
+                _locY = _locY + 1;
+            }
+            else {
+                await _printScroll();
+            }
         }
 
         if (values.length < 2) {
@@ -1659,7 +1718,6 @@ var QB = new function() {
                 values[i] = vparts[i] ? vparts[i] : "";
             }
         }
-        _inputMode = false;
     }
 
     this.sub_InputFromFile = async function(fh, returnValues) {
@@ -2858,7 +2916,7 @@ var QB = new function() {
         _keyDownMap = {};
 
         // TODO: set the appropriate default font for the selected screen mode above instead of here
-        //GX.canvas().style.letterSpacing = "-1px";
+        QB.sub__Font(_font);
     };
 
     this.func_Seek = function(fh) {
