@@ -1,6 +1,6 @@
 @font-face {
     font-family: dosvga;
-    src: url(dosvga.ttf);
+    src: url(qbjs.woff2);
 }   
 body { 
     background-color: rgb(0, 0, 39); 
@@ -47,7 +47,6 @@ a:after { content: " >"; }
 #gx-canvas {
     border: 1px solid #222; 
     background-color: #000;
-    letter-spacing: -1px;
     font-family: dosvga;
 }
 #output-container {
@@ -187,7 +186,6 @@ dialog textarea,
 #prog-sel-dialog select {
     font-family: dosvga;
     font-size: 1em;
-    letter-spacing: -1px;
     background-color: #efefef;
     padding: 5px;
 }

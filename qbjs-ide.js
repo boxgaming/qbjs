@@ -365,7 +365,7 @@ var IDE = new function() {
         zip.file("fullscreen.svg", await getFile("export/fullscreen.svg", "blob"));
         zip.file("fullscreen-hover.svg", await getFile("export/fullscreen-hover.svg", "blob"));
         zip.file("logo.png", await getFile("export/logo.png", "blob"));
-        zip.file("dosvga.ttf", await getFile("dosvga.ttf", "blob"));
+        zip.file("qbjs.woff2", await getFile("qbjs.woff2", "blob"));
         zip.file("play.png", await getFile("play.png", "blob"));
         zip.file("qbjs.css", await getFile("export/qbjs.css", "text"));
         zip.file("qb.js", await getFile("qb.js", "text"));

@@ -60,7 +60,6 @@ var QB = new function() {
     var _windowDef = [];
     var _fileHandles = null;
     var _typeMap = {};
-    var _letterSpacingSupport = null;
 
     
     // Array handling methods
@@ -394,14 +393,6 @@ var QB = new function() {
     };
 
     this.sub__Font = function(fnt) {
-        if (fnt < 1000) {
-            GX.ctx().letterSpacing = "-1px";
-            GX.canvas().style.letterSpacing = "-1px";
-        }
-        else {
-            GX.ctx().letterSpacing = "0px";
-            GX.canvas().style.letterSpacing = "normal";
-        }
         _font = fnt;
         _locX = 0;
         _lastTextX = 0;
@@ -751,43 +742,23 @@ var QB = new function() {
         ctx.beginPath();
         var f = _fonts[_font];
         ctx.font = f.size + " " + f.name;
-        // ------------------------------------------------------------------
-        // special case for built-in fonts and safari
-        // if safari adds 2d canvas letterSpacing support this can be removed
-        if (!_letterSpacingSupport && _font < 1000) {
-            for (var i=0; i < s.length; i++) {
-                var ch = s.substring(i, i+1);
-                if (_printMode != QB._KEEPBACKGROUND) {
-                    ctx.fillStyle = _bgColor.rgba();
-                    ctx.fillRect(x + (i * QB.func__FontWidth()), y, QB.func__FontWidth(), QB.func__FontHeight());
-                }
-                if (_printMode != QB._ONLYBACKGROUND) {
-                    // Draw the string
-                    ctx.fillStyle = _fgColor.rgba();
-                    ctx.fillText(ch, x + (i * QB.func__FontWidth()), y + QB.func__FontHeight() - f.offset);
-                }
-            }
+        var tm = ctx.measureText(s);
+        var fheight = 0;
+        if (tm.fontBoundingBoxAscent) {
+            fheight = tm.fontBoundingBoxAscent + tm.fontBoundingBoxDescent;
         }
-        // ------------------------------------------------------------------
         else {
-            var tm = ctx.measureText(s);
-            var fheight = 0;
-            if (tm.fontBoundingBoxAscent) {
-                fheight = tm.fontBoundingBoxAscent + tm.fontBoundingBoxDescent;
-            }
-            else {
-                fheight = tm.actualBoundingBoxAscent + tm.actualBoundingBoxDescent;
-            }
-     
-            if (_printMode != QB._KEEPBACKGROUND) {
-                ctx.fillStyle = _bgColor.rgba();
-                ctx.fillRect(x, y, tm.width, fheight);
-            }
-            if (_printMode != QB._ONLYBACKGROUND) {
-                // Draw the string
-                ctx.fillStyle = _fgColor.rgba();
-                ctx.fillText(s, x, y + fheight - f.offset);
-            }
+            fheight = tm.actualBoundingBoxAscent + tm.actualBoundingBoxDescent;
+        }
+    
+        if (_printMode != QB._KEEPBACKGROUND) {
+            ctx.fillStyle = _bgColor.rgba();
+            ctx.fillRect(x, y, tm.width, fheight);
+        }
+        if (_printMode != QB._ONLYBACKGROUND) {
+            // Draw the string
+            ctx.fillStyle = _fgColor.rgba();
+            ctx.fillText(s, x, y + fheight - f.offset);
         }
     };
 
@@ -2408,38 +2379,17 @@ var QB = new function() {
                         }
                         var y =  _locY * QB.func__FontHeight();
 
-                        // ------------------------------------------------------------------
-                        // special case for built-in fonts and safari
-                        // if safari adds 2d canvas letterSpacing support this can be removed
-                        if (!_letterSpacingSupport && _font < 1000) {
-                            for (var i=0; i < subline.length; i++) {
-                                var ch = subline.substring(i, i+1);
-                                if (_printMode != QB._KEEPBACKGROUND) {
-                                    ctx.fillStyle = _bgColor.rgba();
-                                    ctx.fillRect(x + (i * QB.func__FontWidth()), y, QB.func__FontWidth(), QB.func__FontHeight());
-                                }
-                                if (_printMode != QB._ONLYBACKGROUND) {
-                                    // Draw the string
-                                    ctx.fillStyle = _fgColor.rgba();
-                                    ctx.fillText(ch, x + (i * QB.func__FontWidth()), y + QB.func__FontHeight() - f.offset);
-                                }
-                            }
-                            x += QB.func__FontWidth();
+                        // Draw the text background
+                        var tm = ctx.measureText(subline);
+                        if (_printMode != QB._KEEPBACKGROUND) {
+                            ctx.fillStyle = _bgColor.rgba();
+                            ctx.fillRect(x, y, tm.width, QB.func__FontHeight());
                         }
-                        // ------------------------------------------------------------------
-                        else {
-                            // Draw the text background
-                            var tm = ctx.measureText(subline);
-                            if (_printMode != QB._KEEPBACKGROUND) {
-                                ctx.fillStyle = _bgColor.rgba();
-                                ctx.fillRect(x, y, tm.width, QB.func__FontHeight());
-                            }
-                            if (_printMode != QB._ONLYBACKGROUND) {
-                                ctx.fillStyle = _fgColor.rgba();
-                                ctx.fillText(subline, x, (y + QB.func__FontHeight() - f.offset));
-                            }
-                            x += tm.width;
+                        if (_printMode != QB._ONLYBACKGROUND) {
+                            ctx.fillStyle = _fgColor.rgba();
+                            ctx.fillText(subline, x, (y + QB.func__FontHeight() - f.offset));
                         }
+                        x += tm.width;
 
                         _locX += subline.length;
                     }
@@ -2958,10 +2908,6 @@ var QB = new function() {
         _keyDownMap = {};
 
         // TODO: set the appropriate default font for the selected screen mode above instead of here
-        if (_letterSpacingSupport == null) {
-            _letterSpacingSupport = (GX.ctx().letterSpacing) ? true : false;
-        }
-        QB.sub__Font(_font);
     };
 
     this.func_Seek = function(fh) {

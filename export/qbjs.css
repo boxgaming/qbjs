@@ -1,11 +1,10 @@
 @font-face {
 	font-family: dosvga;
-	src: url(dosvga.ttf);
+	src: url(qbjs.woff2);
 }   
 body { 
 	background-color: #000; 
 	font-family: dosvga, Arial, Helvetica, sans-serif;
-	letter-spacing: -1px;
 	color: #999;
 }
 #gx-container {

@@ -45,11 +45,6 @@
 
 body {
   background-color: #0000AA;
-  letter-spacing: -1px;
-}
-
-#gx-container {
-  letter-spacing: normal;
 }
 
 #code, #gx-container, #toolbar, #toolbar .spacer, .tab, #output-content {

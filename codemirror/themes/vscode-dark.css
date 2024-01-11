@@ -59,7 +59,6 @@ body {
 
 #slider { 
     font-family: dosvga;
-    letter-spacing: -1px;
 }
 
 a, #tabs {
@@ -89,7 +88,6 @@ a, #tabs {
 
 dialog textarea { 
     font-family: Consolas, 'Courier New', monospace; 
-    letter-spacing: normal;
     background-color: #1e1e1e;
     color: #ccc;
 }

@@ -20,7 +20,6 @@
 .cm-s-win-classic .cm-header { color: #FF6400; }
 .cm-s-win-classic .cm-hr { color: #AEAEAE; }
 .cm-s-win-classic .cm-link { color:#ad9361; font-style:italic; text-decoration:none; }
-/*.cm-s-win-classic .cm-error { border-bottom: 1px solid red; }*/
 
 div.cm-s-win-classic .CodeMirror-activeline-background { background: #efefff; }
 div.cm-s-win-classic span.CodeMirror-matchingbracket { outline:1px solid grey; color: inherit; }
@@ -51,7 +50,6 @@ li a:active { border: 0; }
 dialog textarea { 
   font-family: 'Courier New', monospace; 
   font-size: 14px;
-  letter-spacing: normal;
   border: 2px inset;
 }
 dialog textarea:focus {
@@ -65,7 +63,6 @@ dialog {
 
 #code {
   border: 2px inset;
-  /*border-top: 0;*/
   font-size: 14px;
 }
 
@@ -73,7 +70,6 @@ dialog {
 
 #output-content, #warning-container {
   font-family: 'Courier New', monospace;
-  /*font-size: 14px;*/
 }
 
 #output-content { 
