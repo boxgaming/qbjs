@@ -4,8 +4,8 @@ Const SQUARE = "square"
 
 Export DEFAULT, ROUND, SQUARE
 Export RotoZoom, SaveImage
-Export Triangle, FillTriangle, RoundRect, FillRoundRect
-Export Shadow, ShadowOff, LineWidth, LineCap 
+Export Triangle, FillTriangle, RoundRect, FillRoundRect, InvertRect
+Export Shadow, ShadowOff, LineWidth, LineCap, LineDash, LineDashOff
 Export FillCircle, Ellipse, FillEllipse, Curve, Bezier
 
 Sub RotoZoom (centerX As Long, centerY As Long, img As Long, xScale As Single, yScale As Single, rotation As Single)
@@ -188,6 +188,28 @@ Sub _RoundRect (x As Long, y As Long, w As Long, h As Long, radius As Integer, c
     $End If
 End Sub
 
+Sub InvertRect (x As Long, y As Long, width As Long, height As Long, fill As Integer)
+    Dim destImg As Long 
+    destImg = _Dest
+
+    $If Javascript Then
+        var ctx = QB.getImage(destImg).getContext("2d");
+        ctx.beginPath();
+        ctx.globalCompositeOperation="difference";
+        if (fill) {
+            ctx.fillStyle = "white";
+            ctx.rect(x, y, width, height);
+            ctx.fill();
+        }
+        else {
+            ctx.strokeStyle = "white";
+            ctx.rect(x, y, width, height);
+            ctx.stroke();
+        }
+        ctx.globalCompositeOperation = "source-over";
+    $End If
+End Sub
+
 Sub Shadow (clr As Long, offsetX As Long, offsetY As Long, blur As Long)
     Dim destImg As Long
     destImg = _Dest
@@ -253,6 +275,30 @@ Function LineCap
         LineCap = ctx.lineCap;
     $End If
 End Function
+
+Sub LineDash (dashLen As Integer, dashSpace As Integer)
+    $If Javascript Then
+        var ctx = QB.getImage(QB.func__Dest()).getContext("2d");
+        if (dashLen > 0) {
+            var dl = dashLen;
+            var ds = dashLen;
+            if (dashSpace > 0) {
+                ds = dashSpace;
+            }
+            ctx.setLineDash([dl, ds])
+        }
+        else {
+            ctx.setLineDash([])
+        }
+    $End If
+End Sub
+
+Sub LineDashOff
+    $If Javascript Then
+        var ctx = QB.getImage(QB.func__Dest()).getContext("2d");
+        ctx.setLineDash([])
+    $End If
+End Sub
 
 Sub Curve (sx As Long, sy As Long, cx As Long, cy As Long, ex As Long, ey as Long, clr As _Unsigned Long)
     If clr = undefined Then 
