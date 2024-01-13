@@ -345,7 +345,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 tvar.typeId = currType
                 tvar.name = parts(1)
                 tvar.type = UCase$(parts(3))
-                If tvar.type = "_UNSIGNED" Then tvar.type = tvar.type + " " + UCase$(parts(4))
+                If tvar.type = "_UNSIGNED" Or tvar.type = "UNSIGNED" Then tvar.type = "_UNSIGNED " + UCase$(parts(4))
                 AddVariable tvar, typeVars()
             End If
         Else
@@ -547,7 +547,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 loopLevel = loopLevel - 1
                 indent = -1
 
-            ElseIf first = "_CONTINUE" Then
+            ElseIf first = "_CONTINUE" Or first = "CONTINUE" Then
                 js = "continue;"
 
             ElseIf UCase$(l) = "EXIT FUNCTION" Then
@@ -852,13 +852,13 @@ Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
     ElseIf m.name = "Write" Then
         js = ConvertWrite(m, args, lineNumber)
 
-    ElseIf m.name = "_PrintString" Then
+    ElseIf m.name = "_PrintString" Or m.name = "PrintString" Then
         js = CallMethod(m) + "(" + ConvertPrintString(args, lineNumber) + ");"
 
-    ElseIf m.name = "_PutImage" Then
+    ElseIf m.name = "_PutImage" Or m.name = "PutImage" Then
         js = CallMethod(m) + "(" + ConvertPutImage(args, lineNumber) + ");"
 
-    ElseIf m.name = "_FullScreen" Then
+    ElseIf m.name = "_FullScreen" Or m.name = "FullScreen" Then
         js = CallMethod(m) + "(" + ConvertFullScreen(args) + ");"
 
     Else
@@ -918,16 +918,16 @@ Function ConvertFullScreen$ (args As String)
     If argc > 0 Then
         Dim arg As String
         arg = UCase$(parts(1))
-        If arg = "_OFF" Then
+        If arg = "_OFF" Or arg = "OFF" Then
             mode = "QB.OFF"
-        ElseIf arg = "_STRETCH" Then
+        ElseIf arg = "_STRETCH" Or arg = "STRETCH" Then
             mode = "QB.STRETCH"
-        ElseIf arg = "_SQUAREPIXELS" Then
+        ElseIf arg = "_SQUAREPIXELS" Or arg = "SQUAREPIXELS" Then
             mode = "QB.SQUAREPIXELS"
         End If
     End If
     If argc > 1 Then
-        If UCase$(parts(2)) = "_SMOOTH" Then doSmooth = "true"
+        If UCase$(parts(2)) = "_SMOOTH" Or UCase$(parts(2)) = "SMOOTH" Then doSmooth = "true"
     End If
 
     ConvertFullScreen = mode + ", " + doSmooth
@@ -988,7 +988,7 @@ Function ConvertPutImage$ (args As String, lineNumber As Integer)
     destImage = "undefined"
 
     doSmooth = "false"
-    If EndsWith(_Trim$(UCase$(args)), "_SMOOTH") Then
+    If EndsWith(_Trim$(UCase$(args)), "_SMOOTH") Or EndsWith(_Trim$(UCase$(args)), "SMOOTH") Then
         doSmooth = "true"
         args = Left$(_Trim$(args), Len(_Trim$(args)) - 7)
     End If
@@ -1001,7 +1001,7 @@ Function ConvertPutImage$ (args As String, lineNumber As Integer)
     End If
     If argc >= 4 Then destCoord = ConvertCoordParam(parts(4), True, lineNumber)
     If argc >= 5 Then
-        If _Trim$(UCase$(parts(5))) = "_SMOOTH" Then doSmooth = "true"
+        If _Trim$(UCase$(parts(5))) = "_SMOOTH" Or _Trim$(UCase$(parts(5))) = "SMOOTH" Then doSmooth = "true"
     End If
 
     ConvertPutImage = startCoord + ", " + sourceImage + ", " + destImage + ", " + destCoord + ", " + doSmooth
@@ -1604,7 +1604,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
     Dim i As Integer
     For i = 1 To UBound(parts)
         If UCase$(parts(i)) = "AS" Then asIdx = i
-        If UCase$(parts(i)) = "_PRESERVE" Then preserve = "true"
+        If UCase$(parts(i)) = "_PRESERVE" Or UCase$(parts(i)) = "PRESERVE" Then preserve = "true"
         If UCase$(parts(i)) = "SHARED" Then isGlobal = True
     Next i
 
@@ -1649,7 +1649,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
         For i = 1 To UBound(parts)
             Dim p As String
             p = UCase$(parts(i))
-            If p = "DIM" Or p = "REDIM" Or p = "SHARED" Or p = "_PRESERVE" Or p = "STATIC" Then
+            If p = "DIM" Or p = "REDIM" Or p = "SHARED" Or p = "_PRESERVE" Or p = "PRESERVE" Or p = "STATIC" Then
                 nextIdx = i + 1
             End If
         Next i
@@ -1700,6 +1700,7 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
     If isStatic Then
         bvar.jsname = "$" + currentMethod + "__" + bvar.jsname
     End If
+    bvar.type = NormalizeType(bvar.type)
 
     If Not bvar.isArray Then
         js = js + "var " + bvar.jsname + " = " + InitTypeValue(bvar.type) + "; "
@@ -2067,7 +2068,7 @@ Sub ConvertMethods ()
                     ' add the parameter to the local variables
                     Dim bvar As Variable
                     bvar.name = RemoveSuffix(parts(1))
-                    bvar.type = parts(2)
+                    bvar.type = NormalizeType(parts(2))
                     bvar.typeId = FindTypeId(bvar.type)
                     If parts(3) = "true" Then
                         bvar.isArray = True
@@ -2079,11 +2080,11 @@ Sub ConvertMethods ()
                     If Not bvar.isArray Then
                         Dim typeName As String
                         typeName = UCase$(bvar.type)
-                        If typeName = "BIT" Or typeName = "UNSIGNED BIT" Or _
-                           typeName = "BYTE" Or typeName = "UNSIGNED BYTE" Or _
-                           typeName = "INTEGER" Or typeName = "UNSIGNED INTEGER" Or _
-                           typeName = "LONG" Or typeName = "UNSIGNED LONG" Or _
-                           typeName = "_INTEGER64" Or typeName = "UNSIGNED _INTEGER64" Then
+                        If typeName = "_BIT" Or typeName = "_UNSIGNED _BIT" Or _
+                           typeName = "_BYTE" Or typeName = "_UNSIGNED _BYTE" Or _
+                           typeName = "INTEGER" Or typeName = "_UNSIGNED INTEGER" Or _
+                           typeName = "LONG" Or typeName = "_UNSIGNED LONG" Or _
+                           typeName = "_INTEGER64" Or typeName = "_UNSIGNED _INTEGER64" Then
                             ' lookup the variable to get the jsname
                             Dim varIsArray As Integer
                             If FindVariable(bvar.name, bvar, varIsArray) Then
@@ -2779,10 +2780,17 @@ Sub PrintTypes
     Next i
 End Sub
 
-Function CopyMethod (fromMethod As Method, toMethod As Method)
+Sub CopyMethod (fromMethod As Method, toMethod As Method)
     toMethod.type = fromMethod.type
     toMethod.name = fromMethod.name
-End Function
+    toMethod.returnType = fromMethod.returnType
+    toMethod.name = fromMethod.name
+    toMethod.uname = fromMethod.uname
+    toMethod.argc = fromMethod.argc
+    toMethod.args = fromMethod.args
+    toMethod.jsname = fromMethod.jsname
+    toMethod.sync = fromMethod.sync
+End Sub
 
 Sub AddMethod (m As Method, prefix As String, sync As Integer)
     Dim mcount: mcount = UBound(methods) + 1
@@ -2795,7 +2803,6 @@ Sub AddMethod (m As Method, prefix As String, sync As Integer)
     m.sync = sync
     methods(mcount) = m
 End Sub
-
 
 Sub AddExportMethod (m As Method, prefix As String, sync As Integer)
     Dim mcount: mcount = UBound(exportMethods) + 1
@@ -2840,6 +2847,16 @@ Sub AddQBMethod (mtype As String, mname As String, sync As Integer)
     m.type = mtype
     m.name = mname
     AddMethod m, "QB.", sync
+    If InStr(mname, "_") = 1 Then
+        ' Register the method again without the "_" prefix
+        Dim m2 As Method
+        CopyMethod methods(UBound(methods)), m2
+        m2.name = Mid$(mname, 2)
+        m2.uname = UCase$(RemoveSuffix(m2.name))
+        Dim mcount: mcount = UBound(methods) + 1
+        ReDim _Preserve As Method methods(mcount)
+        methods(mcount) = m2
+    End If
 End Sub
 
 Sub AddNativeMethod (mtype As String, mname As String, jsname As String, sync As Integer)
@@ -2943,7 +2960,7 @@ Sub AddVariable (bvar As Variable, vlist() As Variable)
     Dim vcount: vcount = UBound(vlist) + 1
     ReDim _Preserve As Variable vlist(vcount)
     Dim nvar As Variable
-    nvar.type = bvar.type
+    nvar.type = NormalizeType(bvar.type)
     nvar.name = bvar.name
     nvar.jsname = bvar.jsname
     nvar.isConst = bvar.isConst
@@ -2952,8 +2969,39 @@ Sub AddVariable (bvar As Variable, vlist() As Variable)
     nvar.typeId = bvar.typeId
 
     If nvar.jsname = "" Then nvar.jsname = RemoveSuffix(nvar.name)
+
+
     vlist(vcount) = nvar
 End Sub
+
+Function NormalizeType$ (itype As String)
+    ' Replace non-underscore prefixed type names with the underscore version
+    Dim otype As String
+
+    If itype = "BIT" Then
+        otype = "_BIT"
+    ElseIf itype = "_UNSIGNED BIT" Then
+        otype = "_UNSIGNED _BIT"
+    ElseIf itype = "BYTE" Then
+        otype = "_BYTE"
+    ElseIf itype = "_UNSIGNED BYTE" Then
+        otype = "_UNSIGNED _BYTE"
+    ElseIf itype = "INTEGER64" Then
+        otype = "_INTEGER64"
+    ElseIf itype = "_UNSIGNED INTEGER64" Then
+        otype = "_UNSIGNED _INTEGER64"
+    ElseIf itype = "FLOAT" Then
+        otype = "_FLOAT"
+    ElseIf itype = "OFFSET" Then
+        otype = "_OFFSET"
+    ElseIf itype = "_UNSIGNED OFFSET" Then
+        otype = "_UNSIGNED _OFFSET"
+    Else
+        otype = itype
+    End If
+
+    NormalizeType = otype
+End Function
 
 Sub AddType (t As QBType)
     Dim tcount: tcount = UBound(types) + 1
@@ -3505,6 +3553,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_BackgroundColor", False
     AddQBMethod "FUNCTION", "_Blue", False
     AddQBMethod "FUNCTION", "_Blue32", False
+    AddQBMethod "FUNCTION", "_CapsLock", False
     AddQBMethod "FUNCTION", "_Ceil", False
     AddQBMethod "FUNCTION", "_CommandCount", False
     AddQBMethod "FUNCTION", "_CopyImage", False
@@ -3515,6 +3564,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_D2G", False
     AddQBMethod "FUNCTION", "_D2R", False
     AddQBMethod "FUNCTION", "_DefaultColor", False
+    AddQBMethod "FUNCTION", "_Deflate", False
     AddQBMethod "SUB", "_Delay", True
     AddQBMethod "FUNCTION", "_DesktopHeight", False
     AddQBMethod "FUNCTION", "_DesktopWidth", False
@@ -3539,6 +3589,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Green32", False
     AddQBMethod "FUNCTION", "_Height", False
     AddQBMethod "FUNCTION", "_Hypot", False
+    AddQBMethod "FUNCTION", "_Inflate", False
     AddQBMethod "FUNCTION", "_InStrRev", False
     AddQBMethod "SUB", "_Limit", True
     AddQBMethod "SUB", "_KeyClear", False
@@ -3554,6 +3605,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_MouseX", False
     AddQBMethod "FUNCTION", "_MouseY", False
     AddQBMethod "FUNCTION", "_NewImage", False
+    AddQBMethod "FUNCTION", "_NumLock", False
     AddQBMethod "FUNCTION", "_OS$", False
     AddQBMethod "FUNCTION", "_Pi", False
     AddQBMethod "SUB", "_PaletteColor", False
@@ -3580,6 +3632,7 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_ScreenMove", False
     AddQBMethod "FUNCTION", "_ScreenX", False
     AddQBMethod "FUNCTION", "_ScreenY", False
+    AddQBMethod "FUNCTION", "_ScrollLock", False
     AddQBMethod "FUNCTION", "_Sech", False
     AddQBMethod "FUNCTION", "_Setbit", False
     AddQBMethod "FUNCTION", "_Shl", False
@@ -3646,9 +3699,10 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Left$", False
     AddQBMethod "FUNCTION", "LCase$", False
     AddQBMethod "FUNCTION", "Len", False
-    AddQBMethod "FUNCTION", "LOF", False
     AddQBMethod "SUB", "Line", False
+    AddQBMethod "FUNCTION", "Loc", False
     AddQBMethod "SUB", "Locate", False
+    AddQBMethod "FUNCTION", "LOF", False
     AddQBMethod "FUNCTION", "Log", False
     AddQBMethod "FUNCTION", "LTrim$", False
     AddQBMethod "SUB", "Kill", False
