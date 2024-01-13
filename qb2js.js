@@ -282,8 +282,8 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
             tvar.typeId =   currType;
             tvar.name =  QB.arrayValue(parts, [ 1]).value;
             tvar.type =  (QB.func_UCase( QB.arrayValue(parts, [ 3]).value));
-            if ( tvar.type ==  "_UNSIGNED" ) {
-               tvar.type =   tvar.type + " "  + (QB.func_UCase( QB.arrayValue(parts, [ 4]).value));
+            if ( tvar.type ==  "_UNSIGNED"  ||  tvar.type ==  "UNSIGNED" ) {
+               tvar.type =  "_UNSIGNED "  + (QB.func_UCase( QB.arrayValue(parts, [ 4]).value));
             }
             await sub_AddVariable(  tvar,   typeVars);
          }
@@ -470,7 +470,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
             }
             loopLevel =   loopLevel -  1;
             indent =   - 1;
-         } else if ( first ==  "_CONTINUE" ) {
+         } else if ( first ==  "_CONTINUE"  ||  first ==  "CONTINUE" ) {
             js =  "continue;";
          } else if ((QB.func_UCase(  l))  ==  "EXIT FUNCTION" ) {
             js =  "return "  + (await func_RemoveSuffix(  functionName))  + ";";
@@ -723,11 +723,11 @@ var ConvertSub = null;
       js =  (await func_CallMethod(  m))  + "("  + (await func_ConvertWindow(  args,    lineNumber))  + ");";
    } else if ( m.name ==  "Write" ) {
       js =  (await func_ConvertWrite(  m,    args,    lineNumber));
-   } else if ( m.name ==  "_PrintString" ) {
+   } else if ( m.name ==  "_PrintString"  ||  m.name ==  "PrintString" ) {
       js =  (await func_CallMethod(  m))  + "("  + (await func_ConvertPrintString(  args,    lineNumber))  + ");";
-   } else if ( m.name ==  "_PutImage" ) {
+   } else if ( m.name ==  "_PutImage"  ||  m.name ==  "PutImage" ) {
       js =  (await func_CallMethod(  m))  + "("  + (await func_ConvertPutImage(  args,    lineNumber))  + ");";
-   } else if ( m.name ==  "_FullScreen" ) {
+   } else if ( m.name ==  "_FullScreen"  ||  m.name ==  "FullScreen" ) {
       js =  (await func_CallMethod(  m))  + "("  + (await func_ConvertFullScreen(  args))  + ");";
    } else {
       js =  (await func_CallMethod(  m))  + "("  + (await func_ConvertMethodParams(  args,    lineNumber))  + ");";
@@ -786,16 +786,16 @@ var ConvertFullScreen = null;
    if ( argc > 0) {
       var arg = '';  /* STRING */ 
       arg =  (QB.func_UCase( QB.arrayValue(parts, [ 1]).value));
-      if ( arg ==  "_OFF" ) {
+      if ( arg ==  "_OFF"  ||  arg ==  "OFF" ) {
          mode =  "QB.OFF";
-      } else if ( arg ==  "_STRETCH" ) {
+      } else if ( arg ==  "_STRETCH"  ||  arg ==  "STRETCH" ) {
          mode =  "QB.STRETCH";
-      } else if ( arg ==  "_SQUAREPIXELS" ) {
+      } else if ( arg ==  "_SQUAREPIXELS"  ||  arg ==  "SQUAREPIXELS" ) {
          mode =  "QB.SQUAREPIXELS";
       }
    }
    if ( argc > 1) {
-      if ((QB.func_UCase( QB.arrayValue(parts, [ 2]).value))  ==  "_SMOOTH" ) {
+      if ((QB.func_UCase( QB.arrayValue(parts, [ 2]).value))  ==  "_SMOOTH"  || (QB.func_UCase( QB.arrayValue(parts, [ 2]).value))  ==  "SMOOTH" ) {
          doSmooth =  "true";
       }
    }
@@ -864,7 +864,7 @@ var ConvertPutImage = null;
    sourceImage =  "undefined";
    destImage =  "undefined";
    doSmooth =  "false";
-   if ((await func_EndsWith( (QB.func__Trim( (QB.func_UCase(  args)))) ,   "_SMOOTH")) ) {
+   if ((await func_EndsWith( (QB.func__Trim( (QB.func_UCase(  args)))) ,   "_SMOOTH"))  || (await func_EndsWith( (QB.func__Trim( (QB.func_UCase(  args)))) ,   "SMOOTH")) ) {
       doSmooth =  "true";
       args =  (QB.func_Left( (QB.func__Trim(  args)) ,   (QB.func_Len( (QB.func__Trim(  args))))  -  7));
    }
@@ -884,7 +884,7 @@ var ConvertPutImage = null;
       destCoord =  (await func_ConvertCoordParam( QB.arrayValue(parts, [ 4]).value ,    True,    lineNumber));
    }
    if ( argc >=  5) {
-      if ((QB.func__Trim( (QB.func_UCase( QB.arrayValue(parts, [ 5]).value))))  ==  "_SMOOTH" ) {
+      if ((QB.func__Trim( (QB.func_UCase( QB.arrayValue(parts, [ 5]).value))))  ==  "_SMOOTH"  || (QB.func__Trim( (QB.func_UCase( QB.arrayValue(parts, [ 5]).value))))  ==  "SMOOTH" ) {
          doSmooth =  "true";
       }
    }
@@ -1465,7 +1465,7 @@ var DeclareVar = null;
    asIdx =   0;
    var js = '';  /* STRING */ 
    js =  "";
-   var preserve = '';  /* STRING */ 
+   
    preserve =  "false";
    if ((QB.func_UCase( QB.arrayValue(parts, [ 1]).value))  ==  "STATIC" ) {
       if ( currentMethod ==  "" ) {
@@ -1489,7 +1489,7 @@ var DeclareVar = null;
       if ((QB.func_UCase( QB.arrayValue(parts, [ i]).value))  ==  "AS" ) {
          asIdx =   i;
       }
-      if ((QB.func_UCase( QB.arrayValue(parts, [ i]).value))  ==  "_PRESERVE" ) {
+      if ((QB.func_UCase( QB.arrayValue(parts, [ i]).value))  ==  "_PRESERVE"  || (QB.func_UCase( QB.arrayValue(parts, [ i]).value))  ==  "PRESERVE" ) {
          preserve =  "true";
       }
       if ((QB.func_UCase( QB.arrayValue(parts, [ i]).value))  ==  "SHARED" ) {
@@ -1527,7 +1527,7 @@ var DeclareVar = null;
       var ___v6478212 = 0; for ( i=  1;  i <= (QB.func_UBound(  parts));  i= i + 1) { if (QB.halted()) { return; } ___v6478212++;   if (___v6478212 % 100 == 0) { await QB.autoLimit(); }
          var p = '';  /* STRING */ 
          p =  (QB.func_UCase( QB.arrayValue(parts, [ i]).value));
-         if ( p ==  "DIM"  ||  p ==  "REDIM"  ||  p ==  "SHARED"  ||  p ==  "_PRESERVE"  ||  p ==  "STATIC" ) {
+         if ( p ==  "DIM"  ||  p ==  "REDIM"  ||  p ==  "SHARED"  ||  p ==  "_PRESERVE"  ||  p ==  "PRESERVE"  ||  p ==  "STATIC" ) {
             nextIdx =   i +  1;
          }
       } 
@@ -1572,6 +1572,7 @@ var RegisterVar = null;
    if ( isStatic) {
       bvar.jsname =  "$"  +  currentMethod + "__"  +  bvar.jsname;
    }
+   bvar.type =  (await func_NormalizeType(  bvar.type));
    if (! bvar.isArray) {
       js =   js + "var "  +  bvar.jsname + " = "  + (await func_InitTypeValue(  bvar.type))  + "; ";
    } else {
@@ -1938,7 +1939,7 @@ if (QB.halted()) { return; };
                }
                var bvar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
                bvar.name =  (await func_RemoveSuffix( QB.arrayValue(parts, [ 1]).value));
-               bvar.type =  QB.arrayValue(parts, [ 2]).value;
+               bvar.type =  (await func_NormalizeType( QB.arrayValue(parts, [ 2]).value));
                bvar.typeId =  (await func_FindTypeId(  bvar.type));
                if (QB.arrayValue(parts, [ 3]).value  ==  "true" ) {
                   bvar.isArray =   True;
@@ -1948,7 +1949,7 @@ if (QB.halted()) { return; };
                if (! bvar.isArray) {
                   var typeName = '';  /* STRING */ 
                   typeName =  (QB.func_UCase(  bvar.type));
-                  if ( typeName ==  "BIT"  ||  typeName ==  "UNSIGNED BIT"  ||  typeName ==  "BYTE"  ||  typeName ==  "UNSIGNED BYTE"  ||  typeName ==  "INTEGER"  ||  typeName ==  "UNSIGNED INTEGER"  ||  typeName ==  "LONG"  ||  typeName ==  "UNSIGNED LONG"  ||  typeName ==  "_INTEGER64"  ||  typeName ==  "UNSIGNED _INTEGER64" ) {
+                  if ( typeName ==  "_BIT"  ||  typeName ==  "_UNSIGNED _BIT"  ||  typeName ==  "_BYTE"  ||  typeName ==  "_UNSIGNED _BYTE"  ||  typeName ==  "INTEGER"  ||  typeName ==  "_UNSIGNED INTEGER"  ||  typeName ==  "LONG"  ||  typeName ==  "_UNSIGNED LONG"  ||  typeName ==  "_INTEGER64"  ||  typeName ==  "_UNSIGNED _INTEGER64" ) {
                      var varIsArray = 0;  /* INTEGER */ 
                      if ((await func_FindVariable(  bvar.name,    bvar,    varIsArray)) ) {
                         intConv =   intConv +  bvar.jsname + " = Math.round("  +  bvar.jsname + "); ";
@@ -2547,12 +2548,17 @@ if (QB.halted()) { return; };
       } 
    } 
 }
-async function func_CopyMethod(fromMethod/*METHOD*/,toMethod/*METHOD*/) {
+async function sub_CopyMethod(fromMethod/*METHOD*/,toMethod/*METHOD*/) {
 if (QB.halted()) { return; }; 
-var CopyMethod = null;
    toMethod.type =   fromMethod.type;
    toMethod.name =   fromMethod.name;
-return CopyMethod;
+   toMethod.returnType =   fromMethod.returnType;
+   toMethod.name =   fromMethod.name;
+   toMethod.uname =   fromMethod.uname;
+   toMethod.argc =   fromMethod.argc;
+   toMethod.args =   fromMethod.args;
+   toMethod.jsname =   fromMethod.jsname;
+   toMethod.sync =   fromMethod.sync;
 }
 async function sub_AddMethod(m/*METHOD*/,prefix/*STRING*/,sync/*INTEGER*/) {
 if (QB.halted()) { return; }; 
@@ -2612,6 +2618,16 @@ if (QB.halted()) { return; };
    m.type =   mtype;
    m.name =   mname;
    await sub_AddMethod(  m,   "QB." ,    sync);
+   if ((QB.func_InStr(  mname,   "_"))  ==   1) {
+      var m2 = {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0};  /* METHOD */ 
+      await sub_CopyMethod( QB.arrayValue(methods, [(QB.func_UBound(  methods))]).value ,    m2);
+      m2.name =  (QB.func_Mid(  mname,    2));
+      m2.uname =  (QB.func_UCase( (await func_RemoveSuffix(  m2.name))));
+      var mcount = 0;  /* SINGLE */ 
+      mcount =  (QB.func_UBound(  methods))  +  1;
+      QB.resizeArray(methods, [{l:0,u:mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0}, true);  /* METHOD */ 
+      QB.arrayValue(methods, [ mcount]).value =   m2;
+   }
 }
 async function sub_AddNativeMethod(mtype/*STRING*/,mname/*STRING*/,jsname/*STRING*/,sync/*INTEGER*/) {
 if (QB.halted()) { return; }; 
@@ -2719,7 +2735,7 @@ if (QB.halted()) { return; };
    vcount =  (QB.func_UBound(  vlist))  +  1;
    QB.resizeArray(vlist, [{l:0,u:vcount}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, true);  /* VARIABLE */ 
    var nvar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
-   nvar.type =   bvar.type;
+   nvar.type =  (await func_NormalizeType(  bvar.type));
    nvar.name =   bvar.name;
    nvar.jsname =   bvar.jsname;
    nvar.isConst =   bvar.isConst;
@@ -2730,6 +2746,34 @@ if (QB.halted()) { return; };
       nvar.jsname =  (await func_RemoveSuffix(  nvar.name));
    }
    QB.arrayValue(vlist, [ vcount]).value =   nvar;
+}
+async function func_NormalizeType(itype/*STRING*/) {
+if (QB.halted()) { return; }; 
+var NormalizeType = null;
+   var otype = '';  /* STRING */ 
+   if ( itype ==  "BIT" ) {
+      otype =  "_BIT";
+   } else if ( itype ==  "_UNSIGNED BIT" ) {
+      otype =  "_UNSIGNED _BIT";
+   } else if ( itype ==  "BYTE" ) {
+      otype =  "_BYTE";
+   } else if ( itype ==  "_UNSIGNED BYTE" ) {
+      otype =  "_UNSIGNED _BYTE";
+   } else if ( itype ==  "INTEGER64" ) {
+      otype =  "_INTEGER64";
+   } else if ( itype ==  "_UNSIGNED INTEGER64" ) {
+      otype =  "_UNSIGNED _INTEGER64";
+   } else if ( itype ==  "FLOAT" ) {
+      otype =  "_FLOAT";
+   } else if ( itype ==  "OFFSET" ) {
+      otype =  "_OFFSET";
+   } else if ( itype ==  "_UNSIGNED OFFSET" ) {
+      otype =  "_UNSIGNED _OFFSET";
+   } else {
+      otype =   itype;
+   }
+   NormalizeType =   otype;
+return NormalizeType;
 }
 async function sub_AddType(t/*QBTYPE*/) {
 if (QB.halted()) { return; }; 
@@ -3288,6 +3332,7 @@ if (QB.halted()) { return; };
    await sub_AddQBMethod( "FUNCTION" ,   "_BackgroundColor" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Blue" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Blue32" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_CapsLock" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Ceil" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_CommandCount" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_CopyImage" ,    False);
@@ -3298,6 +3343,7 @@ if (QB.halted()) { return; };
    await sub_AddQBMethod( "FUNCTION" ,   "_D2G" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_D2R" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_DefaultColor" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_Deflate" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_Delay" ,    True);
    await sub_AddQBMethod( "FUNCTION" ,   "_DesktopHeight" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_DesktopWidth" ,    False);
@@ -3322,6 +3368,7 @@ if (QB.halted()) { return; };
    await sub_AddQBMethod( "FUNCTION" ,   "_Green32" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Height" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Hypot" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_Inflate" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_InStrRev" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_Limit" ,    True);
    await sub_AddQBMethod( "SUB" ,   "_KeyClear" ,    False);
@@ -3337,6 +3384,7 @@ if (QB.halted()) { return; };
    await sub_AddQBMethod( "FUNCTION" ,   "_MouseX" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_MouseY" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_NewImage" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_NumLock" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_OS$" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Pi" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_PaletteColor" ,    False);
@@ -3363,6 +3411,7 @@ if (QB.halted()) { return; };
    await sub_AddQBMethod( "SUB" ,   "_ScreenMove" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_ScreenX" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_ScreenY" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_ScrollLock" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Sech" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Setbit" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Shl" ,    False);
@@ -3426,9 +3475,10 @@ if (QB.halted()) { return; };
    await sub_AddQBMethod( "FUNCTION" ,   "Left$" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "LCase$" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "Len" ,    False);
-   await sub_AddQBMethod( "FUNCTION" ,   "LOF" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Line" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "Loc" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Locate" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "LOF" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "Log" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "LTrim$" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Kill" ,    False);
