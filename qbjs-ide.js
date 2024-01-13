@@ -371,6 +371,8 @@ var IDE = new function() {
         zip.file("qb.js", await getFile("qb.js", "text"));
         zip.file("vfs.js", await getFile("vfs.js", "text"));
 
+        zip.file("pako.2.1.0.min.js", await getFile("util/pako.2.1.0.min.js"));
+        
         zip.file("gx/gx.js", await getFile("gx/gx.js", "text"));
         zip.file("gx/__gx_font_default.png", await getFile("gx/__gx_font_default.png", "blob"));
         zip.file("gx/__gx_font_default_black.png", await getFile("gx/__gx_font_default_black.png", "blob"));
@@ -380,7 +382,7 @@ var IDE = new function() {
         var node = vfs.getNode("/");
         addVFSFiles(vfs, zip, node);
         
-        zip.generateAsync({type:"blob"}).then(function(content) {
+        zip.generateAsync({type:"blob", compression:"DEFLATE"}).then(function(content) {
             const link = document.createElement("a");
             link.href = URL.createObjectURL(content);
             link.download = "program.zip";
@@ -426,7 +428,7 @@ var IDE = new function() {
             var node = vfs.getNode("/");
             addVFSFiles(vfs, zip, node);
             
-            zip.generateAsync({type:"blob"}).then(function(content) {
+            zip.generateAsync({type:"blob",compression:"DEFLATE"}).then(function(content) {
                 QB.downloadFile(content, "project.zip");
             });
         }
