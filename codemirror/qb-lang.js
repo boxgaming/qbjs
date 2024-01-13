@@ -29,29 +29,29 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
 
     var wordOperators = wordRegexp(['and', 'or', 'not', 'xor', 'is', 'mod', 'eqv', 'imp']);
     var commonkeywords = ['dim', 'as', 'redim', 'then', 'until', 'exit', 'in', 'to', 'let',
-                          'const', 'integer', 'single', 'double', 'long', '_unsigned', 'string', '_byte', 'object',
-                          'option explicit', 'call', 'step'];
+                          'const', 'integer', 'single', 'double', 'long', '_?unsigned', '_?float', '_?bit', '_?byte',
+                          'string', '_?byte', 'object', '_?offset', '_?integer64', 'call', 'step', '_?preserve'];
 
     // TODO: adjust for QB
     var atomWords = ['true', 'false', 'nothing', 'empty', 'null'];
 
-    var builtinFuncsWords = ['_acos', '_acosh', '_alpha', '_alpha32', '_asin', '_asinh', '_atan2', '_atanh', '_autodisplay',
-                             '_backgroundcolor', '_blue', '_blue32', '_ceil', '_commandcount', '_continue', '_copyimage',
-                             '_cosh', '_coth', '_csch', '_cwd', '_defaultcolor', '_d2g', '_d2r', '_desktopwidth', '_desktopheight',
-                             '_delay', '_dest', '_dir', '_direxists', '_display', '_echo', '_fileexists', '_font', '_fontwidth', '_fontheight',
-                             '_freeimage', '_fullscreen', '_g2d', '_g2r', '_green', '_green32', '_height', '_hypot',
-                             '_instrrev', '_limit', '_keyclear', '_keydown', '_keyhit', '_loadfont', '_loadimage',
-                             '_mousebutton', '_mousehide', '_mouseinput', '_mouseshow', '_mousewheel', '_mousex', '_mousey',
-                             '_newimage', '_os', '_palettecolor', '_pi', '_printstring', '_printwidth', '_printmode', '_putimage',
-                             '_r2d', '_r2g', '_readbit', '_red', '_red32', '_resetbit', '_resize', '_resizewidth',
-                             '_resizeheight', '_rgb', '_rgba', '_rgb32', '_rgba32', '_round',
-                             '_screenexists', '_screenmove', '_screenx', '_screeny', '_sech', '_setbit', '_shl', '_shr', '_sinh', '_source',
-                             '_sndclose', '_sndopen', '_sndplay', '_sndloop', '_sndpause', '_sndstop', '_sndvol', '_startdir',
-                             '_strcmp', '_stricmp', '_tanh', '_title', '_trim', '_togglebit', '_width',
+    var builtinFuncsWords = ['_?acos', '_?acosh', '_?alpha', '_?alpha32', '_?asin', '_?asinh', '_?atan2', '_?atanh', '_?autodisplay',
+                             '_?backgroundcolor', '_?blue', '_?blue32', '_?capslock', '_?ceil', '_?commandcount', '_?continue', '_?copyimage',
+                             '_?cosh', '_?coth', '_?csch', '_?cwd', '_?defaultcolor', '_?d2g', '_?d2r', '_?deflate', '_?desktopwidth', '_?desktopheight',
+                             '_?delay', '_?dest', '_?dir', '_?direxists', '_?display', '_?echo', '_?fileexists', '_?font', '_?fontwidth', '_?fontheight',
+                             '_?freeimage', '_?fullscreen', '_?g2d', '_?g2r', '_?green', '_?green32', '_?height', '_?hypot', "_?inflate",
+                             '_?instrrev', '_?limit', '_?keyclear', '_?keydown', '_?keyhit', '_?loadfont', '_?loadimage',
+                             '_?mousebutton', '_?mousehide', '_?mouseinput', '_?mouseshow', '_?mousewheel', '_?mousex', '_?mousey',
+                             '_?newimage', '_?numlock', '_?os', '_?palettecolor', '_?pi', '_?printstring', '_?printwidth', '_?printmode', '_?putimage',
+                             '_?r2d', '_?r2g', '_?readbit', '_?red', '_?red32', '_?resetbit', '_?resize', '_?resizewidth',
+                             '_?resizeheight', '_?rgb', '_?rgba', '_?rgb32', '_?rgba32', '_?round',
+                             '_?screenexists', '_?screenmove', '_?screenx', '_?screeny', '_?scrolllock', '_?sech', '_?setbit', '_?shl', '_?shr', '_?sinh',
+                             '_?source', '_?sndclose', '_?sndopen', '_?sndplay', '_?sndloop', '_?sndpause', '_?sndstop', '_?sndvol', '_?startdir',
+                             '_?strcmp', '_?stricmp', '_?tanh', '_?title', '_?trim', '_?togglebit', '_?width',
                              'abs', 'asc', 'atn', 'beep',
                              'chr', 'cdbl', 'cint', 'clng', 'csng', 'circle', 'cls', 'color', 'command', 'cos', 'cvi', 'cvl',
                              'data', 'date', 'draw', 'environ', 'error', 'exp', 'fix', 'hex', 'input', 'inkey', 'instr', 'int',
-                             'lbound', 'left', 'lcase', 'len', 'line', 'locate', 'log', 'ltrim', 'mid', 'mki', 'mkl',
+                             'lbound', 'left', 'lcase', 'len', 'line', 'loc', 'locate', 'log', 'ltrim', 'mid', 'mki', 'mkl',
                              'oct', 'paint', 'point', 'preset', 'print', 'pset',
                              'right', 'rtrim', 'randomize', 'read', 'restore', 'rnd',
                              'screen', 'shared', 'sgn', 'sin', 'sleep', 'sound', 'space', 'sqr',
@@ -63,7 +63,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              'export', 'from', 'import']
 
     var builtinConsts = ['append', 'binary', 'input', 'output', 'random',
-                         '_off', '_smooth', '_stretch', '_squarepixels', '_keepbackground', '_onlybackground', '_fillbackground',
+                         '_?off', '_?smooth', '_?stretch', '_?squarepixels', '_?keepbackground', '_?onlybackground', '_?fillbackground',
                          'gx_true', 'gx_false', 'gxevent_init', 'gxevent_update', 'gxevent_drawbg', 'gxevent_drawmap', 'gxevent_drawscreen',
                          'gxevent_mouseinput', 'gxevent_paintbefore', 'gxevent_paintafter', 'gxevent_collision_tile', 'gxevent_collision_entity',
                          'gxevent_player_action', 'gxevent_animate_complete', 'gxanimate_loop', 'gxanimate_single', 'gxbg_stretch',

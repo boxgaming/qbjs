@@ -144,6 +144,7 @@ var QB = new function() {
         _haltedFlag = true;
         _runningFlag = false;
         _inputMode = false;
+        GX.soundStopAll();
         toggleCursor(true);
     };
 
@@ -291,6 +292,10 @@ var QB = new function() {
         return _color(rgb).b;
     };
 
+    this.func__CapsLock = function() {
+        return  _keyDownMap._CapsLock ? -1 : 0;
+    };
+
     this.func__Ceil = function(x) {
         return Math.ceil(x);
     };
@@ -338,6 +343,11 @@ var QB = new function() {
         return _fgColor;
     };
 
+    this.func__Deflate = function(src) {
+        var result = pako.deflate(src);//, { to: "string" });
+        return String.fromCharCode.apply(String, result);
+    };
+
     this.sub__Delay = async function(seconds) {
         await GX.sleep(seconds*1000);
     };
@@ -355,6 +365,7 @@ var QB = new function() {
     };
 
     this.sub__Dest = function(imageId) {
+        _flushScreenCache(_images[_activeImage]);
         _activeImage = imageId;
     };
 
@@ -475,6 +486,11 @@ var QB = new function() {
 
     this.func__Hypot = function(x, y) {
         return Math.hypot(x, y);
+    };
+
+    this.func__Inflate = function(src) {
+        var result = pako.inflate(GX.vfs().textToData(src), { to: "string" });
+        return result;
     };
 
     this.func__InStrRev = function(arg1, arg2, arg3) {
@@ -690,6 +706,10 @@ var QB = new function() {
         var tmpId = _nextImageId;
         _nextImageId++;
         return tmpId;
+    };
+
+    this.func__NumLock = function() {
+        return  _keyDownMap._NumLock ? -1 : 0;
     };
 
     this.func__OS = function() {
@@ -976,6 +996,10 @@ var QB = new function() {
 
     this.func__ScreenY = function() {
         return window.screenY;
+    };
+
+    this.func__ScrollLock = function() {
+        return  _keyDownMap._ScrollLock ? -1 : 0;
     };
 
     this.func__Sech = function(x) {
@@ -1773,6 +1797,14 @@ var QB = new function() {
 
     this.func_Len = function(value) {
         return String(value).length;
+    };
+
+    this.func_Loc = function(fh) {
+        if (!_fileHandles[fh]) {
+            throw new Error("Invalid file handle");
+        }
+
+        return _fileHandles[fh].offset;
     };
 
     this.func_Log = function(value) {
@@ -3749,6 +3781,9 @@ var QB = new function() {
                 if (kh) {
                     _keyHitBuffer.push(kh);
                     _keyDownMap[kh] = true;
+                    _keyDownMap._CapsLock = event.getModifierState("CapsLock");
+                    _keyDownMap._NumLock = event.getModifierState("NumLock");
+                    _keyDownMap._ScrollLock = event.getModifierState("ScrollLock");
                 }
             }
         });
@@ -3763,6 +3798,9 @@ var QB = new function() {
                 if (kh) {
                     _keyHitBuffer.push(kh * -1);
                     _keyDownMap[kh] = false;
+                    _keyDownMap._CapsLock = event.getModifierState("CapsLock");
+                    _keyDownMap._NumLock = event.getModifierState("NumLock");
+                    _keyDownMap._ScrollLock = event.getModifierState("ScrollLock");
                 }
             }
         });
