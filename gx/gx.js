@@ -57,7 +57,9 @@ var GX = new function() {
     }
     
     function _reset() {
-        // TODO: stop any sounds that are currently playing
+        // stop any sounds that are currently playing
+        _soundStopAll();
+
         _framerate = 60;
         _bg = [];
         _images = [];
@@ -722,6 +724,14 @@ var GX = new function() {
     function _soundStop (sid) {
         _sounds[sid-1].pause();
         _sounds[sid-1].currentTime = 0;
+    }
+
+    function _soundStopAll () {
+        for (var i=0; i < _sounds.length; i++) {
+            if (_sounds[i]) {
+                _soundStop(i+1);
+            }
+        }
     }
 
     function _soundMuted (muted) {
@@ -2522,6 +2532,7 @@ var GX = new function() {
     this.soundRepeat = _soundRepeat;
     this.soundPause = _soundPause;
     this.soundStop = _soundStop;
+    this.soundStopAll = _soundStopAll;
     this.soundVolume = _soundVolume;
     this.soundMuted = _soundMuted;
 
