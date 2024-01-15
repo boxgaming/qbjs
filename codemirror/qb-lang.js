@@ -35,9 +35,11 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
     // TODO: adjust for QB
     var atomWords = ['true', 'false', 'nothing', 'empty', 'null'];
 
-    var builtinFuncsWords = ['_?acos', '_?acosh', '_?alpha', '_?alpha32', '_?asin', '_?asinh', '_?atan2', '_?atanh', '_?autodisplay',
+    var builtinFuncsWords = ['_?acos', '_?acosh', '_?alpha', '_?alpha32', '_?arccot', '_?arccsc', '_?arcsec',
+                             '_?asin', '_?asinh', '_?atan2', '_?atanh', '_?autodisplay',
                              '_?backgroundcolor', '_?blue', '_?blue32', '_?capslock', '_?ceil', '_?commandcount', '_?continue', '_?copyimage',
-                             '_?cosh', '_?coth', '_?csch', '_?cwd', '_?defaultcolor', '_?d2g', '_?d2r', '_?deflate', '_?desktopwidth', '_?desktopheight',
+                             '_?cosh', '_?cot', '_?coth', '_?csc', '_?csch', '_?cwd', 
+                             '_?defaultcolor', '_?d2g', '_?d2r', '_?deflate', '_?desktopwidth', '_?desktopheight',
                              '_?delay', '_?dest', '_?dir', '_?direxists', '_?display', '_?echo', '_?fileexists', '_?font', '_?fontwidth', '_?fontheight',
                              '_?freeimage', '_?fullscreen', '_?g2d', '_?g2r', '_?green', '_?green32', '_?height', '_?hypot', "_?inflate",
                              '_?instrrev', '_?limit', '_?keyclear', '_?keydown', '_?keyhit', '_?loadfont', '_?loadimage',
@@ -45,7 +47,8 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              '_?newimage', '_?numlock', '_?os', '_?palettecolor', '_?pi', '_?printstring', '_?printwidth', '_?printmode', '_?putimage',
                              '_?r2d', '_?r2g', '_?readbit', '_?red', '_?red32', '_?resetbit', '_?resize', '_?resizewidth',
                              '_?resizeheight', '_?rgb', '_?rgba', '_?rgb32', '_?rgba32', '_?round',
-                             '_?screenexists', '_?screenmove', '_?screenx', '_?screeny', '_?scrolllock', '_?sech', '_?setbit', '_?shl', '_?shr', '_?sinh',
+                             '_?screenexists', '_?screenmove', '_?screenx', '_?screeny', '_?scrolllock',  
+                             '_?sec', '_?sech', '_?setbit', '_?shl', '_?shr', '_?sinh',
                              '_?source', '_?sndclose', '_?sndopen', '_?sndplay', '_?sndloop', '_?sndpause', '_?sndstop', '_?sndvol', '_?startdir',
                              '_?strcmp', '_?stricmp', '_?tanh', '_?title', '_?trim', '_?togglebit', '_?width',
                              'abs', 'asc', 'atn', 'beep',

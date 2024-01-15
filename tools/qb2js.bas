@@ -3544,6 +3544,9 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Alpha32", False
     AddQBMethod "FUNCTION", "_Acos", False
     AddQBMethod "FUNCTION", "_Acosh", False
+    AddQBMethod "FUNCTION", "_Arccot", False
+    AddQBMethod "FUNCTION", "_Arccsc", False
+    AddQBMethod "FUNCTION", "_Arcsec", False
     AddQBMethod "FUNCTION", "_Atanh", False
     AddQBMethod "FUNCTION", "_Asin", False
     AddQBMethod "FUNCTION", "_Asinh", False
@@ -3558,7 +3561,9 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_CommandCount", False
     AddQBMethod "FUNCTION", "_CopyImage", False
     AddQBMethod "FUNCTION", "_Cosh", False
+    AddQBMethod "FUNCTION", "_Cot", False
     AddQBMethod "FUNCTION", "_Coth", False
+    AddQBMethod "FUNCTION", "_Csc", False
     AddQBMethod "FUNCTION", "_Csch", False
     AddQBMethod "FUNCTION", "_CWD$", False
     AddQBMethod "FUNCTION", "_D2G", False
@@ -3633,6 +3638,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_ScreenX", False
     AddQBMethod "FUNCTION", "_ScreenY", False
     AddQBMethod "FUNCTION", "_ScrollLock", False
+    AddQBMethod "FUNCTION", "_Sec", False
     AddQBMethod "FUNCTION", "_Sech", False
     AddQBMethod "FUNCTION", "_Setbit", False
     AddQBMethod "FUNCTION", "_Shl", False

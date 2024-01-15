@@ -247,6 +247,18 @@ var QB = new function() {
         return Math.acosh(x);
     };
 
+    this.func__Arccot = function(x) {
+        return 2 * Math.atan(1) - Math.atan(x);
+    };
+
+    this.func__Arccsc = function(x) {
+        return Math.sin(1 / x);
+    };
+
+    this.func__Arcsec = function(x) {
+        return Math.acos(1 / x);
+    };
+
     this.func__Alpha = function(rgb, imageHandle) {
         // TODO: implement corresponding logic when an image handle is supplied (maybe)
         return _color(rgb).a;
@@ -317,12 +329,20 @@ var QB = new function() {
         return Math.cosh(x);
     };
 
+    this.func__Cot = function(x) {
+        return 1 / Math.tan(x);
+    }
+
     this.func__Coth = function(x) {
-        return 1/Math.tanh(x);
+        return 1 / Math.tanh(x);
+    };
+
+    this.func__Csc = function(x) {
+        return 1 / Math.sin(x);
     };
 
     this.func__Csch = function(x) {
-        return 1/Math.sinh(x);
+        return 1 / Math.sinh(x);
     };
 
     this.func__CWD = function() {
@@ -330,11 +350,11 @@ var QB = new function() {
     };
 
     this.func__D2R = function(x) {
-        return x*Math.PI/180;
+        return x * Math.PI / 180;
     };
 
     this.func__D2G = function(x) {
-        return (x * 10/9);
+        return (x * 10 / 9);
     };
 
     this.func__DefaultColor = function(imageHandle) {
@@ -1002,8 +1022,12 @@ var QB = new function() {
         return  _keyDownMap._ScrollLock ? -1 : 0;
     };
 
+    this.func__Sec = function(x) {
+        return 1 / Math.cos(x);
+    };
+
     this.func__Sech = function(x) {
-        return 1/Math.cosh(x);
+        return 1 / Math.cosh(x);
     };
 
     this.func__Setbit = function(x, y) {
