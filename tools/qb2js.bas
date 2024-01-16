@@ -341,12 +341,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     typeMode = False
                 End If
             Else
-                Dim tvar As Variable
-                tvar.typeId = currType
-                tvar.name = parts(1)
-                tvar.type = UCase$(parts(3))
-                If tvar.type = "_UNSIGNED" Or tvar.type = "UNSIGNED" Then tvar.type = "_UNSIGNED " + UCase$(parts(4))
-                AddVariable tvar, typeVars()
+                DeclareTypeVar parts(), currType, i
             End If
         Else
             If first = "CONST" Then
@@ -1560,6 +1555,69 @@ Function FindParamChar (s As String, char As String)
     FindParamChar = idx
 End Function
 
+Sub DeclareTypeVar (parts() As String, typeId As Integer, lineNumber As Integer)
+
+    Dim vname As String
+    Dim vtype As String: vtype = ""
+    Dim vtypeIndex As Integer: vtypeIndex = 4
+    Dim isGlobal As Integer: isGlobal = False
+    Dim isArray As Integer: isArray = False
+    Dim isStatic As Integer: isStatic = False
+    Dim arraySize As String
+    Dim pstart As Integer
+    Dim bvar As Variable
+    Dim varnames(0) As String
+    Dim vnamecount As Integer
+    Dim findVar As Variable
+    Dim asIdx As Integer
+    asIdx = 0
+    bvar.typeId = typeId
+
+
+    Dim i As Integer
+    For i = 1 To UBound(parts)
+        If UCase$(parts(i)) = "AS" Then asIdx = i
+    Next i
+
+    If asIdx = 1 Then
+
+        ' Handle Dim As syntax
+        bvar.type = UCase$(parts(asIdx + 1))
+        Dim nextIdx As Integer
+        nextIdx = asIdx + 2
+        If bvar.type = "_UNSIGNED" Or bvar.type = "UNSIGNED" Then
+            bvar.type = NormalizeType("_UNSIGNED " + UCase$(parts(asIdx + 2)))
+            nextIdx = asIdx + 3
+        End If
+        'bvar.typeId = FindTypeId(bvar.type)
+
+        vnamecount = ListSplit(Join(parts(), nextIdx, -1, " "), varnames())
+        For i = 1 To vnamecount
+            vname = _Trim$(varnames(i))
+            pstart = InStr(vname, "(")
+            If pstart > 0 Then
+                bvar.isArray = True
+                arraySize = ConvertExpression(Mid$(vname, pstart + 1, Len(vname) - pstart - 1), lineNumber)
+                bvar.name = RemoveSuffix(Left$(vname, pstart - 1))
+            Else
+                bvar.isArray = False
+                arraySize = ""
+                bvar.name = vname
+            End If
+            AddVariable bvar, typeVars()
+        Next i
+
+    Else
+        'Handle traditional syntax
+        bvar.name = parts(1)
+        bvar.type = UCase$(parts(3))
+        If bvar.type = "_UNSIGNED" Or bvar.type = "UNSIGNED" Then bvar.type = NormalizeType("_UNSIGNED " + UCase$(parts(4)))
+        'bvar.typeId = FindTypeId(bvar.type)
+        AddVariable bvar, typeVars()
+    End If
+
+End Sub
+
 Function DeclareVar$ (parts() As String, lineNumber As Integer)
 
     Dim vname As String
@@ -1617,7 +1675,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
         bvar.type = UCase$(parts(asIdx + 1))
         Dim nextIdx As Integer
         nextIdx = asIdx + 2
-        If bvar.type = "_UNSIGNED" Then
+        If bvar.type = "_UNSIGNED" Or bvar.type = "UNSIGNED" Then
             bvar.type = bvar.type + " " + UCase$(parts(asIdx + 2))
             nextIdx = asIdx + 3
         End If
