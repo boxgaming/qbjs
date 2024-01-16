@@ -252,7 +252,7 @@ var QB = new function() {
     };
 
     this.func__Arccsc = function(x) {
-        return Math.sin(1 / x);
+        return Math.asin(1 / x);
     };
 
     this.func__Arcsec = function(x) {
@@ -551,7 +551,11 @@ var QB = new function() {
 
     this.sub__Limit = async function(fps) {
         _flushAllScreenCache();
-        await GX.sleep((1000 - (new Date() - _lastLimitTime))/fps);
+        var frameMillis = 1000 / fps / 1.15;
+        await GX.sleep(0);
+        while (Date.now() - _lastLimitTime < frameMillis) {
+                await GX.sleep(0);
+        }
         _lastLimitTime = new Date();
     };
 
