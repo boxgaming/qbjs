@@ -202,6 +202,7 @@ Sub InvertRect (x As Long, y As Long, width As Long, height As Long, fill As Int
             ctx.fill();
         }
         else {
+            ctx.lineWidth = QB.defaultLineWidth();
             ctx.strokeStyle = "white";
             ctx.rect(x, y, width, height);
             ctx.stroke();
