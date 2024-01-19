@@ -2763,6 +2763,14 @@ if (QB.halted()) { return; };
    v.jsname =  "QB."  +  vname;
    v.isConst =   True;
    await sub_AddVariable(  v,   globalVars);
+   if ((QB.func_InStr(  vname,   "_"))  ==   1) {
+      var v2 = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
+      v2.type =   v.type;
+      v2.name =  (QB.func_Mid(  v.name,    2));
+      v2.jsname =   v.jsname;
+      v2.isConst =   v.isConst;
+      await sub_AddVariable(  v2,   globalVars);
+   }
 }
 async function sub_AddGlobal(vname/*STRING*/,vtype/*STRING*/,arraySize/*INTEGER*/) {
 if (QB.halted()) { return; }; 

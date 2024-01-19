@@ -2994,6 +2994,14 @@ Sub AddQBConst (vname As String)
     v.jsname = "QB." + vname
     v.isConst = True
     AddVariable v, globalVars()
+    If Instr(vname, "_") = 1 Then
+        Dim v2 As Variable
+        v2.type = v.type
+        v2.name = Mid$(v.name, 2)
+        v2.jsname = v.jsname
+        v2.isConst = v.isConst
+        AddVariable v2, globalVars()
+    End If
 End Sub
 
 Sub AddGlobal (vname As String, vtype As String, arraySize As Integer)
