@@ -414,6 +414,11 @@ var QB = new function() {
         console.log(msg); 
     };
 
+    this.func__EnvironCount = function() {
+        /* no-op: included for compatibility */
+        return 0;
+    };
+
     this.func__FileExists = function(path) {
         var vfs = GX.vfs();
         var file = vfs.getNode(path, GX.vfsCwd());

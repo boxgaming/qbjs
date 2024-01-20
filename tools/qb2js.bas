@@ -3646,6 +3646,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Display", False
     AddQBMethod "SUB", "_Display", False
     AddQBMethod "SUB", "_Echo", False
+    AddQBMethod "FUNCTION", "_EnvironCount", False
     AddQBMethod "FUNCTION", "_FileExists", False
     AddQBMethod "FUNCTION", "_Font", False
     AddQBMethod "SUB", "_Font", False
