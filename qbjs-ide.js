@@ -214,7 +214,7 @@ var IDE = new function() {
         var stack = error.stack.split("\n");
         for (var i=0; i < stack.length; i++) {
             // chrome
-            if (stack[i].trim().indexOf("(eval at runProgram") > -1) {
+            if (stack[i].trim().indexOf("(eval at _runProgram") > -1) {
                 if (cdepth == stackDepth) {
                     var idx = stack[i].indexOf("<anonymous>:");
                     var pos = stack[i].substring(idx + 12); 
