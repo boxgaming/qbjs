@@ -1,5 +1,5 @@
 .cm-s-qb45 { line-height: 1em; }
-.cm-s-qb45.CodeMirror { background: rgb(0, 0, 170); color: rgb(216, 216, 216); /*text-shadow: 0 -1px 1px #262626;*/ font-family: dosvga; letter-spacing: -1px}
+.cm-s-qb45.CodeMirror { background: rgb(0, 0, 170); color: rgb(216, 216, 216); /*text-shadow: 0 -1px 1px #262626;*/ font-family: dosvga; }
 .cm-s-qb45 div.CodeMirror-selected { background: rgb(216, 216, 216, .5); } /* 33322B*/
 /*.cm-s-qb45 .CodeMirror-line::selection, .cm-s-qb45 .CodeMirror-line > span::selection, .cm-s-qb45 .CodeMirror-line > span > span::selection { background: rgb(216, 216, 216); color: rgb(0, 0, 170); }
 .cm-s-qb45 .CodeMirror-line::-moz-selection, .cm-s-qb45 .CodeMirror-line > span::-moz-selection, .cm-s-qb45 .CodeMirror-line > span > span::-moz-selection { background: rgb(216, 216, 216); color: rgb(0, 0, 170); }*/
