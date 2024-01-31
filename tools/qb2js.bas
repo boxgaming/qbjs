@@ -3785,7 +3785,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Mkl$", False
     AddQBMethod "SUB", "Name", False
     AddQBMethod "FUNCTION", "Oct$", False
-    AddQBMethod "SUB", "Open", False
+    AddQBMethod "SUB", "Open", True
     AddQBMethod "SUB", "Paint", False
     AddQBMethod "FUNCTION", "Point", False
     AddQBMethod "FUNCTION", "Pos", False

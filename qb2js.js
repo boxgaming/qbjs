@@ -2035,7 +2035,7 @@ if (QB.halted()) { return; };
    var fline = '';  /* STRING */ 
    var lineIndex = 0;  /* INTEGER */ 
    var rawJS = 0;  /* SINGLE */ 
-   QB.sub_Open(filename, QB.INPUT, 1);
+   await QB.sub_Open(filename, QB.INPUT, 1);
    var ___v1000522 = 0; while (!((QB.func_EOF(  1)))) { if (QB.halted()) { return; }___v1000522++;   if (___v1000522 % 100 == 0) { await QB.autoLimit(); }
       var ___v1030226 = new Array(1); await QB.sub_LineInputFromFile(1, ___v1030226);  fline = ___v1030226[0]; 
       lineIndex =   lineIndex +  1;
@@ -3556,7 +3556,7 @@ if (QB.halted()) { return; };
    await sub_AddQBMethod( "FUNCTION" ,   "Mkl$" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Name" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "Oct$" ,    False);
-   await sub_AddQBMethod( "SUB" ,   "Open" ,    False);
+   await sub_AddQBMethod( "SUB" ,   "Open" ,    True);
    await sub_AddQBMethod( "SUB" ,   "Paint" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "Point" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "Pos" ,    False);

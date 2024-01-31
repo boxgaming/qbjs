@@ -58,7 +58,7 @@ var QB = new function() {
     var _strokeLineThickness = 2;
     var _windowAspect = [];
     var _windowDef = [];
-    var _fileHandles = null;
+    var _fileHandles = {};
     var _typeMap = {};
 
     
@@ -2162,7 +2162,7 @@ var QB = new function() {
         return n.toString(8).toUpperCase();
     };
 
-    this.sub_Open = function(path, mode, handle) {
+    this.sub_Open = async function(path, mode, handle) {
         var vfs = GX.vfs();
         var vfsCwd = GX.vfsCwd();
        if (mode == QB.OUTPUT || mode == QB.APPEND || mode == QB.BINARY) {
@@ -2173,22 +2173,66 @@ var QB = new function() {
             var file = null;
             if (mode == QB.APPEND || mode == QB.BINARY) {
                 file = vfs.getNode(path, vfsCwd);
-                // TODO: make sure this is not a directory
             }
             if (!file) {
-                file = vfs.createFile(filename, parentNode);
+                if (mode == QB.APPEND || mode == QB.BINARY) {
+                    file = await downloadFile(path);
+                }
+                if (!file) {
+                    file = vfs.createFile(filename, parentNode);
+                }
+            }
+            else if (file.type != vfs.FILE) {
+                // make sure this is not a directory
+                throw new Error("Path is not a file.");
             }
             _fileHandles[handle] = { file: file, mode: mode, offset: 0 };
         }
         else if (mode == QB.INPUT) {
             var file = vfs.getNode(path, vfsCwd);
-            if (!file || file.type != vfs.FILE) {
-                throw new Error("File not found");
+            if (!file) {
+                // attempt to copy the path to the local filesystem
+                var file = await downloadFile(path);
+                if (!file) {
+                    throw new Error("File not found");
+                }
+            }
+            else if (file.type != vfs.FILE) {
+                throw new Error("Path is not a file.");
             }
             _fileHandles[handle] = { file: file, mode: mode, offset: 0 };
         }
         else {
             throw new Error("Unsupported Open Method");
+        }
+
+        async function downloadFile(path) {
+            try {
+                var res = await fetch(path);
+                if (res.ok) {
+                    var filename = vfs.getFileName(path);
+                    var parentPath = vfs.getParentPath(path);
+                
+                    var parentNode = vfs.rootDirectory();
+                    var dirs = parentPath.split("/");
+                    for (var i=0; i < dirs.length; i++) {
+                        if (dirs[i] == "") { continue; }
+                        var node = vfs.getNode(dirs[i], parentNode);
+                        if (!node) { node = vfs.createDirectory(dirs[i], parentNode); }
+                        parentNode = node;
+                    }
+                
+                    var file = vfs.createFile(filename, parentNode);
+                    vfs.writeData(file, await res.arrayBuffer());
+                    return file;
+                }
+                else {
+                    return null;
+                }
+            }
+            catch (err) {
+                return null;
+            }
         }
     };
 
