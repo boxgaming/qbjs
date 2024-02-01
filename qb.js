@@ -3070,6 +3070,7 @@ var QB = new function() {
         while (!_lastKey && elapsed < totalWait) { 
             await GX.sleep(100); 
             elapsed += 100;
+            if (_haltedFlag) { return; }
         }
     };
 
