@@ -161,7 +161,7 @@ var IDE = new function() {
                 }
             });
         }
-        if (appMode == "ide") {
+        if (appMode == "ide" && !inIframe()) {
             editor.focus();
         }
         
