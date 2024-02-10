@@ -91,6 +91,13 @@ var IDE = new function() {
                     else if (pname == "code") {
                         qbcode = LZUTF8.decompress(pvalue, { inputEncoding: "Base64" });
                     }
+                    else if (pname == "gzcode") {
+                        var strData = atob(pvalue);
+                        var charData = strData.split("").map(function(x){return x.charCodeAt(0);});
+                        var binData = new Uint8Array(charData);
+                        var data = pako.inflate(binData);
+                        qbcode = String.fromCharCode.apply(null, new Uint16Array(data));
+                    }
                     else if (pname == "mode") {
                         appMode = pvalue;
                     }
