@@ -59,6 +59,12 @@ Type Label
     index As Integer
 End Type
 
+Type LoopItem
+    mode As Integer
+    type As String
+    label As String
+End Type
+
 ReDim Shared As CodeLine lines(0)
 ReDim Shared As CodeLine jsLines(0)
 ReDim Shared As Method methods(0)
@@ -288,7 +294,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
     Dim totalIndent As Integer
     totalIndent = 1
     Dim caseCount As Integer
-    Dim loopMode(100) As Integer ' TODO: only supports 100 levels of do/loop nesting
+    Dim loopMode(100) As LoopItem ' TODO: only supports 100 levels of do/loop nesting
     Dim loopLevel As Integer
     Dim caseVar As String
     Dim currType As Integer
@@ -420,8 +426,12 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
                 If Left$(_Trim$(fstep), 1) = "-" Then fcond = " >= "
 
+                loopLevel = loopLevel + 1
+                loopMode(loopLevel).type = "FOR"
+                loopMode(loopLevel).label = GenJSLabel
+
                 loopIndex = GenJSVar
-                js = "var " + loopIndex + " = 0;"
+                js = "var " + loopIndex + " = 0; " + loopMode(loopLevel).label + ":"
                 js = js + " for (" + fvar + "=" + sval + "; " + fvar + fcond + uval + "; " + fvar + "=" + fvar + " + " + fstep + ") {"
                 js = js + " if (QB.halted()) { return; } "
                 js = js + loopIndex + "++; "
@@ -485,9 +495,11 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
             ElseIf first = "DO" Then
                 loopLevel = loopLevel + 1
+                loopMode(loopLevel).label = GenJSLabel
+                loopMode(loopLevel).type = "DO"
 
                 loopIndex = GenJSVar
-                js = "var " + loopIndex + " = 0;"
+                js = "var " + loopIndex + " = 0; " + loopMode(loopLevel).label + ":"
 
                 If UBound(parts) > 1 Then
                     sfix = FixCondition(UCase$(parts(2)), parts(), 2, "DO ")
@@ -497,10 +509,10 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     Else
                         js = js + " while (!(" + ConvertExpression(Join(parts(), 3, -1, " "), i) + ")) {"
                     End If
-                    loopMode(loopLevel) = 1
+                    loopMode(loopLevel).mode = 1
                 Else
                     js = js + " do {"
-                    loopMode(loopLevel) = 2
+                    loopMode(loopLevel).mode = 2
                 End If
                 indent = 1
                 js = js + " if (QB.halted()) { return; }"
@@ -510,9 +522,11 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
             ElseIf first = "WHILE" Then
                 loopLevel = loopLevel + 1
+                loopMode(loopLevel).label = GenJSLabel
+                loopMode(loopLevel).type = "WHILE"
 
                 loopIndex = GenJSVar
-                js = "var " + loopIndex + " = 0;"
+                js = "var " + loopIndex + " = 0; " + loopMode(loopLevel).label + ":"
                 js = js + " while (" + ConvertExpression(Join(parts(), 2, -1, " "), i) + ") {"
                 js = js + " if (QB.halted()) { return; }"
                 js = js + loopIndex + "++; "
@@ -526,7 +540,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 indent = -1
 
             ElseIf first = "LOOP" Then
-                If loopMode(loopLevel) = 1 Then
+                If loopMode(loopLevel).mode = 1 Then
                     js = "}"
                 Else
                     sfix = FixCondition(UCase$(parts(2)), parts(), 2, "LOOP ")
@@ -545,14 +559,32 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
             ElseIf first = "_CONTINUE" Or first = "CONTINUE" Then
                 js = "continue;"
 
-            ElseIf UCase$(l) = "EXIT FUNCTION" Then
-                js = "return " + RemoveSuffix(functionName) + ";"
-
-            ElseIf UCase$(l) = "EXIT SUB" Then
-                js = "return;"
-
             ElseIf first = "EXIT" Then
-                js = "break;"
+                second = ""
+                If UBound(parts) > 1 Then second = UCase$(parts(2))
+
+                If second = "FUNCTION" Then
+                    js = "return " + RemoveSuffix(functionName) + ";"
+
+                ElseIf second = "SUB" Then
+                    js = "return;"
+
+                ElseIf second = "DO" Or second = "WHILE" Or second = "FOR" Then
+                    Dim lli As Integer
+                    For lli = loopLevel To 0 Step -1
+                        If lli > 0 Then
+                            If loopMode(lli).type = second Then Exit For
+                        End If
+                    Next lli
+                    If lli > 0 Then
+                        js = "break " + loopMode(lli).label + ";"
+                    Else
+                        AddWarning i, "EXIT " + second + " without " + second + " on current line"
+                    End If
+
+                Else
+                    AddWarning i, "Syntax error after EXIT"
+                End If
 
             ElseIf first = "TYPE" Then
                 typeMode = True
@@ -1527,7 +1559,15 @@ Function ConvertSwap$ (m As Method, args As String, lineNumber As Integer)
 End Function
 
 Function GenJSVar$
-    GenJSVar = "___v" + _Trim$(Str$(_Round(Rnd * 10000000)))
+    GenJSVar = "___v" + GenJSName
+End Function
+
+Function GenJSLabel$
+    GenJSLabel = "___l" + GenJSName
+End Function
+
+Function GenJSName$
+    GenJSName$ = _Trim$(Str$(_Round(Rnd * 10000000)))
 End Function
 
 Function FindParamChar (s As String, char As String)
@@ -2994,7 +3034,7 @@ Sub AddQBConst (vname As String)
     v.jsname = "QB." + vname
     v.isConst = True
     AddVariable v, globalVars()
-    If Instr(vname, "_") = 1 Then
+    If InStr(vname, "_") = 1 Then
         Dim v2 As Variable
         v2.type = v.type
         v2.name = Mid$(v.name, 2)
@@ -3456,6 +3496,8 @@ Sub InitGX
     AddGXMethod "SUB", "GXEntityCreate", False
     AddGXMethod "FUNCTION", "GXEntityVisible", False
     AddGXMethod "SUB", "GXEntityVisible", False
+    AddGXMethod "FUNCTION", "GXEntityMapLayer", False
+    AddGXMethod "SUB", "GXEntityMapLayer", False
     AddGXMethod "SUB", "GXEntityMove", False
     AddGXMethod "SUB", "GXEntityPos", False
     AddGXMethod "SUB", "GXEntityVX", False
@@ -3467,6 +3509,8 @@ Sub InitGX
     AddGXMethod "FUNCTION", "GXEntityWidth", False
     AddGXMethod "FUNCTION", "GXEntityHeight", False
     AddGXMethod "SUB", "GXEntityFrameNext", False
+    AddGXMethod "FUNCTION", "GXEntityFrames", False
+    AddGXMethod "SUB", "GXEntityFrames", False
     AddGXMethod "SUB", "GXEntityFrameSet", False
     AddGXMethod "SUB", "GXEntityType", False
     AddGXMethod "FUNCTION", "GXEntityType", False
