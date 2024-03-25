@@ -6,8 +6,8 @@ $Console:Only
 '2) Compile to EXE only.
 '3) In console, run:    qb2js qb2js.bas > ../qb2js.js
 
-Const FILE = 1
-Const TEXT = 2
+Const FILE = 1, TEXT = 2
+Const MWARNING = 0, MERROR = 1
 Const False = 0
 Const True = Not False
 Const PrintDataTypes = True
@@ -18,6 +18,7 @@ Const PrintTokenizedLine = False
 Type CodeLine
     line As Integer
     text As String
+    mtype As Integer
 End Type
 
 Type Method
@@ -59,10 +60,11 @@ Type Label
     index As Integer
 End Type
 
-Type LoopItem
+Type Container
     mode As Integer
     type As String
     label As String
+    line As Integer
 End Type
 
 ReDim Shared As CodeLine lines(0)
@@ -181,7 +183,8 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "   for (var i=1; i <= QB.func_UBound(warnings); i++) {"
         AddJSLine 0, "      w.push({"
         AddJSLine 0, "         line: QB.arrayValue(warnings, [i]).value.line,"
-        AddJSLine 0, "         text: QB.arrayValue(warnings, [i]).value.text"
+        AddJSLine 0, "         text: QB.arrayValue(warnings, [i]).value.text,"
+        AddJSLine 0, "         mtype: QB.arrayValue(warnings, [i]).value.mtype"
         AddJSLine 0, "      });"
         AddJSLine 0, "   }"
         AddJSLine 0, "   return w;"
@@ -294,12 +297,13 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
     Dim totalIndent As Integer
     totalIndent = 1
     Dim caseCount As Integer
-    Dim loopMode(100) As LoopItem ' TODO: only supports 100 levels of do/loop nesting
-    Dim loopLevel As Integer
+    Dim containers(10000) As Container ' TODO: replace hardcoded limit?
+    Dim cindex As Integer
     Dim caseVar As String
     Dim currType As Integer
     Dim loopIndex As String
     Dim sfix As String
+    Dim ctype As String
 
     For i = firstLine To lastLine
         indent = 0
@@ -350,6 +354,8 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 DeclareTypeVar parts(), currType, i
             End If
         Else
+            CheckParen lines(i).text, i
+
             If first = "CONST" Then
                 ReDim As String constParts(0)
                 Dim As Integer constCount
@@ -374,6 +380,10 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
 
             ElseIf first = "SELECT" Then
+                cindex = cindex + 1
+                containers(cindex).type = "SELECT CASE"
+                containers(cindex).line = i
+
                 caseVar = GenJSVar
                 js = "var " + caseVar + " = " + ConvertExpression(Join(parts(), 3, -1, " "), i) + "; "
                 js = js + "switch (" + caseVar + ") {"
@@ -426,12 +436,13 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
                 If Left$(_Trim$(fstep), 1) = "-" Then fcond = " >= "
 
-                loopLevel = loopLevel + 1
-                loopMode(loopLevel).type = "FOR"
-                loopMode(loopLevel).label = GenJSLabel
+                cindex = cindex + 1
+                containers(cindex).type = "FOR"
+                containers(cindex).label = GenJSLabel
+                containers(cindex).line = i
 
                 loopIndex = GenJSVar
-                js = "var " + loopIndex + " = 0; " + loopMode(loopLevel).label + ":"
+                js = "var " + loopIndex + " = 0; " + containers(cindex).label + ":"
                 js = js + " for (" + fvar + "=" + sval + "; " + fvar + fcond + uval + "; " + fvar + "=" + fvar + " + " + fstep + ") {"
                 js = js + " if (QB.halted()) { return; } "
                 js = js + loopIndex + "++; "
@@ -440,6 +451,10 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 indent = 1
 
             ElseIf first = "IF" Then
+                cindex = cindex + 1
+                containers(cindex).type = "IF"
+                containers(cindex).line = i
+
                 Dim thenIndex As Integer
                 For thenIndex = 2 To UBound(parts)
                     If UCase$(parts(thenIndex)) = "THEN" Then Exit For
@@ -463,21 +478,42 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     Dim npi As Integer
                     npcount = ListSplit(Join(parts(), 2, -1, " "), nparts())
                     For npi = 1 To npcount
-                        js = js + "} "
-                        indent = indent - 1
+                        If CheckBlockEnd(containers(), cindex, first, i) Then
+                            js = js + "} "
+                            indent = -1
+                            cindex = cindex - 1
+                        Else
+                            Exit For
+                        End If
                     Next npi
                 Else
-                    js = js + "}"
-                    indent = -1
+                    If CheckBlockEnd(containers(), cindex, first, i) Then
+                        js = js + "}"
+                        indent = -1
+                        cindex = cindex - 1
+                    End If
                 End If
 
             ElseIf first = "END" Then
                 If UBound(parts) = 1 Then
                     js = "QB.halt(); return;"
                 Else
-                    If UCase$(parts(2)) = "SELECT" Then js = "break;"
-                    js = js + "}"
-                    indent = -1
+                    second = UCase$(parts(2))
+                    If second = "IF" Then
+                        If CheckBlockEnd(containers(), cindex, "END IF", i) Then
+                            js = js + "}"
+                            indent = -1
+                            cindex = cindex - 1
+                        End If
+                    ElseIf second = "SELECT" Then
+                        If CheckBlockEnd(containers(), cindex, "END SELECT", i) Then
+                            js = "break;" + " }"
+                            indent = -1
+                            cindex = cindex - 1
+                        End If
+                    Else
+                        AddError i, "Syntax error after END"
+                    End If
                 End If
 
             ElseIf first = "SYSTEM" Then
@@ -494,12 +530,13 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 End If
 
             ElseIf first = "DO" Then
-                loopLevel = loopLevel + 1
-                loopMode(loopLevel).label = GenJSLabel
-                loopMode(loopLevel).type = "DO"
+                cindex = cindex + 1
+                containers(cindex).label = GenJSLabel
+                containers(cindex).type = "DO"
+                containers(cindex).line = i
 
                 loopIndex = GenJSVar
-                js = "var " + loopIndex + " = 0; " + loopMode(loopLevel).label + ":"
+                js = "var " + loopIndex + " = 0; " + containers(cindex).label + ":"
 
                 If UBound(parts) > 1 Then
                     sfix = FixCondition(UCase$(parts(2)), parts(), 2, "DO ")
@@ -509,10 +546,10 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     Else
                         js = js + " while (!(" + ConvertExpression(Join(parts(), 3, -1, " "), i) + ")) {"
                     End If
-                    loopMode(loopLevel).mode = 1
+                    containers(cindex).mode = 1
                 Else
                     js = js + " do {"
-                    loopMode(loopLevel).mode = 2
+                    containers(cindex).mode = 2
                 End If
                 indent = 1
                 js = js + " if (QB.halted()) { return; }"
@@ -521,12 +558,13 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
 
             ElseIf first = "WHILE" Then
-                loopLevel = loopLevel + 1
-                loopMode(loopLevel).label = GenJSLabel
-                loopMode(loopLevel).type = "WHILE"
+                cindex = cindex + 1
+                containers(cindex).label = GenJSLabel
+                containers(cindex).type = "WHILE"
+                containers(cindex).line = i
 
                 loopIndex = GenJSVar
-                js = "var " + loopIndex + " = 0; " + loopMode(loopLevel).label + ":"
+                js = "var " + loopIndex + " = 0; " + containers(cindex).label + ":"
                 js = js + " while (" + ConvertExpression(Join(parts(), 2, -1, " "), i) + ") {"
                 js = js + " if (QB.halted()) { return; }"
                 js = js + loopIndex + "++; "
@@ -535,26 +573,35 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 indent = 1
 
             ElseIf first = "WEND" Then
-                js = "}"
-                loopLevel = loopLevel - 1
-                indent = -1
+                'ctype = ""
+                'If cindex > 0 Then ctype = containers(cindex).type
+                'If ctype <> "WHILE" Then
+                '    AddWarning i, "WEND without WHILE"
+                'Else
+                If CheckBlockEnd(containers(), cindex, first, i) Then
+                    js = "}"
+                    cindex = cindex - 1
+                    indent = -1
+                End If
 
             ElseIf first = "LOOP" Then
-                If loopMode(loopLevel).mode = 1 Then
-                    js = "}"
-                Else
-                    sfix = FixCondition(UCase$(parts(2)), parts(), 2, "LOOP ")
-
-                    js = "} while (("
-                    If UBound(parts) < 2 Then
-                        js = js + "1));"
+                If CheckBlockEnd(containers(), cindex, first, i) Then
+                    If containers(cindex).mode = 1 Then
+                        js = "}"
                     Else
-                        If UCase$(parts(2)) = "UNTIL" Then js = "} while (!("
-                        js = js + ConvertExpression(Join(parts(), 3, UBound(parts), " "), i) + "))"
+                        sfix = FixCondition(UCase$(parts(2)), parts(), 2, "LOOP ")
+
+                        js = "} while (("
+                        If UBound(parts) < 2 Then
+                            js = js + "1));"
+                        Else
+                            If UCase$(parts(2)) = "UNTIL" Then js = "} while (!("
+                            js = js + ConvertExpression(Join(parts(), 3, UBound(parts), " "), i) + "))"
+                        End If
                     End If
+                    cindex = cindex - 1
+                    indent = -1
                 End If
-                loopLevel = loopLevel - 1
-                indent = -1
 
             ElseIf first = "_CONTINUE" Or first = "CONTINUE" Then
                 js = "continue;"
@@ -571,19 +618,19 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
                 ElseIf second = "DO" Or second = "WHILE" Or second = "FOR" Then
                     Dim lli As Integer
-                    For lli = loopLevel To 0 Step -1
+                    For lli = cindex To 0 Step -1
                         If lli > 0 Then
-                            If loopMode(lli).type = second Then Exit For
+                            If containers(lli).type = second Then Exit For
                         End If
                     Next lli
                     If lli > 0 Then
-                        js = "break " + loopMode(lli).label + ";"
+                        js = "break " + containers(lli).label + ";"
                     Else
-                        AddWarning i, "EXIT " + second + " without " + second + " on current line"
+                        AddError i, "EXIT " + second + " without " + second
                     End If
 
                 Else
-                    AddWarning i, "Syntax error after EXIT"
+                    AddError i, "Syntax error after EXIT"
                 End If
 
             ElseIf first = "TYPE" Then
@@ -697,7 +744,49 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
     Next i
 
+    If cindex > 0 Then
+        AddError containers(cindex).line, containers(cindex).type + " without " + EndPhraseFor(containers(cindex).type)
+    End If
+
 End Sub
+
+Function BeginPhraseFor$ (endPhrase As String)
+    Dim bp As String
+    Select Case endPhrase
+        Case "NEXT": bp = "FOR"
+        Case "LOOP": bp = "DO"
+        Case "WEND": bp = "WHILE"
+        Case "END IF": bp = "IF"
+        Case "END SELECT": bp = "SELECT CASE"
+    End Select
+    BeginPhraseFor = bp
+End Function
+
+Function EndPhraseFor$ (beginPhrase As String)
+    Dim ep As String
+    Select Case beginPhrase
+        Case "FOR": ep = "NEXT"
+        Case "DO": ep = "LOOP"
+        Case "WHILE": ep = "WEND"
+        Case "IF": ep = "END IF"
+        Case "SELECT CASE": ep = "END SELECT"
+    End Select
+    EndPhraseFor = ep
+End Function
+
+Function CheckBlockEnd (cstack() As Container, cindex As Integer, endPhrase As String, lineNumber As Integer)
+    Dim As String ctype, beginPhrase
+    Dim success As Integer
+    success = True
+    beginPhrase = BeginPhraseFor(endPhrase)
+    If cindex > 0 Then ctype = cstack(cindex).type
+    If ctype <> beginPhrase Then
+        AddError lineNumber, endPhrase + " without " + beginPhrase
+        success = False
+    End If
+
+    CheckBlockEnd = success
+End Function
 
 Function FixCondition$ (word As String, parts() As String, idx As Integer, prefix As String)
     ' The fact that we are doing this probably means we need to improve the initial "tokenizer"
@@ -728,7 +817,7 @@ Sub ParseExport (s As String, lineIndex As Integer)
     Dim c As Integer
     c = SLSplit(s, parts(), False)
 
-    AddWarning lineIndex, "ParseExport: [" + s + "]"
+    'AddWarning lineIndex, "ParseExport: [" + s + "]"
 
     If FindMethod(parts(1), es, "SUB") Then
         If c > 2 Then
@@ -1924,9 +2013,9 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                 If uword = "NOT" Then
                     js = js + "!"
                 ElseIf uword = "AND" Then
-                    js = js + " && "
+                    js = js + " & "
                 ElseIf uword = "OR" Then
-                    js = js + " || "
+                    js = js + " | "
                 ElseIf uword = "MOD" Then
                     js = js + " % "
                 ElseIf uword = "XOR" Then
@@ -2657,6 +2746,35 @@ Function FindOperator (c As String, c2 As String)
     End If
 End Function
 
+Sub CheckParen (sourceString As String, lineNumber As Long)
+    Dim i As Integer
+    Dim quoteMode As Integer
+    Dim paren As Integer
+    For i = 1 To Len(sourceString)
+        Dim c As String
+        c = Mid$(sourceString, i, 1)
+
+        If c = Chr$(34) Then
+            quoteMode = Not quoteMode
+
+        ElseIf quoteMode Then
+            ' skip the remaining checks and move to the next char
+
+        ElseIf c = "(" Then
+            paren = paren + 1
+
+        ElseIf c = ")" Then
+            paren = paren - 1
+        End If
+    Next i
+
+    If paren < 0 Then
+        AddError lineNumber, "Missing ("
+    ElseIf paren > 0 Then
+        AddError lineNumber, "Missing )"
+    End If
+End Sub
+
 ' String literal-aware split - copy
 Function SLSplit2 (sourceString As String, results() As String)
     Dim cstr As String
@@ -3000,6 +3118,10 @@ Sub AddWarning (sourceLine As Integer, msgText As String)
     warnings(lcount).text = msgText
 End Sub
 
+Sub AddError (sourceLine As Integer, msgText As String)
+    AddWarning sourceLine, msgText
+    warnings(UBound(warnings)).mtype = MERROR
+End Sub
 
 Sub AddConst (vname As String)
     Dim v As Variable
