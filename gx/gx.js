@@ -5,6 +5,7 @@ var GX = new function() {
     var _bg = [];
     var _images = [];
     var _entities = [];
+    var _entities_active = [];
     var _entity_animations = [];
     var _scene = {};
     var _tileset = {};
@@ -37,8 +38,6 @@ var GX = new function() {
     var _vfs = new VFS();
     var _vfsCwd = null;
 
-    var _glcanvas = null;
-
     // javascript specific
     var _onGameEvent = null;
     var _pressedKeys = {};
@@ -59,7 +58,6 @@ var GX = new function() {
     function _reset() {
         // stop any sounds that are currently playing
         _soundStopAll();
-
         _framerate = 60;
         _bg = [];
         _images = [];
@@ -216,11 +214,6 @@ var GX = new function() {
         _canvas.height = height;
         _ctx = _canvas.getContext("2d");
 
-        //_glcanvas.width = width;
-        //_glcanvas.height = height;
-        //_glctx = _glcanvas.getContext("webgl");
-        ////__GL.init(_glctx);
-
         var footer = document.getElementById("gx-footer");
         footer.style.width = width;
         
@@ -297,8 +290,7 @@ var GX = new function() {
     // handled externally.
     function _sceneDraw() {
         if (_map_loading) { return; }
-        var ei, ei2, frame;
-        frame = _scene.frame % GX.frameRate() + 1;
+        var frame = _scene.frame % GX.frameRate() + 1;
 
         // If the screen has been resized, resize the destination screen image
         //If _Resize And Not GXSceneEmbedded Then
@@ -318,6 +310,17 @@ var GX = new function() {
         // Call out to any custom screen drawing
         _customDrawEvent(GX.EVENT_DRAWBG);
 
+        // Initialize the renderable entities
+        _entities_active = [];
+        for (var ei=1; ei <= _entities.length; ei++) {
+            var e = _entities[ei-1];
+            if (!e.screen) {
+                if (_rectCollide(e.x, e.y, e.width, e.height, GX.sceneX(), GX.sceneY(), GX.sceneWidth(), GX.sceneHeight())) {
+                    _entities_active.push(ei);
+                }
+            }
+        }
+
         // Draw the map tiles
         GX.mapDraw();
 
@@ -325,19 +328,7 @@ var GX = new function() {
         _customDrawEvent(GX.EVENT_DRAWMAP);
 
         // Draw the entities
-        for (var ei = 1; ei <= _entities.length; ei++) {
-            var e = _entities[ei-1];
-            if (!e.screen) {
-                if (_rectCollide(e.x, e.y, e.width, e.height, GX.sceneX(), GX.sceneY(), GX.sceneWidth(), GX.sceneHeight())) {
-                    _entityDraw(e);
-                }
-            }
-            if (e.animate > 0) {
-                if (frame % (GX.frameRate() / e.animate) == 0) {
-                    GX.entityFrameNext(ei);
-                }
-            }
-        }
+        _drawEntityLayer(0);
 
         // Draw the screen entities which should appear on top of the other game entities
         // and have a fixed position
@@ -345,6 +336,9 @@ var GX = new function() {
             var e = _entities[ei-1];
             if (e.screen) {
                 _entityDraw(e);
+                if (frame % (GX.frameRate() / e.animate) == 0) {
+                    GX.entityFrameNext(ei);
+                }
             }
         }
 
@@ -366,12 +360,6 @@ var GX = new function() {
 
         // Call custom game update logic
         _customEvent(GX.EVENT_UPDATE);
-
-        // Perform any movement for registered player entities
-        //Dim i As Integer
-        //For i = 1 To __gx_player_count
-        //    __GX_PlayerAction i
-        //Next i
 
         // Check for entity movement and collisions
         // TODO: filter out non-moving entities
@@ -767,19 +755,14 @@ var GX = new function() {
         newent.coRight = 0;
         newent.coBottom = 0;
         newent.applyGravity = false;
+        newent.sequences = 0;
+        newent.mapLayer = 0;
+
         _entities.push(newent);
         
         var animation = [];
         _entity_animations.push(animation);
-
-        /*
-            newent.sequences = Math.floor(_images[newent.image-1].height / height);
-            console.log(newent.sequences);
-            for (var i=0; i < newent.sequences; i++) {
-                animation.push({ frames: seqFrames });
-            }
-        */
-
+        
         return _entities.length;
     }
     
@@ -818,7 +801,7 @@ var GX = new function() {
             return _entities[eid-1].seqFrames;
         }
         else {
-            return _entity_animations[eid-1].frames;
+            return a[seq-1].frames;
         }
     }
 
@@ -912,12 +895,12 @@ var GX = new function() {
         return _entities[eid-1].sequences;
     }
 
-    function _entityFrames (eid, seq) {
-        return _entityGetFrames(eid, seq); //_entity_animations[eid-1][seq-1].frames;
-    }
-
     function _entityFrames (eid, seq, frames) {
-        _entity_animations[eid-1][seq-1] = { frames: frames };
+        console.log(eid + ":" + seq + ":" + frames);
+        if (frames != undefined) {
+            _entity_animations[eid-1][seq-1] = { frames: frames };
+        }
+        return _entityGetFrames(eid, seq); //_entity_animations[eid-1][seq-1].frames;
     }
 
     function _entityType (eid, etype) {
@@ -926,6 +909,30 @@ var GX = new function() {
         }
         return _entities[eid-1].type
 	}
+
+    function _entityMapLayer (eid, layer) {
+        if (layer != undefined) {
+            _entities[eid-1].mapLayer = layer;
+        }
+        return _entities[eid-1].mapLayer;
+    }
+
+    function _drawEntityLayer (layer) {
+        var frame = _scene.frame % GX.frameRate() + 1;
+
+        for (var i=0; i < _entities_active.length; i++) {
+            var ei = _entities_active[i];
+            var e = _entities[ei-1];
+            if (e.mapLayer == layer) {
+                _entityDraw(e);
+                if (e.animate > 0) {
+                    if (frame % (GX.frameRate() / e.animate) == 0) {
+                        GX.entityFrameNext(ei);
+                    }
+                }
+            }
+        }
+    }
 
     function _entityApplyGravity (eid, gravity) {
         if (gravity != undefined) {
@@ -1052,41 +1059,33 @@ var GX = new function() {
         });
         _map_layers.push(_mapLayerInit());
     }
+
+    function _mapLayerInsert (beforeLayer) {
+        if (beforeLayer < 1 || beforeLayer > GX.mapLayers()) { return; }
+
+        GX.mapLayerAdd();
+        for (var layer = GX.mapLayers(); layer > beforeLayer; layer--) {
+            for (var tile = 0; tile <= GX.mapRows() * GX.mapColumns(); tile++) {
+                _map_layers[layer-1][tile] = _map_layers[layer - 2][tile];
+            }
+        }
+        _map_layers[beforeLayer-1] = _mapLayerInit();
+    }
+
+    function _mapLayerRemove (removeLayer) {
+        if (removeLayer < 1 || removeLayer > GX.mapLayers() || GX.mapLayers < 2) { return; }
+
+        for (var layer = removeLayer; layer < GX.mapLayers(); layer++) {
+            for (var tile = 0; tile <= GX.mapRows() * GX.mapColumns(); tile++) {
+                _map_layers[layer-1][tile] = _map_layers[layer][tile];
+            }
+        }
+        _map_layer_info.pop();
+        _map_layers.pop();
+        _map.layers = GX.mapLayers() - 1;
+    }
+
 /*
-    Sub GXMapLayerInsert (beforeLayer As Integer)
-        If beforeLayer < 1 Or beforeLayer > GXMapLayers Then Exit Sub
-
-        GXMapLayerAdd
-        Dim layer As Integer
-        Dim tile As Integer
-        For layer = GXMapLayers To beforeLayer + 1 Step -1
-            'gx_map_layer_info(layer) = gx_map_layer_info(layer - 1)
-            For tile = 0 To GXMapRows * GXMapColumns
-                __gx_map_layers(tile, layer) = __gx_map_layers(tile, layer - 1)
-            Next tile
-        Next layer
-        Dim blankTile As GXMapTile
-        For tile = 0 To GXMapRows * GXMapColumns
-            __gx_map_layers(tile, beforeLayer) = blankTile
-        Next tile
-    End Sub
-
-    Sub GXMapLayerRemove (removeLayer As Integer)
-        If removeLayer < 1 Or removeLayer > GXMapLayers Or GXMapLayers < 2 Then Exit Sub
-
-        Dim layer As Integer
-        Dim tile As Integer
-        For layer = removeLayer To GXMapLayers - 1
-            For tile = 0 To GXMapRows * GXMapColumns
-                __gx_map_layers(tile, layer) = __gx_map_layers(tile, layer + 1)
-            Next tile
-        Next layer
-
-        ReDim _Preserve __gx_map_layer_info(GXMapLayers - 1) As GXMapLayer
-        ReDim _Preserve __gx_map_layers(GXMapRows * GXMapColumns, GXMapLayers - 1) As GXMapTile
-        __gx_map.layers = GXMapLayers - 1
-    End Sub
-
     Sub GXMapResize (columns As Integer, rows As Integer)
         Dim tempMap(GXMapRows * GXMapColumns, GXMapLayers) As GXMapTile
         Dim m1 As _MEM: m1 = _Mem(__gx_map_layers())
@@ -1186,6 +1185,7 @@ var GX = new function() {
                     srow = srow + 1;
                 }
             } // layer is not hidden
+            _drawEntityLayer(li);
         }
 
         // Perform tile animation
@@ -1986,17 +1986,20 @@ var GX = new function() {
 
     function _mouseY() {
         return Math.round((_mousePos.y - _scene.offsetY) / _scene.scaleY);
-    };
+    }
 
     function _mouseButton(button) {
         // TODO: need to decide whether to keep this here
         //       it is not needed for GX - only to support QB64
         return _mouseButtons[button-1];
-    };
+    }
 
     function _mouseWheel() {
-        return _mouseWheelFlag;
+        var mw = _mouseWheelFlag;
+        _mouseWheelFlag = false;
+        return mw;
     }
+
     function _touchInput() {
         var ti = _touchInputFlag;
         _touchInputFlag = false;
@@ -2488,8 +2491,6 @@ var GX = new function() {
 
     this.ctx = function() { return _ctx; };
     this.canvas = function() { return _canvas; };
-    this.gl = function() { return _glctx; };
-    this.glcanvas = function() { return _glcanvas; };
     this.vfs = function() { return _vfs; };
     this.vfsCwd = function(cwd) {
         if (cwd != undefined) {
@@ -2550,8 +2551,10 @@ var GX = new function() {
     this.entityVX = _entityVX;
     this.entityVY = _entityVY;
 	this.entityFrameNext = _entityFrameNext;
+    this.entityFrames = _entityFrames;
     this.entityFrameSet = _entityFrameSet;
     this.entityType = _entityType;
+    this.entityMapLayer = _entityMapLayer;
     this.entityCollisionOffset = _entityCollisionOffset;
     this.entityCollisionOffsetLeft = _entityCollisionOffsetLeft;
     this.entityCollisionOffsetTop = _entityCollisionOffsetTop;
@@ -2566,13 +2569,15 @@ var GX = new function() {
     this.entitySequences = _entitySequences;
     this.entityFrames = _entityFrames;
 
-    
+
     this.mapColumns = _mapColumns;
     this.mapCreate = _mapCreate;
     this.mapLoad = _mapLoad;
     this.mapDraw = _mapDraw;
     this.mapIsometric = _mapIsometric;
     this.mapLayerAdd = _mapLayerAdd;
+    this.mapLayerInsert = _mapLayerInsert;
+    this.mapLayerRemove = _mapLayerRemove;
     this.mapLayerInit = _mapLayerInit;
     this.mapLayerVisible = _mapLayerVisible;
     this.mapLayers = _mapLayers;
