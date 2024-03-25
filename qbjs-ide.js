@@ -264,6 +264,14 @@ var IDE = new function() {
 
         await displayWarnings();
 
+        if (_hasError()) {
+            consoleVisible = true;
+            window.onresize();
+            QB.halt();
+            GX.sceneStop();
+            return false;
+        }
+
         _e.jsCode.innerHTML = jsCode;
         window.onresize();
 
@@ -298,6 +306,16 @@ var IDE = new function() {
         }
         _e.gxContainer.focus();
 
+        return false;
+    }
+
+    function _hasError() {
+        var warnings = QBCompiler.getWarnings();
+        for (var i=0; i < warnings.length; i++) {
+            if (warnings[i].mtype == 1) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -589,7 +607,8 @@ var IDE = new function() {
                 var td1 = document.createElement("td");
                 var td2 = document.createElement("td");
                 var td3 = document.createElement("td");
-                _addWarningCell(tr, "WARN");
+                var mtype = (w[i].mtype == 1) ? "ERROR": "WARN";
+                _addWarningCell(tr, mtype);
                 _addWarningCell(tr, ":");
                 _addWarningCell(tr, w[i].line);
                 _addWarningCell(tr, ":");
