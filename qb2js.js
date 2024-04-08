@@ -769,7 +769,7 @@ if (QB.halted()) { return; };
    var esize = 0;  /* SINGLE */ 
    esize =  (QB.func_UBound(  exportLines))  +  1;
    QB.resizeArray(exportLines, [{l:0,u:esize}], '', true);  /* STRING */ 
-   QB.arrayValue(exportLines, [ esize]).value =  "this."  +  exportName + " = "  +  exportedItem + ";";
+   QB.arrayValue(exportLines, [ esize]).value =   exportName + ": "  +  exportedItem + ",";
 }
 async function func_ConvertSub(m/*METHOD*/,args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; 
@@ -2157,10 +2157,14 @@ if (QB.halted()) { return; };
          await sub_AddJSLine(  lastLine,   "}");
       }
    } 
-   var ___v4048342 = 0; ___l3534726: for ( i=  1;  i <= (QB.func_UBound(  exportLines));  i= i + 1) { if (QB.halted()) { return; } ___v4048342++;   if (___v4048342 % 100 == 0) { await QB.autoLimit(); }
-      await sub_AddJSLine(  i,   QB.arrayValue(exportLines, [ i]).value);
-   } 
-   QB.resizeArray(exportLines, [{l:0,u:0}], '', false);  /* STRING */ 
+   if ((QB.func_UBound(  exportLines))  > 0) {
+      await sub_AddJSLine(  0,   "return {");
+      var ___v4048342 = 0; ___l3534726: for ( i=  1;  i <= (QB.func_UBound(  exportLines));  i= i + 1) { if (QB.halted()) { return; } ___v4048342++;   if (___v4048342 % 100 == 0) { await QB.autoLimit(); }
+         await sub_AddJSLine(  i,   QB.arrayValue(exportLines, [ i]).value);
+      } 
+      await sub_AddJSLine(  0,   "};");
+      QB.resizeArray(exportLines, [{l:0,u:0}], '', false);  /* STRING */ 
+   }
 }
 async function sub_ReadLinesFromFile(filename/*STRING*/) {
 if (QB.halted()) { return; }; 

@@ -876,7 +876,7 @@ Sub RegisterExport (exportName As String, exportedItem As String)
     Dim esize
     esize = UBound(exportLines) + 1
     ReDim _Preserve exportLines(esize) As String
-    exportLines(esize) = "this." + exportName + " = " + exportedItem + ";"
+    exportLines(esize) = exportName + ": " + exportedItem + ","
 End Sub
 
 Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
@@ -2300,10 +2300,14 @@ Sub ConvertMethods ()
     Next i
 
     ' Add the export lines
-    For i = 1 To UBound(exportLines)
-        AddJSLine i, exportLines(i)
-    Next i
-    ReDim exportLines(0) As String
+    If UBound(exportLines) > 0 Then
+        AddJSLine 0, "return {"
+        For i = 1 To UBound(exportLines)
+            AddJSLine i, exportLines(i)
+        Next i
+        AddJSLine 0, "};"
+        ReDim exportLines(0) As String
+    End If
 End Sub
 
 
