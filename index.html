@@ -4,6 +4,7 @@
         <title>QBJS - QBasic for the Web!</title>
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="manifest" href="manifest.json"></link>
         <link rel="stylesheet" href="qbjs-ide.css"></link>
         <link rel="stylesheet" href="codemirror/codemirror.min.css"></link>
         <link rel="stylesheet" href="codemirror/dialog.css">
@@ -153,6 +154,11 @@
             </div>
         </dialog>
     </body>
+    <script language="javascript">
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js');
+        }
+    </script>
     <script language="javascript" src="vfs.js?v=0.8.0"></script>
     <script language="javascript" src="gx/gx.js?v=0.8.0"></script>
     <script language="javascript" src="qb.js?v=0.8.0"></script>
