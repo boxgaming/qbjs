@@ -1023,8 +1023,10 @@ var GX = new function() {
             .then((responseJson)=>{return responseJson});
     }
 
-    function _mapLayerInit() {
-        var layerSize = _map.rows * _map.columns;
+    function _mapLayerInit(cols, rows) {
+        if (cols == undefined) { cols = _map.columns; }
+        if (rows == undefined) { rows = _map.rows; }
+        var layerSize = rows * cols;
         var layerData = [];
         for (var i=0; i < layerSize; i++) {
             layerData.push({ tile: 0});
@@ -1085,50 +1087,44 @@ var GX = new function() {
         _map.layers = GX.mapLayers() - 1;
     }
 
-/*
-    Sub GXMapResize (columns As Integer, rows As Integer)
-        Dim tempMap(GXMapRows * GXMapColumns, GXMapLayers) As GXMapTile
-        Dim m1 As _MEM: m1 = _Mem(__gx_map_layers())
-        Dim m2 As _MEM: m2 = _Mem(tempMap())
-        _MemCopy m1, m1.OFFSET, m1.SIZE To m2, m2.OFFSET
-        _MemFree m1
-        _MemFree m2
 
-        ReDim __gx_map_layers(rows * columns, GXMapLayers) As GXMapTile
+    function _mapResize (columns, rows) {
+        var tempMap = structuredClone(_map_layers);
+        _map_layers = new Array(GX.mapLayers());
 
-        Dim layer As Integer
-        Dim row As Integer
-        Dim column As Integer
-        Dim maxColumns As Integer
-        Dim maxRows As Integer
-        If columns > GXMapColumns Then
-            maxColumns = GXMapColumns
-        Else
-            maxColumns = columns
-        End If
-        If rows > GXMapRows Then
-            maxRows = GXMapRows
-        Else
-            maxRows = rows
-        End If
+        var maxColumns = 0;
+        var maxRows = 0;
+        if (columns > GX.mapColumns()) {
+            maxColumns = GX.mapColumns();
+        }
+        else {
+            maxColumns = columns;
+        }
+        if (rows > GX.mapRows) {
+            maxRows = GX.mapRows();
+        }
+        else {
+            maxRows = rows;
+        }
 
-        Dim blankTile As GXMapTile
-        For layer = 1 To GXMapLayers
-            For row = 0 To maxRows - 1
-                For column = 0 To maxColumns - 1
-                    If column >= GXMapColumns Or row >= GXMapRows Then
-                        __gx_map_layers(row * columns + column, layer) = blankTile
-                    Else
-                        __gx_map_layers(row * columns + column, layer) = tempMap(row * GXMapColumns + column, layer)
-                    End If
-                Next column
-            Next row
-        Next layer
+        for (var layer = 1; layer <= GX.mapLayers(); layer++) {
+            _map_layers[layer-1] = _mapLayerInit(columns, rows);
+            for (var row = 0; row < maxRows; row++) {
+                for (var column = 0; column < maxColumns; column++) {
+                    if (column >= GX.mapColumns() || row >= GX.mapRows()) {
+                        _map_layers[layer-1][row * columns + column].tile = 0;
+                    }
+                    else { //if (GX.mapColumns() > column && GX.mapRows() > rows) {
+                        _map_layers[layer-1][row * columns + column].tile = tempMap[layer-1][row * GX.mapColumns() + column].tile;
+                    }
+                }
+            }
+        }
 
-        __gx_map.columns = columns
-        __gx_map.rows = rows
-    End Sub
-*/
+        _map.columns = columns;
+        _map.rows = rows;
+    }
+
     function _mapDraw() {
         if (_mapRows() < 1) { return; }
 
@@ -1462,28 +1458,26 @@ var GX = new function() {
     }
 
     function _tilesetAnimationFrames (tileId, tileFrames /* QB Array */) {
-        // TODO: create an overriden version of this method that returns a standard javascript array
         if (tileId < 0 || tileId > GX.tilesetRows() * GX.tilesetColumns()) { return 0; }
 
-        var tileFrames = GX.initArray([0], { tileId: 0, firstFrame: 0, nextFrame: 0 });
+        GX.resizeArray(tileFrames, [{l:0,u:0}], 0);
         var frameCount = 0;
         var frame = _tileset_tiles[tileId-1].animationId;
         while (frame > 0) {
             frameCount = frameCount + 1
-            GX.resizeArray(tileFrames, [frameCount], { tileId: 0, firstFrame: 0, nextFrame: 0 }, true);
+            GX.resizeArray(tileFrames, [{l:0,u:frameCount}], 0, true);
             GX.arrayValue(tileFrames, [frameCount]).value = _tileset_animations[frame-1].tileId;
             frame = _tileset_animations[frame-1].nextFrame;
         }
         return frameCount;
     }
 
-    function _tilesetAnimationSpeed (tileId) {
-        if (tileId > GX.tilesetRows() * GX.tilesetColumns()) { return; }
-        return _tileset_tiles[tileId-1].animationSpeed;
-    }
-
     function _tilesetAnimationSpeed (tileId, speed) {
-        _tileset_tiles[tileId-1].animationSpeed = speed;
+        if (tileId > GX.tilesetRows() * GX.tilesetColumns()) { return; }
+        if (speed != undefined) {
+            _tileset_tiles[tileId-1].animationSpeed = speed;
+        }
+        return _tileset_tiles[tileId-1].animationSpeed;
     }
 
     function _tileFrame (tileId) {
@@ -2581,6 +2575,7 @@ var GX = new function() {
     this.mapLayerInit = _mapLayerInit;
     this.mapLayerVisible = _mapLayerVisible;
     this.mapLayers = _mapLayers;
+    this.mapResize = _mapResize;
     this.mapRows = _mapRows;
     this.mapTile = _mapTile;
 
@@ -2593,6 +2588,11 @@ var GX = new function() {
     this.tilesetRows = _tilesetRows;
     this.tilesetWidth = _tilesetWidth;
     this.tilesetReplaceImage = _tilesetReplaceImage;
+    this.tilesetAnimationCreate = _tilesetAnimationCreate;
+    this.tilesetAnimationAdd = _tilesetAnimationAdd;
+    this.tilesetAnimationRemove = _tilesetAnimationRemove;
+    this.tilesetAnimationFrames = _tilesetAnimationFrames;
+    this.tilesetAnimationSpeed = _tilesetAnimationSpeed;
 
     this.fontCharSpacing = _fontCharSpacing;
     this.fontCreate = _fontCreate;
