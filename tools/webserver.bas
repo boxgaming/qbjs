@@ -143,6 +143,8 @@ Sub http_do_get (c)
     http_send_header c, "Content-Length", LTrim$(Str$(Len(filedata)))
     If InStr(filepath, ".svg") Then
         http_send_header c, "Content-Type", "image/svg+xml"
+    ElseIf InStr(filepath, ".js") Then
+        http_send_header c, "Content-Type", "text/javascript"
     End If
     http_send_header c, "Access-Control-Allow-Origin", "true"
     http_send_header c, "Connection", "close"
@@ -211,10 +213,14 @@ Function get_requested_filesystem_path$ (c)
     '    'raw_path = GXSTR_Replace(raw_path, "/", "\")
     '    cwd = GXSTR_Replace(cwd, "\", "/")
     '$End If
+    Dim path As String
+    path = Left$(raw_path, path_len)
+    Print "--> " + path
 
-    'Print "--> " + Left$(raw_path, path_len)
+    If Right$(path, 1) = "/" Then path = path + "index.html"
 
-    get_requested_filesystem_path = _StartDir$ + cannonicalise_path(percent_decode(Left$(raw_path, path_len)))
+    'get_requested_filesystem_path = _StartDir$ + cannonicalise_path(percent_decode(Left$(raw_path, path_len)))
+    get_requested_filesystem_path = _StartDir$ + cannonicalise_path(percent_decode(path))
 End Function
 
 Function percent_decode$ (raw_string As String)
