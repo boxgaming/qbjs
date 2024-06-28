@@ -967,6 +967,7 @@ var QB = new function() {
         sourceImage.lastY = sy2 + sh;
 
         _flushScreenCache(_images[destImageId]);
+        destImage.ctx.imageSmoothingEnabled = smooth;
         destImage.ctx.drawImage(sourceImage.canvas, sx1, sy1, sw, sh, dx1, dy1, dw, dh);
     }
 
@@ -3337,6 +3338,7 @@ var QB = new function() {
         } else {
             ret = Number(value);
         }
+        if (isNaN(ret)) { ret = 0; }
         return ret;
     };
 
