@@ -1254,9 +1254,9 @@ var QB = new function() {
         if (pos == undefined) {
             pos = 0;
         }
-        else { p
+        else {
             _assertNumber(pos, 2);
-            os--; 
+            pos--; 
         }
 
         return String(value).charCodeAt(pos);
