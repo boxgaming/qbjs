@@ -31,6 +31,7 @@ Type Method
     args As String
     jsname As String
     sync As Integer
+    builtin As Integer
 End Type
 
 Type Argument
@@ -147,7 +148,7 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
 
     If Not selfConvert And moduleName = "" Then
         Dim mtest As Method
-        If FindMethod("GXOnGameEvent", mtest, "SUB") Then
+        If FindMethod("GXOnGameEvent", mtest, "SUB", True) Then
             AddJSLine 0, "    await GX.registerGameEvents(sub_GXOnGameEvent);"
             isGX = True
         Else
@@ -189,6 +190,35 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "   }"
         AddJSLine 0, "   return w;"
         AddJSLine 0, "};"
+        AddJSLine 0, "function _getMethods(methods) {"
+        AddJSLine 0, "   var m = [];"
+        AddJSLine 0, "   for (var i=1; i <= QB.func_UBound(methods); i++) {"
+        AddJSLine 0, "      var lidx = QB.arrayValue(methods, [i]).value.line;"
+        AddJSLine 0, "      m.push({"
+        AddJSLine 0, "         line: QB.arrayValue(lines, [lidx]).value.line,"
+        AddJSLine 0, "         type: QB.arrayValue(methods, [i]).value.type,"
+        AddJSLine 0, "         returnType: QB.arrayValue(methods, [i]).value.returnType,"
+        AddJSLine 0, "         name: QB.arrayValue(methods, [i]).value.name,"
+        AddJSLine 0, "         uname: QB.arrayValue(methods, [i]).value.uname,"
+        AddJSLine 0, "         jsname: QB.arrayValue(methods, [i]).value.jsname,"
+        AddJSLine 0, "         argc: QB.arrayValue(methods, [i]).value.argc,"
+        AddJSLine 0, "         args: QB.arrayValue(methods, [i]).value.args"
+        AddJSLine 0, "      });"
+        AddJSLine 0, "   }"
+        AddJSLine 0, "   return m;"
+        AddJSLine 0, "}"
+        AddJSLine 0, "this.getMethods = function () { return _getMethods(methods); };"
+        AddJSLine 0, "this.getExportMethods = function () { return _getMethods(exportMethods); };"
+        AddJSLine 0, "this.getExportConsts = function() {"
+        AddJSLine 0, "   var c = [];"
+        AddJSLine 0, "   for (var i=1; i <= QB.func_UBound(exportConsts); i++) {"
+        AddJSLine 0, "      c.push({"
+        AddJSLine 0, "         name: QB.arrayValue(exportConsts, [i]).value.name,"
+        AddJSLine 0, "         jsname: QB.arrayValue(exportConsts, [i]).value.jsname"
+        AddJSLine 0, "      });"
+        AddJSLine 0, "   }"
+        AddJSLine 0, "   return c;"
+        AddJSLine 0, "}"
         AddJSLine 0, "this.getSourceLine = function(jsLine) {"
         AddJSLine 0, "   if (jsLine == 0) { return 0; }"
         AddJSLine 0, "   var line = QB.arrayValue(jsLines, [jsLine]).value.line;"
@@ -200,7 +230,7 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "}"
 
     ElseIf moduleName <> "" Then
-        AddJSLine 0, "return this;"
+        'AddJSLine 0, "return this;"
         AddJSLine 0, "}"
         AddJSLine 0, "const " + moduleName + " = await _" + moduleName + "();"
 
@@ -670,7 +700,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     subname = Left$(subline, subend - 1)
                 End If
 
-                If FindMethod(subname, m, "SUB") Then
+                If FindMethod(subname, m, "SUB", True) Then
                     Dim subargs As String
                     If subname = subline Then
                         subargs = ""
@@ -714,7 +744,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                         c = SLSplit(sname + " " + arg1 + Join(parts(), 2, -1, " "), parts(), True)
                     End If
 
-                    If FindMethod(parts(1), m, "SUB") Then
+                    If FindMethod(parts(1), m, "SUB", True) Then
                         js = ConvertSub(m, Join(parts(), 2, -1, " "), i)
                     Else
                         js = "// " + l
@@ -724,7 +754,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
 
             Else
-                If FindMethod(parts(1), m, "SUB") Then
+                If FindMethod(parts(1), m, "SUB", True) Then
                     js = ConvertSub(m, Join(parts(), 2, -1, " "), i)
                 Else
                     js = "// " + l
@@ -819,7 +849,7 @@ Sub ParseExport (s As String, lineIndex As Integer)
 
     'AddWarning lineIndex, "ParseExport: [" + s + "]"
 
-    If FindMethod(parts(1), es, "SUB") Then
+    If FindMethod(parts(1), es, "SUB", False) Then
         If c > 2 Then
             exportName = parts(3)
         Else
@@ -833,7 +863,7 @@ Sub ParseExport (s As String, lineIndex As Integer)
         found = True
     End If
 
-    If FindMethod(parts(1), ef, "FUNCTION") Then
+    If FindMethod(parts(1), ef, "FUNCTION", False) Then
         If c > 2 Then
             exportName = parts(3)
         Else
@@ -2011,7 +2041,7 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                 If i = Len(ex) Then word = word + c
                 Dim uword As String: uword = UCase$(_Trim$(word))
                 If uword = "NOT" Then
-                    js = js + "!"
+                    js = js + "~"
                 ElseIf uword = "AND" Then
                     js = js + " & "
                 ElseIf uword = "OR" Then
@@ -2040,7 +2070,7 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                         '       the return value is being assigned in the method.
                         '       Currently, this does not support recursive calls.
                         '       (is this comment still true?)
-                        If FindMethod(word, m, "FUNCTION") Then
+                        If FindMethod(word, m, "FUNCTION", True) Then
                             If m.name <> currentMethod Then
                                 js = js + CallMethod$(m) + "()"
                             Else
@@ -2103,7 +2133,7 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                         ' This is the case where a dimension is specified in order to retrieve or set a value in the array
                         js = js + fneg + "QB.arrayValue(" + bvar.jsname + ", [" + ConvertExpression(ex2, lineNumber) + "]).value"
                     End If
-                ElseIf FindMethod(word, m, "FUNCTION") Then
+                ElseIf FindMethod(word, m, "FUNCTION", True) Then
                     js = js + fneg + "(" + CallMethod(m) + "(" + ConvertMethodParams(ex2, lineNumber) + "))"
                 Else
                     If _Trim$(word) <> "" Then AddWarning lineNumber, "Missing function or array [" + word + "]"
@@ -2183,11 +2213,14 @@ Function FindVariable (varname As String, bvar As Variable, isArray As Integer)
     FindVariable = found
 End Function
 
-Function FindMethod (mname As String, m As Method, t As String)
+Function FindMethod (mname As String, m As Method, t As String, includeBuiltIn As Integer)
     Dim found As Integer: found = False
     Dim i As Integer
     For i = 1 To UBound(methods)
-        If methods(i).uname = _Trim$(UCase$(RemoveSuffix(mname))) And methods(i).type = t Then
+        If (Not includeBuiltIn) And methods(i).builtin Then 
+            ' Skip it
+            '_Continue
+        ElseIf methods(i).uname = _Trim$(UCase$(RemoveSuffix(mname))) And methods(i).type = t Then
             found = True
             m.line = methods(i).line
             m.type = methods(i).type
@@ -3055,6 +3088,7 @@ Sub AddGXMethod (mtype As String, mname As String, sync As Integer)
     m.name = mname
     m.uname = UCase$(m.name)
     m.sync = sync
+    m.builtin = True
     m.jsname = GXMethodJS(RemoveSuffix(mname))
     If mtype = "FUNCTION" Then
         m.returnType = DataTypeFromName(mname)
@@ -3066,6 +3100,7 @@ Sub AddQBMethod (mtype As String, mname As String, sync As Integer)
     Dim m As Method
     m.type = mtype
     m.name = mname
+    m.builtin = True
     AddMethod m, "QB.", sync
     If InStr(mname, "_") = 1 Then
         ' Register the method again without the "_" prefix
@@ -3073,6 +3108,7 @@ Sub AddQBMethod (mtype As String, mname As String, sync As Integer)
         CopyMethod methods(UBound(methods)), m2
         m2.name = Mid$(mname, 2)
         m2.uname = UCase$(RemoveSuffix(m2.name))
+        m2.builtin = True
         Dim mcount: mcount = UBound(methods) + 1
         ReDim _Preserve As Method methods(mcount)
         methods(mcount) = m2
@@ -3086,6 +3122,7 @@ Sub AddNativeMethod (mtype As String, mname As String, jsname As String, sync As
     m.uname = UCase$(m.name)
     m.jsname = jsname
     m.sync = sync
+    m.builtin = True
 
     Dim mcount: mcount = UBound(methods) + 1
     ReDim _Preserve As Method methods(mcount)
@@ -3140,9 +3177,9 @@ Sub AddGXConst (vname As String)
     v.type = "CONST"
     v.name = vname
     If vname = "GX_TRUE" Then
-        v.jsname = "true"
+        v.jsname = "GX.TRUE"
     ElseIf vname = "GX_FALSE" Then
-        v.jsname = "false"
+        v.jsname = "GX.FALSE"
     Else
         Dim jsname As String
         jsname = Mid$(vname, 3, Len(vname) - 2)
