@@ -2445,8 +2445,15 @@ if (QB.halted()) { return; };
                   isArray =  "true";
                   argname =  (QB.func_Left(  argname,   (QB.func_Len(  argname))  -  2));
                }
-               if ( apcount ==   3) {
-                  args =   args +  argname + ":"  + (QB.func_UCase( QB.arrayValue(aparts, [ 3]).value))  + ":"  +  isArray;
+               if ( apcount > 2) {
+                  var typeName = '';  /* STRING */ 
+                  typeName =  (QB.func_UCase( QB.arrayValue(aparts, [ 3]).value));
+                  if ( apcount > 3) {
+                     if ( typeName ==  "UNSIGNED"  |  typeName ==  "_UNSIGNED" ) {
+                        typeName =  (await func_NormalizeType( "_UNSIGNED "  + (QB.func_UCase( QB.arrayValue(aparts, [ 4]).value))));
+                     }
+                  }
+                  args =   args +  argname + ":"  +  typeName + ":"  +  isArray;
                } else {
                   args =   args +  argname + ":"  + (await func_DataTypeFromName( QB.arrayValue(aparts, [ 1]).value))  + ":"  +  isArray;
                }

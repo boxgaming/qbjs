@@ -2611,8 +2611,16 @@ Sub FindMethods
                         isArray = "true"
                         argname = Left$(argname, Len(argname) - 2)
                     End If
-                    If apcount = 3 Then
-                        args = args + argname + ":" + UCase$(aparts(3)) + ":" + isArray
+                    If apcount > 2 Then
+                        Dim typeName As String
+                        typeName = UCase$(aparts(3))
+                        If apcount > 3 Then
+                            If typeName = "UNSIGNED" Or typeName = "_UNSIGNED" Then
+                                typeName = NormalizeType("_UNSIGNED " + UCase$(aparts(4)))
+                            End If
+                        End If
+                        'args = args + argname + ":" + UCase$(aparts(3)) + ":" + isArray
+                        args = args + argname + ":" + typeName + ":" + isArray
                     Else
                         args = args + argname + ":" + DataTypeFromName(aparts(1)) + ":" + isArray
                     End If
