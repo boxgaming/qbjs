@@ -138,6 +138,10 @@ var QB = new function() {
         return result;
     };
 
+    this.toBoolean = function(value) {
+        return value ? 0 : -1;
+    };
+
     // Process control methods
     // -------------------------------------------
     this.halt = function() {
@@ -1057,8 +1061,6 @@ var QB = new function() {
 
     this.func__RGBA = function(r, g, b, a) {
         _assertNumber(r, 1);
-        _assertNumber(g, 2);
-        _assertNumber(b, 3);
         if (a == undefined) {
             a = 255;
         }
@@ -1353,10 +1355,10 @@ var QB = new function() {
     }
 
     this.sub_Color = function(fg, bg) {
-        if (x != undefined) {
+        if (fg != undefined) {
             _fgColor = _color(fg);
         }
-        if (y != undefined) {
+        if (bg != undefined) {
             _bgColor = _color(bg);
         }
     };
