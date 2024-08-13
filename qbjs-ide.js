@@ -8,6 +8,7 @@ var IDE = new function() {
     var appMode = "ide";
     var consoleVisible = false;
     var currTab = "js";
+    var currMethodTab = "methods";
     var editor;
     var selectedError = null;
     var currPath = "/";
@@ -32,6 +33,7 @@ var IDE = new function() {
         progSelDialog:    _el("prog-sel-dialog"),
         optionsDialog:    _el("options-dialog"),
         aboutDialog:      _el("about-dialog"),
+        methodsDialog:    _el("methods-dialog"),
         toolbar:          _el("toolbar"),
         tbConsoleShow:    _el("toolbar-button-console-show"),
         tbConsoleHide:    _el("toolbar-button-console-hide"),
@@ -166,6 +168,11 @@ var IDE = new function() {
                     event.preventDefault();
                     shareProgram();
                 }
+                // show method dialog
+                else if (event.code == "F2") {
+                    event.preventDefault();
+                    _showMethodDialog();
+                }
             });
         }
         if (appMode == "ide" && !inIframe()) {
@@ -248,6 +255,78 @@ var IDE = new function() {
         }
 
         return srcLine;
+    }
+
+    async function _showMethodDialog() {
+        // compile the source
+        var qbCode = editor.getValue();
+        if (!QBCompiler) { QBCompiler = await _QBCompiler(); }
+        var jsCode = await QBCompiler.compile(qbCode);
+        
+        var mbody = document.getElementById("methods-content");
+        mbody.innerHTML = "";
+        _addMethods(mbody, QBCompiler.getMethods(), _gotoMethod);
+
+        var imports = QBCompiler.getExportMethods();
+        var consts = QBCompiler.getExportConsts();
+        for (var i=0; i < consts.length; i++) {
+            var obj = consts[i];
+            obj.uname = obj.name.toUpperCase();
+            obj.args = "";
+            obj.type = "CONST";
+            imports.push(obj);
+        }
+        mbody = document.getElementById("imports-content");
+        mbody.innerHTML = "";
+        _addMethods(mbody, imports);
+
+        _showDialog(_e.methodsDialog);
+    }
+    
+    function _gotoMethod(e) {
+        editor.setCursor({ line: e.target.parentNode.line - 1 }); 
+        _closeDialog();
+    };
+
+    function _addMethods(mbody, methods, fnCallback) {
+        methods.sort((a, b) => a.uname.localeCompare(b.uname));
+        for (var i=0; i < methods.length; i++) {
+            if (methods[i].jsname.indexOf("GX.") == -1 &&
+                methods[i].jsname.indexOf("GXSTR.") == -1 &&
+                methods[i].jsname.indexOf("QB.") == -1 &&
+                methods[i].jsname.indexOf("JSON.") == -1) {
+                    var tr = document.createElement("tr");
+                    tr.line = methods[i].line;
+                    var td = document.createElement("td");
+                    td.innerHTML = methods[i].name;
+                    tr.appendChild(td);
+                    td = document.createElement("td");
+                    td.className = "method-type";
+                    td.innerHTML = methods[i].type;
+                    tr.appendChild(td);
+                    td = document.createElement("td");
+                    tr.appendChild(td);
+                    td.innerHTML = formatMethodArgs(methods[i].args);
+                    mbody.appendChild(tr);
+                    tr.onclick = fnCallback;
+            }
+        }
+    }
+
+    function formatMethodArgs(argstr) {
+        var result = "";
+        var args = argstr.split(",");
+        if (args.length < 2 && args[0] == "") {
+            return result;
+        }
+        for (var i=0; i < args.length; i++) {
+            var nv = args[i].split(":");
+            if (result != "") {
+                result += ", ";
+            }
+            result += nv[0] + " <span class='method-arg-type'>As " + nv[1] + "</span>";
+        }
+        return result;
     }
 
     async function _runProgram() {
@@ -583,6 +662,7 @@ var IDE = new function() {
         _e.progSelDialog.close();
         _e.optionsDialog.close();
         _e.aboutDialog.close();
+        _e.methodsDialog.close();
     }
 
     async function displayWarnings() {
@@ -687,6 +767,22 @@ var IDE = new function() {
             _e.jsCode.style.display = "none";
             _e.fsBrowser.style.display = "none";
             _e.help.style.display = "block";
+        }
+    }
+
+    function _changeMethodTab(tabName) {
+        if (tabName == currMethodTab) { return; }
+        _el("tab-" + currMethodTab).classList.remove("active");
+        _el("tab-" + tabName).classList.add("active");
+        currMethodTab = tabName;
+
+        if (currMethodTab == "methods") {
+            _el("methods").style.display = "block";
+            _el("imports").style.display = "none";
+        }
+        else if (currMethodTab == "imports") {
+            _el("methods").style.display = "none";
+            _el("imports").style.display = "block";
         }
     }
 
@@ -1096,6 +1192,7 @@ var IDE = new function() {
     this.addWarningCell = _addWarningCell;
     this.showConsole = _showConsole;
     this.changeTab = _changeTab;
+    this.changeMethodTab = _changeMethodTab;
     this.showHelp = _showHelp;
     this.slideLeft = _slideLeft;
     this.slideRight = _slideRight;

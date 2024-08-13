@@ -130,3 +130,36 @@ dialog {
 .help code { background-color: rgba(175, 175, 175, .5); }
 .help-nav { padding-left: 5px; }
 .help-nav a { color: #333 !important; font-family: Verdana, Geneva, Tahoma, sans-serif; margin-right: 0px; }
+
+
+#method-tabs .tab {
+  border-color: inherit;
+}
+
+.methods {
+  border: 2px inset;
+  border-top: 2px outset;
+}
+
+.methods thead {
+  border: 2px outset;
+  border-top: 0;
+  border-left: 0;
+}
+.methods thead tr {
+  box-shadow: 0px 1px 0px #999;
+}
+
+.methods th {
+  border: 0;
+}
+
+.methods tbody {
+  background-color: #f6f6f6;
+}
+#method-tabs {
+  margin-left: 10px;
+}
+#method-tabs .active {
+  border-bottom: 2px solid #ddd;
+}

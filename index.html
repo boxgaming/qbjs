@@ -133,6 +133,33 @@
             </div>
         </dialog>
 
+        <dialog id="methods-dialog">
+            <div id="method-tabs">
+                <div id="tab-methods" class="tab active" onclick="IDE.changeMethodTab('methods')">Methods</div><div id="tab-imports" class="tab" onclick="IDE.changeMethodTab('imports')">Imports</div>
+            </div>
+            <div id="methods" class="methods">
+                <table>
+                    <thead>
+                        <th>Method</th>
+                        <th>Type</th>
+                        <th>Arguments</th>
+                    </thead>
+                    <tbody id="methods-content"></tbody>
+                </table>
+            </div>
+            <div id="imports" class="methods" style="display:none">
+                <table>
+                    <thead>
+                        <th>Method</th>
+                        <th>Type</th>
+                        <th>Arguments</th>
+                    </thead>
+                    <tbody id="imports-content"></tbody>
+                </table>
+            </div>
+            <a href="javascript:IDE.closeDialog()" style="display:block; float:right; margin-top: 7px">Close</a>
+        </dialog>
+
         <dialog id="about-dialog">
             <div>
                 <img id="logo" src="logo.png" onclick="window.open('https://github.com/boxgaming/qbjs/wiki', '_blank')">

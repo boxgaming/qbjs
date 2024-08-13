@@ -61,7 +61,7 @@ body {
     font-family: dosvga;
 }
 
-a, #tabs {
+a, #tabs, #method-tabs {
     font-family: arial, helvetica, sans-serif;
     font-variant: all-small-caps;
     font-size: 14px;
@@ -74,12 +74,12 @@ a, #tabs {
 
 #output-content { background-color: #1e1e1e; }
 
-#tabs .active {
+#tabs .active, #method-tabs .active {
     border-bottom: 1px solid #1e1e1e;
     background-color: #1e1e1e; 
 }
 
-.tab:hover, #tabs .active:hover {
+.tab:hover, #tabs .active:hover, #method-tabs .active:hover {
     background-color: #1e1e1e;
     color: #ccc;
 }
@@ -110,3 +110,39 @@ dialog a.disabled:hover { text-decoration: none; }
 #fs-contents a:hover { text-decoration: none; }
 
 .help a { font-variant: normal; font-size: 15px }
+
+
+/*.methods thead {
+    border: 1px solid #666;
+}*/
+
+.methods thead tr {
+    background-color: #1e1e1e;
+    box-shadow: 0px 1px 1px #666;
+}
+
+.methods tbody {
+    background-color: #1e1e1e;
+}
+
+.methods {
+    border: 1px solid #666;
+}
+
+#method-tabs .tab {
+    color: #999;
+}
+
+#method-tabs .tab {
+    border-color: #666;
+    border-bottom-color: transparent;
+}
+
+#method-tabs .tab:hover {
+    color: #ccc;
+    background-color: #1e1e1e;
+}
+#method-tabs .active {
+    color: #ccc;
+    /*border-bottom-color: #1e1e1e;*/
+}
