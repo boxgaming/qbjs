@@ -21,19 +21,19 @@ $If Javascript Then
     }
 $End If
 
-Sub Alert (text) 
+Sub Alert (text As String) 
     $If Javascript Then
         alert(text);
     $End If
 End Sub
 
-Function Confirm (text) 
+Function Confirm (text As String) 
     $If Javascript Then
         Confirm = confirm(text) ? -1 : 0;
     $End If
 End Function
 
-Sub Add (e, parent, beforeElement)
+Sub Add (e As Object, parent As Object, beforeElement As Object)
     $If Javascript Then
         if (typeof e == "string") {
             e = document.getElementById(e);
@@ -57,7 +57,7 @@ Sub Add (e, parent, beforeElement)
     $End If
 End Sub
 
-Function Create (etype, parent, content, eid, beforeElement)
+Function Create (etype As String, parent As Object, content As String, eid As String, beforeElement As Object)
     $If Javascript Then
         var e = document.createElement(etype); 
         if (eid != undefined && eid != "") {
@@ -80,12 +80,12 @@ Function Create (etype, parent, content, eid, beforeElement)
     $End If    
 End Function
 
-Sub Create (etype, parent, content, eid, beforeElement) 
+Sub Create (etype As String, parent As Object, content As String, eid As String, beforeElement As Object) 
     Dim e
     e = Create(etype, parent, content, eid, beforeElement)
 End Sub
 
-Sub Event (target, eventType, callbackFn)
+Sub Event (target As Object, eventType As String, callbackFn As Object)
     $If Javascript Then
         if (typeof target == "string") {
             target = document.getElementById(target);
@@ -108,19 +108,19 @@ Function Container
     $End If
 End Function
 
-Function Get (eid)
+Function Get (eid As String)
     $If Javascript Then
         Get = document.getElementById(eid);
     $End If
 End Function
 
-Function GetImage (imageId) 
+Function GetImage (imageId As Integer) 
     $If Javascript Then
         GetImage = QB.getImage(imageId);
     $End If
 End Function
 
-Sub Remove (e)
+Sub Remove (e As Object)
     $If Javascript Then
         if (typeof e == "string") {
             e = document.getElementById(e);
@@ -131,7 +131,7 @@ Sub Remove (e)
     $End If
 End Sub
 
-Function Prompt (text, defaultValue)
+Function Prompt (text As String, defaultValue As String)
     Dim result As String
     $If Javascript Then
         result = prompt(text, defaultValue);

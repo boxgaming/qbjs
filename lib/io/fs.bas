@@ -62,7 +62,7 @@ Sub DownloadFile(filepath As String)
     $End If
 End Sub
 
-Sub UploadFile(destpath As String, filter As String, fnCallback)
+Sub UploadFile(destpath As String, filter As String, fnCallback As Object)
     $If Javascript Then
         var vfs = QB.vfs();
         var parentDir = null;
