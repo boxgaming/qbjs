@@ -2219,7 +2219,6 @@ Function FindMethod (mname As String, m As Method, t As String, includeBuiltIn A
     For i = 1 To UBound(methods)
         If (Not includeBuiltIn) And methods(i).builtin Then 
             ' Skip it
-            '_Continue
         ElseIf methods(i).uname = _Trim$(UCase$(RemoveSuffix(mname))) And methods(i).type = t Then
             found = True
             m.line = methods(i).line

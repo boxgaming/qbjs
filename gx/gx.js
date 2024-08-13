@@ -2632,8 +2632,8 @@ var GX = new function() {
     this.sceneActive = function() { return _scene.active; }
 
     // constants
-    this.TRUE = true;
-    this.FALSE = false;
+    this.TRUE = -1;
+    this.FALSE = 0;
 
     this.EVENT_INIT = 1;
     this.EVENT_UPDATE = 2;
