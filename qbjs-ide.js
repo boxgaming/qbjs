@@ -135,6 +135,7 @@ var IDE = new function() {
             height: "auto",
             styleActiveLine: true,
             smartIndent: false,
+            specialChars: /[\u0009-\u000d\u00ad\u061c\u200b\u200e\u200f\u2028\u2029\u202d\u202e\u2066\u2067\u2069\ufeff\ufff9-\ufffc]/,
             extraKeys: {
                 "Tab": function(cm) {
                     cm.replaceSelection("    ", "end");

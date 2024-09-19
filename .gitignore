@@ -1,5 +1,7 @@
 tools/webserver.exe
+tools/webserver
 tools/qb2js.exe
+tools/qb2js
 qbjs.zip
 .vscode/launch.json
 .vscode/settings.json
