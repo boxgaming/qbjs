@@ -1106,6 +1106,16 @@ var IDE = new function() {
         fileInput.click();
     }
 
+    function _convert437ToUTF() {
+        var str = editor.getValue();
+        editor.setValue(QB.convertToUTF(str));
+    }
+
+    function _convertUTFTo437() {
+        var str = editor.getValue();
+        editor.setValue(QB.convertTo437(str));
+    }
+
     _e.slider.addEventListener("mousedown", function(event) {
         sliding = true;
     });
@@ -1201,4 +1211,6 @@ var IDE = new function() {
     this.onNewDirectory = _onNewDirectory;
     this.onUploadFile = _onUploadFile;
     this.uploadFile = _uploadFile;
+    this.convert437ToUTF = _convert437ToUTF;
+    this.convertUTFTo437 = _convertUTFTo437;
 };

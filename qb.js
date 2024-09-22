@@ -60,6 +60,8 @@ var QB = new function() {
     var _windowDef = [];
     var _fileHandles = {};
     var _typeMap = {};
+    var _ucharMap = {};
+    var _ccharMap = {};
 
     
     // Array handling methods
@@ -1261,7 +1263,10 @@ var QB = new function() {
             pos--; 
         }
 
-        return String(value).charCodeAt(pos);
+        var c = String(value).charCodeAt(pos);
+        var uc = _ccharMap[c];
+        if (uc) { c = uc; }
+        return c;
     }
 
     this.func_Atn = function(value) {
@@ -1294,6 +1299,8 @@ var QB = new function() {
 
     this.func_Chr = function(charCode) {
         _assertNumber(charCode);
+        var uc = _ucharMap[charCode];
+        if (uc) { charCode = uc; }
         return String.fromCharCode(charCode);
     };
 
@@ -4017,10 +4024,198 @@ var QB = new function() {
         _colormap[255] = _rgb(0, 0, 0);
     }
 
+    function _initCharMap() {
+        _mapChar(1, 0x263a);
+        _mapChar(2, 0x263b);
+        _mapChar(3, 0x2665);
+        _mapChar(4, 0x2666);
+        _mapChar(5, 0x2663);
+        _mapChar(6, 0x2660);
+        _mapChar(7, 0x2022);
+        _mapChar(8, 0x25D8);
+        _mapChar(9, 0x25CB);
+        //_mapChar(10, 0x25D9);
+        _mapChar(11, 0x2642);
+        _mapChar(12, 0x2640);
+        _mapChar(13, 0x266A);
+        _mapChar(14, 0x266B);
+        _mapChar(15, 0x263C);
+        _mapChar(16, 0x25BA);
+        _mapChar(17, 0x25C4);
+        _mapChar(18, 0x2195);
+        _mapChar(19, 0x203C);
+        _mapChar(20, 0x00B6);
+        _mapChar(21, 0x00A7);
+        _mapChar(22, 0x25AC);
+        _mapChar(23, 0x21A8);
+        _mapChar(24, 0x2191);
+        _mapChar(25, 0x2193);
+        _mapChar(26, 0x2192);
+        _mapChar(27, 0x2190);
+        _mapChar(28, 0x221F);
+        _mapChar(29, 0x2194);
+        _mapChar(30, 0x25B2);
+        _mapChar(31, 0x25BC);
+        _mapChar(127, 0x2302);
+        _mapChar(128, 0x00C7);
+        _mapChar(129, 0x00FC);
+        _mapChar(130, 0x00E9);
+        _mapChar(131, 0x00E2);
+        _mapChar(132, 0x00E4);
+        _mapChar(133, 0x00E0);
+        _mapChar(134, 0x00E5);
+        _mapChar(135, 0x00E7);
+        _mapChar(136, 0x00EA);
+        _mapChar(137, 0x00EB);
+        _mapChar(138, 0x00E8);
+        _mapChar(139, 0x00EF);
+        _mapChar(140, 0x00EE);
+        _mapChar(141, 0x00EC);
+        _mapChar(142, 0x00C4);
+        _mapChar(143, 0x00C5);
+        _mapChar(144, 0x00C9);
+        _mapChar(145, 0x00E6);
+        _mapChar(146, 0x00C6);
+        _mapChar(147, 0x00F4);
+        _mapChar(148, 0x00F6);
+        _mapChar(149, 0x00F2);
+        _mapChar(150, 0x00FB);
+        _mapChar(151, 0x00F9);
+        _mapChar(152, 0x00FF);
+        _mapChar(153, 0x00D6);
+        _mapChar(154, 0x00DC);
+        _mapChar(155, 0x00A2);
+        _mapChar(156, 0x00A3);
+        _mapChar(157, 0x00A5);
+        _mapChar(158, 0x20A7);
+        _mapChar(159, 0x0192);
+        _mapChar(160, 0x00E1);
+        _mapChar(161, 0x00ED);
+        _mapChar(162, 0x00F3);
+        _mapChar(163, 0x00FA);
+        _mapChar(164, 0x00F1);
+        _mapChar(165, 0x00D1);
+        _mapChar(166, 0x00AA);
+        _mapChar(167, 0x00BA);
+        _mapChar(168, 0x00BF);
+        _mapChar(169, 0x2310);
+        _mapChar(170, 0x00AC);
+        _mapChar(171, 0x00BD);
+        _mapChar(172, 0x00BC);
+        _mapChar(173, 0x00A1);
+        _mapChar(174, 0x00AB);
+        _mapChar(175, 0x00BB);
+        _mapChar(176, 0x2591);
+        _mapChar(177, 0x2592);
+        _mapChar(178, 0x2593);
+        _mapChar(179, 0x2502);
+        _mapChar(180, 0x2524);
+        _mapChar(181, 0x2561);
+        _mapChar(182, 0x2562);
+        _mapChar(183, 0x2556);
+        _mapChar(184, 0x2555);
+        _mapChar(185, 0x2563);
+        _mapChar(186, 0x2551);
+        _mapChar(187, 0x2557);
+        _mapChar(188, 0x255D);
+        _mapChar(189, 0x255C);
+        _mapChar(190, 0x255B);
+        _mapChar(191, 0x2510);
+        _mapChar(192, 0x2514);
+        _mapChar(193, 0x2534);
+        _mapChar(194, 0x252C);
+        _mapChar(195, 0x251C);
+        _mapChar(196, 0x2500);
+        _mapChar(197, 0x253C);
+        _mapChar(198, 0x255E);
+        _mapChar(199, 0x255F);
+        _mapChar(200, 0x255A);
+        _mapChar(201, 0x2554);
+        _mapChar(202, 0x2569);
+        _mapChar(203, 0x2566);
+        _mapChar(204, 0x2560);
+        _mapChar(205, 0x2550);
+        _mapChar(206, 0x256C);
+        _mapChar(207, 0x2567);
+        _mapChar(208, 0x2568);
+        _mapChar(209, 0x2564);
+        _mapChar(210, 0x2565);
+        _mapChar(211, 0x2559);
+        _mapChar(212, 0x2558);
+        _mapChar(213, 0x2552);
+        _mapChar(214, 0x2553);
+        _mapChar(215, 0x256B);
+        _mapChar(216, 0x256A);
+        _mapChar(217, 0x2518);
+        _mapChar(218, 0x250C);
+        _mapChar(219, 0x2588);
+        _mapChar(220, 0x2584);
+        _mapChar(221, 0x258C);
+        _mapChar(222, 0x2590);
+        _mapChar(223, 0x2580);
+        _mapChar(224, 0x03B1);
+        _mapChar(225, 0x00DF);
+        _mapChar(226, 0x0393);
+        _mapChar(226, 0x03C0);
+        _mapChar(228, 0x03A3);
+        _mapChar(229, 0x03C3);
+        _mapChar(230, 0x00B5);
+        _mapChar(231, 0x03C4);
+        _mapChar(232, 0x03A6);
+        _mapChar(233, 0x0398);
+        _mapChar(234, 0x03A9);
+        _mapChar(235, 0x03B4);
+        _mapChar(236, 0x221E);
+        _mapChar(237, 0x03C6);
+        _mapChar(238, 0x03B5);
+        _mapChar(239, 0x2229);
+        _mapChar(240, 0x2261);
+        _mapChar(241, 0x00B1);
+        _mapChar(242, 0x2265);
+        _mapChar(243, 0x2264);
+        _mapChar(244, 0x2320);
+        _mapChar(245, 0x2321);
+        _mapChar(246, 0x00F7);
+        _mapChar(247, 0x2248);
+        _mapChar(248, 0x00B0);
+        _mapChar(249, 0x2219);
+        _mapChar(250, 0x00B7);
+        _mapChar(251, 0x221A);
+        _mapChar(252, 0x207F);
+        _mapChar(253, 0x00B2);
+        _mapChar(254, 0x25A0);
+        _mapChar(255, 0x00A0);
+    }
+
+    function _mapChar(ccode, ucode) {
+        _ucharMap[ccode] = ucode;
+        _ccharMap[ucode] = ccode;
+    }
+
+    function _convertCharMap(str, charMap) {
+        var newstr = "";
+        for (var i=0; i < str.length; i++) {
+            var c = str.charCodeAt(i);
+            var uc = charMap[c];
+            if (uc) { c = uc; }
+            newstr += String.fromCharCode(c);
+        }
+        return newstr;
+    }
+
+    this.convertToUTF = function(str) {
+        return _convertCharMap(str, _ucharMap);
+    };
+
+    this.convertTo437 = function(str) {
+        return _convertCharMap(str, _ccharMap);
+    };
+
     function _init() {
         _initColorTable();
         _initInKeyMap();
         _initKeyHitMap();
+        _initCharMap();
 
         addEventListener("keydown", function(event) { 
             if (!_runningFlag) { return; }

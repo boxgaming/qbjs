@@ -11,7 +11,7 @@
 
 .cm-s-win-classic .cm-operator { color: #cda869; }
 .cm-s-win-classic .cm-comment { color:#777; font-weight:normal; }
-.cm-s-win-classic .cm-string { color:#07a; font-style:italic; }
+.cm-s-win-classic .cm-string { color:#07a; /*font-style:italic;*/ }
 .cm-s-win-classic .cm-string-2 { color:#bd6b18; } /*?*/
 .cm-s-win-classic .cm-meta { color: #000; } /*?*/
 .cm-s-win-classic .cm-builtin { color: #9B7536; } /*?*/
