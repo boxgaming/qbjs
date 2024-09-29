@@ -4156,7 +4156,7 @@ var QB = new function() {
         _mapChar(224, 0x03B1);
         _mapChar(225, 0x00DF);
         _mapChar(226, 0x0393);
-        _mapChar(226, 0x03C0);
+        _mapChar(227, 0x03C0);
         _mapChar(228, 0x03A3);
         _mapChar(229, 0x03C3);
         _mapChar(230, 0x00B5);
