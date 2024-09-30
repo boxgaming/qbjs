@@ -851,7 +851,6 @@ var QB = new function() {
     this.sub__PrintString = function(x, y, s) {
         var ctx = _images[_activeImage].ctx;
         _flushScreenCache(_images[_activeImage]);
-        ctx.beginPath();
         var f = _fonts[_font];
         ctx.font = f.size + " " + f.name;
         var tm = ctx.measureText(s);
@@ -1328,13 +1327,8 @@ var QB = new function() {
         
         ctx = _images[_activeImage].ctx;
         _flushScreenCache(_images[_activeImage]);
-        ctx.beginPath();
         ctx.clearRect(0, 0, _width(), _height());
-        //if (_screenMode == 1) { TODO: Finish implementing this.
         ctx.fillStyle = color.rgba();
-        //} else {
-        //    ctx.fillStyle = color.rgba();
-        //}
         ctx.fillRect(0, 0, _width(), _height());
 
         // reset the text position
@@ -1792,7 +1786,6 @@ var QB = new function() {
     function toggleCursor(off) {
         if (!off || off != _inputCursor) {
             var ctx = _images[_activeImage].ctx;
-            ctx.beginPath();
             ctx.globalCompositeOperation="difference";
             ctx.fillStyle = "white";
             var w = QB.func__FontWidth();
@@ -1800,9 +1793,7 @@ var QB = new function() {
                 var tm = ctx.measureText("A");
                 w = tm.width;
             }
-            ctx.rect(_lastTextX, (_locY + 1) * QB.func__FontHeight() - 2, w, 2);
-            
-            ctx.fill();
+            ctx.fillRect(_lastTextX, (_locY + 1) * QB.func__FontHeight() - 2, w, 2);
             ctx.globalCompositeOperation = "source-over";
             _inputCursor = !_inputCursor;
         }
@@ -2138,12 +2129,10 @@ var QB = new function() {
 
             if (style == "B") {
                 ctx.strokeStyle = color.rgba();
-                ctx.beginPath();
                 ctx.strokeRect(sx, sy, width, height);
             } 
             else if (style == "BF") {
                 ctx.fillStyle = color.rgba();
-                ctx.beginPath();
                 ctx.fillRect(sx, sy, width, height);
             } 
             else {
@@ -2155,7 +2144,6 @@ var QB = new function() {
             }
         } else { // Stylized line.
             ctx.fillStyle = color.rgba();
-            ctx.beginPath();
             if (style == "B") {
                 lineStyle(sx, sy, ex, sy, value);
                 lineStyle(ex, sy, ex, ey, value);
@@ -2392,7 +2380,6 @@ var QB = new function() {
         var screen = _images[_activeImage];
         var ctx = screen.ctx;
         var data = ctx.getImageData(0, 0, screen.canvas.width, screen.canvas.height).data;
-        ctx.beginPath();
 
         var x0 = startX;
         var y0 = startY;
@@ -2615,7 +2602,6 @@ var QB = new function() {
                 }
                 var lines = String(str).split("\n");
                 for (var i=0; i < lines.length; i++) {
-                    ctx.beginPath();
                     var f = _fonts[_font];
                     ctx.font = f.size + " " + f.name;
 
