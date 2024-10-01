@@ -56,7 +56,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              'chr', 'cdbl', 'cint', 'clng', 'csng', 'circle', 'cls', 'color', 'command', 'cos', 'cvi', 'cvl',
                              'data', 'date', 'draw', 'environ', 'error', 'exp', 'fix', 'hex', 'input', 'inkey', 'instr', 'int',
                              'lbound', 'left', 'lcase', 'len', 'line', 'loc', 'locate', 'log', 'ltrim', 'mid', 'mki', 'mkl',
-                             'oct', 'paint', 'point', 'preset', 'print', 'pset',
+                             'oct', 'paint', 'play', 'point', 'preset', 'print', 'pset',
                              'right', 'rtrim', 'randomize', 'read', 'restore', 'rnd',
                              'screen', 'shared', 'sgn', 'sin', 'sleep', 'sound', 'space', 'sqr',
                              'str', 'swap', 'tan', 'time', 'timer', 'ubound', 'ucase',

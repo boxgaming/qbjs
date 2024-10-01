@@ -1,4 +1,158 @@
 var QB = new function() {
+    // QB sound functionality
+    // original source: https://siderite.dev/blog/qbasic-play-in-javascript
+    class QBasicSound {
+
+        constructor() {
+            this.octave = 4;
+            this.noteLength = 4;
+            this.tempo = 120;
+            this.mode = 7 / 8;
+            this.foreground = true;
+            this.type = 'square';
+        }
+    
+        setType(type) {
+            this.type = type;
+        }
+    
+        async playSound(frequency, duration) {
+            if (!this._audioContext) {
+                this._audioContext = new AudioContext();
+            }
+            // a 0 frequency means a pause
+            if (frequency == 0) {
+                await delay(duration);
+            } else {
+                const o = this._audioContext.createOscillator();
+                const g = this._audioContext.createGain();
+                o.connect(g);
+                g.connect(this._audioContext.destination);
+                o.frequency.value = frequency;
+                o.type = this.type;
+                o.start();
+                await delay(duration);
+                // slowly decrease the volume of the note instead of just stopping so that it doesn't click in an annoying way
+                g.gain.exponentialRampToValueAtTime(0.00001, this._audioContext.currentTime + 0.1);
+            }
+        }
+    
+        getNoteValue(octave, note) {
+            const octaveNotes = 'C D EF G A B';
+            const index = octaveNotes.indexOf(note.toUpperCase());
+            if (index < 0) {
+                throw new Error(note + ' is not a valid note');
+            }
+            return octave * 12 + index;
+        }
+    
+        async playNote(octave, note, duration) {
+            const A4 = 440;
+            const noteValue = this.getNoteValue(octave, note);
+            const freq = A4 * Math.pow(2, (noteValue - 48) / 12);
+            await this.playSound(freq, duration);
+        }
+    
+        async play(commandString) {
+            const reg = /(?<octave>O\d+)|(?<octaveUp>>)|(?<octaveDown><)|(?<note>[A-G][#+-]?\d*\.?)|(?<noteN>N\d+\.?)|(?<length>L\d+)|(?<legato>ML)|(?<normal>MN)|(?<staccato>MS)|(?<pause>P\d+\.?)|(?<tempo>T\d+)|(?<foreground>MF)|(?<background>MB)/gi;
+            let match = reg.exec(commandString);
+            let promise = Promise.resolve();
+            while (match) {
+                let noteValue = null;
+                let longerNote = false;
+                let temporaryLength = 0;
+                if (match.groups.octave) {
+                    this.octave = parseInt(match[0].substring(1));
+                }
+                if (match.groups.octaveUp) {
+                    this.octave++;
+                }
+                if (match.groups.octaveDown) {
+                    this.octave--;
+                }
+                if (match.groups.note) {
+                    const noteMatch = /(?<note>[A-G])(?<suffix>[#+-]?)(?<shorthand>\d*)(?<longerNote>\.?)/i.exec(match[0]);
+                    if (noteMatch.groups.longerNote) {
+                        longerNote = true;
+                    }
+                    if (noteMatch.groups.shorthand) {
+                        temporaryLength = parseInt(noteMatch.groups.shorthand);
+                    }
+                    noteValue = this.getNoteValue(this.octave, noteMatch.groups.note);
+                    switch (noteMatch.groups.suffix) {
+                        case '#':
+                        case '+':
+                            noteValue++;
+                            break;
+                        case '-':
+                            noteValue--;
+                            break;
+                    }
+                }
+                if (match.groups.noteN) {
+                    const noteNMatch = /N(?<noteValue>\d+)(?<longerNote>\.?)/i.exec(match[0]);
+                    if (noteNMatch.groups.longerNote) {
+                        longerNote = true;
+                    }
+                    noteValue = parseInt(noteNMatch.groups.noteValue);
+                }
+                if (match.groups.length) {
+                    this.noteLength = parseInt(match[0].substring(1));
+                }
+                if (match.groups.legato) {
+                    this.mode = 1;
+                }
+                if (match.groups.normal) {
+                    this.mode = 7 / 8;
+                }
+                if (match.groups.staccato) {
+                    this.mode = 3 / 4;
+                }
+                if (match.groups.pause) {
+                    const pauseMatch = /P(?<length>\d+)(?<longerNote>\.?)/i.exec(match[0]);
+                    if (pauseMatch.groups.longerNote) {
+                        longerNote = true;
+                    }
+                    noteValue = 0;
+                    temporaryLength = parseInt(pauseMatch.groups.length);
+                }
+                if (match.groups.tempo) {
+                    this.tempo = parseInt(match[0].substring(1));
+                }
+                if (match.groups.foreground) {
+                    this.foreground = true;
+                }
+                if (match.groups.background) {
+                    this.foreground = false;
+                }
+    
+                if (noteValue !== null) {
+                    const noteDuration = this.mode * (60000 * 4 / this.tempo) * (longerNote ? 1 : 3 / 2);
+                    const duration = temporaryLength
+                        ? noteDuration / temporaryLength
+                        : noteDuration / this.noteLength;
+                    const A4 = 440;
+                    const freq = noteValue == 0
+                        ? 0
+                        : A4 * Math.pow(2, (noteValue - 48) / 12);
+                    const playPromise = () => this.playSound(freq, duration);
+                    promise = promise.then(playPromise)
+                }
+                match = reg.exec(commandString);
+            }
+            if (this.foreground) {
+                await promise;
+            } else {
+                promise;
+            }
+        }
+    }
+    
+    function delay(duration) {
+        return new Promise(resolve => setTimeout(resolve, duration));
+    }
+
+
     // QB public constants
     this._KEEPBACKGROUND = 1;
     this._ONLYBACKGROUND = 2;
@@ -62,7 +216,7 @@ var QB = new function() {
     var _typeMap = {};
     var _ucharMap = {};
     var _ccharMap = {};
-
+    var _player = null; //new QBasicSound();
     
     // Array handling methods
     // ----------------------------------------------------
@@ -176,6 +330,7 @@ var QB = new function() {
         _runningFlag = true;
         _sourceImage = 0;
         _strokeLineThickness = 2;
+        _player = new QBasicSound();
         // initialize the default fonts
         _nextFontId = 1000;
         _font = 16;
@@ -2456,6 +2611,10 @@ var QB = new function() {
         if ((Math.abs(r - c2.r) < thresh) && (Math.abs(g - c2.g) < thresh) && (Math.abs(b - c2.b) < thresh)) { return false; }
         return true;
     }
+
+    this.sub_Play = async function(cmdstr) {
+        await _player.play(cmdstr);
+    };
 
     this.func_Point = function(x, y) {
         var screen = _images[_sourceImage];

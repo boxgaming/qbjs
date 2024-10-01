@@ -3766,6 +3766,7 @@ if (QB.halted()) { return; };
    await sub_AddQBMethod( "FUNCTION" ,   "Oct$" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Open" ,    True);
    await sub_AddQBMethod( "SUB" ,   "Paint" ,    False);
+   await sub_AddQBMethod( "SUB" ,   "Play" ,    True);
    await sub_AddQBMethod( "FUNCTION" ,   "Point" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "Pos" ,    False);
    await sub_AddQBMethod( "SUB" ,   "PReset" ,    False);
