@@ -3780,6 +3780,7 @@ if (QB.halted()) { return; };
    await sub_AddQBMethod( "SUB" ,   "Read" ,    False);
    await sub_AddQBMethod( "SUB" ,   "RmDir" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "Rnd" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "Screen" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Screen" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "Seek" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Seek" ,    False);

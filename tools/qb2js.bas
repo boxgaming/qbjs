@@ -2217,7 +2217,7 @@ Function FindMethod (mname As String, m As Method, t As String, includeBuiltIn A
     Dim found As Integer: found = False
     Dim i As Integer
     For i = 1 To UBound(methods)
-        If (Not includeBuiltIn) And methods(i).builtin Then 
+        If (Not includeBuiltIn) And methods(i).builtin Then
             ' Skip it
         ElseIf methods(i).uname = _Trim$(UCase$(RemoveSuffix(mname))) And methods(i).type = t Then
             found = True
@@ -4001,6 +4001,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Oct$", False
     AddQBMethod "SUB", "Open", True
     AddQBMethod "SUB", "Paint", False
+    AddQBMethod "SUB", "Play", True
     AddQBMethod "FUNCTION", "Point", False
     AddQBMethod "FUNCTION", "Pos", False
     AddQBMethod "SUB", "PReset", False
@@ -4014,6 +4015,7 @@ Sub InitQBMethods
     AddQBMethod "SUB", "Read", False
     AddQBMethod "SUB", "RmDir", False
     AddQBMethod "FUNCTION", "Rnd", False
+    AddQBMethod "FUNCTION", "Screen", False
     AddQBMethod "SUB", "Screen", False
     AddQBMethod "FUNCTION", "Seek", False
     AddQBMethod "SUB", "Seek", False

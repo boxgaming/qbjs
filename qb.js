@@ -28,12 +28,15 @@ var QB = new function() {
                 const g = this._audioContext.createGain();
                 o.connect(g);
                 g.connect(this._audioContext.destination);
+                g.gain.value = 0.25;
                 o.frequency.value = frequency;
                 o.type = this.type;
                 o.start();
-                await delay(duration);
-                // slowly decrease the volume of the note instead of just stopping so that it doesn't click in an annoying way
-                g.gain.exponentialRampToValueAtTime(0.00001, this._audioContext.currentTime + 0.1);
+                const actualDuration = duration * this.mode;
+                const pause = duration - actualDuration;
+                await delay(actualDuration);
+                o.stop();
+                if (pause) { await delay(pause); }
             }
         }
     
@@ -45,14 +48,7 @@ var QB = new function() {
             }
             return octave * 12 + index;
         }
-    
-        async playNote(octave, note, duration) {
-            const A4 = 440;
-            const noteValue = this.getNoteValue(octave, note);
-            const freq = A4 * Math.pow(2, (noteValue - 48) / 12);
-            await this.playSound(freq, duration);
-        }
-    
+
         async play(commandString) {
             const reg = /(?<octave>O\d+)|(?<octaveUp>>)|(?<octaveDown><)|(?<note>[A-G][#+-]?\d*\.?)|(?<noteN>N\d+\.?)|(?<length>L\d+)|(?<legato>ML)|(?<normal>MN)|(?<staccato>MS)|(?<pause>P\d+\.?)|(?<tempo>T\d+)|(?<foreground>MF)|(?<background>MB)/gi;
             let match = reg.exec(commandString);
@@ -127,14 +123,14 @@ var QB = new function() {
                 }
     
                 if (noteValue !== null) {
-                    const noteDuration = this.mode * (60000 * 4 / this.tempo) * (longerNote ? 1 : 3 / 2);
+                   const noteDuration = this.mode * (60000 * 4 / this.tempo);
                     const duration = temporaryLength
                         ? noteDuration / temporaryLength
                         : noteDuration / this.noteLength;
-                    const A4 = 440;
+                    const C6 = 1047;
                     const freq = noteValue == 0
                         ? 0
-                        : A4 * Math.pow(2, (noteValue - 48) / 12);
+                        : C6 * Math.pow(2, (noteValue - 48) / 12);
                     const playPromise = () => this.playSound(freq, duration);
                     promise = promise.then(playPromise)
                 }
@@ -205,6 +201,7 @@ var QB = new function() {
     var _runningFlag = false;
     var _screenDiagInv;
     var _screenMode;
+    var _screenText;
     var _sourceImage = 0;
     var _strokeDrawLength = null;
     var _strokeDrawAngle = null;
@@ -633,6 +630,7 @@ var QB = new function() {
         _locX = 0;
         _lastTextX = 0;
         _locY = 0;
+        _initScreenText();
     };
 
     this.func__Font = function() {
@@ -2791,6 +2789,7 @@ var QB = new function() {
                         if (_printMode != QB._ONLYBACKGROUND) {
                             ctx.fillStyle = _fgColor.rgba();
                             ctx.fillText(subline, x, (y + QB.func__FontHeight() - f.offset));
+                            _setScreenText(subline);
                         }
                         x += tm.width;
 
@@ -2857,6 +2856,7 @@ var QB = new function() {
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(ctx.canvas, 0, -QB.func__FontHeight(), ctx.canvas.width, ctx.canvas.height);
         ctx.globalCompositeOperation = "source-over";
+        _scrollScreenText();
     }
 
     this.sub_PSet = function(sstep, x, y, color) {
@@ -3244,7 +3244,7 @@ var QB = new function() {
         return _rndSeed / 0x1000000;
     };
 
-    this.sub_Screen = async function(mode) {
+    this.sub_Screen = function(mode) {
         _activeImage = 0;
         charSizeMode = false;
 
@@ -3254,6 +3254,7 @@ var QB = new function() {
             _currScreenImage = null;
         }
 
+        _screenMode = mode;
         if (mode == 0) {
             GX.sceneCreate(640, 400);
         }
@@ -3286,6 +3287,10 @@ var QB = new function() {
                 _images[mode] = _images[0];
             }
         }
+        else {
+            throw new Error("Invalid screen mode");
+        }
+
         _images[0] = { canvas: GX.canvas(), ctx: GX.ctx(), lastX: 0, lastY: 0 };
         _images[0].lastX = _images[0].canvas.width/2;
         _images[0].lastY = _images[0].canvas.height/2;
@@ -3317,8 +3322,89 @@ var QB = new function() {
         _keyHitBuffer = [];
         _keyDownMap = {};
 
+        _initScreenText();
+        
         // TODO: set the appropriate default font for the selected screen mode above instead of here
     };
+
+    this.func_Screen = function(row, col, colorflag) {
+        if (colorflag) {
+            return _getScreenColor(row-1, col-1);
+        }
+        else {
+            var s = _getScreenText(row-1, col-1);
+            s = QB.convertTo437(s);
+            return s.charCodeAt(0);
+        }
+    };
+    
+    function _initScreenText()
+    {
+        _screenText = [];
+
+        var fw = QB.func__FontWidth();
+        if (fw > 0) {
+            var fh = QB.func__FontHeight();
+            for (var i=0; i < Math.round(QB.func__Height()/fh); i++)
+            {
+                var col = [];
+                for (var j=0; j < Math.round(QB.func__Width()/fw); j++) {
+                    col.push({ text: " " });
+                }
+                _screenText.push(col);
+            }
+        }
+    }
+
+    function _scrollScreenText() {
+        for (var i=1; i < _screenText.length; i++) {
+            _screenText[i-1] = _screenText[i];
+        }
+        var col = [];
+        for (var j=0; j < Math.round(QB.func__Width()/QB.func__FontWidth()); j++) {
+            col.push({ text: " " });
+        }
+        _screenText[_screenText.length-1] = col;
+    }
+
+    function _setScreenText(text) {
+        var row = _locY;
+        var col = _locX; 
+        if (_screenText.length < 1) { return; }
+        for (var i=0; i < text.length; i++) {
+            _screenText[row][col+i].text = text.substring(i, i+1);
+            _screenText[row][col+i].fgcolor = _fgColor;
+            _screenText[row][col+i].bgcolor = _bgColor;
+        }
+    }
+
+    function _getScreenColor(row, col) {
+        var rdata = _screenText[row];
+        if (!rdata) { return 0; }
+        var cdata = rdata[col];
+        if (!cdata) { return 0; }
+        var c = cdata.fgcolor;
+        if (!c) { return 0; }
+        return _lookupIndexedColor(c);
+    }
+
+    function _lookupIndexedColor(c) {
+        for (var i=0; i < _colormap.length; i++) {
+            var cm = _colormap[i];
+            if (cm.r == c.r && cm.g == c.g && cm.b == c.b && cm.a == c.a) {
+                return i;
+            }
+        }
+        return c;
+    }
+
+    function _getScreenText(row, col) {
+        var rdata = _screenText[row];
+        if (!rdata) { return " "; }
+        var cdata = rdata[col];
+        if (!cdata || !cdata.text) { return " "; }
+        return cdata.text;
+    }
 
     this.func_Seek = function(fh) {
         if (!_fileHandles[fh]) {
