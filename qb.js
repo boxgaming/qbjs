@@ -833,7 +833,7 @@ var QB = new function() {
             _fonts[id].monospace = false;
         }
         else {
-            _fonts[id].width = tm.width + 1;
+            _fonts[id].width = tm.width;
             _fonts[id].monospace = true;
         }
         return id;
@@ -3345,10 +3345,10 @@ var QB = new function() {
         var fw = QB.func__FontWidth();
         if (fw > 0) {
             var fh = QB.func__FontHeight();
-            for (var i=0; i < Math.round(QB.func__Height()/fh); i++)
+            for (var i=0; i < Math.floor(QB.func__Height()/fh); i++)
             {
                 var col = [];
-                for (var j=0; j < Math.round(QB.func__Width()/fw); j++) {
+                for (var j=0; j < Math.floor(QB.func__Width()/fw); j++) {
                     col.push({ text: " " });
                 }
                 _screenText.push(col);
@@ -3361,7 +3361,7 @@ var QB = new function() {
             _screenText[i-1] = _screenText[i];
         }
         var col = [];
-        for (var j=0; j < Math.round(QB.func__Width()/QB.func__FontWidth()); j++) {
+        for (var j=0; j < Math.floor(QB.func__Width()/QB.func__FontWidth()); j++) {
             col.push({ text: " " });
         }
         _screenText[_screenText.length-1] = col;
