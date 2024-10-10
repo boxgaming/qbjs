@@ -236,7 +236,7 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "   getSourceLine: getSourceLine"
         AddJSLine 0, "};"
         AddJSLine 0, "}"
-        AddJSLine 0, "if (module) { module.exports.QBCompiler = _QBCompiler; }"
+        AddJSLine 0, "if (typeof module != 'undefined') { module.exports.QBCompiler = _QBCompiler; }"
 
     ElseIf moduleName <> "" Then
         'AddJSLine 0, "return this;"

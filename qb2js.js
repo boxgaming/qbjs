@@ -3883,4 +3883,4 @@ return {
    getSourceLine: getSourceLine
 };
 }
-if (module) { module.exports.QBCompiler = _QBCompiler; }
+if (typeof module != 'undefined') { module.exports.QBCompiler = _QBCompiler; }
