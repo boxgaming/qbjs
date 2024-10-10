@@ -126,6 +126,7 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
     If sourceType = FILE Then selfConvert = EndsWith(source, "qb2js.bas")
 
     If selfConvert Then
+        AddJSLine 0, "if (typeof QB == 'undefined' && module) { QB = require('./qb-console.js').QB(); }"
         AddJSLine 0, "async function _QBCompiler() {"
 
     ElseIf moduleName <> "" Then
@@ -167,7 +168,7 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
     If Not selfConvert And moduleName = "" Then InitTypes
 
     If selfConvert Then
-        AddJSLine 0, "this.compile = async function(src) {"
+        AddJSLine 0, "async function compile(src) {"
         AddJSLine 0, "   await sub_QBToJS(src, TEXT, '');"
         AddJSLine 0, "   var js = '';"
         AddJSLine 0, "   for (var i=1; i<= QB.func_UBound(jsLines); i++) {"
@@ -178,8 +179,8 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         End If
         AddJSLine 0, "   }"
         AddJSLine 0, "   return js;"
-        AddJSLine 0, "};"
-        AddJSLine 0, "this.getWarnings = function() {"
+        AddJSLine 0, "}"
+        AddJSLine 0, "function getWarnings() {"
         AddJSLine 0, "   var w = [];"
         AddJSLine 0, "   for (var i=1; i <= QB.func_UBound(warnings); i++) {"
         AddJSLine 0, "      w.push({"
@@ -189,7 +190,7 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "      });"
         AddJSLine 0, "   }"
         AddJSLine 0, "   return w;"
-        AddJSLine 0, "};"
+        AddJSLine 0, "}"
         AddJSLine 0, "function _getMethods(methods) {"
         AddJSLine 0, "   var m = [];"
         AddJSLine 0, "   for (var i=1; i <= QB.func_UBound(methods); i++) {"
@@ -207,9 +208,9 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "   }"
         AddJSLine 0, "   return m;"
         AddJSLine 0, "}"
-        AddJSLine 0, "this.getMethods = function () { return _getMethods(methods); };"
-        AddJSLine 0, "this.getExportMethods = function () { return _getMethods(exportMethods); };"
-        AddJSLine 0, "this.getExportConsts = function() {"
+        AddJSLine 0, "function getMethods() { return _getMethods(methods); }"
+        AddJSLine 0, "function getExportMethods() { return _getMethods(exportMethods); }"
+        AddJSLine 0, "function getExportConsts() {"
         AddJSLine 0, "   var c = [];"
         AddJSLine 0, "   for (var i=1; i <= QB.func_UBound(exportConsts); i++) {"
         AddJSLine 0, "      c.push({"
@@ -219,15 +220,23 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "   }"
         AddJSLine 0, "   return c;"
         AddJSLine 0, "}"
-        AddJSLine 0, "this.getSourceLine = function(jsLine) {"
+        AddJSLine 0, "function getSourceLine(jsLine) {"
         AddJSLine 0, "   if (jsLine == 0) { return 0; }"
         AddJSLine 0, "   var line = QB.arrayValue(jsLines, [jsLine]).value.line;"
         AddJSLine 0, "   line = QB.arrayValue(lines, [line]).value.line;"
         AddJSLine 0, "   return line;"
-        AddJSLine 0, "};"
-        AddJSLine 0, ""
-        AddJSLine 0, "return this;"
         AddJSLine 0, "}"
+        AddJSLine 0, ""
+        AddJSLine 0, "return {"
+        AddJSLine 0, "   compile: compile,"
+        AddJSLine 0, "   getWarnings: getWarnings,"
+        AddJSLine 0, "   getMethods: getMethods,"
+        AddJSLine 0, "   getExportMethods: getExportMethods,"
+        AddJSLine 0, "   getExportConsts: getExportConsts,"
+        AddJSLine 0, "   getSourceLine: getSourceLine"
+        AddJSLine 0, "};"
+        AddJSLine 0, "}"
+        AddJSLine 0, "if (module) { module.exports.QBCompiler = _QBCompiler; }"
 
     ElseIf moduleName <> "" Then
         'AddJSLine 0, "return this;"

@@ -1,3 +1,4 @@
+if (typeof QB == 'undefined' && module) { QB = require('./qb-console.js').QB(); }
 async function _QBCompiler() {
 /* static method variables: */ 
 
@@ -70,6 +71,7 @@ if (QB.halted()) { return; }; sourceType = Math.round(sourceType);
       selfConvert =  (await func_EndsWith(  source,   "qb2js.bas"));
    }
    if ( selfConvert) {
+      await sub_AddJSLine(  0,   "if (typeof QB == 'undefined' && module) { QB = require('./qb-console.js').QB(); }");
       await sub_AddJSLine(  0,   "async function _QBCompiler() {");
    } else if ( moduleName !=  "" ) {
       await sub_AddJSLine(  0,   "async function _"  +  moduleName + "() {");
@@ -102,7 +104,7 @@ if (QB.halted()) { return; }; sourceType = Math.round(sourceType);
       await sub_InitTypes();
    }
    if ( selfConvert) {
-      await sub_AddJSLine(  0,   "this.compile = async function(src) {");
+      await sub_AddJSLine(  0,   "async function compile(src) {");
       await sub_AddJSLine(  0,   "   await sub_QBToJS(src, TEXT, '');");
       await sub_AddJSLine(  0,   "   var js = '';");
       await sub_AddJSLine(  0,   "   for (var i=1; i<= QB.func_UBound(jsLines); i++) {");
@@ -113,8 +115,8 @@ if (QB.halted()) { return; }; sourceType = Math.round(sourceType);
       }
       await sub_AddJSLine(  0,   "   }");
       await sub_AddJSLine(  0,   "   return js;");
-      await sub_AddJSLine(  0,   "};");
-      await sub_AddJSLine(  0,   "this.getWarnings = function() {");
+      await sub_AddJSLine(  0,   "}");
+      await sub_AddJSLine(  0,   "function getWarnings() {");
       await sub_AddJSLine(  0,   "   var w = [];");
       await sub_AddJSLine(  0,   "   for (var i=1; i <= QB.func_UBound(warnings); i++) {");
       await sub_AddJSLine(  0,   "      w.push({");
@@ -124,7 +126,7 @@ if (QB.halted()) { return; }; sourceType = Math.round(sourceType);
       await sub_AddJSLine(  0,   "      });");
       await sub_AddJSLine(  0,   "   }");
       await sub_AddJSLine(  0,   "   return w;");
-      await sub_AddJSLine(  0,   "};");
+      await sub_AddJSLine(  0,   "}");
       await sub_AddJSLine(  0,   "function _getMethods(methods) {");
       await sub_AddJSLine(  0,   "   var m = [];");
       await sub_AddJSLine(  0,   "   for (var i=1; i <= QB.func_UBound(methods); i++) {");
@@ -142,9 +144,9 @@ if (QB.halted()) { return; }; sourceType = Math.round(sourceType);
       await sub_AddJSLine(  0,   "   }");
       await sub_AddJSLine(  0,   "   return m;");
       await sub_AddJSLine(  0,   "}");
-      await sub_AddJSLine(  0,   "this.getMethods = function () { return _getMethods(methods); };");
-      await sub_AddJSLine(  0,   "this.getExportMethods = function () { return _getMethods(exportMethods); };");
-      await sub_AddJSLine(  0,   "this.getExportConsts = function() {");
+      await sub_AddJSLine(  0,   "function getMethods() { return _getMethods(methods); }");
+      await sub_AddJSLine(  0,   "function getExportMethods() { return _getMethods(exportMethods); }");
+      await sub_AddJSLine(  0,   "function getExportConsts() {");
       await sub_AddJSLine(  0,   "   var c = [];");
       await sub_AddJSLine(  0,   "   for (var i=1; i <= QB.func_UBound(exportConsts); i++) {");
       await sub_AddJSLine(  0,   "      c.push({");
@@ -154,15 +156,23 @@ if (QB.halted()) { return; }; sourceType = Math.round(sourceType);
       await sub_AddJSLine(  0,   "   }");
       await sub_AddJSLine(  0,   "   return c;");
       await sub_AddJSLine(  0,   "}");
-      await sub_AddJSLine(  0,   "this.getSourceLine = function(jsLine) {");
+      await sub_AddJSLine(  0,   "function getSourceLine(jsLine) {");
       await sub_AddJSLine(  0,   "   if (jsLine == 0) { return 0; }");
       await sub_AddJSLine(  0,   "   var line = QB.arrayValue(jsLines, [jsLine]).value.line;");
       await sub_AddJSLine(  0,   "   line = QB.arrayValue(lines, [line]).value.line;");
       await sub_AddJSLine(  0,   "   return line;");
-      await sub_AddJSLine(  0,   "};");
-      await sub_AddJSLine(  0,   "");
-      await sub_AddJSLine(  0,   "return this;");
       await sub_AddJSLine(  0,   "}");
+      await sub_AddJSLine(  0,   "");
+      await sub_AddJSLine(  0,   "return {");
+      await sub_AddJSLine(  0,   "   compile: compile,");
+      await sub_AddJSLine(  0,   "   getWarnings: getWarnings,");
+      await sub_AddJSLine(  0,   "   getMethods: getMethods,");
+      await sub_AddJSLine(  0,   "   getExportMethods: getExportMethods,");
+      await sub_AddJSLine(  0,   "   getExportConsts: getExportConsts,");
+      await sub_AddJSLine(  0,   "   getSourceLine: getSourceLine");
+      await sub_AddJSLine(  0,   "};");
+      await sub_AddJSLine(  0,   "}");
+      await sub_AddJSLine(  0,   "if (module) { module.exports.QBCompiler = _QBCompiler; }");
    } else if ( moduleName !=  "" ) {
       await sub_AddJSLine(  0,   "}");
       await sub_AddJSLine(  0,   "const "  +  moduleName + " = await _"  +  moduleName + "();");
@@ -3809,15 +3819,15 @@ if (QB.halted()) { return; };
    await sub_AddQBMethod( "FUNCTION" ,   "Fetch" ,    True);
    await sub_AddQBMethod( "SUB" ,   "Fetch" ,    True);
 }
-this.compile = async function(src) {
+async function compile(src) {
    await sub_QBToJS(src, TEXT, '');
    var js = '';
    for (var i=1; i<= QB.func_UBound(jsLines); i++) {
       js += QB.arrayValue(jsLines, [i]).value.text + '\n';
    }
    return js;
-};
-this.getWarnings = function() {
+}
+function getWarnings() {
    var w = [];
    for (var i=1; i <= QB.func_UBound(warnings); i++) {
       w.push({
@@ -3827,7 +3837,7 @@ this.getWarnings = function() {
       });
    }
    return w;
-};
+}
 function _getMethods(methods) {
    var m = [];
    for (var i=1; i <= QB.func_UBound(methods); i++) {
@@ -3845,9 +3855,9 @@ function _getMethods(methods) {
    }
    return m;
 }
-this.getMethods = function () { return _getMethods(methods); };
-this.getExportMethods = function () { return _getMethods(exportMethods); };
-this.getExportConsts = function() {
+function getMethods() { return _getMethods(methods); }
+function getExportMethods() { return _getMethods(exportMethods); }
+function getExportConsts() {
    var c = [];
    for (var i=1; i <= QB.func_UBound(exportConsts); i++) {
       c.push({
@@ -3857,12 +3867,20 @@ this.getExportConsts = function() {
    }
    return c;
 }
-this.getSourceLine = function(jsLine) {
+function getSourceLine(jsLine) {
    if (jsLine == 0) { return 0; }
    var line = QB.arrayValue(jsLines, [jsLine]).value.line;
    line = QB.arrayValue(lines, [line]).value.line;
    return line;
-};
-
-return this;
 }
+
+return {
+   compile: compile,
+   getWarnings: getWarnings,
+   getMethods: getMethods,
+   getExportMethods: getExportMethods,
+   getExportConsts: getExportConsts,
+   getSourceLine: getSourceLine
+};
+}
+if (module) { module.exports.QBCompiler = _QBCompiler; }
