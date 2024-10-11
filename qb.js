@@ -3385,7 +3385,17 @@ var QB = new function() {
         if (!cdata) { return 0; }
         var c = cdata.fgcolor;
         if (!c) { return 0; }
-        return _lookupIndexedColor(c);
+        console.log(cdata.bgcolor);
+        c = _lookupIndexedColor(c);
+        if (!isNaN(c)) {
+            if (c < 16) {
+                var bg = _lookupIndexedColor(cdata.bgcolor);
+                if (!isNaN(bg) && bg > 0 && bg <= 7) {
+                    c += bg*16;
+                }
+            }
+        }
+        return c;
     }
 
     function _lookupIndexedColor(c) {
