@@ -50,9 +50,10 @@ var QB = new function() {
         }
 
         async play(commandString) {
-            const reg = /(?<octave>O\d+)|(?<octaveUp>>)|(?<octaveDown><)|(?<note>[A-G][#+-]?\d*\.?)|(?<noteN>N\d+\.?)|(?<length>L\d+)|(?<legato>ML)|(?<normal>MN)|(?<staccato>MS)|(?<pause>P\d+\.?)|(?<tempo>T\d+)|(?<foreground>MF)|(?<background>MB)/gi;
+            const reg = /(?<octave>O\d+)|(?<octaveUp>>)|(?<octaveDown><)|(?<note>[A-G][#+-]?\d*\.?[,]?)|(?<noteN>N\d+\.?)|(?<length>L\d+)|(?<legato>ML)|(?<normal>MN)|(?<staccato>MS)|(?<pause>P\d+\.?)|(?<tempo>T\d+)|(?<foreground>MF)|(?<background>MB)/gi;
             let match = reg.exec(commandString);
             let promise = Promise.resolve();
+            let nowait = false;
             while (match) {
                 let noteValue = null;
                 let longerNote = false;
@@ -67,12 +68,15 @@ var QB = new function() {
                     this.octave--;
                 }
                 if (match.groups.note) {
-                    const noteMatch = /(?<note>[A-G])(?<suffix>[#+-]?)(?<shorthand>\d*)(?<longerNote>\.?)/i.exec(match[0]);
+                    const noteMatch = /(?<note>[A-G])(?<suffix>[#+-]?)(?<shorthand>\d*)(?<longerNote>\.?)(?<nowait>,?)/i.exec(match[0]);
                     if (noteMatch.groups.longerNote) {
                         longerNote = true;
                     }
                     if (noteMatch.groups.shorthand) {
                         temporaryLength = parseInt(noteMatch.groups.shorthand);
+                    }
+                    if (noteMatch.groups.nowait) {
+                        nowait = true;
                     }
                     noteValue = this.getNoteValue(this.octave, noteMatch.groups.note);
                     switch (noteMatch.groups.suffix) {
@@ -131,8 +135,14 @@ var QB = new function() {
                     const freq = noteValue == 0
                         ? 0
                         : C6 * Math.pow(2, (noteValue - 48) / 12);
-                    const playPromise = () => this.playSound(freq, duration);
-                    promise = promise.then(playPromise)
+                    if (nowait) {
+                        this.playSound(freq, duration);
+                        nowait = false;
+                    }
+                    else {
+                        const playPromise = () => this.playSound(freq, duration);
+                        promise = promise.then(playPromise)
+                    }
                 }
                 match = reg.exec(commandString);
             }
