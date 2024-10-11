@@ -38,6 +38,7 @@ async function _QBCompiler() {
    var programMethods = 0;  /* INTEGER */ 
    var staticVarLine = 0;  /* INTEGER */ 
    var condWords = QB.initArray([{l:0,u:4}], '');  /* STRING */ 
+   var forceSelfConvert = 0;  /* INTEGER */ 
    if (QB.func_Command() !=  "" ) {
       await sub_QBToJS( QB.func_Command(),    FILE,   "");
       await sub_PrintJS();
@@ -69,6 +70,9 @@ if (QB.halted()) { return; }; sourceType = Math.round(sourceType);
    isGX =   False;
    if ( sourceType ==   FILE) {
       selfConvert =  (await func_EndsWith(  source,   "qb2js.bas"));
+   }
+   if ( forceSelfConvert) {
+      selfConvert =   True;
    }
    if ( selfConvert) {
       await sub_AddJSLine(  0,   "if (typeof QB == 'undefined' && module) { QB = require('./qb-console.js').QB(); }");
@@ -162,6 +166,7 @@ if (QB.halted()) { return; }; sourceType = Math.round(sourceType);
       await sub_AddJSLine(  0,   "   line = QB.arrayValue(lines, [line]).value.line;");
       await sub_AddJSLine(  0,   "   return line;");
       await sub_AddJSLine(  0,   "}");
+      await sub_AddJSLine(  0,   "function setSelfConvert() { sub_SetSelfConvert(); }");
       await sub_AddJSLine(  0,   "");
       await sub_AddJSLine(  0,   "return {");
       await sub_AddJSLine(  0,   "   compile: compile,");
@@ -169,16 +174,21 @@ if (QB.halted()) { return; }; sourceType = Math.round(sourceType);
       await sub_AddJSLine(  0,   "   getMethods: getMethods,");
       await sub_AddJSLine(  0,   "   getExportMethods: getExportMethods,");
       await sub_AddJSLine(  0,   "   getExportConsts: getExportConsts,");
-      await sub_AddJSLine(  0,   "   getSourceLine: getSourceLine");
+      await sub_AddJSLine(  0,   "   getSourceLine: getSourceLine,");
+      await sub_AddJSLine(  0,   "   setSelfConvert: setSelfConvert,");
       await sub_AddJSLine(  0,   "};");
       await sub_AddJSLine(  0,   "}");
-      await sub_AddJSLine(  0,   "if (module) { module.exports.QBCompiler = _QBCompiler; }");
+      await sub_AddJSLine(  0,   "if (typeof module != 'undefined') { module.exports.QBCompiler = _QBCompiler; }");
    } else if ( moduleName !=  "" ) {
       await sub_AddJSLine(  0,   "}");
       await sub_AddJSLine(  0,   "const "  +  moduleName + " = await _"  +  moduleName + "();");
    } else if ( sourceType ==   FILE) {
       await sub_AddJSLine(  0,   "};");
    }
+}
+async function sub_SetSelfConvert() {
+if (QB.halted()) { return; }; 
+   forceSelfConvert =   True;
 }
 async function sub_InitTypes() {
 if (QB.halted()) { return; }; 
@@ -2256,10 +2266,11 @@ if (QB.halted()) { return; };
                continue;
             }
          }
-         var ___v4744592 = 0; ___l1556631: while ((await func_EndsWith(  fline,   "_"))) { if (QB.halted()) { return; }___v4744592++;   if (___v4744592 % 100 == 0) { await QB.autoLimit(); }
+         fline =  (await func_Replace(  fline,   await func_CR(),   ""));
+         var ___v4744592 = 0; ___l1556631: while ((await func_EndsWith(  fline,   " _"))) { if (QB.halted()) { return; }___v4744592++;   if (___v4744592 % 100 == 0) { await QB.autoLimit(); }
             i =   i +  1;
             var nextLine = '';  /* STRING */ 
-            nextLine =  QB.arrayValue(sourceLines, [ i]).value;
+            nextLine =  (await func_Replace( QB.arrayValue(sourceLines, [ i]).value ,   await func_CR(),   ""));
             fline =  (QB.func_Left(  fline,   (QB.func_Len(  fline))  -  1))  +  nextLine;
          }
          rawJS =  (await func_ReadLine(  i,    fline,    rawJS));
@@ -3873,6 +3884,7 @@ function getSourceLine(jsLine) {
    line = QB.arrayValue(lines, [line]).value.line;
    return line;
 }
+function setSelfConvert() { sub_SetSelfConvert(); }
 
 return {
    compile: compile,
@@ -3880,7 +3892,8 @@ return {
    getMethods: getMethods,
    getExportMethods: getExportMethods,
    getExportConsts: getExportConsts,
-   getSourceLine: getSourceLine
+   getSourceLine: getSourceLine,
+   setSelfConvert: setSelfConvert,
 };
 }
 if (typeof module != 'undefined') { module.exports.QBCompiler = _QBCompiler; }

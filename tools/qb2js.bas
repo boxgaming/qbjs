@@ -87,6 +87,7 @@ Dim Shared As String currentModule
 Dim Shared As Integer programMethods
 Dim Shared As Integer staticVarLine
 Dim Shared As String condWords(4)
+Dim Shared As Integer forceSelfConvert
 
 ' Only execute the conversion from the native version if we have been passed the
 ' source file to convert on the command line
@@ -124,6 +125,7 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
     Dim selfConvert As Integer
     Dim isGX As Integer: isGX = False
     If sourceType = FILE Then selfConvert = EndsWith(source, "qb2js.bas")
+    If forceSelfConvert Then selfConvert = True
 
     If selfConvert Then
         AddJSLine 0, "if (typeof QB == 'undefined' && module) { QB = require('./qb-console.js').QB(); }"
@@ -226,6 +228,7 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "   line = QB.arrayValue(lines, [line]).value.line;"
         AddJSLine 0, "   return line;"
         AddJSLine 0, "}"
+        AddJSLine 0, "function setSelfConvert() { sub_SetSelfConvert(); }"
         AddJSLine 0, ""
         AddJSLine 0, "return {"
         AddJSLine 0, "   compile: compile,"
@@ -233,7 +236,8 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "   getMethods: getMethods,"
         AddJSLine 0, "   getExportMethods: getExportMethods,"
         AddJSLine 0, "   getExportConsts: getExportConsts,"
-        AddJSLine 0, "   getSourceLine: getSourceLine"
+        AddJSLine 0, "   getSourceLine: getSourceLine,"
+        AddJSLine 0, "   setSelfConvert: setSelfConvert,"
         AddJSLine 0, "};"
         AddJSLine 0, "}"
         AddJSLine 0, "if (typeof module != 'undefined') { module.exports.QBCompiler = _QBCompiler; }"
@@ -249,6 +253,10 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         'Else
         '    AddJSLine 0, "} catch (error) { console.log(error); throw error; }"
     End If
+End Sub
+
+Sub SetSelfConvert()
+    forceSelfConvert = True
 End Sub
 
 Sub InitTypes
@@ -2386,7 +2394,7 @@ Sub ReadLinesFromText (sourceText As String)
         fline = sourceLines(i)
 
         If _Trim$(fline) <> "" Then ' remove all blank lines
-
+            
             Dim lineIndex As Integer
             lineIndex = i
 
@@ -2410,11 +2418,13 @@ Sub ReadLinesFromText (sourceText As String)
                 End If
             End If
 
-            While EndsWith(fline, "_")
+            fline = Replace(fline, CR, "")
+            While EndsWith(fline, " _")
                 i = i + 1
                 Dim nextLine As String
-                nextLine = sourceLines(i)
+                nextLine = Replace(sourceLines(i), CR, "")
                 fline = Left$(fline, Len(fline) - 1) + nextLine
+                'AddWarning i, "Found it: [" + fline + "]"
             Wend
 
             rawJS = ReadLine(i, fline, rawJS)
@@ -3495,9 +3505,7 @@ Function GXMethodJS$ (mname As String)
         c = Mid$(mname, i, 1)
         a = Asc(c)
         ' uppercase, lowercase, numbers, - and .
-        If (a >= 65 And a <= 90) Or (a >= 97 And a <= 122) Or _
-           (a >= 48 And a <= 57) Or _
-           a = 95 Or a = 46 Then
+        If (a >= 65 And a <= 90) Or (a >= 97 And a <= 122) Or (a >= 48 And a <= 57) Or a = 95 Or a = 46 Then
             jsname = jsname + c
         End If
     Next i
