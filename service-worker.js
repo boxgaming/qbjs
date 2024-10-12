@@ -14,7 +14,7 @@
 // Names of the two caches used in this version of the service worker.
 // Change to v2, etc. when you update any of the local resources, which will
 // in turn trigger the install event again.
-const PRECACHE = 'precache-v12';
+const PRECACHE = 'precache-v13';
 const RUNTIME = 'runtime';
 const PREFIX = (self.location.origin.indexOf("github.io") == -1) ? "/" : "/qbjs/";
 
@@ -56,6 +56,8 @@ const PRECACHE_URLS = [
   PREFIX + 'img/file.svg',
   PREFIX + 'img/folder.svg',
   PREFIX + 'img/fullscreen.png',
+  PREFIX + 'img/methods-hover.svg',
+  PREFIX + 'img/methods.svg',
   PREFIX + 'img/new-folder-hover.svg',
   PREFIX + 'img/new-folder.svg',
   PREFIX + 'img/open-hover.svg',
