@@ -343,6 +343,7 @@ dialog pre { font-family: dosvga; }
 #toolbar-button-stop { background-image: url('img/stop.svg'); }
 #toolbar-button-share { background-image: url('img/share.svg'); }
 #toolbar-button-settings { background-image: url('img/settings.svg'); }
+#toolbar-button-methods { background-image: url('img/methods.svg'); }
 #toolbar-button-console-show { background-image: url('img/console-show.svg'); float: right; margin-right: 4px !important; }
 #toolbar-button-console-hide { background-image: url('img/console-hide.svg'); float: right; margin-right: 4px !important; }
 #toolbar-button-about { background-image: url('img/about.svg'); float: right; margin-left: 4px !important; }
@@ -358,6 +359,7 @@ dialog pre { font-family: dosvga; }
 #toolbar-button-share:hover { background-image: url('img/share-hover.svg'); }
 #toolbar-button-about:hover { background-image: url('img/about-hover.svg'); }
 #toolbar-button-settings:hover { background-image: url('img/settings-hover.svg'); }
+#toolbar-button-methods:hover { background-image: url('img/methods-hover.svg'); }
 #toolbar-button-slide-left:hover { background-image: url('img/slide-left-hover.svg'); }
 #toolbar-button-slide-right:hover { background-image: url('img/slide-right-hover.svg'); }
 
