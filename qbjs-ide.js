@@ -1192,6 +1192,7 @@ var IDE = new function() {
     this.shareProgram = _shareProgram;
     this.changeTheme = _changeTheme;
     this.showOptionDialog = _showOptionDialog;
+    this.showMethodDialog = _showMethodDialog;
     this.showDialog = _showDialog;
     this.exportProgram = _exportProgram;
     this.saveProject = _saveProject;
