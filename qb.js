@@ -12,6 +12,13 @@ var QB = new function() {
             this.type = 'square';
         }
     
+        stop() {
+            if (this._audioContext) {
+                this._audioContext.suspend();
+                this._audioContext.close();
+            }
+        }
+
         setType(type) {
             this.type = type;
         }
@@ -50,6 +57,7 @@ var QB = new function() {
         }
 
         async play(commandString) {
+            commandString = commandString.replace(/ /g, "");
             const reg = /(?<octave>O\d+)|(?<octaveUp>>)|(?<octaveDown><)|(?<note>[A-G][#+-]?\d*\.?[,]?)|(?<noteN>N\d+\.?)|(?<length>L\d+)|(?<legato>ML)|(?<normal>MN)|(?<staccato>MS)|(?<pause>P\d+\.?)|(?<tempo>T\d+)|(?<foreground>MF)|(?<background>MB)/gi;
             let match = reg.exec(commandString);
             let promise = Promise.resolve();
@@ -127,7 +135,7 @@ var QB = new function() {
                 }
     
                 if (noteValue !== null) {
-                   const noteDuration = this.mode * (60000 * 4 / this.tempo);
+                   const noteDuration = (60000 * 4 / this.tempo);
                     const duration = temporaryLength
                         ? noteDuration / temporaryLength
                         : noteDuration / this.noteLength;
@@ -140,8 +148,7 @@ var QB = new function() {
                         nowait = false;
                     }
                     else {
-                        const playPromise = () => this.playSound(freq, duration);
-                        promise = promise.then(playPromise)
+                        await this.playSound(freq, duration);
                     }
                 }
                 match = reg.exec(commandString);
@@ -311,6 +318,7 @@ var QB = new function() {
         _haltedFlag = true;
         _runningFlag = false;
         _inputMode = false;
+        _player.stop();
         GX.soundStopAll();
         toggleCursor(true);
     };
