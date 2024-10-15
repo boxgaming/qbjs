@@ -134,7 +134,7 @@ var GX = new function() {
                 var move = event.deltaY;
                 if (move > 0) { move = 1; }
                 else if (move < 0) { move = -1; }
-                _mouseWheelFlag = move;
+                _mouseWheelFlag += move;
                 _mouseInputFlag = true;
             });
 
@@ -1990,7 +1990,7 @@ var GX = new function() {
 
     function _mouseWheel() {
         var mw = _mouseWheelFlag;
-        _mouseWheelFlag = false;
+        _mouseWheelFlag = 0;
         return mw;
     }
 
