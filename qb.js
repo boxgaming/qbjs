@@ -692,9 +692,8 @@ var QB = new function() {
         }
         else if (mode == QB.STRETCH || mode == QB.SQUAREPIXELS) {
             // TODO: not making any distinction at present
-            GX.fullScreen(true);
+            GX.fullScreen(true, smooth);
         }
-        // TODO: implement smooth option (maybe) - the canvas does smooth scaling by default
     }
 
     this.func__G2D = function(x) {

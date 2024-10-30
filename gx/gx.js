@@ -1841,9 +1841,16 @@ var GX = new function() {
         }
     }
 
-    function _fullScreen(fullscreenFlag) {
+    function _fullScreen(fullscreenFlag, smooth) {
         if (fullscreenFlag != undefined) {
             if (fullscreenFlag) {
+                if (!smooth) {
+                    _canvas.style.imageRendering = "pixelated";
+                }
+                else {
+                    _canvas.style.imageRendering = undefined;
+                }
+        
                 if (_canvas.requestFullscreen) {
                     _canvas.requestFullscreen();
                     _fullscreenFlag = true;
