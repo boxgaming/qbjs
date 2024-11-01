@@ -576,10 +576,27 @@ var IDE = new function() {
             var basFiles = [];
             var fnames = "";
             var mainFound = false;
+            // determine if there is only a single directory,
+            // if so move the contents to the root
+            var singleDir = null;
+            var rootDirs = {};
+            var rootFiles = false;
             for (let [filename, file] of Object.entries(zip.files)) {
-                fnames += filename + " - " + zip.files[filename].name + "\n";
-                var parentDir = dirFromPath(vfs.getParentPath(filename));
-                if (filename.toLowerCase() == mainFilename) {
+                var fidx = filename.indexOf("/");
+                var dir = filename.substring(0,fidx+1);
+                rootDirs[dir] = 1;
+            }
+            rootDirs = Object.keys(rootDirs);
+            if (rootDirs.length == 1) {
+                singleDir = rootDirs[0];
+            }
+            for (let [filename, file] of Object.entries(zip.files)) {
+                var vfsFilename = filename;
+                if (singleDir) {
+                    vfsFilename = filename.substring(singleDir.length);
+                }
+                var parentDir = dirFromPath(vfs.getParentPath(vfsFilename));
+                if (vfsFilename.toLowerCase() == mainFilename) {
                     var text = await zip.file(filename).async("text");
                     editor.setValue(text);
                     mainFound = true;
@@ -587,10 +604,10 @@ var IDE = new function() {
                 else {
                     if (zip.file(filename)) {
                         var fdata = await zip.file(filename).async("arraybuffer");
-                        var f = vfs.createFile(vfs.getFileName(filename), parentDir);
+                        var f = vfs.createFile(vfs.getFileName(vfsFilename), parentDir);
                         vfs.writeData(f, fdata);
-                        if (filename.toLowerCase().endsWith(".bas")) {
-                            basFiles.push(filename);
+                        if (vfsFilename.toLowerCase().endsWith(".bas")) {
+                            basFiles.push(vfsFilename);
                         }
                     }
                 }
@@ -640,7 +657,7 @@ var IDE = new function() {
             var file = vfs.getNode("/" + fileList.value);
             editor.setValue(vfs.readText(file));
             vfs.removeFile(file);
-            closeProgSelDlg();
+            _closeDialog();
         }
     }
 
