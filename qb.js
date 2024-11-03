@@ -230,7 +230,8 @@ var QB = new function() {
     var _typeMap = {};
     var _ucharMap = {};
     var _ccharMap = {};
-    var _player = null; //new QBasicSound();
+    var _player = null;
+    var _soundCtx = null;
     
     // Array handling methods
     // ----------------------------------------------------
@@ -319,6 +320,7 @@ var QB = new function() {
         _runningFlag = false;
         _inputMode = false;
         _player.stop();
+        _soundCtx.pause();
         GX.soundStopAll();
         toggleCursor(true);
     };
@@ -346,6 +348,7 @@ var QB = new function() {
         _sourceImage = 0;
         _strokeLineThickness = 2;
         _player = new QBasicSound();
+        _soundCtx = new AudioContext();
         // initialize the default fonts
         _nextFontId = 1000;
         _font = 16;
@@ -1444,11 +1447,10 @@ var QB = new function() {
     };
 
     this.sub_Beep = function() {
-        var context = new AudioContext();
-        var oscillator = context.createOscillator();
+        var oscillator = _soundCtx.createOscillator();
         oscillator.type = "square";
         oscillator.frequency.value = 780;
-        oscillator.connect(context.destination);
+        oscillator.connect(_soundCtx.destination);
         oscillator.start(); 
         setTimeout(function () {
             oscillator.stop();
@@ -3500,6 +3502,8 @@ var QB = new function() {
     this.sub_Sound = async function(freq, duration, shape, decay, gain) {
         _assertNumber(freq, 1);
         _assertNumber(duration, 2);
+        // convert duration to milliseconds
+        duration = duration * 1000 / 18;
         if (shape == undefined || (typeof shape != 'string')) { shape = "square"; }
         if (decay == undefined || (typeof decay != 'number')) { decay = 0.0; }
         if (gain  == undefined || (typeof gain != 'number')) { gain = 1.0; }
@@ -3513,17 +3517,16 @@ var QB = new function() {
         if (freq == 0) {
             await GX.sleep(duration);
         } else {
-            var context = new AudioContext();
-            var oscillator = context.createOscillator();
-            var gainNode = context.createGain();
+            var oscillator = _soundCtx.createOscillator();
+            var gainNode = _soundCtx.createGain();
             oscillator.type = shape;
             oscillator.frequency.value = freq;
             oscillator.connect(gainNode);
-            gainNode.connect(context.destination)
+            gainNode.connect(_soundCtx.destination)
             gainNode.gain.value = gain;
             oscillator.start(); 
             setTimeout(await async function () {
-                gainNode.gain.setTargetAtTime(0, context.currentTime, decay);
+                gainNode.gain.setTargetAtTime(0, _soundCtx.currentTime, decay);
                 oscillator.stop(duration + decay + 1);
             }, duration);  
         }
