@@ -3529,6 +3529,7 @@ var QB = new function() {
                 gainNode.gain.setTargetAtTime(0, _soundCtx.currentTime, decay);
                 oscillator.stop(duration + decay + 1);
             }, duration);  
+            await GX.sleep(duration*2/3);
         }
     };
 
