@@ -320,7 +320,10 @@ var QB = new function() {
         _runningFlag = false;
         _inputMode = false;
         _player.stop();
-        _soundCtx.pause();
+        if (_soundCtx) {
+            _soundCtx.suspend();
+            _soundCtx.close();
+        }
         GX.soundStopAll();
         toggleCursor(true);
     };
