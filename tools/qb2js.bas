@@ -81,6 +81,7 @@ ReDim Shared As Variable exportConsts(0)
 ReDim Shared As Method exportMethods(0)
 ReDim Shared As String dataArray(0)
 ReDim Shared As Label dataLabels(0)
+Dim Shared As String jsReservedWords(54)
 Dim Shared modLevel As Integer
 Dim Shared As String currentMethod
 Dim Shared As String currentModule
@@ -116,6 +117,7 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
     programMethods = UBound(methods)
     InitGX
     InitQBMethods
+    InitJSReservedWords
 
     ' Detect whether we are converting ourself to javascript. If so:
     '   1) Place the converted code into an object named QB6Compiler
@@ -255,7 +257,7 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
     End If
 End Sub
 
-Sub SetSelfConvert()
+Sub SetSelfConvert ()
     forceSelfConvert = True
 End Sub
 
@@ -1929,6 +1931,7 @@ End Function
 
 Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isStatic As Integer, preserve As String, arraySize As String)
     Dim findVar As Variable
+    Dim varExists As Integer
 
     bvar.jsname = RemoveSuffix(bvar.name)
     If isStatic Then
@@ -1936,21 +1939,23 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
     End If
     bvar.type = NormalizeType(bvar.type)
 
-    If Not bvar.isArray Then
-        js = js + "var " + bvar.jsname + " = " + InitTypeValue(bvar.type) + "; "
-
-    Else
-        If FindVariable(bvar.name, findVar, True) Then
-            js = js + "QB.resizeArray(" + bvar.jsname + ", [" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ", " + preserve + "); "
-        Else
-            js = js + "var " + bvar.jsname + " = QB.initArray([" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + "); "
-        End If
-    End If
+    varExists = FindVariable(bvar.name, findVar, True)
 
     If isGlobal Then
         AddVariable bvar, globalVars()
     Else
         AddVariable bvar, localVars()
+    End If
+
+    If Not bvar.isArray Then
+        js = js + "var " + bvar.jsname + " = " + InitTypeValue(bvar.type) + "; "
+
+    Else
+        If varExists Then
+            js = js + "QB.resizeArray(" + bvar.jsname + ", [" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ", " + preserve + "); "
+        Else
+            js = js + "var " + bvar.jsname + " = QB.initArray([" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + "); "
+        End If
     End If
 
     If PrintDataTypes Then js = js + " /* " + bvar.type + " */ "
@@ -2394,7 +2399,7 @@ Sub ReadLinesFromText (sourceText As String)
         fline = sourceLines(i)
 
         If _Trim$(fline) <> "" Then ' remove all blank lines
-            
+
             Dim lineIndex As Integer
             lineIndex = i
 
@@ -3263,8 +3268,14 @@ Sub AddVariable (bvar As Variable, vlist() As Variable)
     nvar.arraySize = bvar.arraySize
     nvar.typeId = bvar.typeId
 
-    If nvar.jsname = "" Then nvar.jsname = RemoveSuffix(nvar.name)
-
+    If nvar.jsname = "" Then
+        nvar.jsname = RemoveSuffix(nvar.name)
+        bvar.jsname = nvar.jsname
+    End If
+    If IsJSReservedWord(nvar.jsname) Then
+        nvar.jsname = nvar.jsname + "_" + GenJSName$
+        bvar.jsname = nvar.jsname
+    End If
 
     vlist(vcount) = nvar
 End Sub
@@ -3348,6 +3359,17 @@ Function RemoveSuffix$ (vname As String)
         End If
     Wend
     RemoveSuffix = Left$(vname, i)
+End Function
+
+Function IsJSReservedWord (vname As String)
+    Dim As Integer found, i
+    For i = 1 To UBound(jsReservedWords)
+        If jsReservedWords(i) = vname Then
+            found = True
+            Exit For
+        End If
+    Next i
+    IsJSReservedWord = found
 End Function
 
 Function DataTypeFromName$ (vname As String)
@@ -3512,6 +3534,73 @@ Function GXMethodJS$ (mname As String)
 
     GXMethodJS = jsname
 End Function
+
+Sub InitJSReservedWords
+    jsReservedWords(1) = "abstract"
+    jsReservedWords(2) = "arguments"
+    jsReservedWords(3) = "await"
+    jsReservedWords(4) = "boolean"
+    jsReservedWords(5) = "break"
+    ' byte, case
+    jsReservedWords(6) = "catch"
+    jsReservedWords(7) = "char"
+    jsReservedWords(8) = "class"
+    ' const, continue
+    jsReservedWords(9) = "debugger"
+    jsReservedWords(10) = "default"
+    jsReservedWords(11) = "delete"
+    ' do, double, else
+    jsReservedWords(12) = "enum"
+    jsReservedWords(13) = "eval"
+    ' export
+    jsReservedWords(14) = "extends"
+    jsReservedWords(15) = "false"
+    jsReservedWords(16) = "final"
+    jsReservedWords(17) = "finally"
+    ' float, for, function, goto, if
+    jsReservedWords(18) = "implements"
+    ' import, in
+    jsReservedWords(19) = "instanceof"
+    ' int
+    jsReservedWords(20) = "interface"
+    ' let, long
+    jsReservedWords(21) = "native"
+    jsReservedWords(22) = "new"
+    jsReservedWords(23) = "null"
+    jsReservedWords(24) = "package"
+    jsReservedWords(25) = "private"
+    jsReservedWords(26) = "protected"
+    jsReservedWords(27) = "public"
+    ' return, short, static
+    jsReservedWords(28) = "super"
+    jsReservedWords(29) = "switch"
+    jsReservedWords(30) = "synchronized"
+    jsReservedWords(31) = "this"
+    jsReservedWords(32) = "throw"
+    jsReservedWords(33) = "throws"
+    jsReservedWords(34) = "transient"
+    jsReservedWords(35) = "true"
+    jsReservedWords(36) = "try"
+    jsReservedWords(37) = "typeof"
+    jsReservedWords(38) = "var"
+    jsReservedWords(39) = "void"
+    jsReservedWords(40) = "volitile"
+    ' while
+    jsReservedWords(41) = "with"
+    jsReservedWords(42) = "yield"
+    jsReservedWords(43) = "window"
+    jsReservedWords(44) = "document"
+    jsReservedWords(45) = "location"
+    jsReservedWords(46) = "global"
+    jsReservedWords(47) = "history"
+    jsReservedWords(48) = "setTimeout"
+    jsReservedWords(49) = "setInterval"
+    jsReservedWords(50) = "alert"
+    jsReservedWords(51) = "confirm"
+    jsReservedWords(52) = "prompt"
+    jsReservedWords(53) = "require"
+    jsReservedWords(54) = "process"
+End Sub
 
 Sub InitGX
     AddSystemType "GXPOSITION", "x:LONG,y:LONG"
