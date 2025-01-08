@@ -25,6 +25,7 @@
         <script type="text/javascript" src="codemirror/search.js"></script>
         <script type="text/javascript" src="codemirror/annotatescrollbar.js"></script>
         <script type="text/javascript" src="codemirror/matchesonscrollbar.js"></script>
+        <script type="text/javascript" src="codemirror/vim.js"></script>
 
         <script type="text/javascript" src="util/showdown.min.js"></script>
     </head>
@@ -128,6 +129,12 @@
                 <option value="qb64-vscode">QB64 VSCode</option>
                 <option value="win-classic">Windows Classic</option>
                 <option value="vscode-dark">VSCode Dark</option>
+            </select>
+            <br/><br/>
+            <div>Key Bindings:</div>
+            <select id="key-bindings" onchange="IDE.changeKeyMap(this.value)">
+                <option value="default">Default</option>
+                <option value="vim">VIM</option>
             </select>
             <br/><br/>
             <div>Convert Source Encoding:</div>

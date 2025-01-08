@@ -14,6 +14,7 @@ var IDE = new function() {
     var currPath = "/";
     var mainProg = null;
     var theme = "qbjs";
+    var keyMap = "default";
     var splitWidth = 600;
     var splitHeight = 327;
     var sliding = false;
@@ -52,6 +53,7 @@ var IDE = new function() {
         fsUrl:            _el("fs-url"),
         code:             _el("code"),
         themePicker:      _el("theme-picker"),
+        keyMapPicker:     _el("key-bindings"),
         help:             _el("help"),
         helpSidebar:      _el("help-sidebar"),
         helpPage:         _el("help-page"),
@@ -120,6 +122,10 @@ var IDE = new function() {
             if (stheme && stheme != "") {
                 theme = stheme;
             }
+            var skeyMap = localStorage.getItem("@@_keyMap");
+            if (skeyMap && skeyMap != "") {
+                keyMap = skeyMap;
+            }
             _e.ideTheme.href = "codemirror/themes/" + theme + ".css";
             GitHelp.navhome();
         }
@@ -135,6 +141,7 @@ var IDE = new function() {
             height: "auto",
             styleActiveLine: true,
             smartIndent: false,
+            keyMap: keyMap,
             specialChars: /[\u0009-\u000d\u00ad\u061c\u200b\u200e\u200f\u2028\u2029\u202d\u202e\u2066\u2067\u2069\ufeff\ufff9-\ufffc]/,
             extraKeys: {
                 "Tab": function(cm) {
@@ -440,8 +447,14 @@ var IDE = new function() {
         localStorage.setItem("@@_theme", theme);
     }
 
+    function _changeKeyMap(keyMap) {
+        editor.setOption("keyMap", keyMap);
+        localStorage.setItem("@@_keyMap", keyMap);
+    };
+
     function _showOptionDialog() {
         _e.themePicker.value = theme;
+        _e.keyMapPicker.value = keyMap;
         _showDialog(_e.optionsDialog);
     }
 
@@ -1231,4 +1244,5 @@ var IDE = new function() {
     this.uploadFile = _uploadFile;
     this.convert437ToUTF = _convert437ToUTF;
     this.convertUTFTo437 = _convertUTFTo437;
+    this.changeKeyMap = _changeKeyMap;
 };

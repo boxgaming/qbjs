@@ -14,7 +14,7 @@
 // Names of the two caches used in this version of the service worker.
 // Change to v2, etc. when you update any of the local resources, which will
 // in turn trigger the install event again.
-const PRECACHE = 'precache-v19';
+const PRECACHE = 'precache-v20';
 const RUNTIME = 'runtime';
 const PREFIX = (self.location.origin.indexOf("github.io") == -1) ? "/" : "/qbjs/";
 
@@ -36,6 +36,7 @@ const PRECACHE_URLS = [
   PREFIX + 'codemirror/qb-lang.js',
   PREFIX + 'codemirror/search.js',
   PREFIX + 'codemirror/searchcursor.js',
+  PREFIX + 'codemirror/vim.js',
   PREFIX + 'export/auto.html',
   PREFIX + 'export/fullscreen-hover.svg',
   PREFIX + 'export/fullscreen.svg',
