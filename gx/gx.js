@@ -845,7 +845,7 @@ var GX = new function() {
         if (visible != undefined) {
             _entities[eid-1].hidden = !visible;
         }
-        return !_entities[eid-1].hidden;
+        return (!_entities[eid-1].hidden) ? -1 : 0;
     }
 
     function _entityX (eid) { return _entities[eid-1].x; }
@@ -1862,7 +1862,7 @@ var GX = new function() {
                 }
             }
         }
-        return _fullscreenFlag; //(window.innerHeight == screen.height);
+        return _fullscreenFlag ? -1: 0; //(window.innerHeight == screen.height);
     }
 
 

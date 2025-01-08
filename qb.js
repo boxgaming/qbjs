@@ -1154,6 +1154,9 @@ var QB = new function() {
 
     function _rgb(r, g, b, a) {
         if (a == undefined) { a = 1; }
+        r = parseInt(r);
+        g = parseInt(g);
+        b = parseInt(b);
         return {
             r: r,
             g: g,
@@ -1240,6 +1243,9 @@ var QB = new function() {
         _assertNumber(r, 1);
         if (a == undefined) {
             a = 255;
+        }
+        else {
+            a = parseInt(a);
         }
         if (b == undefined && g != undefined) {
             a = g;
@@ -2399,8 +2405,8 @@ var QB = new function() {
 
     this.sub_Locate = function(row, col) {
         // TODO: implement cursor positioning/display parameters
-        if (row == undefined) { row = 1; } else { _assertNumber(row); }
-        if (col == undefined) { col = 1; } else { _assertNumber(col); }
+        if (row == undefined) { row = 1; } else { _assertNumber(row); row = parseInt(row); }
+        if (col == undefined) { col = 1; } else { _assertNumber(col); col = parseInt(col); }
         if (row && row > 0 && row <= _textRows()) {
             _locY = row-1;
         }
@@ -3392,7 +3398,7 @@ var QB = new function() {
     function _setScreenText(text) {
         var row = _locY;
         var col = _locX; 
-        if (_screenText.length < 1) { return; }
+        if (_screenText.length < 1 || row >= _screenText.length) { return; }
         for (var i=0; i < text.length; i++) {
             _screenText[row][col+i].text = text.substring(i, i+1);
             _screenText[row][col+i].fgcolor = _fgColor;
@@ -3407,7 +3413,6 @@ var QB = new function() {
         if (!cdata) { return 0; }
         var c = cdata.fgcolor;
         if (!c) { return 0; }
-        console.log(cdata.bgcolor);
         c = _lookupIndexedColor(c);
         if (!isNaN(c)) {
             if (c < 16) {
@@ -3603,6 +3608,7 @@ var QB = new function() {
         _assertParam(value);
         var ret;
         value = value.toString();
+        value = value.replaceAll(/\s/g, "");
         if (value.substring(0, 2) == "&H") {
             ret = parseInt(value.slice(2), 16);
         } else if (value.substring(0, 2) == "&O") {
