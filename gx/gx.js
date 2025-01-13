@@ -55,6 +55,10 @@ var GX = new function() {
         return { eid:0, charSpacing:0, lineSpacing: 0}
     }
     
+    function _qbBoolean(value) {
+        return value ? -1 : 0;
+    }
+
     function _reset() {
         // stop any sounds that are currently playing
         _soundStopAll();
@@ -506,7 +510,7 @@ var GX = new function() {
 
 
     function _keyDown(key) {
-        return _pressedKeys[key];
+        return _qbBoolean(_pressedKeys[key]);
     }
 
     // Frame Functions
@@ -727,7 +731,7 @@ var GX = new function() {
             _sound_muted = muted;
             // TODO: loop through list of loaded sounds so they can all be muted / unmuted
         }
-        return _sound_muted;
+        return _qbBoolean(_sound_muted);
     }
     
     // Entity Functions
@@ -775,7 +779,7 @@ var GX = new function() {
     function _entityDraw (ent) {
         if (ent.hidden) { return; }
         var x, y;
-        if (ent.screen == 1) {
+        if (ent.screen) {
             x = ent.x
             y = ent.y
         } else {
@@ -845,7 +849,7 @@ var GX = new function() {
         if (visible != undefined) {
             _entities[eid-1].hidden = !visible;
         }
-        return (!_entities[eid-1].hidden) ? -1 : 0;
+        return _qbBoolean(!_entities[eid-1].hidden);
     }
 
     function _entityX (eid) { return _entities[eid-1].x; }
@@ -1042,7 +1046,7 @@ var GX = new function() {
         if (visible != undefined) {
             _map_layer_info[layer-1].hidden = !visible;
         }
-        return !_map_layer_info[layer-1].hidden;
+        return _qbBoolean(!_map_layer_info[layer-1].hidden);
     }
 
     function _mapIsometric(iso) {
@@ -1050,7 +1054,7 @@ var GX = new function() {
             _map.isometric = iso;
             _updateSceneSize();
         }
-        return _map.isometric;
+        return _qbBoolean(_map.isometric);
     }
 
     function _mapLayerAdd() {
@@ -1536,7 +1540,7 @@ var GX = new function() {
             if (r1x1 <= r2x2) {
                 if (r1y2 >= r2y1) {
                     if (r1y1 <= r2y2) {
-                        collide = 1;
+                        collide = -1;
                     }
                 }
             }
@@ -1862,7 +1866,7 @@ var GX = new function() {
                 }
             }
         }
-        return _fullscreenFlag ? -1: 0; //(window.innerHeight == screen.height);
+        return _qbBoolean(_fullscreenFlag);
     }
 
 
@@ -2025,7 +2029,7 @@ var GX = new function() {
                 return GX.keyDown(di.inputId);
             }
         }
-        return false;
+        return _qbBoolean(false);
     }
 
 /*
@@ -2358,7 +2362,7 @@ var GX = new function() {
         if (enabled != undefined) {
             __debug.enabled = enabled;
         }
-        return __debug.enabled;
+        return _qbBoolean(__debug.enabled);
     }
 
 /*
