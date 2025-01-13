@@ -144,7 +144,7 @@ Sub http_do_get (c)
     If InStr(filepath, ".svg") Then
         http_send_header c, "Content-Type", "image/svg+xml"
     ElseIf InStr(filepath, ".js") Then
-        http_send_header c, "Content-Type", "text/javascript"
+        http_send_header c, "Content-Type", "application/javascript"
     End If
     http_send_header c, "Access-Control-Allow-Origin", "true"
     http_send_header c, "Connection", "close"
