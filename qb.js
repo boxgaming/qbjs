@@ -310,7 +310,7 @@ var QB = new function() {
     };
 
     this.toBoolean = function(value) {
-        return value ? 0 : -1;
+        return value ? -1 : 0;
     };
 
     // Process control methods
