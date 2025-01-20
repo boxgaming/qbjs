@@ -136,9 +136,10 @@ var QB = new function() {
     
                 if (noteValue !== null) {
                    const noteDuration = (60000 * 4 / this.tempo);
-                    const duration = temporaryLength
+                    let duration = (temporaryLength
                         ? noteDuration / temporaryLength
-                        : noteDuration / this.noteLength;
+                        : noteDuration / this.noteLength);
+                    if (longerNote) { duration *= 1.5; }
                     const C6 = 1047;
                     const freq = noteValue == 0
                         ? 0
