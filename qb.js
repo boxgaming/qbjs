@@ -3548,6 +3548,9 @@ var QB = new function() {
     };
 
     this.func_Str = function(value) {
+        if (!isNaN(value) && value >= 0) {
+            return " " + value;
+        }
         return String(value);
     };
 
