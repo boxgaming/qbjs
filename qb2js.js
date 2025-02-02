@@ -3626,7 +3626,7 @@ if (QB.halted()) { return; };
    await sub_AddGXMethod( "SUB" ,   "GXMapIsometric" ,    False);
    await sub_AddGXMethod( "SUB" ,   "GXSpriteDraw" ,    False);
    await sub_AddGXMethod( "SUB" ,   "GXSpriteDrawScaled" ,    False);
-   await sub_AddGXMethod( "SUB" ,   "GXTilesetCreate" ,    False);
+   await sub_AddGXMethod( "SUB" ,   "GXTilesetCreate" ,    True);
    await sub_AddGXMethod( "SUB" ,   "GXTilesetReplaceImage" ,    False);
    await sub_AddGXMethod( "SUB" ,   "GXTilesetLoad" ,    False);
    await sub_AddGXMethod( "SUB" ,   "GXTilesetSave" ,    False);

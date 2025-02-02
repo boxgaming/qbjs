@@ -3855,7 +3855,7 @@ Sub InitGX
     AddGXMethod "SUB", "GXMapIsometric", False
     AddGXMethod "SUB", "GXSpriteDraw", False
     AddGXMethod "SUB", "GXSpriteDrawScaled", False
-    AddGXMethod "SUB", "GXTilesetCreate", False
+    AddGXMethod "SUB", "GXTilesetCreate", True
     AddGXMethod "SUB", "GXTilesetReplaceImage", False
     AddGXMethod "SUB", "GXTilesetLoad", False
     AddGXMethod "SUB", "GXTilesetSave", False

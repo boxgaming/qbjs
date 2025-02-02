@@ -9,6 +9,7 @@ var GX = new function() {
     var _entity_animations = [];
     var _scene = {};
     var _tileset = {};
+    var _tileset_tiles = [];
     var _tileset_animations = [];
     var _map = {};
     var _map_layers = [];
@@ -69,6 +70,7 @@ var GX = new function() {
         _entity_animations = [];
         _scene = {};
         _tileset = {};
+        _tileset_tiles = [];
         _tileset_animations = [];
         _map = {};
         _map_layers = [];
@@ -994,33 +996,270 @@ var GX = new function() {
     }
 
     async function _mapLoad(filename) {
+        try {
+            var file = _vfs.getNode(filename, _vfsCwd);
+            if (file && file.type == _vfs.FILE) {
+                _mapLoadV2(filename);
+                return;
+            }
+            else {
+                var tmpDir = _vfs.getNode("_gxtmp", _vfs.rootDirectory());
+                if (!tmpDir) { tmpDir = _vfs.createDirectory("_gxtmp", _vfs.rootDirectory()); }
+                file = _vfs.createFile(crypto.randomUUID(), tmpDir);  
+                var res = await fetch(filename);
+                _vfs.writeData(file, await res.arrayBuffer());
+                await _mapLoadV2(_vfs.fullPath(file));
+                _vfs.removeFile(file);
+                return;
+            }
+        }
+        catch (ex) {
+            // if the load fails try falling back to the older JSON format
+            _map_loading = true;
+            var data = null;
+            var file = _vfs.getNode(filename, _vfsCwd);
+            if (file && file.type == _vfs.FILE) {
+                data = JSON.parse(_vfs.readText(file));
+            }
+            else {
+                data = await _getJSON(filename);
+            }
+            var parentPath = filename.substring(0, filename.lastIndexOf("/")+1);
+            var imagePath = data.tileset.image.substring(data.tileset.image.lastIndexOf("/")+1);
+            GX.tilesetCreate(parentPath + imagePath, data.tileset.width, data.tileset.height, data.tileset.tiles, data.tileset.animations);
+            GX.mapCreate(data.columns, data.rows, data.layers.length);
+            if (data.isometric) {
+                GX.mapIsometric(true);
+            }
+            for (var layer=0; layer < data.layers.length; layer++) {
+                for (var row=0; row < GX.mapRows(); row++) {
+                    for (var col=0; col < GX.mapColumns(); col++) {
+                        GX.mapTile(col, row, layer+1, data.layers[layer][row * GX.mapColumns() + col]);
+                    }
+                }
+            }
+            _map_loading = false;
+        }
+    }
+    
+    async function _mapLoadV2(filename) {
         _map_loading = true;
-        var data = null;
-
-        var file = _vfs.getNode(filename, _vfsCwd);
-        if (file && file.type == _vfs.FILE) {
-            data = JSON.parse(_vfs.readText(file));
+        var vfs = GX.vfs();
+        var fh = { 
+            file: vfs.getNode(filename, vfs.rootDirectory()), 
+            pos: 0 
+        };
+    
+        var tmpDir = vfs.getNode("_gxtmp", vfs.rootDirectory());
+        if (!tmpDir) { tmpDir = vfs.createDirectory("_gxtmp", vfs.rootDirectory()); }
+        
+        var version = readInt(fh);
+        var columns = readInt(fh);
+        var rows = readInt(fh);
+        var layers = readInt(fh);
+        var isometric = readInt(fh);
+        
+        slen = readLong(fh);
+        
+        var data = vfs.readData(fh.file, fh.pos, slen)
+        fh.pos += data.byteLength;
+        
+        // write the raw data out and read it back in as a string
+        var ldataFile = vfs.createFile("layer.dat", tmpDir);
+        vfs.writeData(ldataFile, data);
+        ldataFile = vfs.getNode("layer.dat", tmpDir);
+        var ldstr = vfs.readText(ldataFile);//', ldstr);
+        vfs.removeFile(ldataFile, tmpDir);
+        
+        // inflate the compressed data and write it to a temp file
+        var ldata = pako.inflate(vfs.textToData(ldstr));
+        ldataFile = vfs.createFile("layer-i.dat", tmpDir);
+        vfs.writeData(ldataFile, ldata);
+    
+        // read the data
+        ldataFile = vfs.getNode("layer-i.dat", tmpDir);
+        ldata = vfs.readData(ldataFile, 0, ldataFile.data.byteLength)
+        ldata = new Int16Array(ldata);
+        vfs.removeFile(ldataFile, tmpDir);
+    
+        // read the tileset data
+        var tsVersion = readInt(fh);
+        var tsFilename = readString(fh);
+        var tsWidth = readInt(fh);
+        var tsHeight = readInt(fh);
+        var tsSize = readLong(fh);
+        
+        data = vfs.readData(fh.file, fh.pos, tsSize);
+        var pngFile = vfs.createFile("tileset.png", tmpDir)
+        vfs.writeData(pngFile, data);
+        fh.pos += data.byteLength;
+    
+        fh.pos++;
+        
+        // read the tileset tiles data
+        var asize = readInt(fh);
+        var tiles = [];
+        for (var i=0; i < 4; i++) { readInt(fh); } //' read the blank 0th element
+        for (var i=1; i <= asize; i++) {
+            readInt(fh); // not using id currently
+            tiles.push([readInt(fh), readInt(fh), readInt(fh)]);
         }
-        else {
-            data = await _getJSON(filename);
+    
+        // read the tileset animations data
+        asize = readInt(fh);
+        var animations = [];
+        for (var i=0; i < 3; i++) { readInt(fh); } //' read the first row
+        for (var i=1; i <= asize; i++) {
+            animations.push([readInt(fh), readInt(fh), readInt(fh)]);
         }
-        var parentPath = filename.substring(0, filename.lastIndexOf("/")+1);
-        var imagePath = data.tileset.image.substring(data.tileset.image.lastIndexOf("/")+1);
-        GX.tilesetCreate(parentPath + imagePath, data.tileset.width, data.tileset.height, data.tileset.tiles, data.tileset.animations);
-        GX.mapCreate(data.columns, data.rows, data.layers.length);
-        if (data.isometric) {
+    
+        GX.tilesetCreate("/_gxtmp/tileset.png", tsWidth, tsHeight, tiles, animations);
+        GX.mapCreate(columns, rows, layers);
+        if (isometric) {
             GX.mapIsometric(true);
         }
-        for (var layer=0; layer < data.layers.length; layer++) {
+        var li = 0
+        for (var l=0; l <= GX.mapLayers(); l++) {
+            if (l > 0) { li++; }
             for (var row=0; row < GX.mapRows(); row++) {
                 for (var col=0; col < GX.mapColumns(); col++) {
-                    GX.mapTile(col, row, layer+1, data.layers[layer][row * GX.mapColumns() + col]);
+                    if (l > 0) {
+                        GX.mapTile(col, row, l, ldata[li]);
+                    }
+                    li++;
                 }
             }
         }
+        
+        function readInt(fh) {
+            var data = vfs.readData(fh.file, fh.pos, 2);
+            var value = (new DataView(data)).getInt16(0, true);
+            fh.pos += data.byteLength;
+            return value;
+        }
+        
+        function readLong(fh) {
+            var data = vfs.readData(fh.file, fh.pos, 4);
+            var value = (new DataView(data)).getInt32(0, true);
+            fh.pos += data.byteLength;
+            return value;
+        }
+        
+        function readString(fh) {
+            var slen = readLong(fh);
+            data = vfs.readData(fh.file, fh.pos, slen)
+            var value = String.fromCharCode.apply(null, new Uint8Array(data))
+            fh.pos += data.byteLength;
+            return value;
+        }
         _map_loading = false;
     }
+    
+    async function _mapSave (filename) {
+        var vfs = GX.vfs();
+        var parentPath = vfs.getParentPath(filename);
+        filename = vfs.getFileName(filename);
+    
+        // create the parent path
+        var dirs = parentPath.split("/");
+        var parentDir = vfs.rootDirectory();
+        for (var i=0; i < dirs.length; i++) {
+            if (dirs[i] == "") { continue; }
+            var p = vfs.getNode(dirs[i], parentDir);
+            if (!p) { p = vfs.getNode(dirs[i], parentDir); }
+            parentDir = p;
+        }
+    
+        var tmpDir = vfs.getNode("_gxtmp", vfs.rootDirectory());
+        if (!tmpDir) { tmpDir = vfs.createDirectory("_gxtmp", vfs.rootDirectory()); }
+    
+        var file = vfs.createFile(filename, parentDir);
+        var fh = { file: file, pos: 0 };
+        
+        writeInt(fh, 2); // version
+        writeInt(fh, GX.mapColumns());
+        writeInt(fh, GX.mapRows());
+        writeInt(fh, GX.mapLayers());
+        writeInt(fh, GX.mapIsometric());
+        
+        var size = (GX.mapLayers() + 1) * GX.mapColumns() * GX.mapRows() + GX.mapLayers();
+        var ldata = new ArrayBuffer(size * 2 + 4);
+        var dview = new DataView(ldata);
+        var li = GX.mapColumns() * GX.mapRows() * 2 + 1;
+        for (var l=1; l <= GX.mapLayers(); l++) {
+            if (l > 1) { li+=2; }
+            for (var row=0; row < GX.mapRows(); row++) {
+                for (var col=0; col < GX.mapColumns(); col++) {
+                    if (l == 0) { 
+                        dview.setInt16(li-1, 0, true);
+                    }
+                    else {
+                        dview.setInt16(li-1, GX.mapTile(col, row, l), true);
+                    }
+                    li+=2;
+                }
+            }
+        }
 
+        var cdata = pako.deflate(ldata);
+        writeLong(fh, cdata.byteLength);
+        vfs.writeData(fh.file, cdata, fh.pos);
+        fh.pos += cdata.byteLength;
+
+        // write the tileset data
+        writeInt(fh, 2); // version
+        writeString(fh, "tileset.gxi");
+        writeInt(fh, GX.tilesetWidth());
+        writeInt(fh, GX.tilesetHeight());
+        
+        // write the tileset png data
+        var tsfile = vfs.getNode(_tileset.filename);
+        writeLong(fh, tsfile.data.byteLength);
+        vfs.writeData(fh.file, tsfile.data, fh.pos);
+        fh.pos += tsfile.data.byteLength;
+        fh.pos++;
+        
+        // write the tileset tiles data  
+        writeInt(fh, _tileset_tiles.length);
+        for (var i=0; i < 4; i++) { writeInt(fh, 0); }
+        for (var i=0; i < _tileset_tiles.length; i++) {
+            writeInt(fh, 0);//i+1);
+            writeInt(fh, _tileset_tiles[i].animationId);
+            writeInt(fh, _tileset_tiles[i].animationSpeed);
+            writeInt(fh, _tileset_tiles[i].animationFrame);
+        }
+
+        // write the tileset animations data
+        writeInt(fh, _tileset_animations.length);
+        for (var i=0; i < 3; i++) { writeInt(fh, 0); }
+        for (var i=0; i < _tileset_animations.length; i++) {
+            writeInt(fh, _tileset_animations[i].tileId);
+            writeInt(fh, _tileset_animations[i].firstFrame);
+            writeInt(fh, _tileset_animations[i].nextFrame);
+        }
+        
+    
+        function writeInt(fh, value) {
+            var data = new Int16Array([value]).buffer;
+            vfs.writeData(fh.file, data, fh.pos);
+            fh.pos = fh.pos + data.byteLength
+        }
+        
+        function writeLong(fh, value) {
+            var data = new Int32Array([value]).buffer; 
+            vfs.writeData(fh.file, data, fh.pos);
+            fh.pos = fh.pos + data.byteLength
+        }
+        
+        function writeString(fh, value) {
+            var slen = value.length;
+            writeLong(fh, slen);
+            var data = vfs.textToData(value);
+            vfs.writeData(fh.file, data, fh.pos);
+            fh.pos = fh.pos + data.byteLength
+        }
+    }
+    
     function _getJSON(url) {
         return fetch(url)
             .then((response)=>response.json())
@@ -1275,8 +1514,8 @@ var GX = new function() {
 
     // Tileset Methods
     // ----------------------------------------------------------------------------
-    function _tilesetCreate (tilesetFilename, tileWidth, tileHeight, tiles, animations) {
-        GX.tilesetReplaceImage(tilesetFilename, tileWidth, tileHeight);
+    async function _tilesetCreate (tilesetFilename, tileWidth, tileHeight, tiles, animations) {
+        await GX.tilesetReplaceImage(tilesetFilename, tileWidth, tileHeight);
 
         _tileset_tiles = [];
         if (tiles != undefined) {
@@ -1314,15 +1553,22 @@ var GX = new function() {
         }
     }
 
-    function _tilesetReplaceImage (tilesetFilename, tilewidth, tileheight) {
+    async function _tilesetReplaceImage (tilesetFilename, tilewidth, tileheight) {
         _tileset.filename = tilesetFilename;
         _tileset.width = tilewidth;
         _tileset.height = tileheight;
+        var imgLoaded = false;
         _tileset.image = _imageLoad(tilesetFilename, function(img) {
             _tileset.columns = img.width / GX.tilesetWidth();
             _tileset.rows = img.height / GX.tilesetHeight();
             _updateSceneSize();
+            imgLoaded = true;
         });
+        var waitMillis = 0;
+        while (!imgLoaded & waitMillis < 3000) {
+            await GX.sleep(10);
+            waitMillis += 10;
+        }
     }
 /*
     Sub GXTilesetLoad (filename As String)
@@ -1505,7 +1751,7 @@ var GX = new function() {
         var firstFrame = _tileset_tiles[tileId-1].animationId;
         var animationSpeed = _tileset_tiles[tileId-1].animationSpeed;
 
-        if (frame % (GX.frameRate() / animationSpeed) == 0) {
+        if (frame % Math.round(GX.frameRate() / animationSpeed) == 0) {
             var currFrame = firstFrame;
             if (_tileset_tiles[tileId-1].animationFrame > 0) {
                 currFrame = _tileset_tiles[tileId-1].animationFrame;
@@ -2579,6 +2825,7 @@ var GX = new function() {
     this.mapCreate = _mapCreate;
     this.mapLoad = _mapLoad;
     this.mapDraw = _mapDraw;
+    this.mapSave = _mapSave;
     this.mapIsometric = _mapIsometric;
     this.mapLayerAdd = _mapLayerAdd;
     this.mapLayerInsert = _mapLayerInsert;
