@@ -1191,10 +1191,10 @@ var GX = new function() {
             for (var row=0; row < GX.mapRows(); row++) {
                 for (var col=0; col < GX.mapColumns(); col++) {
                     if (l == 0) { 
-                        dview.setInt16(li-1, 0, true);
+                        dview.setInt16(li+1, 0, true);
                     }
                     else {
-                        dview.setInt16(li-1, GX.mapTile(col, row, l), true);
+                        dview.setInt16(li+1, GX.mapTile(col, row, l), true);
                     }
                     li+=2;
                 }
