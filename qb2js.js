@@ -3729,7 +3729,7 @@ if (QB.halted()) { return; };
    await sub_AddQBMethod( "SUB" ,   "_Display" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_Echo" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_EnvironCount" ,    False);
-   await sub_AddQBMethod( "FUNCTION" ,   "_FileExists" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_FileExists" ,    True);
    await sub_AddQBMethod( "FUNCTION" ,   "_Font" ,    False);
    await sub_AddQBMethod( "SUB" ,   "_Font" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_FontHeight" ,    False);

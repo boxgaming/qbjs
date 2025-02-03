@@ -639,11 +639,16 @@ var QB = new function() {
         return 0;
     };
 
-    this.func__FileExists = function(path) {
+    this.func__FileExists = async function(path) {
         _assertParam(path);
         var vfs = GX.vfs();
         var file = vfs.getNode(path, GX.vfsCwd());
         if (file && file.type == vfs.FILE) {
+            return -1;
+        }
+        // didn't find the file in the vfs, so try to download it
+        file = await _downloadFile(path);
+        if (file) {
             return -1;
         }
         return 0;
@@ -824,15 +829,21 @@ var QB = new function() {
             name = "Font-" + id;
             await _loadFont(name, url);
         }
-        else if (nameLower.endsWith(".ttf") || nameLower.endsWith(".otf") || nameLower.endsWith("woff") || nameLower.endsWith("woff2")) {
+        else {
             // attempt to load the font from the vfs
-            // TODO: what if it is a local URL?
             var vfs = GX.vfs();
             var f = vfs.getNode(name, GX.vfsCwd());
+            if (!f) {
+                // couldn't find the font in the vfs, let's try to load it as a relative URL
+                f = await _downloadFile(name);
+            }
             if (f && f.type == vfs.FILE) {
                 var url = await vfs.getDataURL(f);
                 name = "Font-" + id;
                 await _loadFont(name, url);
+            }
+            else {
+                throw new Error("File not found: [" + name + "]");
             }
         }
         
@@ -847,7 +858,7 @@ var QB = new function() {
             _fonts[id].offset = tm.fontBoundingBoxAscent - tm.actualBoundingBoxAscent;
         }
         else {
-            // sad, firefox does not support fontBoundingBox... so it will just not work as well
+            // some browsers may still not support fontBoundingBox... so it will just not work as well
             _fonts[id].height = tm.actualBoundingBoxAscent + tm.actualBoundingBoxDescent + 2;
             _fonts[id].offset = 0;
         }
@@ -2495,7 +2506,7 @@ var QB = new function() {
             }
             if (!file) {
                 if (mode == QB.APPEND || mode == QB.BINARY) {
-                    file = await downloadFile(path);
+                    file = await _downloadFile(path);
                 }
                 if (!file) {
                     file = vfs.createFile(filename, parentNode);
@@ -2511,7 +2522,7 @@ var QB = new function() {
             var file = vfs.getNode(path, vfsCwd);
             if (!file) {
                 // attempt to copy the path to the local filesystem
-                var file = await downloadFile(path);
+                var file = await _downloadFile(path);
                 if (!file) {
                     throw new Error("File not found");
                 }
@@ -2525,35 +2536,38 @@ var QB = new function() {
             throw new Error("Unsupported Open Method");
         }
 
-        async function downloadFile(path) {
-            try {
-                var res = await fetch(path);
-                if (res.ok) {
-                    var filename = vfs.getFileName(path);
-                    var parentPath = vfs.getParentPath(path);
-                
-                    var parentNode = vfs.rootDirectory();
-                    var dirs = parentPath.split("/");
-                    for (var i=0; i < dirs.length; i++) {
-                        if (dirs[i] == "") { continue; }
-                        var node = vfs.getNode(dirs[i], parentNode);
-                        if (!node) { node = vfs.createDirectory(dirs[i], parentNode); }
-                        parentNode = node;
-                    }
-                
-                    var file = vfs.createFile(filename, parentNode);
-                    vfs.writeData(file, await res.arrayBuffer());
-                    return file;
+    };
+
+    async function _downloadFile(path) {
+        var vfs = GX.vfs();
+        var vfsCwd = GX.vfsCwd();
+        try {
+            var res = await fetch(path);
+            if (res.ok) {
+                var filename = vfs.getFileName(path);
+                var parentPath = vfs.getParentPath(path);
+
+                var parentNode = vfs.rootDirectory();
+                var dirs = parentPath.split("/");
+                for (var i=0; i < dirs.length; i++) {
+                    if (dirs[i] == "") { continue; }
+                    var node = vfs.getNode(dirs[i], parentNode);
+                    if (!node) { node = vfs.createDirectory(dirs[i], parentNode); }
+                    parentNode = node;
                 }
-                else {
-                    return null;
-                }
+            
+                var file = vfs.createFile(filename, parentNode);
+                vfs.writeData(file, await res.arrayBuffer());
+                return file;
             }
-            catch (err) {
+            else {
                 return null;
             }
         }
-    };
+        catch (err) {
+            return null;
+        }
+    }
 
     this.sub_Paint = function(sstep, startX, startY, fillColor, borderColor) {
         // See: http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
