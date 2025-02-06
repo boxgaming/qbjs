@@ -999,7 +999,7 @@ var GX = new function() {
         try {
             var file = _vfs.getNode(filename, _vfsCwd);
             if (file && file.type == _vfs.FILE) {
-                _mapLoadV2(filename);
+                await _mapLoadV2(filename);
                 return;
             }
             else {
