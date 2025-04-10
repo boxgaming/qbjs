@@ -360,7 +360,7 @@ var GX = new function() {
         _customEvent(GX.EVENT_PAINTAFTER);
     }
     
-    function _sceneUpdate() {
+    async function _sceneUpdate() {
         _scene.frame++;
         if (_map_loading) { return; }
 
@@ -369,7 +369,7 @@ var GX = new function() {
 
         // Check for entity movement and collisions
         // TODO: filter out non-moving entities
-        _sceneMoveEntities();
+        await _sceneMoveEntities();
 
         // Perform any auto-scene moves
         var sx, sy;
@@ -446,10 +446,10 @@ var GX = new function() {
         window.requestAnimationFrame(_sceneLoop);
     }
 
-    function _sceneLoop() {
+    async function _sceneLoop() {
         if (!_scene.active) { return; }
 
-        GX.sceneUpdate();
+        await GX.sceneUpdate();
         GX.sceneDraw();
 
         window.requestAnimationFrame(_sceneLoop);
@@ -862,7 +862,7 @@ var GX = new function() {
     
     function _entityFrameNext (eid) {
         if (_entities[eid-1].animateMode == GX.ANIMATE_SINGLE) {
-            if (_entities[eid-1].spriteFrame + 1 >= _entities[eid-1].seqFrames) {
+            if (_entities[eid-1].spriteFrame + 1 > _entities[eid-1].seqFrames) {
                 if (_entities[eid-1].spriteFrame != _entities[eid-1].prevFrame) {
                     // Fire animation complete event
                     var e = {};
@@ -884,7 +884,7 @@ var GX = new function() {
 
     function _entityFrameSet (eid, seq, frame) {
         _entities[eid-1].spriteSeq = seq;
-        _entities[eid-1].seqFrames = _entityGetFrames(eid, seq); //_entity_animations[eid-1][seq-1].frames;
+        _entities[eid-1].seqFrames = _entityGetFrames(eid, seq);
         _entities[eid-1].spriteFrame = frame;
         _entities[eid-1].prevFrame = frame - 1;
     }
@@ -1794,13 +1794,13 @@ var GX = new function() {
         return collide;
     }
 
-    function _sceneMoveEntities() {
+    async function _sceneMoveEntities() {
         var frameFactor = 1 / GX.frameRate();
 
         for (var eid = 1; eid <= _entities.length; eid++) {
             if (!_entities[eid-1].screen) {
                 //alert(eid + ":" + GX.entityVX(eid));
-                _sceneMoveEntity(eid);
+                await _sceneMoveEntity(eid);
 
                 // apply the move vector to the entity's position
                 if (GX.entityVX(eid)) {
@@ -1813,19 +1813,18 @@ var GX = new function() {
         }
     }
 
-    function _sceneMoveEntity(eid) {
+    async function _sceneMoveEntity(eid) {
         var tpos = {};
-        var centity = 0; // INTEGER
+        var centity = { id: 0 }; // INTEGER
         var tmove = 0;   // INTEGER
         var testx = 0;   // INTEGER
         var testy = 0 ;  // INTEGER
-//alert(GX.entityVX(eid));
 
         // Test upward movement
         if (GX.entityVY(eid) < 0) {
             testy = Math.round(GX.entityVY(eid) / GX.frameRate());
             if (testy > -1) { testy = -1; }
-            tmove = Math.round(_entityTestMove(eid, 0, testy, tpos, centity));
+            tmove = Math.round(await _entityTestMove(eid, 0, testy, tpos, centity));
             if (tmove == 0) {
                 if (GX.entityApplyGravity(eid)) {
                     // reverse the motion
@@ -1836,8 +1835,8 @@ var GX = new function() {
                 }
 
                 // don't let the entity pass into the collision entity or tile
-                if (centity > 0) {
-                    GX.entityPos(eid, GX.entityX(eid), GX.entityY(centity) - GX.entityCollisionOffsetBottom(centity) + GX.entityHeight(centity) - GX.entityCollisionOffsetTop(eid));
+                if (centity.id > 0) {
+                    GX.entityPos(eid, GX.entityX(eid), GX.entityY(centity.id) - GX.entityCollisionOffsetBottom(centity.id) + GX.entityHeight(centity.id) - GX.entityCollisionOffsetTop(eid));
                 } else {
                     GX.entityPos(eid, GX.entityX(eid), (tpos.y + 1) * GX.tilesetHeight() - GX.entityCollisionOffsetTop(eid));
                 }
@@ -1849,14 +1848,14 @@ var GX = new function() {
             if (GX.entityVY(eid) > 0) {
                 testy = Math.round(GX.entityVY(eid) / GX.frameRate());
                 if (testy < 1) { testy = 1; }
-                tmove = Math.round(_entityTestMove(eid, 0, testy, tpos, centity));
+                tmove = Math.round(await _entityTestMove(eid, 0, testy, tpos, centity));
                 if (tmove == 0) {
                     // stop the motion
                     GX.entityVY(eid, 0);
 
                     // don't let the entity pass into the collision entity or tile
-                    if (centity > 0) {
-                        GX.entityPos(eid, GX.entityX(eid), GX.entityY(centity) + GX.entityCollisionOffsetTop(centity) - GX.entityHeight(eid) + GX.entityCollisionOffsetBottom(eid));
+                    if (centity.id > 0) {
+                        GX.entityPos(eid, GX.entityX(eid), GX.entityY(centity.id) + GX.entityCollisionOffsetTop(centity.id) - GX.entityHeight(eid) + GX.entityCollisionOffsetBottom(eid));
                     }
                     if (tpos.y > -1) {
                         GX.entityPos(eid, GX.entityX(eid), tpos.y * GX.tilesetHeight() - GX.entityHeight(eid) + GX.entityCollisionOffsetBottom(eid));
@@ -1868,7 +1867,7 @@ var GX = new function() {
             // Apply gravity
             testy = Math.round(GX.entityVY(eid) / GX.frameRate());
             if (testy < 1) { testy = 1; }
-            tmove = Math.round(_entityTestMove(eid, 0, testy, tpos, centity));
+            tmove = Math.round(await _entityTestMove(eid, 0, testy, tpos, centity));
             if (tmove == 1) {
                 // calculate the number of seconds since the gravity started being applied
                 var t = (GX.frame() - _entities[eid-1].jumpstart) / GX.frameRate();
@@ -1885,8 +1884,8 @@ var GX = new function() {
                     GX.entityVY(eid, 0);
 
                     // don't let the entity fall through the collision entity or tile
-                    if (centity > 0) {
-                        GX.entityPos(eid, GX.entityX(eid), GX.entityY(centity) + GX.entityCollisionOffsetTop(centity) - GX.entityHeight(eid) + GX.entityCollisionOffsetBottom(eid));
+                    if (centity.id > 0) {
+                        GX.entityPos(eid, GX.entityX(eid), GX.entityY(centity.id) + GX.entityCollisionOffsetTop(centity.id) - GX.entityHeight(eid) + GX.entityCollisionOffsetBottom(eid));
                     }
                     else {
                         //alert("pos: " + eid + ":" + tpos.y);
@@ -1900,14 +1899,14 @@ var GX = new function() {
             // Test right movement
             testx = Math.round(GX.entityVX(eid) / GX.frameRate());
             if (testx < 1) { testx = 1 };
-            tmove = Math.round(_entityTestMove(eid, testx, 0, tpos, centity));
+            tmove = Math.round(await _entityTestMove(eid, testx, 0, tpos, centity));
             if (tmove == 0) {
                 // stop the motion
                 GX.entityVX(eid, 0);
 
                 // don't let the entity pass into the collision entity or tile
-                if (centity > 0) {
-                    GX.entityPos(eid, GX.entityX(centity) + GX.entityCollisionOffsetLeft(centity) - GX.entityWidth(eid) + GX.entityCollisionOffsetRight(eid), GX.entityY(eid));
+                if (centity.id > 0) {
+                    GX.entityPos(eid, GX.entityX(centity.id) + GX.entityCollisionOffsetLeft(centity.id) - GX.entityWidth(eid) + GX.entityCollisionOffsetRight(eid), GX.entityY(eid));
                 }
                 if (tpos.x > -1) {
                     GX.entityPos(eid, tpos.x * GX.tilesetWidth() - GX.entityWidth(eid) + GX.entityCollisionOffsetRight(eid), GX.entityY(eid));
@@ -1918,14 +1917,14 @@ var GX = new function() {
             // Test left movement
             testx = Math.round(GX.entityVX(eid) / GX.frameRate());
             if (testx > -1) { testx = -1 };
-            tmove = Math.round(_entityTestMove(eid, testx, 0, tpos, centity));
+            tmove = Math.round(await _entityTestMove(eid, testx, 0, tpos, centity));
             if (tmove == 0) {
                 // stop the motion
                 GX.entityVX(eid, 0);
 
                 // don't let the entity pass into the collision entity or tile
-                if (centity > 0) {
-                    GX.entityPos(eid, GX.entityX(centity) + GX.entityWidth(centity) - GX.entityCollisionOffsetRight(centity) - GX.entityCollisionOffsetLeft(eid), GX.entityY(eid));
+                if (centity.id > 0) {
+                    GX.entityPos(eid, GX.entityX(centity.id) + GX.entityWidth(centity.id) - GX.entityCollisionOffsetRight(centity.id) - GX.entityCollisionOffsetLeft(eid), GX.entityY(eid));
                 }
                 if (tpos.x > -1) {
                     GX.entityPos(eid, (tpos.x + 1) * GX.tilesetWidth() - GX.entityCollisionOffsetLeft(eid), GX.entityY(eid));
@@ -1934,7 +1933,7 @@ var GX = new function() {
         }
     }
 
-    function _entityTestMove (entity, mx, my, tpos, collisionEntity) {
+    async function _entityTestMove (entity, mx, my, tpos, collisionEntity) {
         tpos.x = -1;
         tpos.y = -1;
 
@@ -1955,7 +1954,7 @@ var GX = new function() {
             e.collisionTileY = tiles[i].y;
             e.collisionResult = false;
             
-            _onGameEvent(e);
+            await _onGameEvent(e);
             if (e.collisionResult) {
                 move = 0;
                 //tpos = tiles[i];
@@ -1973,10 +1972,10 @@ var GX = new function() {
             e.event = GX.EVENT_COLLISION_ENTITY;
             e.collisionEntity = entities[i];
             e.collisionResult = false;
-            _onGameEvent(e);
+            await _onGameEvent(e);
             if (e.collisionResult) {
                 move = 0;
-                collisionEntity = entities[i];
+                collisionEntity.id = entities[i];
             }
         }
 

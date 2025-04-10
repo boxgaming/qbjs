@@ -3598,7 +3598,7 @@ if (QB.halted()) { return; };
    await sub_AddGXMethod( "FUNCTION" ,   "GXSceneColumns" ,    False);
    await sub_AddGXMethod( "FUNCTION" ,   "GXSceneRows" ,    False);
    await sub_AddGXMethod( "SUB" ,   "GXSceneStart" ,    True);
-   await sub_AddGXMethod( "SUB" ,   "GXSceneUpdate" ,    False);
+   await sub_AddGXMethod( "SUB" ,   "GXSceneUpdate" ,    True);
    await sub_AddGXMethod( "SUB" ,   "GXSceneFollowEntity" ,    False);
    await sub_AddGXMethod( "SUB" ,   "GXSceneConstrain" ,    False);
    await sub_AddGXMethod( "SUB" ,   "GXSceneStop" ,    False);

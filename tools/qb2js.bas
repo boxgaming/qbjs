@@ -3827,7 +3827,7 @@ Sub InitGX
     AddGXMethod "FUNCTION", "GXSceneColumns", False
     AddGXMethod "FUNCTION", "GXSceneRows", False
     AddGXMethod "SUB", "GXSceneStart", True
-    AddGXMethod "SUB", "GXSceneUpdate", False
+    AddGXMethod "SUB", "GXSceneUpdate", True
     AddGXMethod "SUB", "GXSceneFollowEntity", False
     AddGXMethod "SUB", "GXSceneConstrain", False
     AddGXMethod "SUB", "GXSceneStop", False
