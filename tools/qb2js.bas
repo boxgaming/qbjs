@@ -3788,6 +3788,8 @@ Sub InitGX
     AddGXMethod "FUNCTION", "GXEntityFrames", False
     AddGXMethod "SUB", "GXEntityFrames", False
     AddGXMethod "SUB", "GXEntityFrameSet", False
+    AddGXMethod "FUNCTION", "GXEntitySequence", False
+    AddGXMethod "FUNCTION", "GXEntitySequences", False
     AddGXMethod "SUB", "GXEntityType", False
     AddGXMethod "FUNCTION", "GXEntityType", False
     AddGXMethod "FUNCTION", "GXEntityUID$", False

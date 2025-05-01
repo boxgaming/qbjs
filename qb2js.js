@@ -3559,6 +3559,8 @@ if (QB.halted()) { return; };
    await sub_AddGXMethod( "FUNCTION" ,   "GXEntityFrames" ,    False);
    await sub_AddGXMethod( "SUB" ,   "GXEntityFrames" ,    False);
    await sub_AddGXMethod( "SUB" ,   "GXEntityFrameSet" ,    False);
+   await sub_AddGXMethod( "FUNCTION" ,   "GXEntitySequence" ,    False);
+   await sub_AddGXMethod( "FUNCTION" ,   "GXEntitySequences" ,    False);
    await sub_AddGXMethod( "SUB" ,   "GXEntityType" ,    False);
    await sub_AddGXMethod( "FUNCTION" ,   "GXEntityType" ,    False);
    await sub_AddGXMethod( "FUNCTION" ,   "GXEntityUID$" ,    False);
