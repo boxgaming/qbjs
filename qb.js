@@ -2799,6 +2799,7 @@ var QB = new function() {
                     if (str >= 0) {
                         str = " " + str;
                     }
+                    str = str + " "; //a space is added to the end numbers when printing
                 }
                 var lines = String(str).split("\n");
                 for (var i=0; i < lines.length; i++) {
