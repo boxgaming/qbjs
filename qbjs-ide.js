@@ -563,11 +563,11 @@ var IDE = new function() {
                 return;
             }
         }
+        editor.setValue("");
         var vfs = GX.vfs();
         vfs.reset();
         _refreshFS();
         QB.sub_Screen(0);
-        editor.setValue("");
         editor.focus();
     }
 
