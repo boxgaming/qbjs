@@ -337,6 +337,7 @@ dialog pre { font-family: dosvga; }
 .toolbar-button:before { content: ""; }
 .toolbar-button:after { content: ""; }
 
+#toolbar-button-new { background-image: url('img/file.svg'); }
 #toolbar-button-open { background-image: url('img/open.svg'); }
 #toolbar-button-save { background-image: url('img/save.svg');  background-size: 1.08em, 1.08em; background-position: .05em .05em; }
 #toolbar-button-run { background-image: url('img/run.svg'); }
