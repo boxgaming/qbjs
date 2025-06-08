@@ -556,6 +556,21 @@ var IDE = new function() {
         _e.fileInput.click();
     }
 
+    async function _newProject() {
+        const src = editor.getValue();
+        if (src.length) {
+            if (!confirm("Any unsaved changes will be lost. Create new project?")) {
+                return;
+            }
+        }
+        editor.setValue("");
+        var vfs = GX.vfs();
+        vfs.reset();
+        _refreshFS();
+        QB.sub_Screen(0);
+        editor.focus();
+    }
+
     async function onOpenProject(event) {
         var f = event.target.files[0];
 
@@ -1227,6 +1242,7 @@ var IDE = new function() {
     this.exportProgram = _exportProgram;
     this.saveProject = _saveProject;
     this.openProject = _openProject;
+    this.newProject = _newProject;
     this.onSelMainProg = _onSelMainProg;
     this.testShare = _testShare;
     this.closeDialog = _closeDialog;
