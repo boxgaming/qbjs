@@ -736,6 +736,10 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 assignment = 0
                 For j = 1 To UBound(parts)
                     If parts(j) = "=" Then
+                        If j > 1 Then
+                            If UCase$(parts(j - 1)) = "_CLIPBOARD$" Then Exit For
+                        End If
+
                         assignment = j
                         Exit For
                     End If
@@ -932,9 +936,10 @@ Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
     ' This actually converts the parameters passed to the sub
     Dim js As String
 
-    ' Let's handle the weirdo Line Input command which has a space
+    ' Let's handle the weirdo Line Input command which has a space;
+    ' _Clipboard$ and Mid$ SUBs too.
     ' TODO: this may have issues if used in combination with Input
-    If m.name = "Line" Then
+    If m.name = "Line" Or m.name = "_Clipboard$" Then
         Dim parts(0) As String
         Dim plen As Integer
         plen = SLSplit(args, parts(), False)
@@ -944,6 +949,9 @@ Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
                 m.jsname = "QB.sub_LineInput"
                 args = Join(parts(), 2, -1, " ")
                 m.sync = True
+            ElseIf parts(1) = "=" Then
+                m.jsname = "QB.sub__Clipboard"
+                args = Join(parts(), 2, -1, " ")
             End If
         End If
     End If
@@ -3946,6 +3954,8 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Blue32", False
     AddQBMethod "FUNCTION", "_CapsLock", False
     AddQBMethod "FUNCTION", "_Ceil", False
+    AddQBMethod "FUNCTION", "_Clipboard$", False
+    AddQBMethod "SUB", "_Clipboard$", False
     AddQBMethod "FUNCTION", "_CommandCount", False
     AddQBMethod "FUNCTION", "_CopyImage", False
     AddQBMethod "FUNCTION", "_Cosh", False
