@@ -519,6 +519,17 @@ var QB = new function() {
         return Math.ceil(x);
     };
 
+    this.func__Clipboard = function () {
+      var result = "";
+      navigator.clipboard.readText().then((clipText) => (result = clipText));
+      return result;
+    };
+
+    this.sub__Clipboard = function (text) {
+        _assertParam(text);
+        navigator.clipboard.writeText(text);
+    }
+
     this.func__CommandCount = function() {
         return 0;
     };
