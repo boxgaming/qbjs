@@ -2,7 +2,9 @@ tools/webserver.exe
 tools/webserver
 tools/qb2js.exe
 tools/qb2js
+tools/qb2js_start.command
 qbjs.zip
 .vscode/launch.json
 .vscode/settings.json
 .vscode/tasks.json
+.DS_Store
