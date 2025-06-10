@@ -563,6 +563,7 @@ var IDE = new function() {
                 return;
             }
         }
+        _stopProgram();
         editor.setValue("");
         var vfs = GX.vfs();
         vfs.reset();
