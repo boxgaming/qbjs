@@ -8,6 +8,7 @@ var IDE = new function() {
     var appMode = "ide";
     var consoleVisible = false;
     var currTab = "js";
+    var consolePersistent = false;
     var currMethodTab = "methods";
     var editor;
     var selectedError = null;
@@ -20,44 +21,45 @@ var IDE = new function() {
     var sliding = false;
     var vsliding = false;
     var _e = {
-        ideTheme:         _el("ide-theme"),
-        loadScreen:       _el("gx-load-screen"),
-        jsCode:           _el("js-code"),
-        warningContainer: _el("warning-container"),
-        gxContainer:      _el("gx-container"),
-        shareMode:        _el("share-mode"),
-        shareCode:        _el("share-code"),
-        shareDialog:      _el("share-dialog"),
-        exportButton:     _el("export-button"),
-        fileInput:        _el("file-input"),
-        progSelSources:   _el("prog-sel-sources"),
-        progSelDialog:    _el("prog-sel-dialog"),
-        optionsDialog:    _el("options-dialog"),
-        aboutDialog:      _el("about-dialog"),
-        methodsDialog:    _el("methods-dialog"),
-        toolbar:          _el("toolbar"),
-        tbConsoleShow:    _el("toolbar-button-console-show"),
-        tbConsoleHide:    _el("toolbar-button-console-hide"),
-        tbSlideRight:     _el("toolbar-button-slide-right"),
-        tbSlideLeft:      _el("toolbar-button-slide-left"),
-        tbRun:            _el("toolbar-button-run"),
-        tbStop:           _el("toolbar-button-stop"),
-        outputContainer:  _el("output-container"),
-        outputContent:    _el("output-content"),
-        codeContainer:    _el("code-container"),
-        rightPanel:       _el("game-container"),
-        slider:           _el("slider"),
-        vslider:          _el("vslider"),
-        fsBrowser:        _el("fs-browser"),
-        fsContents:       _el("fs-contents"),
-        fsUrl:            _el("fs-url"),
-        code:             _el("code"),
-        themePicker:      _el("theme-picker"),
-        keyMapPicker:     _el("key-bindings"),
-        help:             _el("help"),
-        helpSidebar:      _el("help-sidebar"),
-        helpPage:         _el("help-page"),
-        helpContainer:    _el("help-container")
+        ideTheme:            _el("ide-theme"),
+        loadScreen:          _el("gx-load-screen"),
+        jsCode:              _el("js-code"),
+        warningContainer:    _el("warning-container"),
+        gxContainer:         _el("gx-container"),
+        shareMode:           _el("share-mode"),
+        shareCode:           _el("share-code"),
+        shareDialog:         _el("share-dialog"),
+        exportButton:        _el("export-button"),
+        fileInput:           _el("file-input"),
+        progSelSources:      _el("prog-sel-sources"),
+        progSelDialog:       _el("prog-sel-dialog"),
+        optionsDialog:       _el("options-dialog"),
+        aboutDialog:         _el("about-dialog"),
+        methodsDialog:       _el("methods-dialog"),
+        toolbar:             _el("toolbar"),
+        tbConsoleShow:       _el("toolbar-button-console-show"),
+        tbConsoleHide:       _el("toolbar-button-console-hide"),
+        tbSlideRight:        _el("toolbar-button-slide-right"),
+        tbSlideLeft:         _el("toolbar-button-slide-left"),
+        tbRun:               _el("toolbar-button-run"),
+        tbStop:              _el("toolbar-button-stop"),
+        outputContainer:     _el("output-container"),
+        outputContent:       _el("output-content"),
+        codeContainer:       _el("code-container"),
+        rightPanel:          _el("game-container"),
+        slider:              _el("slider"),
+        vslider:             _el("vslider"),
+        fsBrowser:           _el("fs-browser"),
+        fsContents:          _el("fs-contents"),
+        fsUrl:               _el("fs-url"),
+        code:                _el("code"),
+        themePicker:         _el("theme-picker"),
+        keyMapPicker:        _el("key-bindings"),
+        consolePersistence:  _el("console-persistence"),
+        help:                _el("help"),
+        helpSidebar:         _el("help-sidebar"),
+        helpPage:            _el("help-page"),
+        helpContainer:       _el("help-container")
     };
 
     function _el(id) {
@@ -125,6 +127,24 @@ var IDE = new function() {
             var skeyMap = localStorage.getItem("@@_keyMap");
             if (skeyMap && skeyMap != "") {
                 keyMap = skeyMap;
+            }
+            var sconsolePersistent = localStorage.getItem(
+              "@@_consolePersistent"
+            );
+            if (sconsolePersistent && sconsolePersistent != "") {
+              if (sconsolePersistent == "true") {
+                consolePersistent = true;
+                var sconsoleVisible = localStorage.getItem("@@_consoleVisible");
+                if (sconsoleVisible && sconsoleVisible != "") {
+                  consoleVisible = sconsoleVisible !== "true";
+                  _showConsole();
+                }
+                var scurrTab = localStorage.getItem("@@_currTab");
+                if (scurrTab && scurrTab != "") {
+                  if (scurrTab == "js") currTab = "console";
+                  _changeTab(scurrTab);
+                }
+              }
             }
             _e.ideTheme.href = "codemirror/themes/" + theme + ".css";
             GitHelp.navhome();
@@ -209,7 +229,7 @@ var IDE = new function() {
         }
 
         var warnCount = 0;
-        _changeTab("console");
+        if (!consolePersistent) _changeTab("console");
         window.onresize();
 
         if (appMode == "auto") {
@@ -447,6 +467,11 @@ var IDE = new function() {
         localStorage.setItem("@@_theme", theme);
     }
 
+    function _toggleConsolePersistence(checked) {
+        consolePersistent = checked;
+        localStorage.setItem("@@_consolePersistent", checked);
+    }
+
     function _changeKeyMap(keyMap) {
         editor.setOption("keyMap", keyMap);
         localStorage.setItem("@@_keyMap", keyMap);
@@ -455,6 +480,7 @@ var IDE = new function() {
     function _showOptionDialog() {
         _e.themePicker.value = theme;
         _e.keyMapPicker.value = keyMap;
+        _e.consolePersistence.checked = consolePersistent;
         _showDialog(_e.optionsDialog);
     }
 
@@ -769,6 +795,8 @@ var IDE = new function() {
 
     function _showConsole(force) {
         consoleVisible = !consoleVisible;
+        localStorage.setItem("@@_consoleVisible", consoleVisible);
+
         if (force != undefined) {
             consoleVisible = force;
         }
@@ -789,6 +817,7 @@ var IDE = new function() {
         _el("tab-" + currTab).classList.remove("active");
         _el("tab-" + tabName).classList.add("active");
         currTab = tabName;
+        localStorage.setItem("@@_currTab", currTab);
 
         if (currTab == "console") {
             _e.warningContainer.style.display = "block";
@@ -1262,4 +1291,5 @@ var IDE = new function() {
     this.convert437ToUTF = _convert437ToUTF;
     this.convertUTFTo437 = _convertUTFTo437;
     this.changeKeyMap = _changeKeyMap;
+    this.toggleConsolePersistence = _toggleConsolePersistence;
 };

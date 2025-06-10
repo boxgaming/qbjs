@@ -61,7 +61,7 @@
             <div id="vslider"></div>
             <div id="output-container">
                 <div id="tabs">
-                    <div id="tab-console" class="tab active" onclick="IDE.changeTab('console')">Console</div><div id="tab-js" class="tab" onclick="IDE.changeTab('js')">Javascript</div><div id="tab-fs" class="tab" onclick="IDE.changeTab('fs')">Files</div><div id="tab-help" class="tab" onclick="IDE.changeTab('help')">Help</div>
+                    <div id="tab-console" class="tab" onclick="IDE.changeTab('console')">Console</div><div id="tab-js" class="tab" onclick="IDE.changeTab('js')">Javascript</div><div id="tab-fs" class="tab" onclick="IDE.changeTab('fs')">Files</div><div id="tab-help" class="tab" onclick="IDE.changeTab('help')">Help</div>
                 </div>
                 <div id="output-content">
                     <div id="warning-container"></div>
@@ -137,6 +137,9 @@
                 <option value="default">Default</option>
                 <option value="vim">VIM</option>
             </select>
+            <br/><br/>
+            <input type="checkbox" id="console-persistence" onchange="IDE.toggleConsolePersistence(this.checked)"/>
+            <label for="console-persistence">Remember console visibility and panel</label>
             <br/><br/>
             <div>Convert Source Encoding:</div>
             <div style="margin-top:5px"><a href="#" onclick="IDE.convert437ToUTF()">Code Page 437 to UTF</a></div>
