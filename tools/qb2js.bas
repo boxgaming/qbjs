@@ -3954,7 +3954,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Blue32", False
     AddQBMethod "FUNCTION", "_CapsLock", False
     AddQBMethod "FUNCTION", "_Ceil", False
-    AddQBMethod "FUNCTION", "_Clipboard$", False
+    AddQBMethod "FUNCTION", "_Clipboard$", True
     AddQBMethod "SUB", "_Clipboard$", False
     AddQBMethod "FUNCTION", "_CommandCount", False
     AddQBMethod "FUNCTION", "_CopyImage", False

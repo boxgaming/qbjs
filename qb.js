@@ -519,9 +519,9 @@ var QB = new function() {
         return Math.ceil(x);
     };
 
-    this.func__Clipboard = function () {
+    this.func__Clipboard = async function () {
       var result = "";
-      navigator.clipboard.readText().then((clipText) => (result = clipText));
+      await navigator.clipboard.readText().then((clipText) => (result = clipText));
       return result;
     };
 
