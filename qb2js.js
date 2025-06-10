@@ -3716,7 +3716,7 @@ if (QB.halted()) { return; };
    await sub_AddQBMethod( "FUNCTION" ,   "_Blue32" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_CapsLock" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_Ceil" ,    False);
-   await sub_AddQBMethod( "FUNCTION" ,   "_Clipboard$" ,    False);
+   await sub_AddQBMethod( "FUNCTION" ,   "_Clipboard$" ,    True);
    await sub_AddQBMethod( "SUB" ,   "_Clipboard$" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_CommandCount" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "_CopyImage" ,    False);
