@@ -51,7 +51,7 @@ body {
   letter-spacing: normal;
 }
 
-#code, #gx-container, #toolbar, #toolbar .spacer, .tab, #output-content {
+#code, .code, #gx-container, #toolbar, #toolbar .spacer, .tab, #output-content {
   border-color: rgb(177, 177, 177);
 }
 
@@ -59,7 +59,7 @@ body {
   color: rgb(177, 177, 177);
 }
 
-#tabs .active {
+#tabs .active, .tabs .active {
   border-bottom: 1px solid rgb(0, 0, 170);
 }
 
@@ -81,3 +81,7 @@ body {
 #help-nav a:before { content: "< "; }
 #help-nav a:after { content: " >"; }
 #help-nav a { margin-right: 0px; }
+
+.hexview, .audioview, .imgview {
+  background-color: rgb(0, 0, 170);
+}

@@ -20,6 +20,8 @@ var IDE = new function() {
     var splitHeight = 327;
     var sliding = false;
     var vsliding = false;
+    var activeCodeTab = null;
+    var codeTabMap = {};
     var _e = {
         ideTheme:            _el("ide-theme"),
         loadScreen:          _el("gx-load-screen"),
@@ -53,6 +55,8 @@ var IDE = new function() {
         fsContents:          _el("fs-contents"),
         fsUrl:               _el("fs-url"),
         code:                _el("code"),
+        codeTabs:            _el("code-tabs"),
+        codeTabContainer:    _el("code-tab-container"),
         themePicker:         _el("theme-picker"),
         keyMapPicker:        _el("key-bindings"),
         consolePersistence:  _el("console-persistence"),
@@ -156,7 +160,7 @@ var IDE = new function() {
             tabSize: 4,
             indentUnit: 4,
             value: qbcode,
-            module: "qbjs",
+            mode: "qbjs",
             theme: theme,
             height: "auto",
             styleActiveLine: true,
@@ -176,6 +180,15 @@ var IDE = new function() {
                 change.update(null, null, newText);
             }
         });
+
+        codeTabMap["__Main__"] = {
+            tab: document.getElementById("mainbas"),
+            content: document.getElementById("code"),
+            editor: editor,
+            text: true
+        };
+        codeTabMap["__Main__"].tab.fpath = "__Main__";
+        activeCodeTab = "__Main__";
 
         // if IDE mode, capture the F5 event
         if (appMode != "play" && appMode != "auto") {
@@ -365,6 +378,10 @@ var IDE = new function() {
         }
         GX.reset();
         QB.start();
+
+        // sync tabs with vfs
+        _saveCodeTabs();
+
         var qbCode = editor.getValue();
         if (!QBCompiler) { QBCompiler = await _QBCompiler(); }
         var jsCode = await QBCompiler.compile(qbCode);
@@ -463,7 +480,11 @@ var IDE = new function() {
     function _changeTheme(newTheme) {
         theme = newTheme;
         _e.ideTheme.href = "codemirror/themes/" + theme + ".css";
-        editor.setOption("theme", theme);
+        for (var key in codeTabMap) {
+            if (codeTabMap[key].editor) {
+                codeTabMap[key].editor.setOption("theme", theme);
+            }
+        }
         localStorage.setItem("@@_theme", theme);
     }
 
@@ -498,6 +519,9 @@ var IDE = new function() {
         if (mode == "") { return; }
 
         var zip = new JSZip();
+
+        // sync tabs with vfs
+        _saveCodeTabs();
 
         var qbCode = editor.getValue();
         if (!QBCompiler) { QBCompiler = await _QBCompiler(); }
@@ -556,6 +580,9 @@ var IDE = new function() {
         if (count < 1) {
             count = vfs.getChildren(node, vfs.DIRECTORY).length;
         }
+
+        // sync tabs with vfs
+        _saveCodeTabs();
 
         // save a single .bas file
         if (count == 0) {
@@ -971,9 +998,20 @@ var IDE = new function() {
                 jsDiv.style.display = "none";
             }
             
-            editor.setSize(cmwidth, window.innerHeight - 40);
-            _e.code.style.height = (window.innerHeight - 40) + "px";
-            _e.slider.style.height = (window.innerHeight - 40) + "px";
+            var codeYOffset = 40;
+            if (Object.keys(codeTabMap).length > 1) {
+                codeYOffset = 73;
+            }
+            if (codeTabMap[activeCodeTab].editor) {
+                codeTabMap[activeCodeTab].editor.setSize(cmwidth, window.innerHeight - codeYOffset);
+            }
+            else {
+                codeTabMap[activeCodeTab].content.style.width = cmwidth + "px";
+                codeTabMap[activeCodeTab].content.style.height = (window.innerHeight - codeYOffset) + "px";
+            }
+            _e.codeTabContainer.style.width = (cmwidth - 35) + "px"
+            _e.code.style.height = (window.innerHeight - codeYOffset) + "px";
+            _e.slider.style.height = (window.innerHeight - codeYOffset) + "px";
         }
         QB.resize(f.clientWidth, f.clientHeight);
     }
@@ -1026,6 +1064,7 @@ var IDE = new function() {
             a.onclick = function() { chdir(this.fullpath); };
             contents.appendChild(a);
             contents.appendChild(document.createElement("span"));
+            contents.appendChild(document.createElement("span"));
         }
 
         var folders = vfs.getChildren(node, vfs.DIRECTORY);
@@ -1036,6 +1075,7 @@ var IDE = new function() {
             a.fullpath = vfs.fullPath(folders[i]);
             a.onclick = function() { chdir(this.fullpath); };
             contents.appendChild(a);
+            contents.appendChild(document.createElement("span"));
             a = document.createElement("a");
             a.className = "fs-delete";
             a.vfsnode = folders[i];
@@ -1048,10 +1088,18 @@ var IDE = new function() {
             var a = document.createElement("a");
             a.className = "fs-file";
             a.innerHTML = files[i].name;
+            a.title = "Edit " + files[i].name;
+            a.vfsnode = files[i];
+            a.onclick = function() { editFile(this.vfsnode); };
+            contents.appendChild(a);
+            a = document.createElement("a");
+            a.title = "Download " + files[i].name;
+            a.className = "fs-download";
             a.fullpath = vfs.fullPath(files[i]);
             a.onclick = function() { saveFile(this.fullpath); };
             contents.appendChild(a);
             a = document.createElement("a");
+            a.title = "Delete " + files[i].name;
             a.className = "fs-delete";
             a.vfsnode = files[i];
             a.onclick = function() { deleteFile(this.vfsnode); };
@@ -1060,11 +1108,152 @@ var IDE = new function() {
 
         function deleteFile(node) {
             if (confirm("This will permanently delete file '" + node.name + "'.\nAre you sure you wish to continue?")) {
+                var filepath = vfs.fullPath(node)
+                if (codeTabMap[filepath]) {
+                    _closeCodeTab(vfs.fullPath(node));
+                }
                 vfs.removeFile(node);
                 _refreshFS();
             }
         }
 
+        async function editFile(node) {
+            var fullpath = vfs.fullPath(node);
+            if (codeTabMap[fullpath]) {
+                _changeCodeTab(codeTabMap[fullpath].tab);
+                return;
+            }
+            var tdiv = document.createElement("div");
+            tdiv.innerHTML = node.name;
+            tdiv.title = fullpath;
+            tdiv.fpath = fullpath;
+            tdiv.className = "tab active";
+            tdiv.onclick = function () { _changeCodeTab(this); };
+            var cdiv = document.createElement("div");
+            cdiv.className = "tab-close";
+            cdiv.tile = "Close Tab";
+            cdiv.fpath = fullpath;
+            cdiv.onclick = function(event) { 
+                event.preventDefault(); 
+                event.stopPropagation(); 
+                _closeCodeTab(this.fpath);
+            };
+            tdiv.appendChild(cdiv);
+            _e.codeTabContainer.appendChild(tdiv);
+
+            var div = document.createElement("div");
+            div.className = "code";
+
+            _e.codeContainer.appendChild(div);
+            codeTabMap[activeCodeTab].content.style.display = "none";
+            codeTabMap[activeCodeTab].tab.classList.remove("active");
+
+            var cmode = vfs.getTypeFromName(node.name);
+            if (!cmode) { cmode = "text"; }
+
+            if (cmode == "image/png"  || cmode == "image/jpeg" ||
+                cmode == "image/gif"  || cmode == "image/bmp" ||
+                cmode == "image/webp" || cmode == "image/svg+xml") {
+                var img = document.createElement("img");
+                var dataUrl = await vfs.getDataURL(node);
+                img.src = dataUrl;
+                img.style.margin = "5px";
+                div.style.overflow = "auto";
+                var cdiv = document.createElement("div");
+                cdiv.className = "imgview";
+                cdiv.appendChild(img);
+                div.appendChild(cdiv);
+
+                codeTabMap[fullpath] = {
+                    tab: tdiv,
+                    content: div,
+                    text: false
+                };
+            }
+            else if (cmode == "audio/mpeg"  || code == "audio/x-mpeg" || 
+                     cmode == "audio/x-wav" || cmode == "audio/ogg"   ||
+                     cmode == "audio/flac"  || cmode == "audio/webm") {
+                var audio = document.createElement("audio");
+                var dataUrl = await vfs.getDataURL(node);
+                var fdiv = document.createElement("div");
+                fdiv.style.margin = "15px 10px";
+                audio.src = dataUrl;
+                audio.type = cmode;
+                audio.controls = true;
+                audio.style.display = "block";
+                audio.style.width = "100%";
+                var cdiv = document.createElement("div");
+                cdiv.className = "audioview";
+                fdiv.appendChild(audio);
+                cdiv.appendChild(fdiv);
+                div.appendChild(cdiv);
+
+                codeTabMap[fullpath] = {
+                    tab: tdiv,
+                    content: div,
+                    text: false
+                };
+            }
+            else if (isBinary(node)) {
+                var dataArray = new Uint8Array(node.data);
+                var cdiv = document.createElement("div");
+                cdiv.className = "hexview";
+                cdiv.innerHTML = QB.convertToUTF(hexy(dataArray, { extendedChs: true }));
+                div.style.overflow = "auto";
+                div.appendChild(cdiv);
+
+                codeTabMap[fullpath] = {
+                    tab: tdiv,
+                    content: div,
+                    text: false
+                }
+            }
+            else {
+                // initialize the code editor
+                var cm = CodeMirror(div, {
+                    lineNumbers: true,
+                    tabSize: 4,
+                    indentUnit: 4,
+                    mode: cmode,
+                    theme: theme,
+                    height: "auto",
+                    styleActiveLine: true,
+                    smartIndent: false,
+                    keyMap: keyMap,
+                    specialChars: /[\u0009-\u000d\u00ad\u061c\u200b\u200e\u200f\u2028\u2029\u202d\u202e\u2066\u2067\u2069\ufeff\ufff9-\ufffc]/,
+                    extraKeys: {
+                        "Tab": function(cm) {
+                            cm.replaceSelection("    ", "end");
+                        }
+                    }
+                });
+                cm.setValue(vfs.readText(node));
+                codeTabMap[fullpath] = {
+                    tab: tdiv,
+                    content: div,
+                    editor: cm,
+                    text: true
+                };
+            }
+            if (Object.keys(codeTabMap).length > 1) {
+                _e.codeTabs.style.display = "block";
+            }
+            activeCodeTab = fullpath;
+            window.onresize();
+            codeTabMap[activeCodeTab].tab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center"});
+        }
+
+        function isBinary(file) {
+            const uint8Array = new Uint8Array(file.data);
+            let isBinary = false;
+            for (let i = 0; i < uint8Array.length; i++) {
+              if (uint8Array[i] === 0) { 
+                isBinary = true;
+                break;
+              }
+            }
+            return isBinary;
+        }
         function deleteDir(node) {
             if (vfs.getChildren(node).length > 0) {
                 alert("Directory is not empty.");
@@ -1074,6 +1263,88 @@ var IDE = new function() {
                 vfs.removeDirectory(node);
                 _refreshFS();
             }
+        }
+    }
+
+    function _changeCodeTab(tdiv) {
+        if (tdiv.fpath == activeCodeTab) {
+            codeTabMap[activeCodeTab].tab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center"});
+            return;
+        }
+        codeTabMap[activeCodeTab].content.style.display = "none";
+        codeTabMap[activeCodeTab].tab.classList.remove("active");
+        activeCodeTab = tdiv.fpath;
+        codeTabMap[activeCodeTab].content.style.display = "block";
+        codeTabMap[activeCodeTab].tab.classList.add("active");
+        codeTabMap[activeCodeTab].tab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center"});
+        window.onresize();
+    }
+
+    function _closeCodeTab(filepath) {
+        var codeTab = codeTabMap[filepath];
+        _saveCodeTab(codeTab);
+        /*
+        // save changes - currently only supported for text-based files
+        var vfs = QB.vfs();
+        var file = vfs.getNode(filepath);
+        if (file && codeTab.text) {
+            file.data = new ArrayBuffer();
+            vfs.writeText(file, codeTab.editor.getValue());
+        }*/
+        if (filepath == activeCodeTab) {
+            _changeCodeTab(codeTab.tab.previousSibling);
+        }
+        codeTab.tab.remove();
+        codeTab.content.remove();
+        delete codeTabMap[filepath];
+        if (Object.keys(codeTabMap).length < 2) {
+            _e.codeTabs.style.display = "none";
+            window.onresize();
+        }
+    }
+
+    function _saveCodeTabs() {
+        for (var filepath in codeTabMap) {
+            if (filepath != "__Main__") {
+                var codeTab = codeTabMap[filepath];
+                _saveCodeTab(codeTab);
+            }
+        }
+    }
+
+    function _saveCodeTab(codeTab) {
+        var filepath = codeTab.tab.fpath;
+
+        // save changes - currently only supported for text-based files
+        var vfs = QB.vfs();
+        var file = vfs.getNode(filepath);
+        if (file && codeTab.text) {
+            file.data = new ArrayBuffer();
+            vfs.writeText(file, codeTab.editor.getValue());
+        }
+    }
+
+    function _codeTabSlideLeft() {
+        var prevTab = codeTabMap[activeCodeTab].tab.previousSibling;
+        if (prevTab) {
+            _changeCodeTab(prevTab);
+        }
+    }
+
+    function _codeTabSlideRight() {
+        var nextTab = codeTabMap[activeCodeTab].tab.nextSibling;
+        if (nextTab) {
+            _changeCodeTab(nextTab);
+        }
+    }
+    
+    function _onNewFile() {
+        var vfs = QB.vfs();
+        var parent = vfs.getNode(currPath);
+        var filename = prompt("Enter a new file name");
+        if (filename && filename != "") {
+            vfs.createFile(filename, parent);
+            _refreshFS();
         }
     }
 
@@ -1281,11 +1552,15 @@ var IDE = new function() {
     this.showConsole = _showConsole;
     this.changeTab = _changeTab;
     this.changeMethodTab = _changeMethodTab;
+    this.changeCodeTab = _changeCodeTab;
+    this.codeTabSlideLeft = _codeTabSlideLeft;
+    this.codeTabSlideRight = _codeTabSlideRight;
     this.showHelp = _showHelp;
     this.slideLeft = _slideLeft;
     this.slideRight = _slideRight;
     this.refreshFS = _refreshFS;
     this.onNewDirectory = _onNewDirectory;
+    this.onNewFile = _onNewFile;
     this.onUploadFile = _onUploadFile;
     this.uploadFile = _uploadFile;
     this.convert437ToUTF = _convert437ToUTF;

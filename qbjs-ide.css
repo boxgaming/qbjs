@@ -23,19 +23,26 @@ a:after { content: " >"; }
 
 #code-container {
     position: absolute;
-    /*left: 10px;
-    top: 10px; */
     left: 5px;
     top: 33px;
 }
-#code {
+#code, .code {
     margin-bottom: 5px;
     border: 1px solid #666;
+}
+#code-slide-left, #code-slide-right {
+    font-family: dosvga;
+    font-size: 16px;
+    display: inline-block;
+    cursor: pointer;
+    padding: 0px 3px;
+}
+#code-slide-left:hover, #code-slide-right:hover {
+    color: #fff;
 }
 #game-container {
     position: absolute;
     left: 620px;
-    /*top: 10px; */
     top: 33px;
 }
 #gx-container {
@@ -56,7 +63,7 @@ a:after { content: " >"; }
 }
 #output-content {
     border: 1px solid #666;
-    overflow: auto;
+    overflow: hidden; /*auto;*/
     height: 250px;
 }
 #js-code {
@@ -114,11 +121,26 @@ a:after { content: " >"; }
     display: block;
 }
 
-#tabs, #method-tabs {
+#tabs, #method-tabs, .tabs {
+    margin-bottom: -1px;
+}
+#code-tabs {
+    margin-top: 5px;
+    white-space: nowrap;
+    overflow: hidden !important;
+    display: none;
+}
+#code-tab-container {
+    display: inline-block;
+    white-space: nowrap;
+    overflow-x: scroll;
+    scrollbar-width: none;
+    vertical-align: bottom;
+    border: 1px solid transparent;
     margin-bottom: -1px;
 }
 .tab {
-    display:inline-block;
+    display: inline-block;
     padding: 5px 10px;
     border: 1px solid #666;
     border-bottom: 0px;
@@ -126,6 +148,37 @@ a:after { content: " >"; }
     color: #999;
     cursor: pointer;
     user-select: none;
+    white-space: nowrap;
+}
+#code-tabs .tab {
+    padding-right: 5px;
+}
+#code-tabs #mainbas {
+    padding-right: 10px;
+}
+.tab-close {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url('img/delete.svg');
+    background-repeat: no-repeat;
+    margin-left: 5px;
+    margin-right: 0;
+    vertical-align: bottom;
+}
+.tab-close:hover {
+    background-image: url('img/delete-hover.svg');
+}
+#code-tab-menu {
+    white-space: nowrap;
+    padding-left: 1px;
+    padding-right: 1px !important;
+    padding-bottom: 6px !important;
+    text-align: center;
+}
+#code-tab-menu:hover {
+    background-color: transparent;
+    color: #999;
 }
 #method-tabs .tab {
     color: #333;
@@ -139,14 +192,14 @@ a:after { content: " >"; }
     color: #000;
     background-color: #aaa;
 }
-#tabs .active {
+#tabs .active, .tabs .active {
     border-bottom: 1px solid rgb(0, 0, 39);
     color: #ccc;
 }
 #method-tabs .active {
     border-bottom: 1px solid #ddd;
 }
-#tabs .active:hover {
+#tabs .active:hover, .tabs .active:hover {
     background-color: transparent;
     color: #ccc;
 }
@@ -234,17 +287,28 @@ dialog pre { font-family: dosvga; }
 }
 #logo:hover { opacity: 1.0; }
 
+#warning-container, #js-code, #fs-contents {
+    overflow-y: auto;
+    position: absolute;
+    top: 32px;
+    left: 3px;
+    bottom: 3px;
+    right: 3px;
+}
+
 #fs-contents {
     display: grid;
-    grid-template-columns: auto 1.5em;
+    grid-template-columns: auto 1.5em 1.5em;
+    grid-auto-rows: 25px; 
+    top: 65px;
+    left: 0px;
 }
 
 #fs-path {
-    margin: 5px;
-    padding: 5px;
-    border: 1px solid #333;
+    padding: 8px;
+    border-bottom: 1px solid #333;
 }
-#fs-refresh, #fs-new-folder, #fs-upload {
+#fs-refresh, #fs-new-folder, #fs-upload, #fs-new-file {
     float: right;
     margin-top: -3px;
     cursor: pointer;
@@ -268,14 +332,23 @@ dialog pre { font-family: dosvga; }
     background-image: url('img/new-folder-hover.svg');
 }
 #fs-upload {
-    margin-right: 8px;
+    margin-right: 5px;
     background-image: url('img/upload.svg');
 }
 #fs-upload:hover {
     background-image: url('img/upload-hover.svg');
 }
+#fs-new-file {
+    background-size: 18px 18px;
+    background-position: 0px 1px;
+    margin-right: 5px;
+    background-image: url('img/new-file.svg');
+}
+#fs-new-file:hover {
+    background-image: url('img/new-file-hover.svg');
+}
 
-.fs-file, .fs-dir, .fs-delete {
+.fs-file, .fs-dir, .fs-delete, .fs-download {
     display: block;
     margin: 0px 5px;
     padding: 5px;
@@ -306,11 +379,21 @@ dialog pre { font-family: dosvga; }
     background-position: 1px 2px;
 }
 
+.fs-download {
+    background-image: url('img/download.svg');
+    background-repeat: no-repeat;
+    background-size: 20px 20px;
+    padding: 0;
+    width: 100%;
+    margin: 0;
+}
+.fs-download:hover {
+    background-image: url('img/download-hover.svg');
+}
 .fs-delete {
     background-image: url('img/delete.svg');
     background-repeat: no-repeat;
     background-size: 20px 20px;
-    /*background-position: center center;*/
     padding: 0;
     width: 100%;
     margin: 0;
@@ -318,13 +401,11 @@ dialog pre { font-family: dosvga; }
 
 #toolbar {
     border: 1px solid #666;
-    /*border-bottom: 0;*/
     padding: 3px 5px 0px;
     position: absolute;
     left: 5px;
     top: 5px;
     right: 5px;
-    /*background-color: rgb(0, 49, 78);*/
 }
 .toolbar-button {
     display: inline-block;
@@ -389,8 +470,6 @@ dialog pre { font-family: dosvga; }
 .help th, .help td { border: 1px solid #444; border-spacing: 0; padding: 4px }
 .help a:hover { text-decoration: underline; }
 .help a { color: #4E91E6 !important; }
-/*.help a:after { display: none; }
-.help a:before { display: none; }*/
 .help code { 
     display: inline-block; 
     border: 1px solid #444;
@@ -423,4 +502,14 @@ dialog pre { font-family: dosvga; }
 }
 .help-nav a {
     margin-right: 10px;
+}
+.hexview, .audioview, .imgview {
+    position: relative;
+    background-color: rgb(0, 0, 39);
+}
+.hexview {
+    font-family: dosvga;
+    font-size: 16px;
+    padding: 10px;
+    white-space: pre;
 }

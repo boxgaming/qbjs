@@ -168,7 +168,7 @@ let VFS = function() {
 
     this.getDataURL = async function(file) {
         let blob = null;
-        let type = getTypeFromName(file.name);
+        let type = this.getTypeFromName(file.name);
         if (type) {
             blob = new Blob([file.data], { type: type });
         } 
@@ -203,12 +203,12 @@ let VFS = function() {
         return blob;
     };
 
-    function getTypeFromName(filename) {
+    this.getTypeFromName = function(filename) {
         var parts = filename.split(".");
         if (parts.length < 2) { return null; }
         var ext = parts.pop();
         return types[ext];
-    }
+    };
 
     this.renameNode = function(node, newName) {
         // TODO: move the file if the newName includes a path
@@ -283,7 +283,7 @@ let VFS = function() {
     }
 
     const types = {
-        //   File Extension   MIME Type
+    //   File Extension   MIME Type
         'abs':           'audio/x-mpeg',
         'ai':            'application/postscript',
         'aif':           'audio/x-aiff',
@@ -296,16 +296,24 @@ let VFS = function() {
         'au':            'audio/basic',
         'avi':           'video/x-msvideo',
         'avx':           'video/x-rad-screenplay',
+        'bas':           'text/qbjs',
         'bcpio':         'application/x-bcpio',
+        'bi':            'text/qbjs',
         'bin':           'application/octet-stream',
+        'bm':            'text/qbjs',
         'bmp':           'image/bmp',
         'body':          'text/html',
+        'c':             'text/x-csrc',
+        'cc':            'text/x-c++src',
         'cdf':           'application/x-cdf',
         'cer':           'application/pkix-cert',
         'class':         'application/java',
         'cpio':          'application/x-cpio',
+        'cpp':           'text/x-c++src',
+        'cs':            'text/x-csharp',
         'csh':           'application/x-csh',
         'css':           'text/css',
+        'cxx':           'text/x-c++src',
         'dib':           'image/bmp',
         'doc':           'application/msword',
         'dtd':           'application/xml-dtd',
@@ -318,15 +326,17 @@ let VFS = function() {
         'gif':           'image/gif',
         'gtar':          'application/x-gtar',
         'gz':            'application/x-gzip',
+        'h':             'text/x-csrc',
         'hdf':           'application/x-hdf',
         'hqx':           'application/mac-binhex40',
         'htc':           'text/x-component',
         'htm':           'text/html',
         'html':          'text/html',
+        'hpp':           'text/x-c++src',
         'ief':           'image/ief',
         'jad':           'text/vnd.sun.j2me.app-descriptor',
         'jar':           'application/java-archive',
-        'java':          'text/x-java-source',
+        'java':          'text/x-java',
         'jnlp':          'application/x-java-jnlp-file',
         'jpe':           'image/jpeg',
         'jpeg':          'image/jpeg',
@@ -341,6 +351,7 @@ let VFS = function() {
         'mac':           'image/x-macpaint',
         'man':           'text/troff',
         'mathml':        'application/mathml+xml',
+        'md':            'text/markdown',
         'me':            'text/troff',
         'mid':           'audio/midi',
         'midi':          'audio/midi',
@@ -388,6 +399,7 @@ let VFS = function() {
         'pbm':           'image/x-portable-bitmap',
         'pct':           'image/pict',
         'pdf':           'application/pdf',
+        'php':           'text/x-php',
         'pgm':           'image/x-portable-graymap',
         'pic':           'image/pict',
         'pict':          'image/pict',
@@ -400,6 +412,7 @@ let VFS = function() {
         'pps':           'application/vnd.ms-powerpoint',
         'ps':            'application/postscript',
         'psd':           'image/vnd.adobe.photoshop',
+        'py':            'text/x-python',
         'qt':            'video/quicktime',
         'qti':           'image/x-quicktime',
         'qtif':          'image/x-quicktime',
@@ -415,6 +428,7 @@ let VFS = function() {
         'shar':          'application/x-shar',
         'sit':           'application/x-stuffit',
         'snd':           'audio/basic',
+        'sql':           'text/x-sql',
         'src':           'application/x-wais-source',
         'sv4cpio':       'application/x-sv4cpio',
         'sv4crc':        'application/x-sv4crc',
@@ -449,6 +463,8 @@ let VFS = function() {
         'vsd':           'application/vnd.visio',
         'wav':           'audio/x-wav',
         'wbmp':          'image/vnd.wap.wbmp',
+        'webm':          'audio/webm',
+        'webp':          'image/webp',
         'wml':           'text/vnd.wap.wml',
         'wmlc':          'application/vnd.wap.wmlc',
         'wmls':          'text/vnd.wap.wmlsc',

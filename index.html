@@ -19,7 +19,19 @@
         <script type="text/javascript" src="util/lzutf8.js"></script>
         <script type="text/javascript" src="util/shorty.min.js"></script>
         <script type="text/javascript" src="util/pako.2.1.0.min.js"></script>
-        
+        <script type="text/javascript" src="util/hexy.js"></script>
+
+        <script type="text/javascript" src="codemirror/lang/css.js"></script>
+        <script type="text/javascript" src="codemirror/lang/clike.js"></script>
+        <script type="text/javascript" src="codemirror/lang/javascript.js"></script>
+        <script type="text/javascript" src="codemirror/lang/markdown.js"></script>
+        <script type="text/javascript" src="codemirror/lang/python.js"></script>
+        <script type="text/javascript" src="codemirror/lang/sql.js"></script>
+        <script type="text/javascript" src="codemirror/lang/text.js"></script>
+        <script type="text/javascript" src="codemirror/lang/xml.js"></script>
+        <script type="text/javascript" src="codemirror/lang/htmlmixed.js"></script>
+        <script type="text/javascript" src="codemirror/lang/php.js"></script>
+
         <script type="text/javascript" src="codemirror/dialog.js"></script>
         <script type="text/javascript" src="codemirror/searchcursor.js"></script>
         <script type="text/javascript" src="codemirror/search.js"></script>
@@ -50,6 +62,8 @@
             <a href="javascript:IDE.slideLeft()" class="toolbar-button" id="toolbar-button-slide-left" title="Slide View Left"></a>
         </div>
         <div id="code-container">
+            <div id="code-tabs" class="tabs">
+                <div id="code-tab-menu" class="tab"><div id="code-slide-left" onclick="IDE.codeTabSlideLeft()">◄</div><div id="code-slide-right" onclick="IDE.codeTabSlideRight()">►</div></div><div id="code-tab-container"><div id="mainbas" class="tab active" onclick="IDE.changeCodeTab(this)">Main</div></div></div>
             <div id="code"></div>
         </div>
         <div id="slider">
@@ -71,6 +85,7 @@
                             <span id="fs-url">/</span>
                             <div id="fs-refresh" title="Refresh" onclick="IDE.refreshFS()"></div>
                             <div id="fs-new-folder" title="New Directory" onclick="IDE.onNewDirectory()"></div>
+                            <div id="fs-new-file" title="New File" onclick="IDE.onNewFile()"></div>
                             <div id="fs-upload" title="Upload" onclick="IDE.onUploadFile()"></div>
                         </div>
                         <div id="fs-contents">

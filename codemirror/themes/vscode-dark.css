@@ -74,7 +74,7 @@ a, #tabs, #method-tabs {
 
 #output-content { background-color: #1e1e1e; }
 
-#tabs .active, #method-tabs .active {
+#tabs .active, #method-tabs .active, #code-tabs .active {
     border-bottom: 1px solid #1e1e1e;
     background-color: #1e1e1e; 
 }
@@ -111,11 +111,6 @@ dialog a.disabled:hover { text-decoration: none; }
 
 .help a { font-variant: normal; font-size: 15px }
 
-
-/*.methods thead {
-    border: 1px solid #666;
-}*/
-
 .methods thead tr {
     background-color: #1e1e1e;
     box-shadow: 0px 1px 1px #666;
@@ -144,5 +139,17 @@ dialog a.disabled:hover { text-decoration: none; }
 }
 #method-tabs .active {
     color: #ccc;
-    /*border-bottom-color: #1e1e1e;*/
+}
+
+.code, .hexview, .audioview, .imgview, #methods, #imports {
+    background-color: #1e1e1e;
+}
+
+#tabs {
+    background-color: #3A3A3A;
+}
+
+#output-container {
+    color: #ccc;
+    background-color: #1e1e1e;
 }
