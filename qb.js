@@ -320,7 +320,9 @@ var QB = new function() {
         _haltedFlag = true;
         _runningFlag = false;
         _inputMode = false;
-        _player.stop();
+        if (_player) {
+            _player.stop();
+        }
         if (_soundCtx) {
             _soundCtx.suspend();
             _soundCtx.close();
@@ -1989,6 +1991,7 @@ var QB = new function() {
 
     function toggleCursor(off) {
         if (!off || off != _inputCursor) {
+            if (!_images[_activeImage]) { return; }
             var ctx = _images[_activeImage].ctx;
             ctx.globalCompositeOperation="difference";
             ctx.fillStyle = "white";

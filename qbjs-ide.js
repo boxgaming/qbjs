@@ -617,11 +617,14 @@ var IDE = new function() {
             }
         }
         _stopProgram();
+        _closeCodeTabs();
         editor.setValue("");
         var vfs = GX.vfs();
         vfs.reset();
         _refreshFS();
-        QB.sub_Screen(0);
+        if (GX.canvas()) {
+            QB.sub_Screen(0);
+        }
         editor.focus();
     }
 
@@ -653,6 +656,7 @@ var IDE = new function() {
             mainFilename = mainFilename.toLowerCase();
         }
         _stopProgram();
+        _closeCodeTabs();
         var vfs = GX.vfs();
         vfs.reset();
         JSZip.loadAsync(zipData).then(async function(zip) {
@@ -1002,6 +1006,7 @@ var IDE = new function() {
             var codeYOffset = 40;
             if (Object.keys(codeTabMap).length > 1) {
                 codeYOffset = 73;
+                if (theme == "win-classic") { codeYOffset += 5; }
             }
             if (codeTabMap[activeCodeTab].editor) {
                 codeTabMap[activeCodeTab].editor.setSize(cmwidth, window.innerHeight - codeYOffset);
@@ -1281,17 +1286,18 @@ var IDE = new function() {
         window.onresize();
     }
 
+    function _closeCodeTabs(filepath) {
+        for (var filepath in codeTabMap) {
+            if (filepath != "__Main__") {
+                _closeCodeTab(filepath);
+            }
+        }
+    }
+
     function _closeCodeTab(filepath) {
         var codeTab = codeTabMap[filepath];
         _saveCodeTab(codeTab);
-        /*
-        // save changes - currently only supported for text-based files
-        var vfs = QB.vfs();
-        var file = vfs.getNode(filepath);
-        if (file && codeTab.text) {
-            file.data = new ArrayBuffer();
-            vfs.writeText(file, codeTab.editor.getValue());
-        }*/
+
         if (filepath == activeCodeTab) {
             _changeCodeTab(codeTab.tab.previousSibling);
         }
