@@ -652,6 +652,7 @@ var IDE = new function() {
         else {
             mainFilename = mainFilename.toLowerCase();
         }
+        _stopProgram();
         var vfs = GX.vfs();
         vfs.reset();
         JSZip.loadAsync(zipData).then(async function(zip) {
