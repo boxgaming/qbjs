@@ -532,6 +532,42 @@ var QB = new function() {
         navigator.clipboard.writeText(text);
     }
 
+    this.func__ClipboardImage = async function () {
+      try {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+          for (const type of item.types) {
+            if (type.startsWith("image/")) {
+              const blob = await item.getType(type);
+              var image = new Image();
+              var imgId = -1;
+              image.src = URL.createObjectURL(blob);
+              await image.decode();
+              imgId = QB.func__NewImage(image.width, image.height, 32);
+              var ctx = _images[imgId].ctx;
+              ctx.drawImage(image, 0, 0);
+              return imgId;
+            }
+          }
+        }
+      } catch (e) {
+        return -1;
+      }
+      return -1;
+    };
+
+    this.sub__ClipboardImage = async function (imageIdToCopy) {
+        _assertParam(imageIdToCopy);
+        _assertNumber(imageIdToCopy);
+        if (!_images[imageIdToCopy]) {
+          throw new Error("Invalid image ID");
+          return;
+        }
+        await _images[imageIdToCopy].canvas.toBlob(function(blob) {
+          navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+        });
+    }
+
     this.func__CommandCount = function() {
         return 0;
     };
