@@ -738,6 +738,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     If parts(j) = "=" Then
                         If j > 1 Then
                             If UCase$(parts(j - 1)) = "_CLIPBOARD$" Then Exit For
+                            If UCase$(parts(j - 1)) = "_CLIPBOARDIMAGE" Then Exit For
                         End If
 
                         assignment = j
@@ -937,9 +938,9 @@ Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
     Dim js As String
 
     ' Let's handle the weirdo Line Input command which has a space;
-    ' _Clipboard$ and Mid$ SUBs too.
+    ' _Clipboard$ and _ClipboardImage SUBs too.
     ' TODO: this may have issues if used in combination with Input
-    If m.name = "Line" Or m.name = "_Clipboard$" Then
+    If m.name = "Line" Or m.name = "_Clipboard$" Or m.name = "_ClipboardImage" Then
         Dim parts(0) As String
         Dim plen As Integer
         plen = SLSplit(args, parts(), False)
@@ -950,7 +951,12 @@ Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
                 args = Join(parts(), 2, -1, " ")
                 m.sync = True
             ElseIf parts(1) = "=" Then
-                m.jsname = "QB.sub__Clipboard"
+                Select Case m.name
+                    Case "_Clipboard$"
+                        m.jsname = "QB.sub__Clipboard"
+                    Case "_ClipboardImage"
+                        m.jsname = "QB.sub__ClipboardImage"
+                End Select
                 args = Join(parts(), 2, -1, " ")
             End If
         End If
@@ -3956,6 +3962,8 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_Ceil", False
     AddQBMethod "FUNCTION", "_Clipboard$", True
     AddQBMethod "SUB", "_Clipboard$", False
+    AddQBMethod "FUNCTION", "_ClipboardImage", True
+    AddQBMethod "SUB", "_ClipboardImage", True
     AddQBMethod "FUNCTION", "_CommandCount", False
     AddQBMethod "FUNCTION", "_CopyImage", False
     AddQBMethod "FUNCTION", "_Cosh", False

@@ -37,7 +37,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
 
     var builtinFuncsWords = ['_?acos', '_?acosh', '_?alpha', '_?alpha32', '_?arccot', '_?arccsc', '_?arcsec',
                              '_?asin', '_?asinh', '_?atan2', '_?atanh', '_?autodisplay',
-                             '_?backgroundcolor', '_?blue', '_?blue32', '_?capslock', '_?ceil', '_?clipboard','_?commandcount', '_?continue', '_?copyimage',
+                             '_?backgroundcolor', '_?blue', '_?blue32', '_?capslock', '_?ceil', '_?clipboard','_?clipboardimage', '_?commandcount', '_?continue', '_?copyimage',
                              '_?cosh', '_?cot', '_?coth', '_?csc', '_?csch', '_?cwd', 
                              '_?defaultcolor', '_?d2g', '_?d2r', '_?deflate', '_?desktopwidth', '_?desktopheight',
                              '_?delay', '_?dest', '_?dir', '_?direxists', '_?display', 
