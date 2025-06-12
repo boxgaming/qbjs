@@ -296,7 +296,7 @@ dialog pre { font-family: dosvga; }
     right: 3px;
 }
 #js-code {
-    overflow-y: hidden;
+    overflow: hidden;
     top: 30px;
 }
 

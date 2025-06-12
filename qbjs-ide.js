@@ -883,6 +883,7 @@ var IDE = new function() {
             _e.fsBrowser.style.display = "none";
             _e.jsCode.style.display = "block";
             _e.help.style.display = "none";
+            window.onresize();
         }
         else if (currTab == "fs") {
             _e.fsBrowser.style.display = "block";
