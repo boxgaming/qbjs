@@ -390,6 +390,8 @@ var IDE = new function() {
 
         if (_hasError()) {
             consoleVisible = true;
+            _showConsole(consoleVisible)
+            _changeTab("console");
             window.onresize();
             QB.halt();
             GX.sceneStop();
@@ -424,6 +426,8 @@ var IDE = new function() {
             }
 
             consoleVisible = true;
+            _showConsole(consoleVisible);
+            _changeTab("console");
             window.onresize();
             QB.halt();
             GX.sceneStop();
