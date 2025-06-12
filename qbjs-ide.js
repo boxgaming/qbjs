@@ -1,4 +1,5 @@
 var IDE = new function() {
+    const MAIN_CODE_TAB = "__Main__";
 
     var QBCompiler = null; 
     // if code has been passed on the query string load it into the editor
@@ -11,6 +12,7 @@ var IDE = new function() {
     var consolePersistent = false;
     var currMethodTab = "methods";
     var editor;
+    var jscm;
     var selectedError = null;
     var currPath = "/";
     var mainProg = null;
@@ -181,14 +183,28 @@ var IDE = new function() {
             }
         });
 
-        codeTabMap["__Main__"] = {
+        // initialize the javascript code tab
+        jscm = CodeMirror(document.querySelector("#js-code"), {
+            lineNumbers: true,
+            tabSize: 4,
+            indentUnit: 4,
+            value: "\n\n\n\n\n\n\n\n\n",
+            mode: "javascript",
+            theme: theme,
+            //height: "auto",
+            readOnly: true,
+            specialChars: /[\u0009-\u000d\u00ad\u061c\u200b\u200e\u200f\u2028\u2029\u202d\u202e\u2066\u2067\u2069\ufeff\ufff9-\ufffc]/,
+        });
+        jscm.setValue("");
+
+        codeTabMap[MAIN_CODE_TAB] = {
             tab: document.getElementById("mainbas"),
             content: document.getElementById("code"),
             editor: editor,
             text: true
         };
-        codeTabMap["__Main__"].tab.fpath = "__Main__";
-        activeCodeTab = "__Main__";
+        codeTabMap[MAIN_CODE_TAB].tab.fpath = MAIN_CODE_TAB;
+        activeCodeTab = MAIN_CODE_TAB;
 
         // if IDE mode, capture the F5 event
         if (appMode != "play" && appMode != "auto") {
@@ -398,7 +414,7 @@ var IDE = new function() {
             return false;
         }
 
-        _e.jsCode.innerHTML = jsCode;
+        jscm.setValue(jsCode);
         window.onresize();
 
         try {
@@ -489,6 +505,7 @@ var IDE = new function() {
                 codeTabMap[key].editor.setOption("theme", theme);
             }
         }
+        jscm.setOption("theme", theme);
         localStorage.setItem("@@_theme", theme);
     }
 
@@ -998,6 +1015,7 @@ var IDE = new function() {
                 f.style.height = (window.innerHeight - splitHeight) + "px";
                 jsDiv.style.display = "block";
                 jsDiv.style.top = (window.innerHeight - splitHeight + 10) + "px";
+                jscm.setSize(window.innerWidth - cmwidth - 28, splitHeight - 80);
                 _e.outputContent.style.height = (splitHeight - 77) + "px";
                 _e.helpContainer.style.height = (splitHeight - 110) + "px";
             }
@@ -1292,7 +1310,7 @@ var IDE = new function() {
 
     function _closeCodeTabs(filepath) {
         for (var filepath in codeTabMap) {
-            if (filepath != "__Main__") {
+            if (filepath != MAIN_CODE_TAB) {
                 _closeCodeTab(filepath);
             }
         }
@@ -1316,7 +1334,7 @@ var IDE = new function() {
 
     function _saveCodeTabs() {
         for (var filepath in codeTabMap) {
-            if (filepath != "__Main__") {
+            if (filepath != MAIN_CODE_TAB) {
                 var codeTab = codeTabMap[filepath];
                 _saveCodeTab(codeTab);
             }

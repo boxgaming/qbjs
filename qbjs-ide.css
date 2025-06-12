@@ -68,7 +68,7 @@ a:after { content: " >"; }
 }
 #js-code {
     white-space: pre;
-    padding: 5px;
+    /*padding: 5px;*/
     color: #999;
 }
 #show-js-container {
@@ -294,6 +294,10 @@ dialog pre { font-family: dosvga; }
     left: 3px;
     bottom: 3px;
     right: 3px;
+}
+#js-code {
+    overflow-y: hidden;
+    top: 30px;
 }
 
 #fs-contents {
