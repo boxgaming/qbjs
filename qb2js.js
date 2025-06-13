@@ -290,6 +290,9 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
       tempIndent =   0;
       var l = '';  /* STRING */ 
       l =  (QB.func__Trim( QB.arrayValue(lines, [ i]).value .text));
+      if ((QB.func_Left(  l,    1))  ==  "?"  & (QB.func_Mid(  l,    2,    1))  !=  " " ) {
+         l =  "Print "  + (QB.func_Mid(  l,    2));
+      }
       var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
       var c = 0;  /* INTEGER */ 
       c =  (await func_SLSplit(  l,   parts ,    True));
@@ -464,9 +467,13 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
                   cindex =   cindex -  1;
                }
             }
-         } else if ( first ==  "END" ) {
-            if ((QB.func_UBound(  parts))  ==   1) {
+         } else if ( first ==  "END"  |  first ==  "ENDIF" ) {
+            if ((QB.func_UBound(  parts))  ==   1 &  first ==  "END" ) {
                js =  "QB.halt(); return;";
+            } else if ((QB.func_UBound(  parts))  ==   1 &  first ==  "ENDIF" ) {
+               js =   js + "}";
+               indent =   - 1;
+               cindex =   cindex -  1;
             } else {
                second =  (QB.func_UCase( QB.arrayValue(parts, [ 2]).value));
                if ( second ==  "IF" ) {
@@ -701,7 +708,7 @@ var BeginPhraseFor = null;
       bp =  "DO";
       break; case "WEND": 
       bp =  "WHILE";
-      break; case "END IF": 
+      break; case "END IF" : case   "ENDIF": 
       bp =  "IF";
       break; case "END SELECT": 
       bp =  "SELECT CASE";
@@ -886,7 +893,8 @@ var ConvertSub = null;
       js =  (await func_CallMethod(  m))  + "("  + (await func_ConvertSubName(  args,    lineNumber))  + ");";
    } else if ( m.name ==  "PSet"  |  m.name ==  "Circle"  |  m.name ==  "PReset"  |  m.name ==  "Paint" ) {
       js =  (await func_CallMethod(  m))  + "("  + (await func_ConvertPSet(  args,    lineNumber))  + ");";
-   } else if ( m.name ==  "Print" ) {
+   } else if ( m.name ==  "?"  |  m.name ==  "Print" ) {
+      m.name =  "Print";
       js =  (await func_ConvertPrint(  m,    args,    lineNumber));
    } else if ( m.name ==  "Put"  |  m.name ==  "Get" ) {
       js =  (await func_ConvertPut(  m,    args,    lineNumber));
@@ -3893,6 +3901,7 @@ if (QB.halted()) { return; };
    await sub_AddQBMethod( "FUNCTION" ,   "Pos" ,    False);
    await sub_AddQBMethod( "SUB" ,   "PReset" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Print" ,    True);
+   await sub_AddQBMethod( "SUB" ,   "?" ,    True);
    await sub_AddQBMethod( "SUB" ,   "PSet" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Put" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Randomize" ,    False);

@@ -133,7 +133,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
     var opening = wordRegexp(openingKeywords);
     var middle = wordRegexp(middleKeywords);
     var closing = wordRegexp(endKeywords);
-    var doubleClosing = wordRegexp(['end']);
+    var doubleClosing = wordRegexp(['end','endif']);
     var doOpening = wordRegexp(['do']);
     var noIndentWords = wordRegexp(['on error resume next', 'exit']);
     var comment = wordRegexp(['rem']);
