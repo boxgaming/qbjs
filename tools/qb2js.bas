@@ -359,6 +359,10 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
         tempIndent = 0
         Dim l As String
         l = _Trim$(lines(i).text)
+        'Handle ? shorthand for print
+        If Left$(l, 1) = "?" And Mid$(l, 2, 1) <> " " Then
+            l = "Print " + Mid$(l, 2)
+        End If
         ReDim As String parts(0)
         Dim c As Integer
         c = SLSplit(l, parts(), True)
@@ -1000,8 +1004,9 @@ Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
     ElseIf m.name = "PSet" Or m.name = "Circle" Or m.name = "PReset" Or m.name = "Paint" Then
         js = CallMethod(m) + "(" + ConvertPSet(args, lineNumber) + ");"
 
-    ElseIf m.name = "Print" Then
+    ElseIf m.name = "?" Or m.name = "Print" Then
         'js = CallMethod(m) + "(" + ConvertPrint(args, lineNumber) + ");"
+        m.name = "Print"
         js = ConvertPrint(m, args, lineNumber)
 
     ElseIf m.name = "Put" Or m.name = "Get" Then
@@ -4124,6 +4129,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Pos", False
     AddQBMethod "SUB", "PReset", False
     AddQBMethod "SUB", "Print", True
+    AddQBMethod "SUB", "?", True
     AddQBMethod "SUB", "PSet", False
     AddQBMethod "SUB", "Put", False
     AddQBMethod "SUB", "Randomize", False

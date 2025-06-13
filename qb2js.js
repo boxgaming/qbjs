@@ -290,6 +290,9 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
       tempIndent =   0;
       var l = '';  /* STRING */ 
       l =  (QB.func__Trim( QB.arrayValue(lines, [ i]).value .text));
+      if ((QB.func_Left(  l,    1))  ==  "?"  & (QB.func_Mid(  l,    2,    1))  !=  " " ) {
+         l =  "Print "  + (QB.func_Mid(  l,    2));
+      }
       var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
       var c = 0;  /* INTEGER */ 
       c =  (await func_SLSplit(  l,   parts ,    True));
@@ -878,7 +881,8 @@ var ConvertSub = null;
       js =  (await func_CallMethod(  m))  + "("  + (await func_ConvertSubName(  args,    lineNumber))  + ");";
    } else if ( m.name ==  "PSet"  |  m.name ==  "Circle"  |  m.name ==  "PReset"  |  m.name ==  "Paint" ) {
       js =  (await func_CallMethod(  m))  + "("  + (await func_ConvertPSet(  args,    lineNumber))  + ");";
-   } else if ( m.name ==  "Print" ) {
+   } else if ( m.name ==  "?"  |  m.name ==  "Print" ) {
+      m.name =  "Print";
       js =  (await func_ConvertPrint(  m,    args,    lineNumber));
    } else if ( m.name ==  "Put"  |  m.name ==  "Get" ) {
       js =  (await func_ConvertPut(  m,    args,    lineNumber));
@@ -3883,6 +3887,7 @@ if (QB.halted()) { return; };
    await sub_AddQBMethod( "FUNCTION" ,   "Pos" ,    False);
    await sub_AddQBMethod( "SUB" ,   "PReset" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Print" ,    True);
+   await sub_AddQBMethod( "SUB" ,   "?" ,    True);
    await sub_AddQBMethod( "SUB" ,   "PSet" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Put" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Randomize" ,    False);
