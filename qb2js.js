@@ -467,9 +467,13 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
                   cindex =   cindex -  1;
                }
             }
-         } else if ( first ==  "END" ) {
-            if ((QB.func_UBound(  parts))  ==   1) {
+         } else if ( first ==  "END"  |  first ==  "ENDIF" ) {
+            if ((QB.func_UBound(  parts))  ==   1 &  first ==  "END" ) {
                js =  "QB.halt(); return;";
+            } else if ((QB.func_UBound(  parts))  ==   1 &  first ==  "ENDIF" ) {
+               js =   js + "}";
+               indent =   - 1;
+               cindex =   cindex -  1;
             } else {
                second =  (QB.func_UCase( QB.arrayValue(parts, [ 2]).value));
                if ( second ==  "IF" ) {
@@ -701,7 +705,7 @@ var BeginPhraseFor = null;
       bp =  "DO";
       break; case "WEND": 
       bp =  "WHILE";
-      break; case "END IF": 
+      break; case "END IF" : case   "ENDIF": 
       bp =  "IF";
       break; case "END SELECT": 
       bp =  "SELECT CASE";

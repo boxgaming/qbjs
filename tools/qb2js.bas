@@ -547,9 +547,13 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     End If
                 End If
 
-            ElseIf first = "END" Then
-                If UBound(parts) = 1 Then
+            ElseIf first = "END" Or first = "ENDIF" Then
+                If UBound(parts) = 1 And first = "END" Then
                     js = "QB.halt(); return;"
+                ElseIf UBound(parts) = 1 And first = "ENDIF" Then
+                    js = js + "}"
+                    indent = -1
+                    cindex = cindex - 1
                 Else
                     second = UCase$(parts(2))
                     If second = "IF" Then
@@ -813,7 +817,7 @@ Function BeginPhraseFor$ (endPhrase As String)
         Case "NEXT": bp = "FOR"
         Case "LOOP": bp = "DO"
         Case "WEND": bp = "WHILE"
-        Case "END IF": bp = "IF"
+        Case "END IF", "ENDIF": bp = "IF"
         Case "END SELECT": bp = "SELECT CASE"
     End Select
     BeginPhraseFor = bp
