@@ -925,6 +925,7 @@ var IDE = new function() {
         else                         { GitHelp.navhome(); }
         consoleVisible = false;
         _showConsole();
+        _closeDialog();
     }
 
     function displayTypes() {
