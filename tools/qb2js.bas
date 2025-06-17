@@ -363,6 +363,12 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
         If Left$(l, 1) = "?" And Mid$(l, 2, 1) <> " " Then
             l = "Print " + Mid$(l, 2)
         End If
+
+        'Handle MID$() sub syntax
+        If UCase$(Left$(l, 5)) = "MID$(" Then
+            l = Left$(l, 4) + " " + Mid$(l, 5)
+        End If
+
         ReDim As String parts(0)
         Dim c As Integer
         c = SLSplit(l, parts(), True)
@@ -747,6 +753,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                         If j > 1 Then
                             If UCase$(parts(j - 1)) = "_CLIPBOARD$" Then Exit For
                             If UCase$(parts(j - 1)) = "_CLIPBOARDIMAGE" Then Exit For
+                            If UCase$(parts(1)) = "MID$" Then Exit For
                         End If
 
                         assignment = j
@@ -761,7 +768,6 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 If assignment > 0 Then
                     ' This is a variable assignment
                     ' TODO: implicit variable declaration
-                    ' TODO: special case for Mid$ statement
                     js = RemoveSuffix(ConvertExpression(Join(parts(), asnVarIndex, assignment - 1, " "), i)) + " = " + ConvertExpression(Join(parts(), assignment + 1, -1, " "), i) + ";"
 
                 Else
@@ -1007,6 +1013,9 @@ Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
             m.jsname = "QB.sub_Line"
             m.sync = False
         End If
+
+    ElseIf m.name = "Mid$" Then
+        js = ConvertSubMid(m, args, lineNumber)
 
     ElseIf m.name = "Name" Then
         js = CallMethod(m) + "(" + ConvertSubName(args, lineNumber) + ");"
@@ -1265,6 +1274,40 @@ Function ConvertCls$ (args As String, lineNumber As Integer)
     If argc >= 2 Then bgcolor = ConvertExpression(parts(2), lineNumber)
 
     ConvertCls$ = method + ", " + bgcolor
+End Function
+
+Function ConvertSubMid$ (m As Method, args As String, lineNumber As Integer)
+    Dim js As String
+    Dim midArgs(0) As String
+
+    args = Replace(args, "(", "")
+    args = Replace(args, ")", "")
+    args = Replace(args, "=", ",")
+
+    Dim argc As Integer
+    argc = Split(args, ",", midArgs())
+
+    Dim var1 As String
+    Dim var2 As String
+    Dim startPosition As String
+    Dim length As String
+
+    If argc = 4 Then
+        var1 = ConvertExpression(midArgs(1), lineNumber)
+        startPosition = ConvertExpression(midArgs(2), lineNumber)
+        length = ConvertExpression(midArgs(3), lineNumber)
+        var2 = ConvertExpression(midArgs(4), lineNumber)
+    ElseIf argc = 3 Then
+        var1 = ConvertExpression(midArgs(1), lineNumber)
+        startPosition = ConvertExpression(midArgs(2), lineNumber)
+        length = "undefined"
+        var2 = ConvertExpression(midArgs(3), lineNumber)
+    Else
+        AddError lineNumber, "Syntax error; expected MID$(var1$, start%[, length%]) = var2$"
+        Exit Function
+    End If
+    js = var1 + " = " + CallMethod(m) + "(" + var1 + "," + startPosition + "," + length + "," + var2 + "); "
+    ConvertSubMid = js
 End Function
 
 Function ConvertSubName$ (args As String, lineNumber As Integer)
@@ -4129,6 +4172,7 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "LTrim$", False
     AddQBMethod "SUB", "Kill", False
     AddQBMethod "FUNCTION", "Mid$", False
+    AddQBMethod "SUB", "Mid$", False
     AddQBMethod "SUB", "MkDir", False
     AddQBMethod "FUNCTION", "Mki$", False
     AddQBMethod "FUNCTION", "Mkl$", False

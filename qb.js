@@ -2499,6 +2499,19 @@ var QB = new function() {
         }
     };
 
+    this.sub_Mid = function(value, n, len, newValue) {
+        _assertParam(value, 1);
+        _assertNumber(n, 2);
+        _assertParam(newValue, 4);
+        if (len == undefined) {
+            len = String(value).length - n + 1;
+        }
+        if (n + len > String(value).length) len = String(value).length - n + 1;
+        var str = String(value);
+        var newStr = str.substring(0, n-1) + String(newValue).substring(0,len) + str.substring(n-1+len);
+        return newStr;
+    }
+
     this.sub_MkDir = function(path) {
         _assertParam(path);
         var vfs = GX.vfs();
