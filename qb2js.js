@@ -293,6 +293,9 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
       if ((QB.func_Left(  l,    1))  ==  "?"  & (QB.func_Mid(  l,    2,    1))  !=  " " ) {
          l =  "Print "  + (QB.func_Mid(  l,    2));
       }
+      if ((QB.func_UCase( (QB.func_Left(  l,    5))))  ==  "MID$(" ) {
+         l =  (QB.func_Left(  l,    4))  + " "  + (QB.func_Mid(  l,    5));
+      }
       var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
       var c = 0;  /* INTEGER */ 
       c =  (await func_SLSplit(  l,   parts ,    True));
@@ -644,6 +647,9 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
                      if ((QB.func_UCase( QB.arrayValue(parts, [ j -  1]).value))  ==  "_CLIPBOARDIMAGE" ) {
                         break ___l6226967;
                      }
+                     if ((QB.func_UCase( QB.arrayValue(parts, [ 1]).value))  ==  "MID$" ) {
+                        break ___l6226967;
+                     }
                   }
                   assignment =   j;
                   break ___l6226967;
@@ -889,6 +895,8 @@ var ConvertSub = null;
          m.jsname =  "QB.sub_Line";
          m.sync =   False;
       }
+   } else if ( m.name ==  "Mid$" ) {
+      js =  (await func_ConvertSubMid(  m,    args,    lineNumber));
    } else if ( m.name ==  "Name" ) {
       js =  (await func_CallMethod(  m))  + "("  + (await func_ConvertSubName(  args,    lineNumber))  + ");";
    } else if ( m.name ==  "PSet"  |  m.name ==  "Circle"  |  m.name ==  "PReset"  |  m.name ==  "Paint" ) {
@@ -1149,6 +1157,38 @@ var ConvertCls = null;
    }
    ConvertCls =   method + ", "  +  bgcolor;
 return ConvertCls;
+}
+async function func_ConvertSubMid(m/*METHOD*/,args/*STRING*/,lineNumber/*INTEGER*/) {
+if (QB.halted()) { return; }; 
+var ConvertSubMid = null;
+   var js = '';  /* STRING */ 
+   var midArgs = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   args =  (await func_Replace(  args,   "(" ,   ""));
+   args =  (await func_Replace(  args,   ")" ,   ""));
+   args =  (await func_Replace(  args,   "=" ,   ","));
+   var argc = 0;  /* INTEGER */ 
+   argc =  (await func_Split(  args,   "," ,   midArgs));
+   var var1 = '';  /* STRING */ 
+   var var2 = '';  /* STRING */ 
+   var startPosition = '';  /* STRING */ 
+   var length = '';  /* STRING */ 
+   if ( argc ==   4) {
+      var1 =  (await func_ConvertExpression( QB.arrayValue(midArgs, [ 1]).value ,    lineNumber));
+      startPosition =  (await func_ConvertExpression( QB.arrayValue(midArgs, [ 2]).value ,    lineNumber));
+      length =  (await func_ConvertExpression( QB.arrayValue(midArgs, [ 3]).value ,    lineNumber));
+      var2 =  (await func_ConvertExpression( QB.arrayValue(midArgs, [ 4]).value ,    lineNumber));
+   } else if ( argc ==   3) {
+      var1 =  (await func_ConvertExpression( QB.arrayValue(midArgs, [ 1]).value ,    lineNumber));
+      startPosition =  (await func_ConvertExpression( QB.arrayValue(midArgs, [ 2]).value ,    lineNumber));
+      length =  "undefined";
+      var2 =  (await func_ConvertExpression( QB.arrayValue(midArgs, [ 3]).value ,    lineNumber));
+   } else {
+      await sub_AddError(  lineNumber,   "Syntax error; expected MID$(var1$, start%[, length%]) = var2$");
+      return ConvertSubMid;
+   }
+   js =   var1 + " = "  + (await func_CallMethod(  m))  + "("  +  var1 + ","  +  startPosition + ","  +  length + ","  +  var2 + "); ";
+   ConvertSubMid =   js;
+return ConvertSubMid;
 }
 async function func_ConvertSubName(args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; 
@@ -3889,6 +3929,7 @@ if (QB.halted()) { return; };
    await sub_AddQBMethod( "FUNCTION" ,   "LTrim$" ,    False);
    await sub_AddQBMethod( "SUB" ,   "Kill" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "Mid$" ,    False);
+   await sub_AddQBMethod( "SUB" ,   "Mid$" ,    False);
    await sub_AddQBMethod( "SUB" ,   "MkDir" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "Mki$" ,    False);
    await sub_AddQBMethod( "FUNCTION" ,   "Mkl$" ,    False);
