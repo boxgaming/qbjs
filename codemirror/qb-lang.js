@@ -92,7 +92,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                          'gxdevice_axis', 'gxdevice_wheel', 'gxtype_entity', 'gxtype_font', 'gx_cr', 'gx_lf', 'gx_crlf',
                          'local', 'session'];
 
-    var builtinObjsWords = ['\\$if', '\\$end if', '\\$elseif', '\\$else', '\\$touchmouse'];
+    var builtinObjsWords = ['\\$if', '\\$end if', '\\$endif', '\\$elseif', '\\$else', '\\$touchmouse'];
 
     // TODO: adjust for QB
     var knownProperties = ['description', 'firstindex', 'global', 'helpcontext', 'helpfile', 'ignorecase', 'length', 'number', 'pattern', 'value', 'count'];
