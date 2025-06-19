@@ -385,7 +385,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
         If sfix <> "" Then first = sfix
 
         If jsMode = True Then
-            If first = "$END" Then
+            If Left$(first, 4) = "$END" Then
                 If jsMode Then
                     jsMode = False
                     AddJSLine 0, "//-------- END JS native code block --------"
@@ -395,9 +395,9 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
             End If
 
         ElseIf ignoreMode = True Then
-            If first = "$END" Then ignoreMode = False
+            If Left$(first, 4) = "$END" Then ignoreMode = False
 
-        ElseIf first = "$END" Then
+        ElseIf Left$(first, 4) = "$END" Then
             ' shrug
 
         ElseIf first = "$ELSE" Or first = "$ELSEIF" Then
@@ -2547,7 +2547,7 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
             Exit Function
         End If
     End If
-    If UCase$(words(1)) = "$END" Then
+    If Left$(UCase$(words(1)), 4) = "$END" Then
         If rawJS Then rawJS = Not rawJS
         AddLine lineIndex, fline
         ReadLine = rawJS
@@ -2654,7 +2654,7 @@ Sub FindMethods
         If word = "$IF" And pcount > 1 Then
             If UCase$(parts(2)) = "JAVASCRIPT" Then rawJS = True
         End If
-        If word = "$END" And rawJS Then rawJS = False
+        If Left$(word, 4) = "$END" And rawJS Then rawJS = False
         If rawJS Then _Continue
 
         If word = "FUNCTION" Or word = "SUB" Then

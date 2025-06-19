@@ -314,7 +314,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
          first =   sfix;
       }
       if ( jsMode ==   True) {
-         if ( first ==  "$END" ) {
+         if ((QB.func_Left(  first,    4))  ==  "$END" ) {
             if ( jsMode) {
                jsMode =   False;
                await sub_AddJSLine(  0,   "//-------- END JS native code block --------");
@@ -323,10 +323,10 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
             await sub_AddJSLine(  i,   QB.arrayValue(lines, [ i]).value .text);
          }
       } else if ( ignoreMode ==   True) {
-         if ( first ==  "$END" ) {
+         if ((QB.func_Left(  first,    4))  ==  "$END" ) {
             ignoreMode =   False;
          }
-      } else if ( first ==  "$END" ) {
+      } else if ((QB.func_Left(  first,    4))  ==  "$END" ) {
       } else if ( first ==  "$ELSE"  |  first ==  "$ELSEIF" ) {
          ignoreMode =   True;
       } else if ( typeMode ==   True) {
@@ -2387,7 +2387,7 @@ var ReadLine = null;
          return ReadLine;
       }
    }
-   if ((QB.func_UCase( QB.arrayValue(words, [ 1]).value))  ==  "$END" ) {
+   if ((QB.func_Left( (QB.func_UCase( QB.arrayValue(words, [ 1]).value)) ,    4))  ==  "$END" ) {
       if ( rawJS) {
          rawJS =  ~ rawJS;
       }
@@ -2487,7 +2487,7 @@ if (QB.halted()) { return; };
             rawJS =   True;
          }
       }
-      if ( word ==  "$END"  &  rawJS) {
+      if ((QB.func_Left(  word,    4))  ==  "$END"  &  rawJS) {
          rawJS =   False;
       }
       if ( rawJS) {
