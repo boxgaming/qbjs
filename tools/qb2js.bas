@@ -2111,6 +2111,7 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
     Dim word As String: word = ""
     Dim bvar As Variable
     Dim m As Method
+    Dim intdiv As Integer
 
     Dim stringLiteral As Integer
     Dim i As Integer: i = 1
@@ -2145,7 +2146,8 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                 ElseIf uword = "^" Then
                     js = js + " ** "
                 ElseIf uword = "\" Then
-                    js = js + " / " ' Not fully compatible but will at least perform a division operation
+                    js = js + " \ " ' mark this expression as containing an integer division
+                    intdiv = True   ' we'll handle the necessary adjustments at the end of the loop 
 
                 ElseIf StartsWith(uword, "&H") Or StartsWith(uword, "&O") Or StartsWith(uword, "&B") Then
                     js = js + " QB.func_Val('" + uword + "') "
@@ -2236,8 +2238,68 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
         End If
         i = i + 1
     Wend
+    If intdiv Then
+        js = ConvertIntDiv(js)
+    End If
     ConvertExpression = js
 End Function
+
+Function ConvertIntDiv$ (s As String)
+    Dim As Integer idx, sidx, eidx, smode, qmode, pcount
+    Dim As String c', part
+    idx = InStr(s, "\")
+    While idx > 0
+        ' search for the position to insert the beginning of the round operation
+        smode = 0: qmode = 0: pcount = 0
+        For sidx = idx-1 To 1 Step -1
+            c = Mid$(s, sidx, 1)
+            If c = " " Then
+                If smode = 0 Then
+                    ' Move along
+                ElseIf smode = 1 Then
+                    If pcount <= 0 Then Exit For
+                    smode = 0
+                End If
+            Else
+                If smode = 0 Then smode = 1
+                If c = Chr$(34) Then: qmode = Not qmode
+                ElseIf c = ")" And Not qmode Then: pcount = pcount + 1
+                ElseIf c = "(" And Not qmode Then: pcount = pcount - 1
+                End If
+            End If
+        Next i
+    
+        pcount = Abs(pcount)
+        ' search for the position to insert the end of the round operation
+        smode = 0: qmode = 0
+        For eidx = idx+1 To Len(s)
+            c = Mid$(s, eidx, 1)
+            If c = " " Then
+                If smode = 0 Then
+                    ' Move along
+                ElseIf smode = 1 Then
+                    If pcount >= 0 Then Exit For
+                    smode = 0
+                End If
+            Else
+                If smode = 0 Then smode = 1
+                If c = Chr$(34) Then: qmode = Not qmode
+                ElseIf c = ")" And Not qmode Then: pcount = pcount - 1
+                ElseIf c = "(" And Not qmode Then: pcount = pcount + 1
+                End If
+            End If
+        Next i
+    
+        s = Left$(s, sidx) + " Math.floor(QB.bround(" + _
+            Mid$(s, sidx + 1, idx - sidx - 1) + ") / QB.bround(" + _
+            Mid$(s, idx + 1, eidx - idx - 1) + "))" + Mid$(s, eidx)
+
+        idx = InStr(s, "\")
+    Wend
+    
+    ConvertIntDiv = s
+End Function
+
 
 ' Handle optional parameters
 Function ConvertMethodParams$ (args As String, lineNumber As Integer)

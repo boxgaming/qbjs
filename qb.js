@@ -314,6 +314,13 @@ var QB = new function() {
         return value ? -1 : 0;
     };
 
+    this.bround = function(value, ndec = 0) {
+        var s = (value < 0) ? -1 : 1;
+        var x = value * Math.pow(10, ndec) * s;
+        var r = Math.round(x);
+        return (Math.abs(x) % 1 === .5 ? r - (r % 2) : r) / Math.pow(10, ndec) * s;
+    }
+
     // Process control methods
     // -------------------------------------------
     this.halt = function() {
@@ -2222,20 +2229,12 @@ var QB = new function() {
 
     this.func_Cint = function(value) {
         _assertNumber(value);
-        if (value > 0) {
-            return Math.round(value);
-        } else {
-            return -Math.round(-value);
-        }
+        return this.bround(value);
     };
 
     this.func_Clng = function(value) {
         _assertNumber(value);
-        if (value > 0) {
-            return Math.round(value);
-        } else {
-            return -Math.round(-value);
-        }
+        return this.bround(value);
     };
 
     this.func_Csng = function(value) {
