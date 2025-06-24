@@ -2257,7 +2257,17 @@ Function ConvertIntDiv$ (s As String)
                 If smode = 0 Then
                     ' Move along
                 ElseIf smode = 1 Then
-                    If pcount <= 0 Then Exit For
+                    If pcount <= 0 Then 
+                        ' See if a minus sign precedes the token
+                        For ci = sidx-1 To 1 Step -1
+                            c = Mid$(s, ci, 1)
+                            If c <> " " Then
+                                If c = "-" Then sidx = ci
+                                Exit For
+                            End If
+                        Next ci
+                        Exit For
+                    End If
                     smode = 0
                 End If
             Else
@@ -2274,7 +2284,7 @@ Function ConvertIntDiv$ (s As String)
         smode = 0: qmode = 0
         For eidx = idx+1 To Len(s)
             c = Mid$(s, eidx, 1)
-            If c = " " Then
+            If c = " " Or c = "-" Then
                 If smode = 0 Then
                     ' Move along
                 ElseIf smode = 1 Then
@@ -2290,8 +2300,8 @@ Function ConvertIntDiv$ (s As String)
             End If
         Next i
     
-        s = Left$(s, sidx) + " Math.floor(QB.bround(" + _
-            Mid$(s, sidx + 1, idx - sidx - 1) + ") / QB.bround(" + _
+        s = Left$(s, sidx) + " QB.func_Fix(QB.func_Cint(" + _
+            Mid$(s, sidx + 1, idx - sidx - 1) + ") / QB.func_Cint(" + _
             Mid$(s, idx + 1, eidx - idx - 1) + "))" + Mid$(s, eidx)
 
         idx = InStr(s, "\")
