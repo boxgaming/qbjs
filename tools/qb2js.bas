@@ -2288,7 +2288,7 @@ Function ConvertIntDiv$ (s As String)
                 If smode = 0 Then
                     ' Move along
                 ElseIf smode = 1 Then
-                    If pcount >= 0 Then Exit For
+                    If pcount = 0 Then Exit For
                     smode = 0
                 End If
             Else

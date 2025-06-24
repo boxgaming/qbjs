@@ -2152,7 +2152,7 @@ var ConvertIntDiv = null;
          if ( c ==  " "  |  c ==  "-"  ) {
             if ( smode ==   0 ) {
             } else if ( smode ==   1 ) {
-               if ( pcount >=  0 ) {
+               if ( pcount ==   0 ) {
                   break ___l3810077;
                }
                smode =   0;
