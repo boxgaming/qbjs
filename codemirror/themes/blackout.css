@@ -1,0 +1,111 @@
+.cm-s-blackout {
+  line-height: 1em;
+}
+.cm-s-blackout.CodeMirror { background: #000; color: rgb(216, 216, 216); text-shadow: 0 -1px 1px #262626; font-family: dosvga; }
+.cm-s-blackout div.CodeMirror-selected { background: #45443B; } /* 33322B*/
+.cm-s-blackout .CodeMirror-line::selection, .cm-s-blackout .CodeMirror-line > span::selection, .cm-s-blackout .CodeMirror-line > span > span::selection { background: rgba(0, 49, 78, .99); }
+.cm-s-blackout .CodeMirror-line::-moz-selection, .cm-s-blackout .CodeMirror-line > span::-moz-selection, .cm-s-blackout .CodeMirror-line > span > span::-moz-selection { background: rgba(69, 68, 59, .99); }
+.cm-s-blackout .CodeMirror-cursor { border-left: 1px solid #fff; } /* overflow: hidden; width: 0px;} */
+.cm-s-blackout pre { padding: 0 8px; }/*editable code holder*/
+
+.cm-s-blackout.CodeMirror span.CodeMirror-matchingbracket { color: #7EFC7E; }/*65FC65*/
+
+.cm-s-blackout .CodeMirror-gutters { background: #222; border-right:1px solid #666; }
+.cm-s-blackout .CodeMirror-guttermarker { color: #599eff; }
+.cm-s-blackout .CodeMirror-guttermarker-subtle { color: #777; }
+.cm-s-blackout .CodeMirror-linenumber { color: rgb(175, 175, 175); }
+
+.cm-s-blackout span.cm-header { color: #a0a; }
+.cm-s-blackout span.cm-quote { color: #090; }
+.cm-s-blackout span.cm-keyword { color: rgb(69, 118, 147); }
+.cm-s-blackout span.cm-atom { color: #C2B470; }
+.cm-s-blackout span.cm-number { color: rgb(216, 98, 78); }
+.cm-s-blackout span.cm-def { color: white; }
+.cm-s-blackout span.cm-variable { color:rgb(216, 216, 216); }
+.cm-s-blackout span.cm-variable-2 { color: #669199; }
+.cm-s-blackout span.cm-variable-3, .cm-s-blackout span.cm-type { color: white; }
+.cm-s-blackout span.cm-property { color: #92A75C; }
+.cm-s-blackout span.cm-operator { color: #92A75C; }
+.cm-s-blackout span.cm-comment { color: rgb(98, 98, 98); }
+.cm-s-blackout span.cm-string { color: rgb(255, 167, 0); }
+.cm-s-blackout span.cm-string-2 { color: #f50; }
+.cm-s-blackout span.cm-meta { color: #738C73; }
+.cm-s-blackout span.cm-qualifier { color: #555; }
+.cm-s-blackout span.cm-builtin { color: rgb(69, 118, 147); }
+.cm-s-blackout span.cm-bracket { color: #EBEFE7; }
+.cm-s-blackout span.cm-tag { color: #669199; }
+.cm-s-blackout span.cm-attribute { color: #81a4d5; }
+.cm-s-blackout span.cm-hr { color: #999; }
+.cm-s-blackout span.cm-link { color: #7070E6; }
+/*.cm-s-blackout span.cm-error { color: #9d1e15; }*/
+.cm-s-blackout span.cm-error { color: #999; }
+
+.cm-s-blackout .CodeMirror-activeline-background { background: #222; }
+.cm-s-blackout .CodeMirror-matchingbracket { outline:1px solid grey; color:white !important; }
+
+.cm-s-blackout .CodeMirror-search-field { font-family: dosvga; font-size: 1em; }
+.cm-s-blackout .cm-searching { color: #333 !important; background-color: #ccc; }
+
+#help-nav a:hover { color: #fff;  }
+#help-nav a:before { content: "< "; }
+#help-nav a:after { content: " >"; }
+#help-nav a { margin-right: 0px; }
+
+body { 
+    background-color: #000;
+}
+.tab:hover,  #method-tabs .active:hover {
+    background-color: #222;
+    /*color: #ccc;*/
+}
+
+dialog textarea { 
+    background-color: #222;
+    color: #ccc;
+}
+
+dialog {
+    background-color: #222;
+    border: 1px solid #666;
+    color: #ccc;
+}
+
+dialog a { color: #ccc !important; }
+dialog a:hover { color: #fff !important; }
+/*a:before { content: ""; }
+a:after { content: ""; }
+a:hover { text-decoration: underline; }*/
+dialog a.disabled, dialog a.disabled:hover { color: #999 !important; }
+dialog a.disabled:hover { text-decoration: none; }
+
+.methods thead tr {
+    background-color: #000; 
+    box-shadow: 0px 1px 1px #444;
+}
+
+.methods tbody {
+    background-color: #000; /*#1e1e1e;*/
+}
+
+.methods {
+    border: 1px solid #444;
+    background-color: #000;
+}
+
+#method-tabs .tab {
+    color: #999;
+}
+
+#method-tabs .tab {
+    border-color: #444;
+    border-bottom-color: transparent;
+}
+
+#method-tabs .tab:hover {
+    color: #ccc;
+    background-color: #1e1e1e;
+}
+#method-tabs .active {
+    color: #ccc;
+    background-color: #000;
+}
