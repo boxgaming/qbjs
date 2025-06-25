@@ -2147,7 +2147,7 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                     js = js + " ** "
                 ElseIf uword = "\" Then
                     js = js + " \ " ' mark this expression as containing an integer division
-                    intdiv = True   ' we'll handle the necessary adjustments at the end of the loop 
+                    intdiv = True ' we'll handle the necessary adjustments at the end of the loop
 
                 ElseIf StartsWith(uword, "&H") Or StartsWith(uword, "&O") Or StartsWith(uword, "&B") Then
                     js = js + " QB.func_Val('" + uword + "') "
@@ -2245,21 +2245,21 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
 End Function
 
 Function ConvertIntDiv$ (s As String)
-    Dim As Integer idx, sidx, eidx, smode, qmode, pcount
-    Dim As String c', part
+    Dim As Integer idx, sidx, eidx, smode, qmode, pcount, ci
+    Dim As String c ', part
     idx = InStr(s, "\")
     While idx > 0
         ' search for the position to insert the beginning of the round operation
         smode = 0: qmode = 0: pcount = 0
-        For sidx = idx-1 To 1 Step -1
+        For sidx = idx - 1 To 1 Step -1
             c = Mid$(s, sidx, 1)
             If c = " " Then
                 If smode = 0 Then
                     ' Move along
                 ElseIf smode = 1 Then
-                    If pcount <= 0 Then 
+                    If pcount <= 0 Then
                         ' See if a minus sign precedes the token
-                        For ci = sidx-1 To 1 Step -1
+                        For ci = sidx - 1 To 1 Step -1
                             c = Mid$(s, ci, 1)
                             If c <> " " Then
                                 If c = "-" Then sidx = ci
@@ -2272,17 +2272,20 @@ Function ConvertIntDiv$ (s As String)
                 End If
             Else
                 If smode = 0 Then smode = 1
-                If c = Chr$(34) Then: qmode = Not qmode
-                ElseIf c = ")" And Not qmode Then: pcount = pcount + 1
-                ElseIf c = "(" And Not qmode Then: pcount = pcount - 1
+                If c = Chr$(34) Then
+                    qmode = Not qmode
+                ElseIf c = ")" And Not qmode Then
+                    pcount = pcount + 1
+                ElseIf c = "(" And Not qmode Then
+                    pcount = pcount - 1
                 End If
             End If
-        Next i
-    
+        Next sidx
+
         pcount = Abs(pcount)
         ' search for the position to insert the end of the round operation
         smode = 0: qmode = 0
-        For eidx = idx+1 To Len(s)
+        For eidx = idx + 1 To Len(s)
             c = Mid$(s, eidx, 1)
             If c = " " Or c = "-" Then
                 If smode = 0 Then
@@ -2293,13 +2296,16 @@ Function ConvertIntDiv$ (s As String)
                 End If
             Else
                 If smode = 0 Then smode = 1
-                If c = Chr$(34) Then: qmode = Not qmode
-                ElseIf c = ")" And Not qmode Then: pcount = pcount - 1
-                ElseIf c = "(" And Not qmode Then: pcount = pcount + 1
+                If c = Chr$(34) Then
+                    qmode = Not qmode
+                ElseIf c = ")" And Not qmode Then
+                    pcount = pcount - 1
+                ElseIf c = "(" And Not qmode Then
+                    pcount = pcount + 1
                 End If
             End If
-        Next i
-    
+        Next eidx
+
         s = Left$(s, sidx) + " QB.func_Fix(QB.func_Cint(" + _
             Mid$(s, sidx + 1, idx - sidx - 1) + ") / QB.func_Cint(" + _
             Mid$(s, idx + 1, eidx - idx - 1) + "))" + Mid$(s, eidx)
