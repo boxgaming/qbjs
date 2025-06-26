@@ -1774,7 +1774,7 @@ Function GenJSName$
     GenJSName$ = _Trim$(Str$(_Round(Rnd * 10000000)))
 End Function
 
-Function FindParamChar (s As String, char As String)
+Function FindParamChar (s As String, ch As String)
     Dim idx As Integer
     idx = -1
 
@@ -1790,7 +1790,7 @@ Function FindParamChar (s As String, char As String)
             paren = paren + 1
         ElseIf Not quote And c = ")" Then
             paren = paren - 1
-        ElseIf Not quote And paren = 0 And c = char Then
+        ElseIf Not quote And paren = 0 And c = ch Then
             idx = i
             Exit For
         End If
