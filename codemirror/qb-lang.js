@@ -56,17 +56,17 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              'chr', 'cdbl', 'cint', 'clng', 'csng', 'circle', 'cls', 'color', 'command', 'cos', 'cvi', 'cvl',
                              'data', 'date', 'draw', 'environ', 'error', 'exp', 'fix', 'hex', 'input', 'inkey', 'instr', 'int',
                              'lbound', 'left', 'lcase', 'len', 'line', 'loc', 'locate', 'log', 'ltrim', 'mid', 'mki', 'mkl',
-                             'oct', 'paint', 'play', 'point', 'preset', 'print', 'pset',
+                             'oct', 'paint', 'play', 'point', 'preset', 'print','pset',
                              'right', 'rtrim', 'randomize', 'read', 'restore', 'rnd',
                              'screen', 'shared', 'sgn', 'sin', 'sleep', 'sound', 'space', 'sqr',
                              'str', 'swap', 'tan', 'time', 'timer', 'ubound', 'ucase',
                              'val', 'varptr', 'window',
                              'mkdir', 'chdir', 'rmdir', 'kill', 'name', 'files', 'open', 'close', 'lof', 'eof', 'put', 'get', 'freefile',
-                             'seek', 'write',
+                             'seek', 'write', 'option',
                              // QBJS-specific
                              'export', 'from', 'import']
 
-    var builtinConsts = ['append', 'binary', 'input', 'output', 'random',
+    var builtinConsts = ['append', 'binary', 'input', 'output', 'random', '_?explicit',
                          '_?off', '_?smooth', '_?stretch', '_?squarepixels', '_?keepbackground', '_?onlybackground', '_?fillbackground',
                          'gx_true', 'gx_false', 'gxevent_init', 'gxevent_update', 'gxevent_drawbg', 'gxevent_drawmap', 'gxevent_drawscreen',
                          'gxevent_mouseinput', 'gxevent_paintbefore', 'gxevent_paintafter', 'gxevent_collision_tile', 'gxevent_collision_entity',
