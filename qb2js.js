@@ -2,6 +2,7 @@ if (typeof QB == 'undefined' && module) { QB = require('./qb-console.js').QB(); 
 async function _QBCompiler() {
 /* static method variables: */ 
 
+/* implicit variables: */ 
    
    // $Console
    // Only
@@ -38,6 +39,7 @@ async function _QBCompiler() {
    var currentModule = '';  /* STRING */ 
    var programMethods = 0;  /* INTEGER */ 
    var staticVarLine = 0;  /* INTEGER */ 
+   var implicitVarLine = 0;  /* INTEGER */ 
    var condWords = QB.initArray([{l:0,u:4}], '');  /* STRING */ 
    var forceSelfConvert = 0;  /* INTEGER */ 
    var optionExplicit = 0;  /* INTEGER */ 
@@ -49,6 +51,7 @@ async function _QBCompiler() {
 
 async function sub_QBToJS(source/*STRING*/,sourceType/*INTEGER*/,moduleName/*STRING*/) {
 if (QB.halted()) { return; }; sourceType = Math.round(sourceType); 
+/* implicit variables: */ 
    QB.arrayValue(condWords, [ 1]).value =  "IF";
    QB.arrayValue(condWords, [ 2]).value =  "ELSEIF";
    QB.arrayValue(condWords, [ 3]).value =  "WHILE";
@@ -191,10 +194,12 @@ if (QB.halted()) { return; }; sourceType = Math.round(sourceType);
 }
 async function sub_SetSelfConvert() {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    forceSelfConvert =   True;
 }
 async function sub_InitTypes() {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    var i = 0;  /* INTEGER */ var j = 0;  /* INTEGER */ var jsidx = 0;  /* INTEGER */ 
    var typestr = '';  /* STRING */ 
    typestr =  "{ ";
@@ -227,6 +232,7 @@ if (QB.halted()) { return; };
 }
 async function sub_ResetDataStructures() {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    QB.resizeArray(lines, [{l:0,u:0}], {line:0,text:'',mtype:0}, false);  /* CODELINE */ 
    QB.resizeArray(methods, [{l:0,u:0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, false);  /* METHOD */ 
    QB.resizeArray(types, [{l:0,u:0}], {line:0,name:'',argc:0,args:''}, false);  /* QBTYPE */ 
@@ -247,6 +253,7 @@ if (QB.halted()) { return; };
 }
 async function sub_InitData() {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    if ((QB.func_UBound(  dataArray))  < 1 ) {
       return;
    }
@@ -260,6 +267,7 @@ if (QB.halted()) { return; };
 }
 async function sub_PrintJS() {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    var i = 0;  /* INTEGER */ 
    var ___v2480838 = 0; ___l6161923: for ( i=  1 ;  i <= (QB.func_UBound(  jsLines));  i= i + 1) { if (QB.halted()) { return; } ___v2480838++;   if (___v2480838 % 100 == 0) { await QB.autoLimit(); }
       await QB.sub_Print([QB.arrayValue(jsLines, [ i]).value .text]);
@@ -267,6 +275,7 @@ if (QB.halted()) { return; };
 }
 async function sub_ConvertLines(firstLine/*INTEGER*/,lastLine/*INTEGER*/,functionName/*STRING*/) {
 if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math.round(lastLine); 
+/* implicit variables: */ 
    var typeMode = 0;  /* INTEGER */ 
    typeMode =   False;
    var jsMode = 0;  /* INTEGER */ 
@@ -287,6 +296,8 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
    var loopIndex = '';  /* STRING */ 
    var sfix = '';  /* STRING */ 
    var ctype = '';  /* STRING */ 
+   await sub_AddJSLine(  firstLine,   "/* implicit variables: */ ");
+   implicitVarLine =  (QB.func_UBound(  jsLines));
    var ___v9476965 = 0; ___l4082566: for ( i=  firstLine;  i <=  lastLine;  i= i + 1) { if (QB.halted()) { return; } ___v9476965++;   if (___v9476965 % 100 == 0) { await QB.autoLimit(); }
       indent =   0;
       tempIndent =   0;
@@ -668,24 +679,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
                asnVarIndex =   2;
             }
             if ( assignment > 0 ) {
-               var ivar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
-               var varname = '';  /* STRING */ 
-               varname =  (QB.func__Trim( (await func_ConvertExpression( (await func_Join( parts  ,    asnVarIndex,    assignment -  1 ,   " "))  ,    i))));
-               if (~(await func_IsValidVarname(  varname))  ) {
-                  js =  (await func_RemoveSuffix(  varname))  + " = "  + (await func_ConvertExpression( (await func_Join( parts  ,    assignment +  1 ,    - 1 ,   " "))  ,    i))  + ";";
-               } else if ((await func_FindVariable(  varname,    ivar,    False))  ) {
-                  js =  (await func_RemoveSuffix(  varname))  + " = "  + (await func_ConvertExpression( (await func_Join( parts  ,    assignment +  1 ,    - 1 ,   " "))  ,    i))  + ";";
-               } else {
-                  var dti = '';  /* STRING */ 
-                  dti =  (await func_DataTypeFromName(  varname));
-                  if ( optionExplicit) {
-                     await sub_AddError(  i,   "Variable '"  +  varname + "' ("  +  dti + ") not defined");
-                  } else {
-                     ivar.name =   varname;
-                     ivar.type =   dti;
-                     js =  (await func_RegisterVar(  ivar,   ""  ,    False,    False,   ""  ,   ""))  + "; "  +  varname + " = "  + (await func_ConvertExpression( (await func_Join( parts  ,    assignment +  1 ,    - 1 ,   " "))  ,    i))  + ";";
-                  }
-               }
+               js =  (await func_RemoveSuffix( (await func_ConvertExpression( (await func_Join( parts  ,    asnVarIndex,    assignment -  1 ,   " "))  ,    i))))  + " = "  + (await func_ConvertExpression( (await func_Join( parts  ,    assignment +  1 ,    - 1 ,   " "))  ,    i))  + ";";
             } else {
                var parendx = 0;  /* INTEGER */ 
                parendx =  (QB.func_InStr( QB.arrayValue(parts, [ 1]).value  ,   "("));
@@ -730,10 +724,19 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
 async function func_IsValidVarname(varname/*STRING*/) {
 if (QB.halted()) { return; }; 
 var IsValidVarname = null;
+/* implicit variables: */ 
    var vname = '';  /* STRING */ var s = '';  /* STRING */ 
    var i = 0;  /* INTEGER */ var c = 0;  /* INTEGER */ var valid = 0;  /* INTEGER */ 
    valid =   True;
    vname =  (QB.func__Trim( (QB.func_UCase( (await func_RemoveSuffix(  varname))))));
+   if ( vname ==  "TO"  |  vname ==  "UNDEFINED"  ) {
+      IsValidVarname =   False;
+      return IsValidVarname;
+   }
+   if ((QB.func_Mid(  vname,    1 ,    4))  ==  "SUB_"  | (QB.func_Mid(  vname,    1 ,    5))  ==  "FUNC_"  ) {
+      IsValidVarname =   False;
+      return IsValidVarname;
+   }
    c =  (QB.func_Asc( (QB.func_Mid(  vname,    1 ,    1))));
    if (( c >=  65 &  c <=  90)  |  c ==   95 ) {
       var ___v1348867 = 0; ___l6907899: for ( i=  2 ;  i <= (QB.func_Len(  vname));  i= i + 1) { if (QB.halted()) { return; } ___v1348867++;   if (___v1348867 % 100 == 0) { await QB.autoLimit(); }
@@ -753,6 +756,7 @@ return IsValidVarname;
 async function func_BeginPhraseFor(endPhrase/*STRING*/) {
 if (QB.halted()) { return; }; 
 var BeginPhraseFor = null;
+/* implicit variables: */ 
    var bp = '';  /* STRING */ 
    var ___v6660608 =  endPhrase; switch (___v6660608) {
       case "NEXT": 
@@ -772,6 +776,7 @@ return BeginPhraseFor;
 async function func_EndPhraseFor(beginPhrase/*STRING*/) {
 if (QB.halted()) { return; }; 
 var EndPhraseFor = null;
+/* implicit variables: */ 
    var ep = '';  /* STRING */ 
    var ___v6696454 =  beginPhrase; switch (___v6696454) {
       case "FOR": 
@@ -791,6 +796,7 @@ return EndPhraseFor;
 async function func_CheckBlockEnd(cstack/*CONTAINER*/,cindex/*INTEGER*/,endPhrase/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; cindex = Math.round(cindex); lineNumber = Math.round(lineNumber); 
 var CheckBlockEnd = null;
+/* implicit variables: */ 
    var ctype = '';  /* STRING */ var beginPhrase = '';  /* STRING */ 
    var success = 0;  /* INTEGER */ 
    success =   True;
@@ -808,6 +814,7 @@ return CheckBlockEnd;
 async function func_FixCondition(word/*STRING*/,parts/*STRING*/,idx/*INTEGER*/,prefix/*STRING*/) {
 if (QB.halted()) { return; }; idx = Math.round(idx); 
 var FixCondition = null;
+/* implicit variables: */ 
    FixCondition =  "";
    var c = 0;  /* INTEGER */ var j = 0;  /* INTEGER */ 
    var ___v1477568 = 0; ___l3050709: for ( j=  0 ;  j <= (QB.func_UBound(  condWords));  j= j + 1) { if (QB.halted()) { return; } ___v1477568++;   if (___v1477568 % 100 == 0) { await QB.autoLimit(); }
@@ -823,6 +830,7 @@ return FixCondition;
 }
 async function sub_ParseExport(s/*STRING*/,lineIndex/*INTEGER*/) {
 if (QB.halted()) { return; }; lineIndex = Math.round(lineIndex); 
+/* implicit variables: */ 
    var exportedItem = '';  /* STRING */ 
    var ef = {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0};  /* METHOD */ 
    var es = {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0};  /* METHOD */ 
@@ -884,6 +892,7 @@ if (QB.halted()) { return; }; lineIndex = Math.round(lineIndex);
 }
 async function sub_RegisterExport(exportName/*STRING*/,exportedItem/*STRING*/) {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    var esize = 0;  /* SINGLE */ 
    esize =  (QB.func_UBound(  exportLines))  +  1;
    QB.resizeArray(exportLines, [{l:0,u:esize}], '', true);  /* STRING */ 
@@ -892,6 +901,7 @@ if (QB.halted()) { return; };
 async function func_ConvertSub(m/*METHOD*/,args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertSub = null;
+/* implicit variables: */ 
    var js = '';  /* STRING */ 
    if ( m.name ==  "Line"  |  m.name ==  "_Clipboard$"  |  m.name ==  "_ClipboardImage"  ) {
       var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
@@ -980,6 +990,7 @@ return ConvertSub;
 async function func_ConvertPut(m/*METHOD*/,args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertPut = null;
+/* implicit variables: */ 
    var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
    var argc = 0;  /* INTEGER */ 
    argc =  (await func_ListSplit(  args,   parts));
@@ -1018,6 +1029,7 @@ return ConvertPut;
 async function func_ConvertFullScreen(args/*STRING*/) {
 if (QB.halted()) { return; }; 
 var ConvertFullScreen = null;
+/* implicit variables: */ 
    var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
    var argc = 0;  /* INTEGER */ 
    var mode = '';  /* STRING */ 
@@ -1047,6 +1059,7 @@ return ConvertFullScreen;
 async function func_ConvertOpen(args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertOpen = null;
+/* implicit variables: */ 
    var argc = 0;  /* INTEGER */ 
    var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
    var filename = '';  /* STRING */ var mode = '';  /* STRING */ var handle = '';  /* STRING */ 
@@ -1072,6 +1085,7 @@ return ConvertOpen;
 async function func_ConvertLine(args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertLine = null;
+/* implicit variables: */ 
    var argc = 0;  /* INTEGER */ 
    var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
    var coord = '';  /* STRING */ var lcolor = '';  /* STRING */ var mode = '';  /* STRING */ var style = '';  /* STRING */ 
@@ -1098,6 +1112,7 @@ return ConvertLine;
 async function func_ConvertPutImage(args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertPutImage = null;
+/* implicit variables: */ 
    var argc = 0;  /* INTEGER */ 
    var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
    var startCoord = '';  /* STRING */ var sourceImage = '';  /* STRING */ var destImage = '';  /* STRING */ var destCoord = '';  /* STRING */ var doSmooth = '';  /* STRING */ 
@@ -1136,6 +1151,7 @@ return ConvertPutImage;
 async function func_ConvertWindow(args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertWindow = null;
+/* implicit variables: */ 
    var invertFlag = '';  /* STRING */ 
    var firstParam = '';  /* STRING */ 
    var theRest = '';  /* STRING */ 
@@ -1188,6 +1204,7 @@ return ConvertWindow;
 async function func_ConvertCls(args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertCls = null;
+/* implicit variables: */ 
    var argc = 0;  /* INTEGER */ 
    var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
    argc =  (await func_ListSplit(  args,   parts));
@@ -1208,6 +1225,7 @@ return ConvertCls;
 async function func_ConvertSubMid(m/*METHOD*/,args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertSubMid = null;
+/* implicit variables: */ 
    var js = '';  /* STRING */ 
    var midArgs = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
    args =  (await func_Replace(  args,   "("  ,   ""));
@@ -1240,6 +1258,7 @@ return ConvertSubMid;
 async function func_ConvertSubName(args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertSubName = null;
+/* implicit variables: */ 
    var argc = 0;  /* INTEGER */ 
    var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
    var asIndex = 0;  /* INTEGER */ 
@@ -1264,6 +1283,7 @@ return ConvertSubName;
 async function func_ConvertRandomize(m/*METHOD*/,args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertRandomize = null;
+/* implicit variables: */ 
    var uusing = '';  /* STRING */ 
    var theseed = '';  /* STRING */ 
    uusing =  "false";
@@ -1283,6 +1303,7 @@ return ConvertRandomize;
 async function func_ConvertRead(m/*METHOD*/,args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertRead = null;
+/* implicit variables: */ 
    var js = '';  /* STRING */ 
    var vname = '';  /* STRING */ 
    var pcount = 0;  /* INTEGER */ 
@@ -1310,6 +1331,7 @@ return ConvertRead;
 async function func_ConvertCoordParam(param/*STRING*/,hasEndCoord/*INTEGER*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; hasEndCoord = Math.round(hasEndCoord); lineNumber = Math.round(lineNumber); 
 var ConvertCoordParam = null;
+/* implicit variables: */ 
    if ((QB.func__Trim(  param))  ==  ""  ) {
       if ( hasEndCoord) {
          ConvertCoordParam =  "false, undefined, undefined, false, undefined, undefined";
@@ -1362,6 +1384,7 @@ return ConvertCoordParam;
 async function func_ConvertPSet(args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertPSet = null;
+/* implicit variables: */ 
    var firstParam = '';  /* STRING */ 
    var theRest = '';  /* STRING */ 
    var idx = 0;  /* INTEGER */ 
@@ -1393,6 +1416,7 @@ return ConvertPSet;
 async function func_ConvertPrint(m/*METHOD*/,args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertPrint = null;
+/* implicit variables: */ 
    var fh = '';  /* STRING */ 
    var pcount = 0;  /* INTEGER */ 
    var startIdx = 0;  /* INTEGER */ 
@@ -1436,6 +1460,7 @@ return ConvertPrint;
 async function func_ConvertWrite(m/*METHOD*/,args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertWrite = null;
+/* implicit variables: */ 
    var fh = '';  /* STRING */ 
    var pcount = 0;  /* INTEGER */ 
    var startIdx = 0;  /* INTEGER */ 
@@ -1483,6 +1508,7 @@ return ConvertWrite;
 async function func_ConvertPrintString(args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertPrintString = null;
+/* implicit variables: */ 
    var firstParam = '';  /* STRING */ 
    var theRest = '';  /* STRING */ 
    var idx = 0;  /* INTEGER */ 
@@ -1504,6 +1530,7 @@ return ConvertPrintString;
 async function func_ConvertFileLineInput(m/*METHOD*/,args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertFileLineInput = null;
+/* implicit variables: */ 
    var js = '';  /* STRING */ 
    var fh = '';  /* STRING */ 
    var vname = '';  /* STRING */ 
@@ -1528,6 +1555,7 @@ return ConvertFileLineInput;
 async function func_ConvertInput(m/*METHOD*/,args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertInput = null;
+/* implicit variables: */ 
    var js = '';  /* STRING */ 
    var vname = '';  /* STRING */ 
    var pcount = 0;  /* INTEGER */ 
@@ -1581,6 +1609,7 @@ return ConvertInput;
 async function func_ConvertFileInput(m/*METHOD*/,args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertFileInput = null;
+/* implicit variables: */ 
    var js = '';  /* STRING */ 
    var fh = '';  /* STRING */ 
    var vname = '';  /* STRING */ 
@@ -1616,6 +1645,7 @@ return ConvertFileInput;
 async function func_GetVarType(vname/*STRING*/) {
 if (QB.halted()) { return; }; 
 var GetVarType = null;
+/* implicit variables: */ 
    var vartype = '';  /* STRING */ 
    vartype =  "UNKNOWN";
    var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
@@ -1667,6 +1697,7 @@ return GetVarType;
 async function func_ConvertSwap(m/*METHOD*/,args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertSwap = null;
+/* implicit variables: */ 
    var js = '';  /* STRING */ 
    var swapArray = '';  /* STRING */ 
    swapArray =  await func_GenJSVar();
@@ -1687,24 +1718,28 @@ return ConvertSwap;
 async function func_GenJSVar() {
 if (QB.halted()) { return; }; 
 var GenJSVar = null;
+/* implicit variables: */ 
    GenJSVar =  "___v"  + await func_GenJSName();
 return GenJSVar;
 }
 async function func_GenJSLabel() {
 if (QB.halted()) { return; }; 
 var GenJSLabel = null;
+/* implicit variables: */ 
    GenJSLabel =  "___l"  + await func_GenJSName();
 return GenJSLabel;
 }
 async function func_GenJSName() {
 if (QB.halted()) { return; }; 
 var GenJSName = null;
+/* implicit variables: */ 
    GenJSName =  (QB.func__Trim( (QB.func_Str( (QB.func__Round( QB.func_Rnd() *  10000000))))));
 return GenJSName;
 }
 async function func_FindParamChar(s/*STRING*/,ch/*STRING*/) {
 if (QB.halted()) { return; }; 
 var FindParamChar = null;
+/* implicit variables: */ 
    var idx = 0;  /* INTEGER */ 
    idx =   - 1;
    var c = '';  /* STRING */ 
@@ -1729,6 +1764,7 @@ return FindParamChar;
 }
 async function sub_DeclareTypeVar(parts/*STRING*/,typeId/*INTEGER*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; typeId = Math.round(typeId); lineNumber = Math.round(lineNumber); 
+/* implicit variables: */ 
    var vname = '';  /* STRING */ 
    var vtype = '';  /* STRING */ 
    vtype =  "";
@@ -1790,6 +1826,7 @@ if (QB.halted()) { return; }; typeId = Math.round(typeId); lineNumber = Math.rou
 async function func_DeclareVar(parts/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var DeclareVar = null;
+/* implicit variables: */ 
    var vname = '';  /* STRING */ 
    var vtype = '';  /* STRING */ 
    vtype =  "";
@@ -1913,6 +1950,7 @@ return DeclareVar;
 async function func_RegisterVar(bvar/*VARIABLE*/,js/*STRING*/,isGlobal/*INTEGER*/,isStatic/*INTEGER*/,bPreserve/*STRING*/,arraySize/*STRING*/) {
 if (QB.halted()) { return; }; isGlobal = Math.round(isGlobal); isStatic = Math.round(isStatic); 
 var RegisterVar = null;
+/* implicit variables: */ 
    var findVar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
    var varExists = 0;  /* INTEGER */ 
    bvar.jsname =  (await func_RemoveSuffix(  bvar.name));
@@ -1941,9 +1979,18 @@ var RegisterVar = null;
    RegisterVar =   js;
 return RegisterVar;
 }
+async function sub_RegisterImplicitVar(varname/*STRING*/,dataType/*STRING*/) {
+if (QB.halted()) { return; }; 
+/* implicit variables: */ 
+   var ivar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
+   ivar.name =  (await func_RemoveSuffix(  varname));
+   ivar.type =   dataType;
+   QB.arrayValue(jsLines, [ implicitVarLine]).value .text =  QB.arrayValue(jsLines, [ implicitVarLine]).value .text + (await func_RegisterVar(  ivar,   ""  ,    False,    False,   ""  ,   ""));
+}
 async function func_FormatArraySize(sizeString/*STRING*/) {
 if (QB.halted()) { return; }; 
 var FormatArraySize = null;
+/* implicit variables: */ 
    var sizeParams = '';  /* STRING */ 
    sizeParams =  "";
    var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
@@ -1980,6 +2027,7 @@ return FormatArraySize;
 async function func_InitTypeValue(vtype/*STRING*/) {
 if (QB.halted()) { return; }; 
 var InitTypeValue = null;
+/* implicit variables: */ 
    var value = '';  /* STRING */ 
    if ( vtype ==  "STRING"  ) {
       value =  "''";
@@ -2005,6 +2053,7 @@ return InitTypeValue;
 async function func_FindTypeId(typeName/*STRING*/) {
 if (QB.halted()) { return; }; 
 var FindTypeId = null;
+/* implicit variables: */ 
    var id = 0;  /* INTEGER */ 
    id =   - 1;
    var i = 0;  /* INTEGER */ 
@@ -2020,6 +2069,7 @@ return FindTypeId;
 async function func_ConvertExpression(ex/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertExpression = null;
+/* implicit variables: */ 
    var c = '';  /* STRING */ 
    var js = '';  /* STRING */ 
    js =  "";
@@ -2077,7 +2127,28 @@ var ConvertExpression = null;
                         js =   js + " "  +  word;
                      }
                   } else {
-                     js =   js + " "  +  word;
+                     if ((await func_FindVariable(  word,    bvar,    True))  ) {
+                        js =   js + " "  +  bvar.jsname;
+                     } else {
+                        var varname = '';  /* STRING */ 
+                        varname =  (QB.func__Trim(  word));
+                        if ((await func_IsValidVarname(  varname))  ) {
+                           var dt = '';  /* STRING */ 
+                           dt =  (await func_DataTypeFromName(  varname));
+                           if ( optionExplicit) {
+                              await sub_AddError(  lineNumber,   "Variable '"  + (await func_RemoveSuffix(  varname))  + "' ("  +  dt + ") not defined");
+                           } else {
+                              await sub_RegisterImplicitVar(  varname,    dt);
+                              if ((await func_FindVariable(  varname,    bvar,    False))  ) {
+                                 js =   js + " "  +  bvar.name;
+                              } else {
+                                 await sub_AddError(  i,   "Implicit variable declaration error");
+                              }
+                           }
+                        } else {
+                           js =   js + " "  +  word;
+                        }
+                     }
                   }
                }
             }
@@ -2152,6 +2223,7 @@ return ConvertExpression;
 async function func_ConvertIntDiv(s/*STRING*/) {
 if (QB.halted()) { return; }; 
 var ConvertIntDiv = null;
+/* implicit variables: */ 
    var idx = 0;  /* INTEGER */ var sidx = 0;  /* INTEGER */ var eidx = 0;  /* INTEGER */ var smode = 0;  /* INTEGER */ var qmode = 0;  /* INTEGER */ var pcount = 0;  /* INTEGER */ var ci = 0;  /* INTEGER */ 
    var c = '';  /* STRING */ 
    idx =  (QB.func_InStr(  s,   "\\"));
@@ -2226,6 +2298,7 @@ return ConvertIntDiv;
 async function func_ConvertMethodParams(args/*STRING*/,lineNumber/*INTEGER*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertMethodParams = null;
+/* implicit variables: */ 
    var js = '';  /* STRING */ 
    var params = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
    var argc = 0;  /* INTEGER */ 
@@ -2247,6 +2320,7 @@ return ConvertMethodParams;
 async function func_CallMethod(m/*METHOD*/) {
 if (QB.halted()) { return; }; 
 var CallMethod = null;
+/* implicit variables: */ 
    var js = '';  /* STRING */ 
    if ( m.sync ) {
       js =  "await ";
@@ -2258,6 +2332,7 @@ return CallMethod;
 async function func_FindVariable(varname/*STRING*/,bvar/*VARIABLE*/,isArray/*INTEGER*/) {
 if (QB.halted()) { return; }; isArray = Math.round(isArray); 
 var FindVariable = null;
+/* implicit variables: */ 
    var found = 0;  /* INTEGER */ 
    found =   False;
    var i = 0;  /* INTEGER */ 
@@ -2297,6 +2372,7 @@ return FindVariable;
 async function func_FindMethod(mname/*STRING*/,m/*METHOD*/,t/*STRING*/,includeBuiltIn/*INTEGER*/) {
 if (QB.halted()) { return; }; includeBuiltIn = Math.round(includeBuiltIn); 
 var FindMethod = null;
+/* implicit variables: */ 
    var found = 0;  /* INTEGER */ 
    found =   False;
    var i = 0;  /* INTEGER */ 
@@ -2338,6 +2414,7 @@ return FindMethod;
 }
 async function sub_ConvertMethods() {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    await sub_AddJSLine(  0 ,   "");
    var i = 0;  /* INTEGER */ 
    var ___v3082602 = 0; ___l882600: for ( i=  1 ;  i <= (QB.func_UBound(  methods));  i= i + 1) { if (QB.halted()) { return; } ___v3082602++;   if (___v3082602 % 100 == 0) { await QB.autoLimit(); }
@@ -2415,6 +2492,7 @@ if (QB.halted()) { return; };
 }
 async function sub_ReadLinesFromFile(filename/*STRING*/) {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    var fline = '';  /* STRING */ 
    var lineIndex = 0;  /* INTEGER */ 
    var rawJS = 0;  /* SINGLE */ 
@@ -2435,6 +2513,7 @@ if (QB.halted()) { return; };
 }
 async function sub_ReadLinesFromText(sourceText/*STRING*/) {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    var sourceLines = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
    var rawJS = 0;  /* SINGLE */ 
    var lcount = 0;  /* INTEGER */ 
@@ -2478,6 +2557,7 @@ if (QB.halted()) { return; };
 async function func_ReadLine(lineIndex/*INTEGER*/,fline/*STRING*/,rawJS/*INTEGER*/) {
 if (QB.halted()) { return; }; lineIndex = Math.round(lineIndex); rawJS = Math.round(rawJS); 
 var ReadLine = null;
+/* implicit variables: */ 
    var quoteDepth = 0;  /* INTEGER */ 
    quoteDepth =   0;
    var i = 0;  /* INTEGER */ 
@@ -2581,6 +2661,7 @@ return ReadLine;
 }
 async function sub_AddSubLines(lineIndex/*INTEGER*/,fline/*STRING*/) {
 if (QB.halted()) { return; }; lineIndex = Math.round(lineIndex); 
+/* implicit variables: */ 
    var quoteDepth = 0;  /* INTEGER */ 
    quoteDepth =   0;
    var i = 0;  /* INTEGER */ 
@@ -2604,6 +2685,7 @@ if (QB.halted()) { return; }; lineIndex = Math.round(lineIndex);
 }
 async function sub_FindMethods() {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    var i = 0;  /* INTEGER */ 
    var pcount = 0;  /* INTEGER */ 
    var rawJS = 0;  /* INTEGER */ 
@@ -2689,6 +2771,7 @@ if (QB.halted()) { return; };
 async function func_Split(sourceString/*STRING*/,delimiter/*STRING*/,results/*STRING*/) {
 if (QB.halted()) { return; }; 
 var Split = null;
+/* implicit variables: */ 
    var cstr = '';  /* STRING */ 
    var p = 0;  /* LONG */ var curpos = 0;  /* LONG */ var arrpos = 0;  /* LONG */ var dpos = 0;  /* LONG */ 
    cstr =   sourceString;
@@ -2719,6 +2802,7 @@ return Split;
 async function func_SLSplit(sourceString/*STRING*/,results/*STRING*/,escapeStrings/*INTEGER*/) {
 if (QB.halted()) { return; }; escapeStrings = Math.round(escapeStrings); 
 var SLSplit = null;
+/* implicit variables: */ 
    var cstr = '';  /* STRING */ 
    var p = 0;  /* LONG */ var curpos = 0;  /* LONG */ var arrpos = 0;  /* LONG */ var dpos = 0;  /* LONG */ 
    cstr =  (QB.func__Trim(  sourceString));
@@ -2790,6 +2874,7 @@ return SLSplit;
 async function func_FindOperator(c/*STRING*/,c2/*STRING*/) {
 if (QB.halted()) { return; }; 
 var FindOperator = null;
+/* implicit variables: */ 
    if ( c2 ==  ">="  ) {
       FindOperator =   2;
    } else if ( c2 ==  "<="  ) {
@@ -2819,6 +2904,7 @@ return FindOperator;
 }
 async function sub_CheckParen(sourceString/*STRING*/,lineNumber/*LONG*/) {
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
+/* implicit variables: */ 
    var i = 0;  /* INTEGER */ 
    var quoteMode = 0;  /* INTEGER */ 
    var paren = 0;  /* INTEGER */ 
@@ -2843,6 +2929,7 @@ if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber);
 async function func_SLSplit2(sourceString/*STRING*/,results/*STRING*/) {
 if (QB.halted()) { return; }; 
 var SLSplit2 = null;
+/* implicit variables: */ 
    var cstr = '';  /* STRING */ 
    var p = 0;  /* LONG */ var curpos = 0;  /* LONG */ var arrpos = 0;  /* LONG */ var dpos = 0;  /* LONG */ 
    cstr =  (QB.func__Trim(  sourceString));
@@ -2893,6 +2980,7 @@ return SLSplit2;
 async function func_ListSplit(sourceString/*STRING*/,results/*STRING*/) {
 if (QB.halted()) { return; }; 
 var ListSplit = null;
+/* implicit variables: */ 
    var cstr = '';  /* STRING */ 
    var p = 0;  /* LONG */ var curpos = 0;  /* LONG */ var arrpos = 0;  /* LONG */ var dpos = 0;  /* LONG */ 
    cstr =  (QB.func__Trim(  sourceString));
@@ -2938,6 +3026,7 @@ return ListSplit;
 async function func_PrintSplit(sourceString/*STRING*/,results/*STRING*/) {
 if (QB.halted()) { return; }; 
 var PrintSplit = null;
+/* implicit variables: */ 
    var cstr = '';  /* STRING */ 
    var p = 0;  /* LONG */ var curpos = 0;  /* LONG */ var arrpos = 0;  /* LONG */ var dpos = 0;  /* LONG */ 
    cstr =  (QB.func__Trim(  sourceString));
@@ -2987,6 +3076,7 @@ return PrintSplit;
 }
 async function sub_PrintMethods() {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    await QB.sub_Print([""]);
    await QB.sub_Print(["Methods"]);
    await QB.sub_Print(["------------------------------------------------------------"]);
@@ -2999,6 +3089,7 @@ if (QB.halted()) { return; };
 }
 async function sub_PrintTypes() {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    await QB.sub_Print([""]);
    await QB.sub_Print(["Types"]);
    await QB.sub_Print(["------------------------------------------------------------"]);
@@ -3017,6 +3108,7 @@ if (QB.halted()) { return; };
 }
 async function sub_CopyMethod(fromMethod/*METHOD*/,toMethod/*METHOD*/) {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    toMethod.type =   fromMethod.type;
    toMethod.name =   fromMethod.name;
    toMethod.returnType =   fromMethod.returnType;
@@ -3029,6 +3121,7 @@ if (QB.halted()) { return; };
 }
 async function sub_AddMethod(m/*METHOD*/,prefix/*STRING*/,sync/*INTEGER*/) {
 if (QB.halted()) { return; }; sync = Math.round(sync); 
+/* implicit variables: */ 
    var mcount = 0;  /* SINGLE */ 
    mcount =  (QB.func_UBound(  methods))  +  1;
    QB.resizeArray(methods, [{l:0,u:mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, true);  /* METHOD */ 
@@ -3042,6 +3135,7 @@ if (QB.halted()) { return; }; sync = Math.round(sync);
 }
 async function sub_AddExportMethod(m/*METHOD*/,prefix/*STRING*/,sync/*INTEGER*/) {
 if (QB.halted()) { return; }; sync = Math.round(sync); 
+/* implicit variables: */ 
    var mcount = 0;  /* SINGLE */ 
    mcount =  (QB.func_UBound(  exportMethods))  +  1;
    QB.resizeArray(exportMethods, [{l:0,u:mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, true);  /* METHOD */ 
@@ -3057,6 +3151,7 @@ if (QB.halted()) { return; }; sync = Math.round(sync);
 }
 async function sub_AddExportConst(vname/*STRING*/) {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    var v = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
    v.type =  "CONST";
    v.name =   vname;
@@ -3065,6 +3160,7 @@ if (QB.halted()) { return; };
 }
 async function sub_AddGXMethod(mtype/*STRING*/,mname/*STRING*/,sync/*INTEGER*/) {
 if (QB.halted()) { return; }; sync = Math.round(sync); 
+/* implicit variables: */ 
    var mcount = 0;  /* SINGLE */ 
    mcount =  (QB.func_UBound(  methods))  +  1;
    QB.resizeArray(methods, [{l:0,u:mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, true);  /* METHOD */ 
@@ -3082,6 +3178,7 @@ if (QB.halted()) { return; }; sync = Math.round(sync);
 }
 async function sub_AddQBMethod(mtype/*STRING*/,mname/*STRING*/,sync/*INTEGER*/) {
 if (QB.halted()) { return; }; sync = Math.round(sync); 
+/* implicit variables: */ 
    var m = {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0};  /* METHOD */ 
    m.type =   mtype;
    m.name =   mname;
@@ -3101,6 +3198,7 @@ if (QB.halted()) { return; }; sync = Math.round(sync);
 }
 async function sub_AddNativeMethod(mtype/*STRING*/,mname/*STRING*/,jsname/*STRING*/,sync/*INTEGER*/) {
 if (QB.halted()) { return; }; sync = Math.round(sync); 
+/* implicit variables: */ 
    var m = {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0};  /* METHOD */ 
    m.type =   mtype;
    m.name =   mname;
@@ -3115,10 +3213,12 @@ if (QB.halted()) { return; }; sync = Math.round(sync);
 }
 async function sub_AddLine(lineIndex/*INTEGER*/,fline/*STRING*/) {
 if (QB.halted()) { return; }; lineIndex = Math.round(lineIndex); 
+/* implicit variables: */ 
    await sub___AddLine(  lineIndex,    fline);
 }
 async function sub___AddLine(lineIndex/*INTEGER*/,fline/*STRING*/) {
 if (QB.halted()) { return; }; lineIndex = Math.round(lineIndex); 
+/* implicit variables: */ 
    var lcount = 0;  /* INTEGER */ 
    lcount =  (QB.func_UBound(  lines))  +  1;
    QB.resizeArray(lines, [{l:0,u:lcount}], {line:0,text:'',mtype:0}, true);  /* CODELINE */ 
@@ -3127,6 +3227,7 @@ if (QB.halted()) { return; }; lineIndex = Math.round(lineIndex);
 }
 async function sub_AddJSLine(sourceLine/*INTEGER*/,jsline/*STRING*/) {
 if (QB.halted()) { return; }; sourceLine = Math.round(sourceLine); 
+/* implicit variables: */ 
    var lcount = 0;  /* INTEGER */ 
    lcount =  (QB.func_UBound(  jsLines))  +  1;
    QB.resizeArray(jsLines, [{l:0,u:lcount}], {line:0,text:'',mtype:0}, true);  /* CODELINE */ 
@@ -3135,6 +3236,7 @@ if (QB.halted()) { return; }; sourceLine = Math.round(sourceLine);
 }
 async function sub_AddWarning(sourceLine/*INTEGER*/,msgText/*STRING*/) {
 if (QB.halted()) { return; }; sourceLine = Math.round(sourceLine); 
+/* implicit variables: */ 
    var lcount = 0;  /* INTEGER */ 
    lcount =  (QB.func_UBound(  warnings))  +  1;
    QB.resizeArray(warnings, [{l:0,u:lcount}], {line:0,text:'',mtype:0}, true);  /* CODELINE */ 
@@ -3147,11 +3249,13 @@ if (QB.halted()) { return; }; sourceLine = Math.round(sourceLine);
 }
 async function sub_AddError(sourceLine/*INTEGER*/,msgText/*STRING*/) {
 if (QB.halted()) { return; }; sourceLine = Math.round(sourceLine); 
+/* implicit variables: */ 
    await sub_AddWarning(  sourceLine,    msgText);
    QB.arrayValue(warnings, [(QB.func_UBound(  warnings))]).value .mtype =   MERROR;
 }
 async function sub_AddConst(vname/*STRING*/) {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    var v = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
    v.type =  "CONST";
    v.name =   vname;
@@ -3160,6 +3264,7 @@ if (QB.halted()) { return; };
 }
 async function sub_AddGXConst(vname/*STRING*/) {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    var v = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
    v.type =  "CONST";
    v.name =   vname;
@@ -3180,6 +3285,7 @@ if (QB.halted()) { return; };
 }
 async function sub_AddQBConst(vname/*STRING*/) {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    var v = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
    v.type =  "CONST";
    v.name =   vname;
@@ -3197,6 +3303,7 @@ if (QB.halted()) { return; };
 }
 async function sub_AddGlobal(vname/*STRING*/,vtype/*STRING*/,arraySize/*INTEGER*/) {
 if (QB.halted()) { return; }; arraySize = Math.round(arraySize); 
+/* implicit variables: */ 
    var v = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
    v.type =   vtype;
    v.name =   vname;
@@ -3206,6 +3313,7 @@ if (QB.halted()) { return; }; arraySize = Math.round(arraySize);
 }
 async function sub_AddLocal(vname/*STRING*/,vtype/*STRING*/,arraySize/*INTEGER*/) {
 if (QB.halted()) { return; }; arraySize = Math.round(arraySize); 
+/* implicit variables: */ 
    var v = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
    v.type =   vtype;
    v.name =   vname;
@@ -3215,6 +3323,7 @@ if (QB.halted()) { return; }; arraySize = Math.round(arraySize);
 }
 async function sub_AddVariable(bvar/*VARIABLE*/,vlist/*VARIABLE*/) {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    var vcount = 0;  /* SINGLE */ 
    vcount =  (QB.func_UBound(  vlist))  +  1;
    QB.resizeArray(vlist, [{l:0,u:vcount}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, true);  /* VARIABLE */ 
@@ -3239,6 +3348,7 @@ if (QB.halted()) { return; };
 async function func_NormalizeType(itype/*STRING*/) {
 if (QB.halted()) { return; }; 
 var NormalizeType = null;
+/* implicit variables: */ 
    var otype = '';  /* STRING */ 
    if ( itype ==  "BIT"  ) {
       otype =  "_BIT";
@@ -3266,6 +3376,7 @@ return NormalizeType;
 }
 async function sub_AddType(t/*QBTYPE*/) {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    var tcount = 0;  /* SINGLE */ 
    tcount =  (QB.func_UBound(  types))  +  1;
    QB.resizeArray(types, [{l:0,u:tcount}], {line:0,name:'',argc:0,args:''}, true);  /* QBTYPE */ 
@@ -3273,6 +3384,7 @@ if (QB.halted()) { return; };
 }
 async function sub_AddSystemType(tname/*STRING*/,args/*STRING*/) {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    var t = {line:0,name:'',argc:0,args:''};  /* QBTYPE */ 
    t.name =   tname;
    await sub_AddType(  t);
@@ -3295,6 +3407,7 @@ if (QB.halted()) { return; };
 async function func_MainEnd() {
 if (QB.halted()) { return; }; 
 var MainEnd = null;
+/* implicit variables: */ 
    if ( programMethods ==   0 ) {
       MainEnd =  (QB.func_UBound(  lines));
    } else {
@@ -3305,6 +3418,7 @@ return MainEnd;
 async function func_RemoveSuffix(vname/*STRING*/) {
 if (QB.halted()) { return; }; 
 var RemoveSuffix = null;
+/* implicit variables: */ 
    var i = 0;  /* INTEGER */ 
    var done = 0;  /* INTEGER */ 
    var c = '';  /* STRING */ 
@@ -3324,6 +3438,7 @@ return RemoveSuffix;
 async function func_IsJSReservedWord(vname/*STRING*/) {
 if (QB.halted()) { return; }; 
 var IsJSReservedWord = null;
+/* implicit variables: */ 
    var found = 0;  /* INTEGER */ var i = 0;  /* INTEGER */ 
    var ___v8784156 = 0; ___l9087062: for ( i=  1 ;  i <= (QB.func_UBound(  jsReservedWords));  i= i + 1) { if (QB.halted()) { return; } ___v8784156++;   if (___v8784156 % 100 == 0) { await QB.autoLimit(); }
       if (QB.arrayValue(jsReservedWords, [ i]).value  ==   vname) {
@@ -3337,6 +3452,7 @@ return IsJSReservedWord;
 async function func_DataTypeFromName(vname/*STRING*/) {
 if (QB.halted()) { return; }; 
 var DataTypeFromName = null;
+/* implicit variables: */ 
    var dt = '';  /* STRING */ 
    if ((await func_EndsWith(  vname,   "$"))  ) {
       dt =  "STRING";
@@ -3375,6 +3491,7 @@ return DataTypeFromName;
 async function func_EndsWith(s/*STRING*/,finds/*STRING*/) {
 if (QB.halted()) { return; }; 
 var EndsWith = null;
+/* implicit variables: */ 
    if ((QB.func_Len(  finds))  >(QB.func_Len(  s))  ) {
       EndsWith =   False;
       return EndsWith;
@@ -3389,6 +3506,7 @@ return EndsWith;
 async function func_StartsWith(s/*STRING*/,finds/*STRING*/) {
 if (QB.halted()) { return; }; 
 var StartsWith = null;
+/* implicit variables: */ 
    if ((QB.func_Len(  finds))  >(QB.func_Len(  s))  ) {
       StartsWith =   False;
       return StartsWith;
@@ -3403,6 +3521,7 @@ return StartsWith;
 async function func_Join(parts/*STRING*/,startIndex/*INTEGER*/,endIndex/*INTEGER*/,delimiter/*STRING*/) {
 if (QB.halted()) { return; }; startIndex = Math.round(startIndex); endIndex = Math.round(endIndex); 
 var Join = null;
+/* implicit variables: */ 
    if ( endIndex ==   -  1 ) {
       endIndex =  (QB.func_UBound(  parts));
    }
@@ -3420,6 +3539,7 @@ return Join;
 async function func_LPad(s/*STRING*/,padChar/*STRING*/,swidth/*INTEGER*/) {
 if (QB.halted()) { return; }; swidth = Math.round(swidth); 
 var LPad = null;
+/* implicit variables: */ 
    var padding = '';  /* STRING */ 
    padding =  (QB.func_String(  swidth - (QB.func_Len(  s))  ,    padChar));
    LPad =   padding +  s;
@@ -3428,6 +3548,7 @@ return LPad;
 async function func_Replace(s/*STRING*/,searchString/*STRING*/,newString/*STRING*/) {
 if (QB.halted()) { return; }; 
 var Replace = null;
+/* implicit variables: */ 
    var ns = '';  /* STRING */ 
    var i = 0;  /* INTEGER */ 
    var slen = 0;  /* INTEGER */ 
@@ -3446,24 +3567,28 @@ return Replace;
 async function func_LF() {
 if (QB.halted()) { return; }; 
 var LF = null;
+/* implicit variables: */ 
    LF =  (QB.func_Chr(  10));
 return LF;
 }
 async function func_CR() {
 if (QB.halted()) { return; }; 
 var CR = null;
+/* implicit variables: */ 
    CR =  (QB.func_Chr(  13));
 return CR;
 }
 async function func_CRLF() {
 if (QB.halted()) { return; }; 
 var CRLF = null;
+/* implicit variables: */ 
    CRLF =  await func_CR() + await func_LF();
 return CRLF;
 }
 async function func_MethodJS(m/*METHOD*/,prefix/*STRING*/) {
 if (QB.halted()) { return; }; 
 var MethodJS = null;
+/* implicit variables: */ 
    var jsname = '';  /* STRING */ 
    jsname =   prefix;
    if ( m.type ==  "FUNCTION"  ) {
@@ -3489,6 +3614,7 @@ return MethodJS;
 async function func_GXMethodJS(mname/*STRING*/) {
 if (QB.halted()) { return; }; 
 var GXMethodJS = null;
+/* implicit variables: */ 
    var jsname = '';  /* STRING */ 
    var startIdx = 0;  /* INTEGER */ 
    if ((QB.func_InStr(  mname,   "GXSTR"))  ==   1 ) {
@@ -3514,6 +3640,7 @@ return GXMethodJS;
 }
 async function sub_InitJSReservedWords() {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    QB.arrayValue(jsReservedWords, [ 1]).value =  "abstract";
    QB.arrayValue(jsReservedWords, [ 2]).value =  "arguments";
    QB.arrayValue(jsReservedWords, [ 3]).value =  "await";
@@ -3571,6 +3698,7 @@ if (QB.halted()) { return; };
 }
 async function sub_InitGX() {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    await sub_AddSystemType( "GXPOSITION"  ,   "x:LONG,y:LONG");
    await sub_AddSystemType( "GXDEVICEINPUT"  ,   "deviceId:INTEGER,deviceType:INTEGER,inputType:INTEGER,inputId:INTEGER,inputValue:INTEGER");
    await sub_AddGXConst( "GX_FALSE");
@@ -3877,6 +4005,7 @@ if (QB.halted()) { return; };
 }
 async function sub_InitQBMethods() {
 if (QB.halted()) { return; }; 
+/* implicit variables: */ 
    await sub_AddQBConst( "_KEEPBACKGROUND");
    await sub_AddQBConst( "_ONLYBACKGROUND");
    await sub_AddQBConst( "_FILLBACKGROUND");

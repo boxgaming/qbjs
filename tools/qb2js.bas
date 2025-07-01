@@ -87,6 +87,7 @@ Dim Shared As String currentMethod
 Dim Shared As String currentModule
 Dim Shared As Integer programMethods
 Dim Shared As Integer staticVarLine
+Dim Shared As Integer implicitVarLine
 Dim Shared As String condWords(4)
 Dim Shared As Integer forceSelfConvert
 Dim Shared As Integer optionExplicit
@@ -355,6 +356,10 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
     Dim loopIndex As String
     Dim sfix As String
     Dim ctype As String
+
+    ' Add a line as a placeholder for implicit variable declarations
+    AddJSLine firstLine, "/* implicit variables: */ "
+    implicitVarLine = UBound(jsLines)
 
     For i = firstLine To lastLine
         indent = 0
@@ -773,26 +778,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
                 If assignment > 0 Then
                     ' This is a variable assignment
-                    Dim ivar As Variable
-                    Dim varname As String
-                    varname = _Trim$(ConvertExpression(Join(parts(), asnVarIndex, assignment - 1, " "), i))
-                    If Not IsValidVarname(varname) Then
-                        js = RemoveSuffix(varname) + " = " + ConvertExpression(Join(parts(), assignment + 1, -1, " "), i) + ";"
-                    ElseIf FindVariable(varname, ivar, False) Then
-                        js = RemoveSuffix(varname) + " = " + ConvertExpression(Join(parts(), assignment + 1, -1, " "), i) + ";"
-                    Else
-                        ' implicit variable declaration
-                        Dim dti As String
-                        dti = DataTypeFromName(varname)
-                        If optionExplicit Then
-                            AddError i, "Variable '" + varname + "' (" + dti + ") not defined"
-                        Else
-                            ivar.name = varname
-                            ivar.type = dti
-                            js = RegisterVar(ivar, "", False, False, "", "") + "; " + varname + " = " + ConvertExpression(Join(parts(), assignment + 1, -1, " "), i) + ";"
-                        End If
-                    End If
-                    'js = RemoveSuffix(ConvertExpression(Join(parts(), asnVarIndex, assignment - 1, " "), i)) + " = " + ConvertExpression(Join(parts(), assignment + 1, -1, " "), i) + ";"
+                    js = RemoveSuffix(ConvertExpression(Join(parts(), asnVarIndex, assignment - 1, " "), i)) + " = " + ConvertExpression(Join(parts(), assignment + 1, -1, " "), i) + ";"
 
                 Else
                     ' Check to see if there was no space left between the sub name and initial paren
@@ -847,6 +833,18 @@ Function IsValidVarname (varname As String)
     Dim As Integer i, c, valid
     valid = True
     vname = _Trim$(UCase$(RemoveSuffix(varname)))
+    ' Check for reserved words
+    If vname = "TO" Or vname = "UNDEFINED" Then
+        IsValidVarname = False
+        Exit Function
+    End If
+    ' Check for function or sub references
+    ' TODO: This check should be removed after a proper method reference is implemented in the language
+    If Mid$(vname, 1, 4) = "SUB_" Or Mid$(vname, 1, 5) = "FUNC_" Then
+        IsValidVarname = False
+        Exit Function
+    End If
+    ' Check to see if the name contains valid characters
     c = Asc(Mid$(vname, 1, 1))
     If (c >= 65 And c <= 90) Or c = 95 Then
         For i = 2 To Len(vname)
@@ -2075,6 +2073,13 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
     RegisterVar = js
 End Function
 
+Sub RegisterImplicitVar (varname As String, dataType As String)
+    Dim ivar As Variable
+    ivar.name = RemoveSuffix(varname)
+    ivar.type = dataType
+    jsLines(implicitVarLine).text = jsLines(implicitVarLine).text + RegisterVar(ivar, "", False, False, "", "")
+End Sub
+
 Function FormatArraySize$ (sizeString As String)
     Dim sizeParams As String: sizeParams = ""
     ReDim parts(0) As String
@@ -2202,10 +2207,6 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                     If FindVariable(word, bvar, False) Then
                         js = js + " " + bvar.jsname
                     Else
-                        ' TODO: Need a more sophisticated way to determine whether
-                        '       the return value is being assigned in the method.
-                        '       Currently, this does not support recursive calls.
-                        '       (is this comment still true?)
                         If FindMethod(word, m, "FUNCTION", True) Then
                             If m.name <> currentMethod Then
                                 js = js + CallMethod$(m) + "()"
@@ -2213,8 +2214,31 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                                 js = js + " " + word
                             End If
                         Else
-                            ' TODO: check for implicit variable declaration
-                            js = js + " " + word
+                            ' Check for implicit variable declaration
+                            If FindVariable(word, bvar, True) Then
+                                js = js + " " + bvar.jsname
+                            Else
+                                Dim varname As String
+                                varname = _Trim$(word)
+                                If IsValidVarname(varname) Then
+                                    Dim dt As String
+                                    dt = DataTypeFromName(varname)
+                                    If optionExplicit Then
+                                        AddError lineNumber, "Variable '" + RemoveSuffix(varname) + "' (" + dt + ") not defined"
+                                    Else
+                                        ' uncomment following line for implicit variable debugging
+                                        'AddWarning lineNumber, "Implicit variable '" + varname + "': " + ex
+                                        RegisterImplicitVar varname, dt
+                                        If FindVariable(varname, bvar, False) Then
+                                           js = js + " " + bvar.name
+                                        Else
+                                            AddError i, "Implicit variable declaration error"
+                                        End If
+                                    End If
+                                Else
+                                    js = js + " " + word
+                                End If
+                            End If
                         End If
 
                     End If
