@@ -832,8 +832,10 @@ Function IsValidVarname (varname As String)
     Dim As String vname, s
     Dim As Integer i, c, valid
     valid = True
-    vname = _Trim$(UCase$(RemoveSuffix(varname)))
+    vname = _Trim$(varname)
     ' Check for reserved words
+    If vname = "true" Or vname = "false" Then IsValidVarname = False: Exit Sub
+    vname = UCase$(RemoveSuffix(vname))
     If vname = "TO" Or vname = "UNDEFINED" Then
         IsValidVarname = False
         Exit Function

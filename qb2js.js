@@ -728,7 +728,12 @@ var IsValidVarname = null;
    var vname = '';  /* STRING */ var s = '';  /* STRING */ 
    var i = 0;  /* INTEGER */ var c = 0;  /* INTEGER */ var valid = 0;  /* INTEGER */ 
    valid =   True;
-   vname =  (QB.func__Trim( (QB.func_UCase( (await func_RemoveSuffix(  varname))))));
+   vname =  (QB.func__Trim(  varname));
+   if ( vname ==  "true"  |  vname ==  "false"  ) {
+      IsValidVarname =   False;
+      return;
+   }
+   vname =  (QB.func_UCase( (await func_RemoveSuffix(  vname))));
    if ( vname ==  "TO"  |  vname ==  "UNDEFINED"  ) {
       IsValidVarname =   False;
       return IsValidVarname;
