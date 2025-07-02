@@ -87,8 +87,10 @@ Dim Shared As String currentMethod
 Dim Shared As String currentModule
 Dim Shared As Integer programMethods
 Dim Shared As Integer staticVarLine
+Dim Shared As Integer implicitVarLine
 Dim Shared As String condWords(4)
 Dim Shared As Integer forceSelfConvert
+Dim Shared As Integer optionExplicit
 
 ' Only execute the conversion from the native version if we have been passed the
 ' source file to convert on the command line
@@ -313,6 +315,7 @@ Sub ResetDataStructures
     currentMethod = ""
     programMethods = 0
     staticVarLine = 0
+    optionExplicit = False
 End Sub
 
 Sub InitData
@@ -353,6 +356,10 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
     Dim loopIndex As String
     Dim sfix As String
     Dim ctype As String
+
+    ' Add a line as a placeholder for implicit variable declarations
+    AddJSLine firstLine, "/* implicit variables: */ "
+    implicitVarLine = UBound(jsLines)
 
     For i = firstLine To lastLine
         indent = 0
@@ -433,6 +440,10 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                         AddConst _Trim$(cleft)
                     End If
                 Next constIdx
+
+            ElseIf first = "OPTION" Then
+                second = UCase$(_Trim$(parts(2)))
+                If second = "_EXPLICIT" Or second = "EXPLICIT" Then optionExplicit = True
 
             ElseIf first = "DIM" Or first = "REDIM" Or first = "STATIC" Or first = "SHARED" Then
                 js = DeclareVar(parts(), i)
@@ -767,7 +778,6 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
                 If assignment > 0 Then
                     ' This is a variable assignment
-                    ' TODO: implicit variable declaration
                     js = RemoveSuffix(ConvertExpression(Join(parts(), asnVarIndex, assignment - 1, " "), i)) + " = " + ConvertExpression(Join(parts(), assignment + 1, -1, " "), i) + ";"
 
                 Else
@@ -817,6 +827,42 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
     End If
 
 End Sub
+
+Function IsValidVarname (varname As String)
+    Dim As String vname, s
+    Dim As Integer i, c, valid
+    valid = True
+    vname = _Trim$(varname)
+    ' Check for reserved words
+    If vname = "true" Or vname = "false" Then IsValidVarname = False: Exit Sub
+    vname = UCase$(RemoveSuffix(vname))
+    If vname = "TO" Or vname = "UNDEFINED" Then
+        IsValidVarname = False
+        Exit Function
+    End If
+    ' Check for function or sub references
+    ' TODO: This check should be removed after a proper method reference is implemented in the language
+    If Mid$(vname, 1, 4) = "SUB_" Or Mid$(vname, 1, 5) = "FUNC_" Then
+        IsValidVarname = False
+        Exit Function
+    End If
+    ' Check to see if the name contains valid characters
+    c = Asc(Mid$(vname, 1, 1))
+    If (c >= 65 And c <= 90) Or c = 95 Then
+        For i = 2 To Len(vname)
+            c = Asc(Mid$(vname, i, 1))
+            If (c >= 65 And c <= 90) Or (c >= 48 And c <= 57) Or c = 95 Then
+                ' valid character
+            Else
+                valid = False
+                Exit For
+            End If
+        Next i
+    Else
+        valid = False
+    End If
+    IsValidVarname = valid
+End Function
 
 Function BeginPhraseFor$ (endPhrase As String)
     Dim bp As String
@@ -1613,7 +1659,7 @@ Function ConvertInput$ (m As Method, args As String, lineNumber As Integer)
     Dim varIndex As Integer: varIndex = 1
     Dim preventNewline As String: preventNewline = "false"
     Dim addQuestionPrompt As String: addQuestionPrompt = "false"
-    Dim prompt As String: prompt = "undefined"
+    Dim promptStr As String: promptStr = "undefined"
     Dim vcount As Integer
 
     Dim p As String
@@ -1628,7 +1674,7 @@ Function ConvertInput$ (m As Method, args As String, lineNumber As Integer)
                 addQuestionPrompt = "true"
             End If
         ElseIf StartsWith(p, Chr$(34)) Then
-            prompt = p
+            promptStr = p
         ElseIf p <> "," Then
             vcount = UBound(vars) + 1
             ReDim _Preserve As String vars(vcount)
@@ -1638,7 +1684,7 @@ Function ConvertInput$ (m As Method, args As String, lineNumber As Integer)
 
     vname = GenJSVar
     js = "var " + vname + " = new Array(" + Str$(UBound(vars)) + "); "
-    js = js + CallMethod(m) + "(" + vname + ", " + preventNewline + ", " + addQuestionPrompt + ", " + prompt + "); "
+    js = js + CallMethod(m) + "(" + vname + ", " + preventNewline + ", " + addQuestionPrompt + ", " + promptStr + "); "
     For i = 1 To UBound(vars)
         ' Convert to appropriate variable type on assignment
         Dim vartype As String
@@ -1774,7 +1820,7 @@ Function GenJSName$
     GenJSName$ = _Trim$(Str$(_Round(Rnd * 10000000)))
 End Function
 
-Function FindParamChar (s As String, char As String)
+Function FindParamChar (s As String, ch As String)
     Dim idx As Integer
     idx = -1
 
@@ -1790,7 +1836,7 @@ Function FindParamChar (s As String, char As String)
             paren = paren + 1
         ElseIf Not quote And c = ")" Then
             paren = paren - 1
-        ElseIf Not quote And paren = 0 And c = char Then
+        ElseIf Not quote And paren = 0 And c = ch Then
             idx = i
             Exit For
         End If
@@ -1879,7 +1925,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
     Dim asIdx As Integer
     asIdx = 0
     Dim js As String: js = ""
-    Dim preserve As String: preserve = "false"
+    Dim bPreserve As String: bPreserve = "false"
 
     If UCase$(parts(1)) = "STATIC" Then
         If currentMethod = "" Then
@@ -1906,14 +1952,14 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
     Dim i As Integer
     For i = 1 To UBound(parts)
         If UCase$(parts(i)) = "AS" Then asIdx = i
-        If UCase$(parts(i)) = "_PRESERVE" Or UCase$(parts(i)) = "PRESERVE" Then preserve = "true"
+        If UCase$(parts(i)) = "_PRESERVE" Or UCase$(parts(i)) = "PRESERVE" Then bPreserve = "true"
         If UCase$(parts(i)) = "SHARED" Then isGlobal = True
     Next i
 
 
     If asIdx = 2 Or _
-       (asIdx = 3 And (isGlobal Or preserve = "true")) Or _
-       (asIdx = 4 And isGlobal And preserve = "true") Then
+       (asIdx = 3 And (isGlobal Or bPreserve = "true")) Or _
+       (asIdx = 4 And isGlobal And bPreserve = "true") Then
 
         ' Handle Dim As syntax
         bvar.type = UCase$(parts(asIdx + 1))
@@ -1939,7 +1985,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
                 bvar.name = vname
             End If
 
-            js = RegisterVar(bvar, js, isGlobal, isStatic, preserve, arraySize)
+            js = RegisterVar(bvar, js, isGlobal, isStatic, bPreserve, arraySize)
         Next i
 
 
@@ -1983,7 +2029,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
                 arraySize = ""
             End If
 
-            js = RegisterVar(bvar, js, isGlobal, isStatic, preserve, arraySize)
+            js = RegisterVar(bvar, js, isGlobal, isStatic, bPreserve, arraySize)
         Next i
     End If
 
@@ -1995,7 +2041,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
     End If
 End Function
 
-Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isStatic As Integer, preserve As String, arraySize As String)
+Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isStatic As Integer, bPreserve As String, arraySize As String)
     Dim findVar As Variable
     Dim varExists As Integer
 
@@ -2018,7 +2064,7 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
 
     Else
         If varExists Then
-            js = js + "QB.resizeArray(" + bvar.jsname + ", [" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ", " + preserve + "); "
+            js = js + "QB.resizeArray(" + bvar.jsname + ", [" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ", " + bPreserve + "); "
         Else
             js = js + "var " + bvar.jsname + " = QB.initArray([" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + "); "
         End If
@@ -2028,6 +2074,13 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
 
     RegisterVar = js
 End Function
+
+Sub RegisterImplicitVar (varname As String, dataType As String)
+    Dim ivar As Variable
+    ivar.name = RemoveSuffix(varname)
+    ivar.type = dataType
+    jsLines(implicitVarLine).text = jsLines(implicitVarLine).text + RegisterVar(ivar, "", False, False, "", "")
+End Sub
 
 Function FormatArraySize$ (sizeString As String)
     Dim sizeParams As String: sizeParams = ""
@@ -2156,10 +2209,6 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                     If FindVariable(word, bvar, False) Then
                         js = js + " " + bvar.jsname
                     Else
-                        ' TODO: Need a more sophisticated way to determine whether
-                        '       the return value is being assigned in the method.
-                        '       Currently, this does not support recursive calls.
-                        '       (is this comment still true?)
                         If FindMethod(word, m, "FUNCTION", True) Then
                             If m.name <> currentMethod Then
                                 js = js + CallMethod$(m) + "()"
@@ -2167,7 +2216,31 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                                 js = js + " " + word
                             End If
                         Else
-                            js = js + " " + word
+                            ' Check for implicit variable declaration
+                            If FindVariable(word, bvar, True) Then
+                                js = js + " " + bvar.jsname
+                            Else
+                                Dim varname As String
+                                varname = _Trim$(word)
+                                If IsValidVarname(varname) Then
+                                    Dim dt As String
+                                    dt = DataTypeFromName(varname)
+                                    If optionExplicit Then
+                                        AddError lineNumber, "Variable '" + RemoveSuffix(varname) + "' (" + dt + ") not defined"
+                                    Else
+                                        ' uncomment following line for implicit variable debugging
+                                        'AddWarning lineNumber, "Implicit variable '" + varname + "': " + ex
+                                        RegisterImplicitVar varname, dt
+                                        If FindVariable(varname, bvar, False) Then
+                                           js = js + " " + bvar.name
+                                        Else
+                                            AddError i, "Implicit variable declaration error"
+                                        End If
+                                    End If
+                                Else
+                                    js = js + " " + word
+                                End If
+                            End If
                         End If
 
                     End If
@@ -2485,6 +2558,10 @@ Sub ConvertMethods ()
             AddJSLine methods(i).line, "if (QB.halted()) { return; }; " + intConv
             If methods(i).type = "FUNCTION" Then
                 AddJSLine methods(i).line, "var " + RemoveSuffix(methods(i).name) + " = null;"
+                Dim fvar As Variable
+                fvar.name = RemoveSuffix(methods(i).name)
+                fvar.type = DataTypeFromName(methods(i).name)
+                AddVariable fvar, localVars()
             End If
             currentMethod = methods(i).name
 
