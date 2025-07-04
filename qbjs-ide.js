@@ -188,14 +188,11 @@ var IDE = new function() {
             lineNumbers: true,
             tabSize: 4,
             indentUnit: 4,
-            value: "\n\n\n\n\n\n\n\n\n",
             mode: "javascript",
             theme: theme,
-            //height: "auto",
             readOnly: true,
             specialChars: /[\u0009-\u000d\u00ad\u061c\u200b\u200e\u200f\u2028\u2029\u202d\u202e\u2066\u2067\u2069\ufeff\ufff9-\ufffc]/,
         });
-        jscm.setValue("");
 
         codeTabMap[MAIN_CODE_TAB] = {
             tab: document.getElementById("mainbas"),
@@ -884,6 +881,7 @@ var IDE = new function() {
             _e.jsCode.style.display = "block";
             _e.help.style.display = "none";
             window.onresize();
+            if (jscm) { jscm.refresh() };
         }
         else if (currTab == "fs") {
             _e.fsBrowser.style.display = "block";
