@@ -891,9 +891,14 @@ var QB = new function() {
                 name = "Font-" + id;
                 await _loadFont(name, url);
             }
-            else {
-                throw new Error("File not found: [" + name + "]");
-            }
+            // Throwing an error here is overzealous and breaks functionality.
+            // If the font name does not resolve to a file or URL we want to
+            // just attempt to treat it as a standard web font descriptor
+            // (e.g. "Arial, Helvetica, sans-serif")
+            // ---------------------------------------------------------------
+            // else {
+            //    throw new Error("File not found: [" + name + "]");
+            // }
         }
         
         _fonts[id] = { name: name, size: size, style: ""};
