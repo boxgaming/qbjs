@@ -91,6 +91,7 @@ Dim Shared As Integer implicitVarLine
 Dim Shared As String condWords(4)
 Dim Shared As Integer forceSelfConvert
 Dim Shared As Integer optionExplicit
+Dim Shared As Integer optionExplicitArray
 
 ' Only execute the conversion from the native version if we have been passed the
 ' source file to convert on the command line
@@ -305,10 +306,10 @@ Sub ResetDataStructures
     ReDim As Variable typeVars(0)
     ReDim As Variable globalVars(0)
     ReDim As Variable localVars(0)
-    ReDim As CodeLine warnings(0)
     ReDim As String dataArray(0)
     ReDim As Label dataLabels(0)
     If modLevel = 0 Then
+        ReDim As CodeLine warnings(0)
         ReDim As Method exportMethods(0)
         ReDim As Variable exportConsts(0)
     End If
@@ -316,6 +317,7 @@ Sub ResetDataStructures
     programMethods = 0
     staticVarLine = 0
     optionExplicit = False
+    optionExplicitArray = False
 End Sub
 
 Sub InitData
@@ -443,7 +445,11 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
             ElseIf first = "OPTION" Then
                 second = UCase$(_Trim$(parts(2)))
-                If second = "_EXPLICIT" Or second = "EXPLICIT" Then optionExplicit = True
+                If second = "_EXPLICIT" Or second = "EXPLICIT" Then 
+                    optionExplicit = True
+                ElseIf second = "_EXPLICITARRAY" Or second = "EXPLICITARRAY" Then
+                    optionExplicitArray = True
+                End If
 
             ElseIf first = "DIM" Or first = "REDIM" Or first = "STATIC" Or first = "SHARED" Then
                 js = DeclareVar(parts(), i)
@@ -2075,11 +2081,12 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
     RegisterVar = js
 End Function
 
-Sub RegisterImplicitVar (varname As String, dataType As String)
+Sub RegisterImplicitVar (varname As String, dataType As String, arraySize As String)
     Dim ivar As Variable
     ivar.name = RemoveSuffix(varname)
     ivar.type = dataType
-    jsLines(implicitVarLine).text = jsLines(implicitVarLine).text + RegisterVar(ivar, "", False, False, "", "")
+    If arraySize <> "" Then ivar.isArray = True
+    jsLines(implicitVarLine).text = jsLines(implicitVarLine).text + RegisterVar(ivar, "", False, False, "", arraySize)
 End Sub
 
 Function FormatArraySize$ (sizeString As String)
@@ -2230,9 +2237,9 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                                     Else
                                         ' uncomment following line for implicit variable debugging
                                         'AddWarning lineNumber, "Implicit variable '" + varname + "': " + ex
-                                        RegisterImplicitVar varname, dt
+                                        RegisterImplicitVar varname, dt, ""
                                         If FindVariable(varname, bvar, False) Then
-                                           js = js + " " + bvar.name
+                                           js = js + " " + bvar.jsname
                                         Else
                                             AddError i, "Implicit variable declaration error"
                                         End If
@@ -2299,9 +2306,39 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                 ElseIf FindMethod(word, m, "FUNCTION", True) Then
                     js = js + fneg + "(" + CallMethod(m) + "(" + ConvertMethodParams(ex2, lineNumber) + "))"
                 Else
-                    If _Trim$(word) <> "" Then AddWarning lineNumber, "Missing function or array [" + word + "]"
-                    ' nested condition
-                    js = js + fneg + "(" + ConvertExpression(ex2, lineNumber) + ")"
+                    varname = _Trim$(word)
+                    If varname <> "" Then
+                        ' uncomment following line for implicit variable debugging
+                        'AddWarning lineNumber, "Potential implicit array: " + word
+                        If optionExplicit Or optionExplicitArray Then
+                            AddError lineNumber, "Missing function or array [" + word + "]"
+                            js = js + fneg + "(" + ConvertExpression(ex2, lineNumber) + ")"
+                        Else
+                            ' determine how many dimensions are referenced in ex2
+                            ReDim params(0) As String
+                            Dim As String arraySize
+                            Dim As Integer argc, ai
+                            argc = ListSplit(ex2, params())
+                            ' construct the array size string
+                            arraySize = "10"
+                            For ai = 2 To argc: arraySize = arraySize + ", 10": Next ai
+                            dt = DataTypeFromName(varname)
+                            RegisterImplicitVar varname, dt, arraySize
+                            If FindVariable(varname, bvar, True) Then
+                                If _Trim$(ex2) = "" Then
+                                    ' This is the case where the array variable is being passed as a parameter
+                                    js = js + fneg + bvar.jsname
+                                Else
+                                    ' This is the case where a dimension is specified in order to retrieve or set a value in the array
+                                    js = js + fneg + "QB.arrayValue(" + bvar.jsname + ", [" + ConvertExpression(ex2, lineNumber) + "]).value"
+                                End If
+                            Else
+                                AddError i, "Implicit variable declaration error"
+                            End If
+                        End If
+                    Else
+                        js = js + fneg + "(" + ConvertExpression(ex2, lineNumber) + ")"
+                    End If
                 End If
                 word = ""
 

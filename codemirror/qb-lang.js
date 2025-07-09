@@ -66,7 +66,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              // QBJS-specific
                              'export', 'from', 'import']
 
-    var builtinConsts = ['append', 'binary', 'input', 'output', 'random', '_?explicit',
+    var builtinConsts = ['append', 'binary', 'input', 'output', 'random', '_?explicit', '_?explicitarray',
                          '_?off', '_?smooth', '_?stretch', '_?squarepixels', '_?keepbackground', '_?onlybackground', '_?fillbackground',
                          'gx_true', 'gx_false', 'gxevent_init', 'gxevent_update', 'gxevent_drawbg', 'gxevent_drawmap', 'gxevent_drawscreen',
                          'gxevent_mouseinput', 'gxevent_paintbefore', 'gxevent_paintafter', 'gxevent_collision_tile', 'gxevent_collision_entity',
