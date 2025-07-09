@@ -4575,6 +4575,7 @@ var QB = new function() {
             event.preventDefault();
             _lastKey = event.key;
             if (!_inputMode) {
+                _addInkeyPress(event);
                 var kh = _getKeyHit(event);
                 if (kh) {
                     _keyHitBuffer.push(kh);
@@ -4591,7 +4592,6 @@ var QB = new function() {
 
             event.preventDefault();
             if (!_inputMode) {
-                _addInkeyPress(event);
                 var kh = _getKeyHit(event);
                 if (kh) {
                     _keyHitBuffer.push(kh * -1);
