@@ -1052,10 +1052,20 @@ var IDE = new function() {
         if (GX.sceneActive() || QB.running()) {
             stopButton.style.display = "inline-block";
             runButton.style.display = "none";
+            for (var key in codeTabMap) {
+                if (codeTabMap[key].editor) {
+                    codeTabMap[key].editor.setOption("readOnly", true);
+                }
+            }
         }
         else {
             stopButton.style.display = "none";
             runButton.style.display = "inline-block";
+            for (var key in codeTabMap) {
+                if (codeTabMap[key].editor) {
+                    codeTabMap[key].editor.setOption("readOnly", false);
+                }
+            }
         }
         setTimeout(checkButtonState, 100);
     }

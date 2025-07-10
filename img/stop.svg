@@ -4,7 +4,7 @@
    version="1.1"
    id="svg8984"
    sodipodi:docname="stop.svg"
-   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -22,14 +22,15 @@
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
      inkscape:zoom="3.7382812"
-     inkscape:cx="128.13375"
+     inkscape:cx="128.2675"
      inkscape:cy="128.13375"
      inkscape:window-width="1920"
-     inkscape:window-height="1137"
-     inkscape:window-x="-8"
-     inkscape:window-y="-8"
+     inkscape:window-height="1008"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg8984" />
+     inkscape:current-layer="svg8984"
+     inkscape:pageshadow="2" />
   <rect
      fill="none"
      height="256"
@@ -47,5 +48,5 @@
      x="52"
      y="52"
      id="rect8982"
-     style="stroke-width:15;stroke-dasharray:none;stroke:#cecece;stroke-opacity:1" />
+     style="stroke-width:15;stroke-dasharray:none;stroke:#cecece;stroke-opacity:1;fill:#cecece;fill-opacity:1" />
 </svg>
