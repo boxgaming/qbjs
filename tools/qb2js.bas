@@ -15,10 +15,16 @@ Const PrintDataTypes = True
 Const PrintLineMapping = False
 Const PrintTokenizedLine = False
 
+Type Module
+    name As String
+    path As String
+End Type
+
 Type CodeLine
     line As Integer
     text As String
     mtype As Integer
+    moduleId As Integer
 End Type
 
 Type Method
@@ -68,6 +74,7 @@ Type Container
     line As Integer
 End Type
 
+ReDim Shared As Module modules(0)
 ReDim Shared As CodeLine lines(0)
 ReDim Shared As CodeLine jsLines(0)
 ReDim Shared As Method methods(0)
@@ -85,6 +92,7 @@ Dim Shared As String jsReservedWords(54)
 Dim Shared modLevel As Integer
 Dim Shared As String currentMethod
 Dim Shared As String currentModule
+Dim Shared As String currentModuleId
 Dim Shared As Integer programMethods
 Dim Shared As Integer staticVarLine
 Dim Shared As Integer implicitVarLine
@@ -193,7 +201,8 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "      w.push({"
         AddJSLine 0, "         line: QB.arrayValue(warnings, [i]).value.line,"
         AddJSLine 0, "         text: QB.arrayValue(warnings, [i]).value.text,"
-        AddJSLine 0, "         mtype: QB.arrayValue(warnings, [i]).value.mtype"
+        AddJSLine 0, "         mtype: QB.arrayValue(warnings, [i]).value.mtype,"
+        AddJSLine 0, "         moduleId: QB.arrayValue(warnings, [i]).value.moduleId"
         AddJSLine 0, "      });"
         AddJSLine 0, "   }"
         AddJSLine 0, "   return w;"
@@ -233,6 +242,9 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "   line = QB.arrayValue(lines, [line]).value.line;"
         AddJSLine 0, "   return line;"
         AddJSLine 0, "}"
+        AddJSLine 0, "function getModule(id) {"
+        AddJSLine 0, "   return QB.arrayValue(modules, [id]).value;"
+        AddJSLine 0, "}"
         AddJSLine 0, "function setSelfConvert() { sub_SetSelfConvert(); }"
         AddJSLine 0, ""
         AddJSLine 0, "return {"
@@ -242,6 +254,7 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "   getExportMethods: getExportMethods,"
         AddJSLine 0, "   getExportConsts: getExportConsts,"
         AddJSLine 0, "   getSourceLine: getSourceLine,"
+        AddJSLine 0, "   getModule: getModule,"
         AddJSLine 0, "   setSelfConvert: setSelfConvert,"
         AddJSLine 0, "};"
         AddJSLine 0, "}"
@@ -318,6 +331,8 @@ Sub ResetDataStructures
     staticVarLine = 0
     optionExplicit = False
     optionExplicitArray = False
+    'currentModule = ""
+    'currentModuleId = 0
 End Sub
 
 Sub InitData
@@ -2673,10 +2688,20 @@ Sub ReadLinesFromText (sourceText As String)
                     sourceUrl = Mid$(parts(4), 2, Len(parts(4)) - 2)
                     Fetch sourceUrl, importRes
                     modLevel = modLevel + 1
+
+                    Dim mcount As Integer
+                    mcount = UBound(modules) + 1
+                    ReDim _Preserve modules(mcount) As Module
+                    modules(mcount).name = moduleName
+                    modules(mcount).path = sourceUrl
+                    currentModuleId = mcount
+
                     QBToJS importRes.text, TEXT, moduleName
                     ResetDataStructures
                     modLevel = modLevel - 1
-
+                    currentModuleId = currentModuleId - 1
+                    currentModule = ""
+                    
                     _Continue
                 End If
             End If
@@ -3446,6 +3471,7 @@ Sub AddWarning (sourceLine As Integer, msgText As String)
 
     warnings(lcount).line = l
     warnings(lcount).text = msgText
+    warnings(lcount).moduleId = currentModuleId
 End Sub
 
 Sub AddError (sourceLine As Integer, msgText As String)

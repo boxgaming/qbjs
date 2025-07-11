@@ -637,7 +637,7 @@ var IDE = new function() {
         _stopProgram();
         _closeCodeTabs();
         editor.setValue("");
-        var vfs = GX.vfs();
+        var vfs = QB.vfs();
         vfs.reset();
         _refreshFS();
         if (GX.canvas()) {
@@ -675,7 +675,7 @@ var IDE = new function() {
         }
         _stopProgram();
         _closeCodeTabs();
-        var vfs = GX.vfs();
+        var vfs = QB.vfs();
         vfs.reset();
         JSZip.loadAsync(zipData).then(async function(zip) {
             var basFiles = [];
@@ -734,7 +734,7 @@ var IDE = new function() {
         });
 
         function dirFromPath(path) {
-            var vfs = GX.vfs();
+            var vfs = QB.vfs();
             if (path == "") { return vfs.rootDirectory(); }
             
             var dirnames = path.split("/");
@@ -758,7 +758,7 @@ var IDE = new function() {
             alert("No file selected.");
         }
         else {
-            var vfs = GX.vfs();
+            var vfs = QB.vfs();
             var file = vfs.getNode("/" + fileList.value);
             editor.setValue(vfs.readText(file));
             vfs.removeFile(file);
@@ -818,6 +818,7 @@ var IDE = new function() {
                 _addWarningCell(tr, w[i].text, "99%");
                 table.append(tr);
                 tr.codeLine = w[i].line - 1;
+                tr.moduleId = w[i].moduleId;
                 tr.onclick = _gotoWarning;
             }
         }
@@ -827,10 +828,23 @@ var IDE = new function() {
     }
 
     function _gotoWarning() {
-        if (selectedError ) { selectedError.classList.remove("selected"); }
-        editor.setCursor({ line: this.codeLine}); 
+        if (selectedError) { selectedError.classList.remove("selected"); }
         this.classList.add("selected");
         selectedError = this;
+        if (this.moduleId) {
+            var module = QBCompiler.getModule(this.moduleId);
+            var vfs = QB.vfs();
+            alert(module.name + ": " + module.path);
+            var file = vfs.getNode(module.path, vfs.rootDirectory());
+            if (file) {
+                _editFile(file);
+                codeTabMap[activeCodeTab].editor.setCursor({ line: this.codeLine });
+                //alert(codeTabMap[module.path]);
+            }
+        }
+        else {
+            editor.setCursor({ line: this.codeLine }); 
+        }
     }
 
     function _addWarningCell(tr, text, width) {
@@ -1128,7 +1142,7 @@ var IDE = new function() {
             a.innerHTML = files[i].name;
             a.title = "Edit " + files[i].name;
             a.vfsnode = files[i];
-            a.onclick = function() { editFile(this.vfsnode); };
+            a.onclick = function() { _editFile(this.vfsnode); };
             contents.appendChild(a);
             a = document.createElement("a");
             a.title = "Download " + files[i].name;
@@ -1155,131 +1169,144 @@ var IDE = new function() {
             }
         }
 
-        async function editFile(node) {
-            var fullpath = vfs.fullPath(node);
-            if (codeTabMap[fullpath]) {
-                _changeCodeTab(codeTabMap[fullpath].tab);
+
+        function deleteDir(node) {
+            if (vfs.getChildren(node).length > 0) {
+                alert("Directory is not empty.");
                 return;
             }
-            var tdiv = document.createElement("div");
-            tdiv.innerHTML = node.name;
-            tdiv.title = fullpath;
-            tdiv.fpath = fullpath;
-            tdiv.className = "tab active";
-            tdiv.onclick = function () { _changeCodeTab(this); };
-            var cdiv = document.createElement("div");
-            cdiv.className = "tab-close";
-            cdiv.tile = "Close Tab";
-            cdiv.fpath = fullpath;
-            cdiv.onclick = function(event) { 
-                event.preventDefault(); 
-                event.stopPropagation(); 
-                _closeCodeTab(this.fpath);
-            };
-            tdiv.appendChild(cdiv);
-            _e.codeTabContainer.appendChild(tdiv);
-
-            var div = document.createElement("div");
-            div.className = "code";
-
-            _e.codeContainer.appendChild(div);
-            codeTabMap[activeCodeTab].content.style.display = "none";
-            codeTabMap[activeCodeTab].tab.classList.remove("active");
-
-            var cmode = vfs.getTypeFromName(node.name);
-            if (!cmode) { cmode = "text"; }
-
-            if (cmode == "image/png"  || cmode == "image/jpeg" ||
-                cmode == "image/gif"  || cmode == "image/bmp" ||
-                cmode == "image/webp" || cmode == "image/svg+xml") {
-                var img = document.createElement("img");
-                var dataUrl = await vfs.getDataURL(node);
-                img.src = dataUrl;
-                img.style.margin = "5px";
-                div.style.overflow = "auto";
-                var cdiv = document.createElement("div");
-                cdiv.className = "imgview";
-                cdiv.appendChild(img);
-                div.appendChild(cdiv);
-
-                codeTabMap[fullpath] = {
-                    tab: tdiv,
-                    content: div,
-                    text: false
-                };
+            if (confirm("This will permanently delete directory '" + node.name + "'.\nAre you sure you wish to continue?")) {
+                vfs.removeDirectory(node);
+                _refreshFS();
             }
-            else if (cmode == "audio/mpeg"  || code == "audio/x-mpeg" || 
-                     cmode == "audio/x-wav" || cmode == "audio/ogg"   ||
-                     cmode == "audio/flac"  || cmode == "audio/webm") {
-                var audio = document.createElement("audio");
-                var dataUrl = await vfs.getDataURL(node);
-                var fdiv = document.createElement("div");
-                fdiv.style.margin = "15px 10px";
-                audio.src = dataUrl;
-                audio.type = cmode;
-                audio.controls = true;
-                audio.style.display = "block";
-                audio.style.width = "100%";
-                var cdiv = document.createElement("div");
-                cdiv.className = "audioview";
-                fdiv.appendChild(audio);
-                cdiv.appendChild(fdiv);
-                div.appendChild(cdiv);
-
-                codeTabMap[fullpath] = {
-                    tab: tdiv,
-                    content: div,
-                    text: false
-                };
-            }
-            else if (isBinary(node)) {
-                var dataArray = new Uint8Array(node.data);
-                var cdiv = document.createElement("div");
-                cdiv.className = "hexview";
-                cdiv.innerHTML = QB.convertToUTF(hexy(dataArray, { extendedChs: true }));
-                div.style.overflow = "auto";
-                div.appendChild(cdiv);
-
-                codeTabMap[fullpath] = {
-                    tab: tdiv,
-                    content: div,
-                    text: false
-                }
-            }
-            else {
-                // initialize the code editor
-                var cm = CodeMirror(div, {
-                    lineNumbers: true,
-                    tabSize: 4,
-                    indentUnit: 4,
-                    mode: cmode,
-                    theme: theme,
-                    height: "auto",
-                    styleActiveLine: true,
-                    smartIndent: false,
-                    keyMap: keyMap,
-                    specialChars: /[\u0009-\u000d\u00ad\u061c\u200b\u200e\u200f\u2028\u2029\u202d\u202e\u2066\u2067\u2069\ufeff\ufff9-\ufffc]/,
-                    extraKeys: {
-                        "Tab": function(cm) {
-                            cm.replaceSelection("    ", "end");
-                        }
-                    }
-                });
-                cm.setValue(vfs.readText(node));
-                codeTabMap[fullpath] = {
-                    tab: tdiv,
-                    content: div,
-                    editor: cm,
-                    text: true
-                };
-            }
-            if (Object.keys(codeTabMap).length > 1) {
-                _e.codeTabs.style.display = "block";
-            }
-            activeCodeTab = fullpath;
-            window.onresize();
-            codeTabMap[activeCodeTab].tab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center"});
         }
+    }
+
+    async function _editFile(node) {
+        var vfs = QB.vfs();
+        var fullpath = vfs.fullPath(node);
+        if (codeTabMap[fullpath]) {
+            _changeCodeTab(codeTabMap[fullpath].tab);
+            return;
+        }
+        var tdiv = document.createElement("div");
+        tdiv.innerHTML = node.name;
+        tdiv.title = fullpath;
+        tdiv.fpath = fullpath;
+        tdiv.className = "tab active";
+        tdiv.onclick = function () { _changeCodeTab(this); };
+        var cdiv = document.createElement("div");
+        cdiv.className = "tab-close";
+        cdiv.tile = "Close Tab";
+        cdiv.fpath = fullpath;
+        cdiv.onclick = function(event) { 
+            event.preventDefault(); 
+            event.stopPropagation(); 
+            _closeCodeTab(this.fpath);
+        };
+        tdiv.appendChild(cdiv);
+        _e.codeTabContainer.appendChild(tdiv);
+
+        var div = document.createElement("div");
+        div.className = "code";
+
+        _e.codeContainer.appendChild(div);
+        codeTabMap[activeCodeTab].content.style.display = "none";
+        codeTabMap[activeCodeTab].tab.classList.remove("active");
+
+        var cmode = vfs.getTypeFromName(node.name);
+        if (!cmode) { cmode = "text"; }
+
+        if (cmode == "image/png"  || cmode == "image/jpeg" ||
+            cmode == "image/gif"  || cmode == "image/bmp" ||
+            cmode == "image/webp" || cmode == "image/svg+xml") {
+            var img = document.createElement("img");
+            var dataUrl = await vfs.getDataURL(node);
+            img.src = dataUrl;
+            img.style.margin = "5px";
+            div.style.overflow = "auto";
+            var cdiv = document.createElement("div");
+            cdiv.className = "imgview";
+            cdiv.appendChild(img);
+            div.appendChild(cdiv);
+
+            codeTabMap[fullpath] = {
+                tab: tdiv,
+                content: div,
+                text: false
+            };
+        }
+        else if (cmode == "audio/mpeg"  || code == "audio/x-mpeg" || 
+                    cmode == "audio/x-wav" || cmode == "audio/ogg"   ||
+                    cmode == "audio/flac"  || cmode == "audio/webm") {
+            var audio = document.createElement("audio");
+            var dataUrl = await vfs.getDataURL(node);
+            var fdiv = document.createElement("div");
+            fdiv.style.margin = "15px 10px";
+            audio.src = dataUrl;
+            audio.type = cmode;
+            audio.controls = true;
+            audio.style.display = "block";
+            audio.style.width = "100%";
+            var cdiv = document.createElement("div");
+            cdiv.className = "audioview";
+            fdiv.appendChild(audio);
+            cdiv.appendChild(fdiv);
+            div.appendChild(cdiv);
+
+            codeTabMap[fullpath] = {
+                tab: tdiv,
+                content: div,
+                text: false
+            };
+        }
+        else if (isBinary(node)) {
+            var dataArray = new Uint8Array(node.data);
+            var cdiv = document.createElement("div");
+            cdiv.className = "hexview";
+            cdiv.innerHTML = QB.convertToUTF(hexy(dataArray, { extendedChs: true }));
+            div.style.overflow = "auto";
+            div.appendChild(cdiv);
+
+            codeTabMap[fullpath] = {
+                tab: tdiv,
+                content: div,
+                text: false
+            }
+        }
+        else {
+            // initialize the code editor
+            var cm = CodeMirror(div, {
+                lineNumbers: true,
+                tabSize: 4,
+                indentUnit: 4,
+                mode: cmode,
+                theme: theme,
+                height: "auto",
+                styleActiveLine: true,
+                smartIndent: false,
+                keyMap: keyMap,
+                specialChars: /[\u0009-\u000d\u00ad\u061c\u200b\u200e\u200f\u2028\u2029\u202d\u202e\u2066\u2067\u2069\ufeff\ufff9-\ufffc]/,
+                extraKeys: {
+                    "Tab": function(cm) {
+                        cm.replaceSelection("    ", "end");
+                    }
+                }
+            });
+            cm.setValue(vfs.readText(node));
+            codeTabMap[fullpath] = {
+                tab: tdiv,
+                content: div,
+                editor: cm,
+                text: true
+            };
+        }
+        if (Object.keys(codeTabMap).length > 1) {
+            _e.codeTabs.style.display = "block";
+        }
+        activeCodeTab = fullpath;
+        window.onresize();
+        codeTabMap[activeCodeTab].tab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center"});
 
         function isBinary(file) {
             const uint8Array = new Uint8Array(file.data);
@@ -1291,16 +1318,6 @@ var IDE = new function() {
               }
             }
             return isBinary;
-        }
-        function deleteDir(node) {
-            if (vfs.getChildren(node).length > 0) {
-                alert("Directory is not empty.");
-                return;
-            }
-            if (confirm("This will permanently delete directory '" + node.name + "'.\nAre you sure you wish to continue?")) {
-                vfs.removeDirectory(node);
-                _refreshFS();
-            }
         }
     }
 
