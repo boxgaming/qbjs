@@ -834,16 +834,21 @@ var IDE = new function() {
         if (this.moduleId) {
             var module = QBCompiler.getModule(this.moduleId);
             var vfs = QB.vfs();
-            alert(module.name + ": " + module.path);
             var file = vfs.getNode(module.path, vfs.rootDirectory());
             if (file) {
                 _editFile(file);
                 codeTabMap[activeCodeTab].editor.setCursor({ line: this.codeLine });
-                //alert(codeTabMap[module.path]);
+                codeTabMap[activeCodeTab].editor.focus();
+            }
+            else {
+                // TODO: load the external file in a read-only code tab
+                alert(module.path);
             }
         }
         else {
-            editor.setCursor({ line: this.codeLine }); 
+            _changeCodeTab(codeTabMap[MAIN_CODE_TAB].tab);
+            editor.setCursor({ line: this.codeLine });
+            editor.focus();
         }
     }
 

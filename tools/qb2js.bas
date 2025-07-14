@@ -116,7 +116,10 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
     currentModule = moduleName
 
     ResetDataStructures
-    If moduleName = "" Then ReDim As CodeLine jsLines(0)
+    If moduleName = "" Then 
+        ReDim As CodeLine jsLines(0)
+        currentModuleId = 0
+    End If
 
     If sourceType = FILE Then
         ReadLinesFromFile source
@@ -325,14 +328,13 @@ Sub ResetDataStructures
         ReDim As CodeLine warnings(0)
         ReDim As Method exportMethods(0)
         ReDim As Variable exportConsts(0)
+        ReDim As Module modules(0)
     End If
     currentMethod = ""
     programMethods = 0
     staticVarLine = 0
     optionExplicit = False
     optionExplicitArray = False
-    'currentModule = ""
-    'currentModuleId = 0
 End Sub
 
 Sub InitData
@@ -2712,7 +2714,6 @@ Sub ReadLinesFromText (sourceText As String)
                 Dim nextLine As String
                 nextLine = Replace(sourceLines(i), CR, "")
                 fline = Left$(fline, Len(fline) - 1) + nextLine
-                'AddWarning i, "Found it: [" + fline + "]"
             Wend
 
             rawJS = ReadLine(i, fline, rawJS)

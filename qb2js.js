@@ -64,6 +64,7 @@ if (QB.halted()) { return; }; sourceType = Math.round(sourceType);
    await sub_ResetDataStructures();
    if ( moduleName ==  ""  ) {
       QB.resizeArray(jsLines, [{l:0,u:0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
+      currentModuleId =   0;
    }
    if ( sourceType ==   FILE) {
       await sub_ReadLinesFromFile(  source);
@@ -254,6 +255,7 @@ if (QB.halted()) { return; };
       QB.resizeArray(warnings, [{l:0,u:0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
       QB.resizeArray(exportMethods, [{l:0,u:0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, false);  /* METHOD */ 
       QB.resizeArray(exportConsts, [{l:0,u:0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
+      QB.resizeArray(modules, [{l:0,u:0}], {name:'',path:''}, false);  /* MODULE */ 
    }
    currentMethod =  "";
    programMethods =   0;
