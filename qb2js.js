@@ -2712,6 +2712,9 @@ var ReadLine = null;
    } else {
       await sub_AddSubLines(  lineIndex,    fline);
    }
+   if ( quoteDepth !=   0 ) {
+      await sub_AddError( (QB.func_UBound(  lines))  ,   "Unterminated string constant");
+   }
 return ReadLine;
 }
 async function sub_AddSubLines(lineIndex/*INTEGER*/,fline/*STRING*/) {

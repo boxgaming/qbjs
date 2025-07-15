@@ -2833,6 +2833,8 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
     Else
         AddSubLines lineIndex, fline
     End If
+
+    If quoteDepth <> 0 Then AddError UBound(lines), "Unterminated string constant"
 End Function
 
 Sub AddSubLines (lineIndex As Integer, fline As String)
