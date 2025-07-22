@@ -78,6 +78,7 @@ ReDim Shared As Module modules(0)
 ReDim Shared As CodeLine lines(0)
 ReDim Shared As CodeLine jsLines(0)
 ReDim Shared As Method methods(0)
+ReDim Shared As Method localMethods(0)
 ReDim Shared As QBType types(0)
 ReDim Shared As Variable typeVars(0)
 ReDim Shared As Variable globalVars(0)
@@ -92,7 +93,7 @@ Dim Shared As String jsReservedWords(54)
 Dim Shared modLevel As Integer
 Dim Shared As String currentMethod
 Dim Shared As String currentModule
-Dim Shared As String currentModuleId
+Dim Shared As Integer currentModuleId
 Dim Shared As Integer programMethods
 Dim Shared As Integer staticVarLine
 Dim Shared As Integer implicitVarLine
@@ -116,7 +117,7 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
     currentModule = moduleName
 
     ResetDataStructures
-    If moduleName = "" Then 
+    If moduleName = "" Then
         ReDim As CodeLine jsLines(0)
         currentModuleId = 0
     End If
@@ -462,7 +463,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
             ElseIf first = "OPTION" Then
                 second = UCase$(_Trim$(parts(2)))
-                If second = "_EXPLICIT" Or second = "EXPLICIT" Then 
+                If second = "_EXPLICIT" Or second = "EXPLICIT" Then
                     optionExplicit = True
                 ElseIf second = "_EXPLICITARRAY" Or second = "EXPLICITARRAY" Then
                     optionExplicitArray = True
@@ -801,8 +802,10 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
                 If assignment > 0 Then
                     ' This is a variable assignment
-                    js = RemoveSuffix(ConvertExpression(Join(parts(), asnVarIndex, assignment - 1, " "), i)) + " = " + ConvertExpression(Join(parts(), assignment + 1, -1, " "), i) + ";"
-
+                    Dim As String leftSide, rightSide
+                    leftSide = _Trim$(Join(parts(), asnVarIndex, assignment - 1, " "))
+                    rightSide = _Trim$(Join(parts(), assignment + 1, -1, " "))
+                    js = RemoveSuffix(ConvertExpression(leftSide, i)) + " = " + ConvertExpression(rightSide, i) + ";"
                 Else
                     ' Check to see if there was no space left between the sub name and initial paren
                     Dim parendx As Integer
@@ -857,7 +860,7 @@ Function IsValidVarname (varname As String)
     valid = True
     vname = _Trim$(varname)
     ' Check for reserved words
-    If vname = "true" Or vname = "false" Then IsValidVarname = False: Exit Sub
+    If vname = "true" Or vname = "false" Then IsValidVarname = False: Exit Function
     vname = UCase$(RemoveSuffix(vname))
     If vname = "TO" Or vname = "UNDEFINED" Then
         IsValidVarname = False
@@ -953,8 +956,6 @@ Sub ParseExport (s As String, lineIndex As Integer)
 
     Dim c As Integer
     c = SLSplit(s, parts(), False)
-
-    'AddWarning lineIndex, "ParseExport: [" + s + "]"
 
     If FindMethod(parts(1), es, "SUB", False) Then
         If c > 2 Then
@@ -2084,7 +2085,15 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
 
     If Not bvar.isArray Then
         js = js + "var " + bvar.jsname + " = " + InitTypeValue(bvar.type) + "; "
-
+        ' If this is a FUNCTION or SUB type we also need to make sure this method name is registered in the current scope
+        If bvar.type = "SUB" Or bvar.type = "FUNCTION" Then
+            Dim m As Method
+            If FindMethod(bvar.name, m, bvar.type, False) < 1 Then
+                m.name = bvar.name
+                m.type = bvar.type
+                AddLocalMethod m
+            End If
+        End If
     Else
         If varExists Then
             js = js + "QB.resizeArray(" + bvar.jsname + ", [" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ", " + bPreserve + "); "
@@ -2153,6 +2162,8 @@ Function InitTypeValue$ (vtype As String)
            vtype = "SINGLE" Or vtype = "DOUBLE" Or vtype = "_FLOAT" Or _
            vtype = "_OFFSET" Or vtype = "_UNSIGNED _OFFSET" Then
         value = "0"
+    ElseIf vtype = "FUNCTION" Or vtype = "SUB" Then
+        value = "function() { return 0; }"
     Else ' Custom Type
         value = "{"
         Dim typeId As Integer
@@ -2229,6 +2240,18 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                 ElseIf StartsWith(uword, "&H") Or StartsWith(uword, "&O") Or StartsWith(uword, "&B") Then
                     js = js + " QB.func_Val('" + uword + "') "
 
+                ElseIf StartsWith(uword, "@") Then
+                    ' Handle method pointer references
+                    Dim mref As String
+                    Dim fres As Integer
+                    mref = Mid$(_Trim$(word), 2)
+                    fres = FindMethod(mref, m, "FUNCTION", False)
+                    If fres < 1 Then fres = FindMethod(mref, m, "SUB", False)
+                    If fres Then
+                        js = js + " " + m.jsname
+                    Else
+                        AddError lineNumber, "Missing or invalid method reference (" + mref + ")"
+                    End If
                 Else
                     If FindVariable(word, bvar, False) Then
                         js = js + " " + bvar.jsname
@@ -2252,11 +2275,9 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                                     If optionExplicit Then
                                         AddError lineNumber, "Variable '" + RemoveSuffix(varname) + "' (" + dt + ") not defined"
                                     Else
-                                        ' uncomment following line for implicit variable debugging
-                                        'AddWarning lineNumber, "Implicit variable '" + varname + "': " + ex
                                         RegisterImplicitVar varname, dt, ""
                                         If FindVariable(varname, bvar, False) Then
-                                           js = js + " " + bvar.jsname
+                                            js = js + " " + bvar.jsname
                                         Else
                                             AddError i, "Implicit variable declaration error"
                                         End If
@@ -2325,8 +2346,6 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                 Else
                     varname = _Trim$(word)
                     If varname <> "" Then
-                        ' uncomment following line for implicit variable debugging
-                        'AddWarning lineNumber, "Potential implicit array: " + word
                         If optionExplicit Or optionExplicitArray Then
                             AddError lineNumber, "Missing function or array [" + word + "]"
                             js = js + fneg + "(" + ConvertExpression(ex2, lineNumber) + ")"
@@ -2506,7 +2525,7 @@ Function FindVariable (varname As String, bvar As Variable, isArray As Integer)
     FindVariable = found
 End Function
 
-Function FindMethod (mname As String, m As Method, t As String, includeBuiltIn As Integer)
+Function FindMethodOld (mname As String, m As Method, t As String, includeBuiltIn As Integer)
     Dim found As Integer: found = False
     Dim i As Integer
     For i = 1 To UBound(methods)
@@ -2544,19 +2563,84 @@ Function FindMethod (mname As String, m As Method, t As String, includeBuiltIn A
         Next i
 
     End If
+    FindMethodOld = found
+End Function
+
+Function FindMethod (mname As String, m As Method, t As String, includeBuiltIn As Integer)
+    Dim umname As String: umname = _Trim$(UCase$(RemoveSuffix(mname)))
+    Dim found As Integer: found = 0
+    Dim i As Integer
+    For i = 1 To UBound(localMethods)
+        If localMethods(i).uname = umname Then
+            found = True
+            m.line = localMethods(i).line
+            m.type = localMethods(i).type
+            m.returnType = localMethods(i).returnType
+            m.name = localMethods(i).name
+            m.jsname = localMethods(i).jsname
+            m.uname = localMethods(i).uname
+            m.argc = localMethods(i).argc
+            m.args = localMethods(i).args
+            m.sync = localMethods(i).sync
+            found = i
+           Exit For
+       End If
+    Next i
+    If Not found Then
+        For i = 1 To UBound(methods)
+            If (Not includeBuiltIn) And methods(i).builtin Then
+                ' Skip it
+            ElseIf methods(i).uname = umname And methods(i).type = t Then
+                found = True
+                m.line = methods(i).line
+                m.type = methods(i).type
+                m.returnType = methods(i).returnType
+                m.name = methods(i).name
+                m.jsname = methods(i).jsname
+                m.uname = methods(i).uname
+                m.argc = methods(i).argc
+                m.args = methods(i).args
+                m.sync = methods(i).sync
+                found = i
+                Exit For
+            End If
+        Next i
+        If Not found Then
+            For i = 1 To UBound(exportMethods)
+                If exportMethods(i).uname = umname And exportMethods(i).type = t Then
+                    found = True
+                    m.line = exportMethods(i).line
+                    m.type = exportMethods(i).type
+                    m.returnType = exportMethods(i).returnType
+                    m.name = exportMethods(i).name
+                    m.jsname = exportMethods(i).jsname
+                    m.uname = exportMethods(i).uname
+                    m.argc = exportMethods(i).argc
+                    m.args = exportMethods(i).args
+                    m.sync = exportMethods(i).sync
+                    found = i
+                    Exit For
+                End If
+            Next i
+        End If
+    End If
     FindMethod = found
 End Function
 
 Sub ConvertMethods ()
     AddJSLine 0, ""
+
     Dim i As Integer
     For i = 1 To UBound(methods)
         If (methods(i).line <> 0) Then
+            'currentMethod = methods(i).name
+
             Dim lastLine As Integer
             lastLine = methods(i + 1).line - 1
             If lastLine < 0 Then lastLine = UBound(lines)
 
-            ' clear the local variables
+            ' clear the local variables and methods
+            ReDim As Method localMethods(0)
             ReDim As Variable localVars(0)
             Dim intConv As String
             intConv = ""
@@ -2602,6 +2686,12 @@ Sub ConvertMethods ()
                             If FindVariable(bvar.name, bvar, varIsArray) Then
                                 intConv = intConv + bvar.jsname + " = Math.round(" + bvar.jsname + "); "
                             End If
+
+                        ElseIf typeName = "FUNCTION" Or typeName = "SUB" Then
+                            Dim m As Method
+                            m.name = bvar.name
+                            m.type = bvar.type
+                            AddLocalMethod m
                         End If
                     End If
                 Next a
@@ -3372,6 +3462,15 @@ Sub AddMethod (m As Method, prefix As String, sync As Integer)
     m.jsname = MethodJS(m, prefix)
     m.sync = sync
     methods(mcount) = m
+End Sub
+
+Sub AddLocalMethod (m As Method)
+    Dim mcount: mcount = UBound(localMethods) + 1
+    ReDim _Preserve As Method localMethods(mcount)
+    m.uname = UCase$(RemoveSuffix(m.name))
+    m.jsname = m.name
+    m.sync = True
+    localMethods(mcount) = m
 End Sub
 
 Sub AddExportMethod (m As Method, prefix As String, sync As Integer)
