@@ -1,4 +1,4 @@
-Export EndsWith, Includes, Match, PadEnd, PadStart, Replace, ReplaceRegex,
+Export EndsWith, Includes, Match, PadEnd, PadStart, Replace
 Export Search, Split, StartsWith, TrimEnd, TrimStart
 
 Function EndsWith (s As String, searchStr As String)
@@ -13,10 +13,18 @@ Function Includes (s As String, searchStr As String)
     $End If
 End Function
 
-Sub Match (s As String, regex As String, result() As String)
+Sub Match (s As String, regex As String, result() As String, g As Object)
     Dim jsresult As Object
     $If Javascript Then
-        jsresult = s.match(new RegExp(regex, "g"));
+        if (g == undefined) { g = 0; }
+        jsresult = [];
+        var matches = s.matchAll(new RegExp(regex, "g"));
+        for (m of matches) {
+            var value = null;
+            if (typeof g == "string") { value = m.groups[g]; }
+            else { value = m[g]; }
+            if (value) { jsresult.push(value); }
+        }
     $End If
     ToQBArray jsresult, result
 End Function
@@ -33,27 +41,30 @@ Function PadStart (s As String, targetLength As Integer, padStr As String)
     $End If
 End Function
 
-Function Replace (s As String, searchStr As String, replaceStr As String)
+Function Replace (s As String, searchStr As String, replaceStr As String, regex As Integer)
     $If Javascript Then
-        Replace = s.replaceAll(searchStr, replaceStr);
-    $End If
-End Function
-
-Function ReplaceRegex (s As String, regex As String, replaceStr As String)
-    $If Javascript Then
-        ReplaceRegex = s.replace(new RegExp(regex, "g"), replaceStr);
+        if (regex) {
+            Replace = s.replace(new RegExp(searchStr, "g"), replaceStr);
+        }
+        else {
+            Replace = s.replaceAll(searchStr, replaceStr);
+        }
     $End If
 End Function
 
 Sub ToQBArray (jsArray As Object, result() As String)
     Dim i, part As String
-    ReDim result(jsArray.length) As String
-    For i = 1 To jsArray.length
-        $If Javascript Then
-            part = jsArray[i-1];
-        $End If
-        result(i) = part
-    Next i
+    If jsArray Then
+        ReDim result(jsArray.length) As String
+        For i = 1 To jsArray.length
+            $If Javascript Then
+                part = jsArray[i-1];
+            $End If
+            result(i) = part
+        Next i
+    Else
+        ReDim result(0) As String
+    End If
 End Sub
 
 Function Search(s As String, regex As String)
@@ -62,10 +73,15 @@ Function Search(s As String, regex As String)
     $End If
 End Function
 
-Sub Split (s As String, delimiter As String, result() As String)
+Sub Split (s As String, delimiter As String, result() As String, regex As Integer)
     Dim jsresult As Object
     $If Javascript Then
-       jsresult = s.split(delimiter);
+        if (regex) {
+            jsresult = s.split(new RegExp(delimiter, "g"));
+        }
+        else {
+            jsresult = s.split(delimiter);
+        }
     $End If
     ToQBArray jsresult, result
 End Sub
