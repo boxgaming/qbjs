@@ -95,6 +95,8 @@ Dim Shared As String currentMethod
 Dim Shared As String currentModule
 Dim Shared As Integer currentModuleId
 Dim Shared As Integer programMethods
+Dim Shared As Integer constVarLine
+Dim Shared As Integer sharedVarLine
 Dim Shared As Integer staticVarLine
 Dim Shared As Integer implicitVarLine
 Dim Shared As String condWords(4)
@@ -153,16 +155,18 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
 
     ElseIf sourceType = FILE Then
         AddJSLine 0, "async function init() {"
-
-        'Else
-        '    AddJSLine 0, "try {"
     End If
 
-    ' Add a placeholder line for static method variables
-    ' This line will be appended to as static variable declarations are encountered
+    ' Add a placeholder lines for constants, shared variables and static method variables
+    ' These lines will be appended to as shared variable declarations are encountered
+    AddJSLine 0, "/* global constants: */ "
+    constVarLine = UBound(jsLines)
+    AddJSLine 0, "/* shared variables: */ "
+    sharedVarLine = UBound(jsLines)
     AddJSLine 0, "/* static method variables: */ "
     staticVarLine = UBound(jsLines)
 
+    AddJSLine 0, "async function main() {"
 
     If Not selfConvert And moduleName = "" Then AddJSLine 0, "QB.start();"
 
@@ -182,6 +186,8 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
 
     ConvertLines 1, MainEnd, ""
     If Not selfConvert And Not isGX And moduleName = "" Then AddJSLine 0, "QB.end();"
+    AddJSLine 0, "} await main();"
+
     ConvertMethods
 
     If Not selfConvert And moduleName = "" Then InitTypes
@@ -265,15 +271,11 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "if (typeof module != 'undefined') { module.exports.QBCompiler = _QBCompiler; }"
 
     ElseIf moduleName <> "" Then
-        'AddJSLine 0, "return this;"
         AddJSLine 0, "}"
         AddJSLine 0, "const " + moduleName + " = await _" + moduleName + "();"
 
     ElseIf sourceType = FILE Then
         AddJSLine 0, "};"
-
-        'Else
-        '    AddJSLine 0, "} catch (error) { console.log(error); throw error; }"
     End If
 End Sub
 
@@ -456,8 +458,12 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                         Dim As String cleft, cright
                         cleft = Left$(constParts(constIdx), eqi - 1)
                         cright = Mid$(constParts(constIdx), eqi + 1)
-                        js = js + "const " + cleft + " = " + ConvertExpression(cright, i) + "; "
-                        AddConst _Trim$(cleft)
+                        If functionName = "" Then
+                            jsLines(constVarLine).text = jsLines(constVarLine).text + "const " + cleft + " = " + ConvertExpression(cright, i) + "; "
+                        Else
+                            js = js + "const " + cleft + " = " + ConvertExpression(cright, i) + "; "
+                        End If
+                        AddConst _Trim$(cleft), functionName
                     End If
                 Next constIdx
 
@@ -841,7 +847,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
             End If
 
             If (indent < 0) Then totalIndent = totalIndent + indent
-            AddJSLine i, LPad("", " ", (totalIndent + tempIndent) * 3) + js
+            If js <> "" Then AddJSLine i, LPad("", " ", (totalIndent + tempIndent) * 3) + js
             If (indent > 0) Then totalIndent = totalIndent + indent
 
         End If
@@ -2084,7 +2090,13 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
     End If
 
     If Not bvar.isArray Then
-        js = js + "var " + bvar.jsname + " = " + InitTypeValue(bvar.type) + "; "
+        Dim v As String: v = "var "
+        If isGlobal Then
+            jsLines(sharedVarLine).text = jsLines(sharedVarLine).text + "var " + bvar.jsname + "; "
+            v = ""
+        End If
+     
+        js = js + v + bvar.jsname + " = " + InitTypeValue(bvar.type) + "; "
         ' If this is a FUNCTION or SUB type we also need to make sure this method name is registered in the current scope
         If bvar.type = "SUB" Or bvar.type = "FUNCTION" Then
             Dim m As Method
@@ -2095,6 +2107,11 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
             End If
         End If
     Else
+        If isGlobal And Not varExists Then
+            jsLines(sharedVarLine).text = jsLines(sharedVarLine).text + "var " + bvar.jsname + " = QB.initArray([0], " + InitTypeValue(bvar.type) + "); "
+            varExists = True
+        End If
+
         If varExists Then
             js = js + "QB.resizeArray(" + bvar.jsname + ", [" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ", " + bPreserve + "); "
         Else
@@ -3581,12 +3598,16 @@ Sub AddError (sourceLine As Integer, msgText As String)
     warnings(UBound(warnings)).mtype = MERROR
 End Sub
 
-Sub AddConst (vname As String)
+Sub AddConst (vname As String, methodName As String)
     Dim v As Variable
     v.type = "CONST"
     v.name = vname
     v.isConst = True
-    AddVariable v, globalVars()
+    If methodName = "" Then
+        AddVariable v, globalVars()
+    Else
+        AddVariable v, localVars()
+    End If
 End Sub
 
 Sub AddGXConst (vname As String)
