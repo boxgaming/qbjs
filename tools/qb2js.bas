@@ -384,6 +384,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
     implicitVarLine = UBound(jsLines)
 
     For i = firstLine To lastLine
+        'AddWarning i, Right$("    " + Str$(cindex), 4) + "|" + lines(i).text
         indent = 0
         tempIndent = 0
         Dim l As String
@@ -598,9 +599,11 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 If UBound(parts) = 1 And first = "END" Then
                     js = "QB.halt(); return;"
                 ElseIf UBound(parts) = 1 And first = "ENDIF" Then
-                    js = js + "}"
-                    indent = -1
-                    cindex = cindex - 1
+                    If CheckBlockEnd(containers(), cindex, "ENDIF", i) Then
+                        js = js + "}"
+                        indent = -1
+                        cindex = cindex - 1
+                    End If
                 Else
                     second = UCase$(parts(2))
                     If second = "IF" Then
@@ -2860,6 +2863,12 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
     wcount = SLSplit(fline, words(), False)
 
     ' Step 2: Determine whether native js is being included
+    If Left$(UCase$(words(1)), 4) = "$END" Then
+        If rawJS Then rawJS = Not rawJS
+        AddLine lineIndex, fline
+        ReadLine = rawJS
+        Exit Function
+    End If
     If rawJS Then
         AddLine lineIndex, fline
         Exit Function
@@ -2871,12 +2880,6 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
             ReadLine = rawJS
             Exit Function
         End If
-    End If
-    If Left$(UCase$(words(1)), 4) = "$END" Then
-        If rawJS Then rawJS = Not rawJS
-        AddLine lineIndex, fline
-        ReadLine = rawJS
-        Exit Function
     End If
 
     ' Step 3: Determine whether this line contains a data statement or line label

@@ -507,9 +507,11 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
             if ((QB.func_UBound(  parts))  ==   1 &  first ==  "END"  ) {
                js = "QB.halt(); return;";
             } else if ((QB.func_UBound(  parts))  ==   1 &  first ==  "ENDIF"  ) {
-               js =  js + "}";
-               indent =  - 1;
-               cindex =  cindex -  1;
+               if ((await func_CheckBlockEnd( containers  ,    cindex,   "ENDIF"  ,    i))  ) {
+                  js =  js + "}";
+                  indent =  - 1;
+                  cindex =  cindex -  1;
+               }
             } else {
                second = (QB.func_UCase( QB.arrayValue(parts, [ 2]).value));
                if ( second ==  "IF"  ) {
@@ -2750,6 +2752,14 @@ var ReadLine = null;
    var words = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
    var wcount = 0;  /* INTEGER */ 
    wcount = (await func_SLSplit(  fline,   words  ,    False));
+   if ((QB.func_Left( (QB.func_UCase( QB.arrayValue(words, [ 1]).value))  ,    4))  ==  "$END"  ) {
+      if ( rawJS) {
+         rawJS = ~ rawJS;
+      }
+      await sub_AddLine(  lineIndex,    fline);
+      ReadLine =  rawJS;
+      return ReadLine;
+   }
    if ( rawJS) {
       await sub_AddLine(  lineIndex,    fline);
       return ReadLine;
@@ -2761,14 +2771,6 @@ var ReadLine = null;
          ReadLine =  rawJS;
          return ReadLine;
       }
-   }
-   if ((QB.func_Left( (QB.func_UCase( QB.arrayValue(words, [ 1]).value))  ,    4))  ==  "$END"  ) {
-      if ( rawJS) {
-         rawJS = ~ rawJS;
-      }
-      await sub_AddLine(  lineIndex,    fline);
-      ReadLine =  rawJS;
-      return ReadLine;
    }
    var index = 0;  /* INTEGER */ 
    if ( wcount ==   1 ) {
