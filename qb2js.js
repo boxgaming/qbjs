@@ -1,7 +1,7 @@
 if (typeof QB == 'undefined' && module) { QB = require('./qb-console.js').QB(); }
 async function _QBCompiler() {
 /* global constants: */ const FILE  =    1 ; const   TEXT  =    2; const MWARNING  =    0 ; const   MERROR  =    1; const False  =    0; const True  =   ~ False; const PrintDataTypes  =    True; const PrintLineMapping  =    False; const PrintTokenizedLine  =    False; 
-/* shared variables: */ var modules = QB.initArray([0], {name:'',path:''}); var lines = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0}); var jsLines = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0}); var methods = QB.initArray([0], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}); var localMethods = QB.initArray([0], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}); var types = QB.initArray([0], {line:0,name:'',argc:0,args:''}); var typeVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var globalVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var localVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var warnings = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0}); var exportLines = QB.initArray([0], ''); var exportConsts = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var exportMethods = QB.initArray([0], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}); var dataArray = QB.initArray([0], ''); var dataLabels = QB.initArray([0], {text:'',index:0}); var jsReservedWords = QB.initArray([0], ''); var modLevel; var currentMethod; var currentModule; var currentModuleId; var programMethods; var constVarLine; var sharedVarLine; var staticVarLine; var implicitVarLine; var condWords = QB.initArray([0], ''); var forceSelfConvert; var optionExplicit; var optionExplicitArray; 
+/* shared variables: */ var modules = QB.initArray([0], {name:'',path:''}); var lines = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0}); var jsLines = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0}); var methods = QB.initArray([0], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}); var localMethods = QB.initArray([0], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}); var types = QB.initArray([0], {line:0,name:'',argc:0,args:''}); var typeVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var globalVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var localVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var warnings = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0}); var exportLines = QB.initArray([0], ''); var exportConsts = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var exportMethods = QB.initArray([0], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}); var dataArray = QB.initArray([0], ''); var dataLabels = QB.initArray([0], {text:'',index:0}); var jsReservedWords = QB.initArray([0], ''); var modLevel = 0; var currentMethod = ''; var currentModule = ''; var currentModuleId = 0; var programMethods = 0; var constVarLine = 0; var sharedVarLine = 0; var staticVarLine = 0; var implicitVarLine = 0; var condWords = QB.initArray([0], ''); var forceSelfConvert = 0; var optionExplicit = 0; var optionExplicitArray = 0; 
 /* static method variables: */ 
 async function main() {
 
@@ -532,6 +532,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
             }
          } else if ( first ==  "SYSTEM"  ) {
             js = "QB.halt(); return;";
+         } else if ( first ==  "$NOPREFIX"  ) {
          } else if ( first ==  "$IF"  ) {
             if ((QB.func_UBound(  parts))  > 1 ) {
                if ((QB.func_UCase( QB.arrayValue(parts, [ 2]).value))  ==  "JAVASCRIPT"  ) {
@@ -1861,6 +1862,8 @@ var DeclareVar = null;
    vtypeIndex =  4;
    var isGlobal = 0;  /* INTEGER */ 
    isGlobal =  False;
+   var isShared = 0;  /* INTEGER */ 
+   isShared =  False;
    var isArray = 0;  /* INTEGER */ 
    isArray =  False;
    var isStatic = 0;  /* INTEGER */ 
@@ -1889,10 +1892,10 @@ var DeclareVar = null;
       if ( currentMethod ==  ""  ) {
          await sub_AddWarning(  lineNumber,   "SHARED must be used within a SUB/FUNCTION");
          DeclareVar = "";
+         return DeclareVar;
       } else {
-         DeclareVar = "/* shared variable(s): "  + (await func_Join( parts  ,    1 ,    - 1 ,   " "))  + " */";
+         isShared =  True;
       }
-      return DeclareVar;
    }
    var i = 0;  /* INTEGER */ 
    var ___v2994856 = 0; ___l7811670: for ( i=  1 ;  i <= (QB.func_UBound(  parts));  i= i + 1) { if (QB.halted()) { return; } ___v2994856++;   if (___v2994856 % 100 == 0) { await QB.autoLimit(); }
@@ -1906,7 +1909,7 @@ var DeclareVar = null;
          isGlobal =  True;
       }
    } 
-   if ( asIdx ==   2 | ( asIdx ==   3 & ( isGlobal |  bPreserve ==  "true"))  | ( asIdx ==   4 &  isGlobal &  bPreserve ==  "true")  ) {
+   if ( asIdx ==   2 | ( asIdx ==   3 & ( isGlobal |  bPreserve ==  "true")  & ~ isShared)  | ( asIdx ==   4 &  isGlobal &  bPreserve ==  "true")  ) {
       bvar.type = (QB.func_UCase( QB.arrayValue(parts, [ asIdx +  1]).value));
       var nextIdx = 0;  /* INTEGER */ 
       nextIdx =  asIdx +  2;
@@ -1951,6 +1954,7 @@ var DeclareVar = null;
          } else if ( vpartcount ==   4 ) {
             bvar.type = (QB.func_UCase( (await func_Join( vparts  ,    3 ,    - 1 ,   " "))));
          } else {
+            await sub_AddError(  lineNumber,   "Syntax Error");
          }
          bvar.name = (await func_RemoveSuffix( QB.arrayValue(vparts, [ 1]).value));
          bvar.typeId = (await func_FindTypeId(  bvar.type));
@@ -1969,6 +1973,8 @@ var DeclareVar = null;
    if ( isStatic) {
       QB.arrayValue(jsLines, [ staticVarLine]).value .text = QB.arrayValue(jsLines, [ staticVarLine]).value .text +  js;
       DeclareVar = "/* static variable(s): "  + (await func_Join( parts  ,    1 ,    - 1 ,   " "))  + " */";
+   } else if ( isShared) {
+      DeclareVar = "/* shared variable(s): "  + (await func_Join( parts  ,    1 ,    - 1 ,   " "))  + " */";
    } else {
       DeclareVar =  js;
    }
@@ -1985,7 +1991,7 @@ var RegisterVar = null;
       bvar.jsname = "$"  +  currentMethod + "__"  +  bvar.jsname;
    }
    bvar.type = (await func_NormalizeType(  bvar.type));
-   varExists = (await func_FindVariable(  bvar.name ,    findVar,    True));
+   varExists = (await func_FindVariable(  bvar.name ,    findVar,    bvar.isArray));
    if ( isGlobal) {
       await sub_AddVariable(  bvar,   globalVars);
    } else {
@@ -1995,7 +2001,9 @@ var RegisterVar = null;
       var v = '';  /* STRING */ 
       v = "var ";
       if ( isGlobal) {
-         QB.arrayValue(jsLines, [ sharedVarLine]).value .text = QB.arrayValue(jsLines, [ sharedVarLine]).value .text + "var "  +  bvar.jsname + "; ";
+         if (~ varExists) {
+            QB.arrayValue(jsLines, [ sharedVarLine]).value .text = QB.arrayValue(jsLines, [ sharedVarLine]).value .text + "var "  +  bvar.jsname + " = "  + (await func_InitTypeValue(  bvar.type))  + "; ";
+         }
          v = "";
       }
       js =  js +  v +  bvar.jsname + " = "  + (await func_InitTypeValue(  bvar.type))  + "; ";

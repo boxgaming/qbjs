@@ -626,6 +626,9 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
             ElseIf first = "SYSTEM" Then
                 js = "QB.halt(); return;"
 
+            ElseIf first = "$NOPREFIX" Then
+                ' nothing to do here, keywords prefixes are optional
+
             ElseIf first = "$IF" Then
                 If UBound(parts) > 1 Then
                     If UCase$(parts(2)) = "JAVASCRIPT" Then
@@ -1947,6 +1950,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
     Dim vtype As String: vtype = ""
     Dim vtypeIndex As Integer: vtypeIndex = 4
     Dim isGlobal As Integer: isGlobal = False
+    Dim isShared As Integer: isShared = False
     Dim isArray As Integer: isArray = False
     Dim isStatic As Integer: isStatic = False
     Dim arraySize As String
@@ -1972,14 +1976,10 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
         If currentMethod = "" Then
             AddWarning lineNumber, "SHARED must be used within a SUB/FUNCTION"
             DeclareVar = ""
+            Exit Function
         Else
-            ' We get this for "free" due to the fact that all variables
-            ' declared in the main module are effectively shared.
-            ' This will need to be revisited when support for
-            ' implicit variable declaration is added
-            DeclareVar = "/* shared variable(s): " + Join(parts(), 1, -1, " ") + " */"
+            isShared = True
         End If
-        Exit Function
     End If
 
     Dim i As Integer
@@ -1991,7 +1991,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
 
 
     If asIdx = 2 Or _
-       (asIdx = 3 And (isGlobal Or bPreserve = "true")) Or _
+       (asIdx = 3 And (isGlobal Or bPreserve = "true") And Not isShared) Or _
        (asIdx = 4 And isGlobal And bPreserve = "true") Then
 
         ' Handle Dim As syntax
@@ -2047,6 +2047,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
                 bvar.type = UCase$(Join(vparts(), 3, -1, " "))
             Else
                 ' Log error?
+                AddError lineNumber, "Syntax Error"
             End If
             bvar.name = RemoveSuffix(vparts(1))
             bvar.typeId = FindTypeId(bvar.type)
@@ -2069,6 +2070,8 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
     If isStatic Then
         jsLines(staticVarLine).text = jsLines(staticVarLine).text + js
         DeclareVar = "/* static variable(s): " + Join(parts(), 1, -1, " ") + " */"
+    ElseIf isShared Then
+        DeclareVar = "/* shared variable(s): " + Join(parts(), 1, -1, " ") + " */"
     Else
         DeclareVar = js
     End If
@@ -2084,7 +2087,7 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
     End If
     bvar.type = NormalizeType(bvar.type)
 
-    varExists = FindVariable(bvar.name, findVar, True)
+    varExists = FindVariable(bvar.name, findVar, bvar.isArray)
 
     If isGlobal Then
         AddVariable bvar, globalVars()
@@ -2095,7 +2098,9 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
     If Not bvar.isArray Then
         Dim v As String: v = "var "
         If isGlobal Then
-            jsLines(sharedVarLine).text = jsLines(sharedVarLine).text + "var " + bvar.jsname + "; "
+            If Not varExists Then
+                jsLines(sharedVarLine).text = jsLines(sharedVarLine).text + "var " + bvar.jsname + " = " + InitTypeValue(bvar.type) + "; "
+            End If
             v = ""
         End If
      
