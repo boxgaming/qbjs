@@ -374,11 +374,12 @@ var IDE = new function() {
             return result;
         }
         for (var i=0; i < args.length; i++) {
+            console.log(args[i]);
             var nv = args[i].split(":");
             if (result != "") {
                 result += ", ";
             }
-            result += nv[0] + " <span class='method-arg-type'>As " + nv[1] + "</span>";
+            result += nv[0] + (nv[2] == "true" ? "()" : "") + " <span class='method-arg-type'>As " + nv[1] + "</span>";
         }
         return result;
     }
