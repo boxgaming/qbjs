@@ -109,3 +109,7 @@ dialog a.disabled:hover { text-decoration: none; }
     color: #ccc;
     background-color: #000;
 }
+
+.hexview, .audioview, .imgview {
+  background-color: #000;
+}
