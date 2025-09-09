@@ -1362,12 +1362,15 @@ Function ConvertSubMid$ (m As Method, args As String, lineNumber As Integer)
     Dim js As String
     Dim midArgs(0) As String
 
-    args = Replace(args, "(", "")
-    args = Replace(args, ")", "")
+    Dim idx As Integer
+    idx = InStr(args, "(")
+    args = Right$(args, Len(args) - idx)
+    idx = _InStrRev(args, ")")
+    args = Left$(args, idx-1) + Right$(args, Len(args) - idx)
     args = Replace(args, "=", ",")
 
     Dim argc As Integer
-    argc = Split(args, ",", midArgs())
+    argc = ListSplit(args, midArgs())
 
     Dim var1 As String
     Dim var2 As String

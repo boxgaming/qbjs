@@ -1256,11 +1256,14 @@ var ConvertSubMid = null;
 /* implicit variables: */ 
    var js = '';  /* STRING */ 
    var midArgs = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
-   args = (await func_Replace(  args,   "("  ,   ""));
-   args = (await func_Replace(  args,   ")"  ,   ""));
+   var idx = 0;  /* INTEGER */ 
+   idx = (QB.func_InStr(  args,   "("));
+   args = (QB.func_Right(  args,   (QB.func_Len(  args))  -  idx));
+   idx = (QB.func__InStrRev(  args,   ")"));
+   args = (QB.func_Left(  args,    idx - 1))  + (QB.func_Right(  args,   (QB.func_Len(  args))  -  idx));
    args = (await func_Replace(  args,   "="  ,   ","));
    var argc = 0;  /* INTEGER */ 
-   argc = (await func_Split(  args,   ","  ,   midArgs));
+   argc = (await func_ListSplit(  args,   midArgs));
    var var1 = '';  /* STRING */ 
    var var2 = '';  /* STRING */ 
    var startPosition = '';  /* STRING */ 
