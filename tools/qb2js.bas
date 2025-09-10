@@ -4203,6 +4203,7 @@ Sub InitGX
     AddGXMethod "FUNCTION", "GXEntityWidth", False
     AddGXMethod "FUNCTION", "GXEntityHeight", False
     AddGXMethod "SUB", "GXEntityFrameNext", False
+    AddGXMethod "FUNCTION", "GXEntityFrame", False
     AddGXMethod "FUNCTION", "GXEntityFrames", False
     AddGXMethod "SUB", "GXEntityFrames", False
     AddGXMethod "SUB", "GXEntityFrameSet", False

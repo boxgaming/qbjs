@@ -4075,6 +4075,7 @@ if (QB.halted()) { return; };
    await sub_AddGXMethod( "FUNCTION"  ,   "GXEntityWidth"  ,    False);
    await sub_AddGXMethod( "FUNCTION"  ,   "GXEntityHeight"  ,    False);
    await sub_AddGXMethod( "SUB"  ,   "GXEntityFrameNext"  ,    False);
+   await sub_AddGXMethod( "FUNCTION"  ,   "GXEntityFrame"  ,    False);
    await sub_AddGXMethod( "FUNCTION"  ,   "GXEntityFrames"  ,    False);
    await sub_AddGXMethod( "SUB"  ,   "GXEntityFrames"  ,    False);
    await sub_AddGXMethod( "SUB"  ,   "GXEntityFrameSet"  ,    False);

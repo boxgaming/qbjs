@@ -2801,6 +2801,7 @@ var GX = new function() {
     this.entityVX = _entityVX;
     this.entityVY = _entityVY;
 	this.entityFrameNext = _entityFrameNext;
+    this.entityFrame = _entityFrame;
     this.entityFrames = _entityFrames;
     this.entityFrameSet = _entityFrameSet;
     this.entityType = _entityType;
