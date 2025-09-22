@@ -1432,7 +1432,7 @@ var QB = new function() {
     this.sub__SndVol = function(sid, v) {
         _assertNumber(sid, 1);
         _assertNumber(v, 2);
-        GX.soundVolumne(sid, v);
+        GX.soundVolume(sid, v);
     };
 
     this.func__StartDir = function() {
