@@ -3479,9 +3479,11 @@ var QB = new function() {
         var col = _locX; 
         if (_screenText.length < 1 || row >= _screenText.length) { return; }
         for (var i=0; i < text.length; i++) {
-            _screenText[row][col+i].text = text.substring(i, i+1);
-            _screenText[row][col+i].fgcolor = _fgColor;
-            _screenText[row][col+i].bgcolor = _bgColor;
+            if (_screenText.length > row && _screenText[row].length > col+i) {
+                _screenText[row][col+i].text = text.substring(i, i+1);
+                _screenText[row][col+i].fgcolor = _fgColor;
+                _screenText[row][col+i].bgcolor = _bgColor;
+            }
         }
     }
 
