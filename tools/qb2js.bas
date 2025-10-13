@@ -4397,6 +4397,7 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_Font", False
     AddQBMethod "FUNCTION", "_FontHeight", False
     AddQBMethod "FUNCTION", "_FontWidth", False
+    AddQBMethod "SUB", "_FreeFont", False
     AddQBMethod "SUB", "_FreeImage", False
     AddQBMethod "SUB", "_FullScreen", False
     AddQBMethod "FUNCTION", "_FullScreen", False

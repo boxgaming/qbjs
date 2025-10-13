@@ -736,6 +736,15 @@ var QB = new function() {
         return _fonts[fnt].width;
     };
 
+    this.sub__FreeFont = function(fnt) {
+        if (fnt == _font) {
+            throw new Error("Can't free active font.");
+        }
+        if (fnt != undefined) {
+            _fonts[fnt] = undefined;
+        }
+    };
+
     this.sub__FreeImage = function(imageId) {
         if (imageId == undefined) {
             imageId = _activeImage;

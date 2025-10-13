@@ -4261,6 +4261,7 @@ if (QB.halted()) { return; };
    await sub_AddQBMethod( "SUB"  ,   "_Font"  ,    False);
    await sub_AddQBMethod( "FUNCTION"  ,   "_FontHeight"  ,    False);
    await sub_AddQBMethod( "FUNCTION"  ,   "_FontWidth"  ,    False);
+   await sub_AddQBMethod( "SUB"  ,   "_FreeFont"  ,    False);
    await sub_AddQBMethod( "SUB"  ,   "_FreeImage"  ,    False);
    await sub_AddQBMethod( "SUB"  ,   "_FullScreen"  ,    False);
    await sub_AddQBMethod( "FUNCTION"  ,   "_FullScreen"  ,    False);

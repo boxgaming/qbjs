@@ -41,7 +41,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              '_?cosh', '_?cot', '_?coth', '_?csc', '_?csch', '_?cwd', 
                              '_?defaultcolor', '_?d2g', '_?d2r', '_?deflate', '_?desktopwidth', '_?desktopheight',
                              '_?delay', '_?dest', '_?dir', '_?direxists', '_?display', 
-                             '_?echo', '_?environcount', '_?fileexists', '_?font', '_?fontwidth', '_?fontheight',
+                             '_?echo', '_?environcount', '_?fileexists', '_?font', '_?fontwidth', '_?fontheight', '_?freefont',
                              '_?freeimage', '_?fullscreen', '_?g2d', '_?g2r', '_?green', '_?green32', '_?height', '_?hypot', "_?inflate",
                              '_?instrrev', '_?limit', '_?keyclear', '_?keydown', '_?keyhit', '_?loadfont', '_?loadimage',
                              '_?mousebutton', '_?mousehide', '_?mouseinput', '_?mouseshow', '_?mousewheel', '_?mousex', '_?mousey',
