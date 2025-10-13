@@ -2,6 +2,7 @@ var GX = new function() {
     var _canvas = null;
 	var _ctx = null;
     var _framerate = 60;
+    var _millisPerFrame = Math.trunc(1000 / _framerate + .1);
     var _bg = [];
     var _images = [];
     var _entities = [];
@@ -43,6 +44,8 @@ var GX = new function() {
     var _onGameEvent = null;
     var _pressedKeys = {};
 
+    //GX.frameRate(60);
+
     async function _registerGameEvents(fnEventCallback) {
         _onGameEvent = fnEventCallback;
 
@@ -63,7 +66,7 @@ var GX = new function() {
     function _reset() {
         // stop any sounds that are currently playing
         _soundStopAll();
-        _framerate = 60;
+        GX.frameRate(60);
         _bg = [];
         _images = [];
         _entities = [];
@@ -446,12 +449,15 @@ var GX = new function() {
         window.requestAnimationFrame(_sceneLoop);
     }
 
-    async function _sceneLoop() {
+    let lastTimestamp = 0;
+    async function _sceneLoop(timestamp) {
         if (!_scene.active) { return; }
-
-        await GX.sceneUpdate();
-        GX.sceneDraw();
-
+        if (lastTimestamp == 0) { lastTimestamp = timestamp; }
+        if (timestamp - lastTimestamp >= _millisPerFrame) {
+            await GX.sceneUpdate();
+            GX.sceneDraw();
+            lastTimestamp = timestamp;
+        }
         window.requestAnimationFrame(_sceneLoop);
     }
 
@@ -518,9 +524,10 @@ var GX = new function() {
     // Frame Functions
     // -------------------------------------------------------------------
     // Gets or sets the current frame rate (expressed in frames-per-second or FPS).
-    function _frameRate (frameRate) {
-        if (frameRate != undefined) {
-            _framerate = frameRate;
+    function _frameRate (fps) {
+        if (fps != undefined) {
+            _millisPerFrame = Math.trunc(1000 / (fps + .1));
+            _framerate = fps;
         }
         return _framerate;
     }
@@ -902,11 +909,10 @@ var GX = new function() {
     }
 
     function _entityFrames (eid, seq, frames) {
-        console.log(eid + ":" + seq + ":" + frames);
         if (frames != undefined) {
             _entity_animations[eid-1][seq-1] = { frames: frames };
         }
-        return _entityGetFrames(eid, seq); //_entity_animations[eid-1][seq-1].frames;
+        return _entityGetFrames(eid, seq);
     }
 
     function _entityType (eid, etype) {
