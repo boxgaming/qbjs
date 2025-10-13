@@ -2748,6 +2748,7 @@ var GX = new function() {
     this.ctx = function() { return _ctx; };
     this.canvas = function() { return _canvas; };
     this.vfs = function() { return _vfs; };
+    this.getSound = function(sid) { return _sounds[sid]; };
     this.vfsCwd = function(cwd) {
         if (cwd != undefined) {
             _vfsCwd = cwd;

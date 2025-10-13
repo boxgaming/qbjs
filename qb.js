@@ -392,6 +392,10 @@ var QB = new function() {
         return _images[imageId].canvas;
     };
 
+    this.getSound = function(soundId) {
+        return GX.getSound(soundId);
+    };
+
     this.defaultLineWidth = function(width) {
         if (width != undefined) {
             _strokeLineThickness = width;
