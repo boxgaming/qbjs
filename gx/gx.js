@@ -44,8 +44,6 @@ var GX = new function() {
     var _onGameEvent = null;
     var _pressedKeys = {};
 
-    //GX.frameRate(60);
-
     async function _registerGameEvents(fnEventCallback) {
         _onGameEvent = fnEventCallback;
 
@@ -450,13 +448,18 @@ var GX = new function() {
     }
 
     let lastTimestamp = 0;
+    let fpsSnapshot = 0;
     async function _sceneLoop(timestamp) {
         if (!_scene.active) { return; }
         if (lastTimestamp == 0) { lastTimestamp = timestamp; }
         if (timestamp - lastTimestamp >= _millisPerFrame) {
             await GX.sceneUpdate();
             GX.sceneDraw();
-            lastTimestamp = timestamp;
+            if (_scene.frame % 10 == 0) {
+                _framerate = Math.round(10 / (timestamp - fpsSnapshot) * 1000);
+                fpsSnapshot = timestamp;
+            }
+            lastTimestamp = timestamp
         }
         window.requestAnimationFrame(_sceneLoop);
     }
