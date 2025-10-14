@@ -512,8 +512,14 @@ var IDE = new function() {
         localStorage.setItem("@@_consolePersistent", checked);
     }
 
-    function _changeKeyMap(keyMap) {
-        editor.setOption("keyMap", keyMap);
+    function _changeKeyMap(newKeyMap) {
+        keyMap = newKeyMap;
+        //editor.setOption("keyMap", keyMap);
+        for (var key in codeTabMap) {
+            if (codeTabMap[key].editor) {
+                codeTabMap[key].editor.setOption("keyMap", keyMap);
+            }
+        }
         localStorage.setItem("@@_keyMap", keyMap);
     };
 
