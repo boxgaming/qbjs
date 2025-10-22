@@ -345,7 +345,7 @@ var GX = new function() {
             var e = _entities[ei-1];
             if (e.screen) {
                 _entityDraw(e);
-                if (frame % (GX.frameRate() / e.animate) == 0) {
+                if (frame % Math.round(GX.frameRate() / e.animate) == 0) {
                     GX.entityFrameNext(ei);
                 }
             }
@@ -938,7 +938,7 @@ var GX = new function() {
             if (e.mapLayer == layer) {
                 _entityDraw(e);
                 if (e.animate > 0) {
-                    if (frame % (GX.frameRate() / e.animate) == 0) {
+                    if (frame % Math.round(GX.frameRate() / e.animate) == 0) {
                         GX.entityFrameNext(ei);
                     }
                 }
