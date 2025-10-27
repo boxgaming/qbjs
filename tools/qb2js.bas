@@ -2824,9 +2824,8 @@ Sub ReadLinesFromText (sourceText As String)
                     QBToJS importRes.text, TEXT, moduleName
                     ResetDataStructures
                     modLevel = modLevel - 1
-                    currentModuleId = currentModuleId - 1
+                    currentModuleId = 0
                     currentModule = ""
-                    
                     _Continue
                 End If
             End If

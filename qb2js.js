@@ -2721,7 +2721,7 @@ if (QB.halted()) { return; };
                await sub_QBToJS(  importRes.text ,    TEXT,    moduleName);
                await sub_ResetDataStructures();
                modLevel =  modLevel -  1;
-               currentModuleId =  currentModuleId -  1;
+               currentModuleId =  0;
                currentModule = "";
                continue;
             }
