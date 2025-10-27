@@ -8,22 +8,22 @@ async function main() {
 /* implicit variables: */ 
    // $Console
    // Only
-   QB.resizeArray(modules, [{l:0,u:0}], {name:'',path:''}, false);  /* MODULE */ 
-   QB.resizeArray(lines, [{l:0,u:0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
-   QB.resizeArray(jsLines, [{l:0,u:0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
-   QB.resizeArray(methods, [{l:0,u:0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, false);  /* METHOD */ 
-   QB.resizeArray(localMethods, [{l:0,u:0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, false);  /* METHOD */ 
-   QB.resizeArray(types, [{l:0,u:0}], {line:0,name:'',argc:0,args:''}, false);  /* QBTYPE */ 
-   QB.resizeArray(typeVars, [{l:0,u:0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
-   QB.resizeArray(globalVars, [{l:0,u:0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
-   QB.resizeArray(localVars, [{l:0,u:0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
-   QB.resizeArray(warnings, [{l:0,u:0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
-   QB.resizeArray(exportLines, [{l:0,u:0}], '', false);  /* STRING */ 
-   QB.resizeArray(exportConsts, [{l:0,u:0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
-   QB.resizeArray(exportMethods, [{l:0,u:0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, false);  /* METHOD */ 
-   QB.resizeArray(dataArray, [{l:0,u:0}], '', false);  /* STRING */ 
-   QB.resizeArray(dataLabels, [{l:0,u:0}], {text:'',index:0}, false);  /* LABEL */ 
-   QB.resizeArray(jsReservedWords, [{l:0,u:54}], '', false);  /* STRING */ 
+   QB.resizeArray(modules, [{l:0,u: 0}], {name:'',path:''}, false);  /* MODULE */ 
+   QB.resizeArray(lines, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
+   QB.resizeArray(jsLines, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
+   QB.resizeArray(methods, [{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, false);  /* METHOD */ 
+   QB.resizeArray(localMethods, [{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, false);  /* METHOD */ 
+   QB.resizeArray(types, [{l:0,u: 0}], {line:0,name:'',argc:0,args:''}, false);  /* QBTYPE */ 
+   QB.resizeArray(typeVars, [{l:0,u: 0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
+   QB.resizeArray(globalVars, [{l:0,u: 0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
+   QB.resizeArray(localVars, [{l:0,u: 0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
+   QB.resizeArray(warnings, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
+   QB.resizeArray(exportLines, [{l:0,u: 0}], '', false);  /* STRING */ 
+   QB.resizeArray(exportConsts, [{l:0,u: 0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
+   QB.resizeArray(exportMethods, [{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, false);  /* METHOD */ 
+   QB.resizeArray(dataArray, [{l:0,u: 0}], '', false);  /* STRING */ 
+   QB.resizeArray(dataLabels, [{l:0,u: 0}], {text:'',index:0}, false);  /* LABEL */ 
+   QB.resizeArray(jsReservedWords, [{l:0,u: 54}], '', false);  /* STRING */ 
    modLevel = 0;  /* INTEGER */ 
    currentMethod = '';  /* STRING */ 
    currentModule = '';  /* STRING */ 
@@ -33,7 +33,7 @@ async function main() {
    sharedVarLine = 0;  /* INTEGER */ 
    staticVarLine = 0;  /* INTEGER */ 
    implicitVarLine = 0;  /* INTEGER */ 
-   QB.resizeArray(condWords, [{l:0,u:4}], '', false);  /* STRING */ 
+   QB.resizeArray(condWords, [{l:0,u: 4}], '', false);  /* STRING */ 
    forceSelfConvert = 0;  /* INTEGER */ 
    optionExplicit = 0;  /* INTEGER */ 
    optionExplicitArray = 0;  /* INTEGER */ 
@@ -54,7 +54,7 @@ if (QB.halted()) { return; }; sourceType = Math.round(sourceType);
    currentModule =  moduleName;
    await sub_ResetDataStructures();
    if ( moduleName ==  ""  ) {
-      QB.resizeArray(jsLines, [{l:0,u:0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
+      QB.resizeArray(jsLines, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
       currentModuleId =  0;
    }
    if ( sourceType ==   FILE) {
@@ -240,19 +240,19 @@ if (QB.halted()) { return; };
 async function sub_ResetDataStructures() {
 if (QB.halted()) { return; }; 
 /* implicit variables: */ 
-   QB.resizeArray(lines, [{l:0,u:0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
-   QB.resizeArray(methods, [{l:0,u:0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, false);  /* METHOD */ 
-   QB.resizeArray(types, [{l:0,u:0}], {line:0,name:'',argc:0,args:''}, false);  /* QBTYPE */ 
-   QB.resizeArray(typeVars, [{l:0,u:0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
-   QB.resizeArray(globalVars, [{l:0,u:0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
-   QB.resizeArray(localVars, [{l:0,u:0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
-   QB.resizeArray(dataArray, [{l:0,u:0}], '', false);  /* STRING */ 
-   QB.resizeArray(dataLabels, [{l:0,u:0}], {text:'',index:0}, false);  /* LABEL */ 
+   QB.resizeArray(lines, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
+   QB.resizeArray(methods, [{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, false);  /* METHOD */ 
+   QB.resizeArray(types, [{l:0,u: 0}], {line:0,name:'',argc:0,args:''}, false);  /* QBTYPE */ 
+   QB.resizeArray(typeVars, [{l:0,u: 0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
+   QB.resizeArray(globalVars, [{l:0,u: 0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
+   QB.resizeArray(localVars, [{l:0,u: 0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
+   QB.resizeArray(dataArray, [{l:0,u: 0}], '', false);  /* STRING */ 
+   QB.resizeArray(dataLabels, [{l:0,u: 0}], {text:'',index:0}, false);  /* LABEL */ 
    if ( modLevel ==   0 ) {
-      QB.resizeArray(warnings, [{l:0,u:0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
-      QB.resizeArray(exportMethods, [{l:0,u:0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, false);  /* METHOD */ 
-      QB.resizeArray(exportConsts, [{l:0,u:0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
-      QB.resizeArray(modules, [{l:0,u:0}], {name:'',path:''}, false);  /* MODULE */ 
+      QB.resizeArray(warnings, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
+      QB.resizeArray(exportMethods, [{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, false);  /* METHOD */ 
+      QB.resizeArray(exportConsts, [{l:0,u: 0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
+      QB.resizeArray(modules, [{l:0,u: 0}], {name:'',path:''}, false);  /* MODULE */ 
    }
    currentMethod = "";
    programMethods =  0;
@@ -298,7 +298,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
    var totalIndent = 0;  /* INTEGER */ 
    totalIndent =  1;
    var caseCount = 0;  /* INTEGER */ 
-   var containers = QB.initArray([{l:0,u:10000}], {mode:0,type:'',label:'',line:0});  /* CONTAINER */ 
+   var containers = QB.initArray([{l:0,u: 10000}], {mode:0,type:'',label:'',line:0});  /* CONTAINER */ 
    var cindex = 0;  /* INTEGER */ 
    var caseVar = '';  /* STRING */ 
    var currType = 0;  /* INTEGER */ 
@@ -318,7 +318,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
       if ((QB.func_UCase( (QB.func_Left(  l,    5))))  ==  "MID$("  ) {
          l = (QB.func_Left(  l,    4))  + " "  + (QB.func_Mid(  l,    5));
       }
-      var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+      var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
       var c = 0;  /* INTEGER */ 
       c = (await func_SLSplit(  l,   parts  ,    True));
       if ( c < 1 ) {
@@ -364,7 +364,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
       } else {
          await sub_CheckParen( QB.arrayValue(lines, [ i]).value .text ,    i);
          if ( first ==  "CONST"  ) {
-            var constParts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+            var constParts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
             var constCount = 0;  /* INTEGER */ 
             constCount = (await func_ListSplit( (await func_Join( parts  ,    2 ,    - 1 ,   " "))  ,   constParts));
             var constIdx = 0;  /* INTEGER */ 
@@ -412,7 +412,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
             } else if ((QB.func_UCase( QB.arrayValue(parts, [ 2]).value))  ==  "IS"  ) {
                js =  js + "case "  +  caseVar + " "  + (await func_ConvertExpression( (await func_Join( parts  ,    3 ,    - 1 ,   " "))  ,    i))  + ":";
             } else {
-               var caseParts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+               var caseParts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
                var cscount = 0;  /* INTEGER */ 
                cscount = (await func_ListSplit( (await func_Join( parts  ,    2 ,    - 1 ,   " "))  ,   caseParts));
                var ci = 0;  /* INTEGER */ 
@@ -483,7 +483,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
             tempIndent =  - 1;
          } else if ( first ==  "NEXT"  ) {
             if ( c > 1 ) {
-               var nparts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+               var nparts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
                var npcount = 0;  /* INTEGER */ 
                var npi = 0;  /* INTEGER */ 
                npcount = (await func_ListSplit( (await func_Join( parts  ,    2 ,    - 1 ,   " "))  ,   nparts));
@@ -639,7 +639,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
             currType = (QB.func_UBound(  types));
          } else if ( first ==  "EXPORT"  ) {
             if ( c > 1 ) {
-               var exparts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+               var exparts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
                var excount = 0;  /* INTEGER */ 
                excount = (await func_ListSplit( (await func_Join( parts  ,    2 ,    - 1 ,   " "))  ,   exparts));
                var exi = 0;  /* INTEGER */ 
@@ -864,7 +864,7 @@ if (QB.halted()) { return; }; lineIndex = Math.round(lineIndex);
    var es = {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0};  /* METHOD */ 
    var ev = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
    var exportName = '';  /* STRING */ 
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var found = 0;  /* INTEGER */ 
    found =  False;
    var c = 0;  /* INTEGER */ 
@@ -923,7 +923,7 @@ if (QB.halted()) { return; };
 /* implicit variables: */ 
    var esize = 0;  /* SINGLE */ 
    esize = (QB.func_UBound(  exportLines))  +  1;
-   QB.resizeArray(exportLines, [{l:0,u:esize}], '', true);  /* STRING */ 
+   QB.resizeArray(exportLines, [{l:0,u: esize}], '', true);  /* STRING */ 
    QB.arrayValue(exportLines, [ esize]).value =  exportName + ": "  +  exportedItem + ",";
 }
 async function func_ConvertSub(m/*METHOD*/,args/*STRING*/,lineNumber/*INTEGER*/) {
@@ -932,7 +932,7 @@ var ConvertSub = null;
 /* implicit variables: */ 
    var js = '';  /* STRING */ 
    if ( m.name ==  "Line"  |  m.name ==  "_Clipboard$"  |  m.name ==  "_ClipboardImage"  ) {
-      var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+      var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
       var plen = 0;  /* INTEGER */ 
       plen = (await func_SLSplit(  args,   parts  ,    False));
       if ( plen > 0 ) {
@@ -1019,7 +1019,7 @@ async function func_ConvertPut(m/*METHOD*/,args/*STRING*/,lineNumber/*INTEGER*/)
 if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var ConvertPut = null;
 /* implicit variables: */ 
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var argc = 0;  /* INTEGER */ 
    argc = (await func_ListSplit(  args,   parts));
    if ( argc < 3 ) {
@@ -1058,7 +1058,7 @@ async function func_ConvertFullScreen(args/*STRING*/) {
 if (QB.halted()) { return; }; 
 var ConvertFullScreen = null;
 /* implicit variables: */ 
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var argc = 0;  /* INTEGER */ 
    var mode = '';  /* STRING */ 
    mode = "QB.STRETCH";
@@ -1089,7 +1089,7 @@ if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber);
 var ConvertOpen = null;
 /* implicit variables: */ 
    var argc = 0;  /* INTEGER */ 
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var filename = '';  /* STRING */ var mode = '';  /* STRING */ var handle = '';  /* STRING */ 
    argc = (await func_SLSplit(  args,   parts  ,    False));
    if ( argc < 5 ) {
@@ -1115,7 +1115,7 @@ if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber);
 var ConvertLine = null;
 /* implicit variables: */ 
    var argc = 0;  /* INTEGER */ 
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var coord = '';  /* STRING */ var lcolor = '';  /* STRING */ var mode = '';  /* STRING */ var style = '';  /* STRING */ 
    coord = (await func_ConvertCoordParam( ""  ,    True,    lineNumber));
    lcolor = "undefined";
@@ -1142,7 +1142,7 @@ if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber);
 var ConvertPutImage = null;
 /* implicit variables: */ 
    var argc = 0;  /* INTEGER */ 
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var startCoord = '';  /* STRING */ var sourceImage = '';  /* STRING */ var destImage = '';  /* STRING */ var destCoord = '';  /* STRING */ var doSmooth = '';  /* STRING */ 
    startCoord = (await func_ConvertCoordParam( ""  ,    True,    lineNumber));
    destCoord = (await func_ConvertCoordParam( ""  ,    True,    lineNumber));
@@ -1234,7 +1234,7 @@ if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber);
 var ConvertCls = null;
 /* implicit variables: */ 
    var argc = 0;  /* INTEGER */ 
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    argc = (await func_ListSplit(  args,   parts));
    var method = '';  /* STRING */ var bgcolor = '';  /* STRING */ 
    method = "undefined";
@@ -1255,7 +1255,7 @@ if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber);
 var ConvertSubMid = null;
 /* implicit variables: */ 
    var js = '';  /* STRING */ 
-   var midArgs = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var midArgs = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var idx = 0;  /* INTEGER */ 
    idx = (QB.func_InStr(  args,   "("));
    args = (QB.func_Right(  args,   (QB.func_Len(  args))  -  idx));
@@ -1291,7 +1291,7 @@ if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber);
 var ConvertSubName = null;
 /* implicit variables: */ 
    var argc = 0;  /* INTEGER */ 
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var asIndex = 0;  /* INTEGER */ 
    argc = (await func_SLSplit2(  args,   parts));
    var i = 0;  /* INTEGER */ 
@@ -1338,8 +1338,8 @@ var ConvertRead = null;
    var js = '';  /* STRING */ 
    var vname = '';  /* STRING */ 
    var pcount = 0;  /* INTEGER */ 
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
-   var vars = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
+   var vars = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var vcount = 0;  /* INTEGER */ 
    var p = '';  /* STRING */ 
    pcount = (await func_ListSplit(  args,   parts));
@@ -1347,7 +1347,7 @@ var ConvertRead = null;
    var ___v2417220 = 0; ___l9412093: for ( i=  1 ;  i <=  pcount;  i= i + 1) { if (QB.halted()) { return; } ___v2417220++;   if (___v2417220 % 100 == 0) { await QB.autoLimit(); }
       p = (QB.func__Trim( QB.arrayValue(parts, [ i]).value));
       vcount = (QB.func_UBound(  vars))  +  1;
-      QB.resizeArray(vars, [{l:0,u:vcount}], '', true);  /* STRING */ 
+      QB.resizeArray(vars, [{l:0,u: vcount}], '', true);  /* STRING */ 
       QB.arrayValue(vars, [ vcount]).value =  p;
    } 
    vname = await func_GenJSVar();
@@ -1451,7 +1451,7 @@ var ConvertPrint = null;
    var fh = '';  /* STRING */ 
    var pcount = 0;  /* INTEGER */ 
    var startIdx = 0;  /* INTEGER */ 
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    pcount = (await func_PrintSplit(  args,   parts));
    startIdx =  1;
    m.jsname = "QB.sub_Print";
@@ -1495,7 +1495,7 @@ var ConvertWrite = null;
    var fh = '';  /* STRING */ 
    var pcount = 0;  /* INTEGER */ 
    var startIdx = 0;  /* INTEGER */ 
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    pcount = (await func_ListSplit(  args,   parts));
    startIdx =  1;
    m.jsname = "QB.sub_Write";
@@ -1567,7 +1567,7 @@ var ConvertFileLineInput = null;
    var vname = '';  /* STRING */ 
    var retvar = '';  /* STRING */ 
    var pcount = 0;  /* INTEGER */ 
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    pcount = (await func_ListSplit(  args,   parts));
    if ( pcount !=   2 ) {
       await sub_AddWarning(  lineNumber,   "Syntax error");
@@ -1590,8 +1590,8 @@ var ConvertInput = null;
    var js = '';  /* STRING */ 
    var vname = '';  /* STRING */ 
    var pcount = 0;  /* INTEGER */ 
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
-   var vars = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
+   var vars = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var varIndex = 0;  /* INTEGER */ 
    varIndex =  1;
    var preventNewline = '';  /* STRING */ 
@@ -1616,7 +1616,7 @@ var ConvertInput = null;
          promptStr =  p;
       } else if ( p !=  ","  ) {
          vcount = (QB.func_UBound(  vars))  +  1;
-         QB.resizeArray(vars, [{l:0,u:vcount}], '', true);  /* STRING */ 
+         QB.resizeArray(vars, [{l:0,u: vcount}], '', true);  /* STRING */ 
          QB.arrayValue(vars, [ vcount]).value =  p;
       }
    } 
@@ -1646,7 +1646,7 @@ var ConvertFileInput = null;
    var vname = '';  /* STRING */ 
    var retvar = '';  /* STRING */ 
    var pcount = 0;  /* INTEGER */ 
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    pcount = (await func_ListSplit(  args,   parts));
    if ( pcount < 2 ) {
       await sub_AddWarning(  lineNumber,   "Syntax error");
@@ -1679,7 +1679,7 @@ var GetVarType = null;
 /* implicit variables: */ 
    var vartype = '';  /* STRING */ 
    vartype = "UNKNOWN";
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var pcount = 0;  /* INTEGER */ 
    var found = 0;  /* INTEGER */ 
    var v = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
@@ -1732,7 +1732,7 @@ var ConvertSwap = null;
    var js = '';  /* STRING */ 
    var swapArray = '';  /* STRING */ 
    swapArray = await func_GenJSVar();
-   var swapArgs = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var swapArgs = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var swapCount = 0;  /* INTEGER */ 
    swapCount = (await func_ListSplit(  args,   swapArgs));
    var var1 = '';  /* STRING */ 
@@ -1810,7 +1810,7 @@ if (QB.halted()) { return; }; typeId = Math.round(typeId); lineNumber = Math.rou
    var arraySize = '';  /* STRING */ 
    var pstart = 0;  /* INTEGER */ 
    var bvar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
-   var varnames = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var varnames = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var vnamecount = 0;  /* INTEGER */ 
    var findVar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
    var asIdx = 0;  /* INTEGER */ 
@@ -1874,7 +1874,7 @@ var DeclareVar = null;
    var arraySize = '';  /* STRING */ 
    var pstart = 0;  /* INTEGER */ 
    var bvar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
-   var varnames = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var varnames = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var vnamecount = 0;  /* INTEGER */ 
    var findVar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
    var asIdx = 0;  /* INTEGER */ 
@@ -1927,18 +1927,18 @@ var DeclareVar = null;
          pstart = (QB.func_InStr(  vname,   "("));
          if ( pstart > 0 ) {
             bvar.isArray =  True;
-            arraySize = (await func_ConvertExpression( (QB.func_Mid(  vname,    pstart +  1 ,   (QB.func_Len(  vname))  -  pstart -  1))  ,    lineNumber));
+            arraySize = (QB.func_Mid(  vname,    pstart +  1 ,   (QB.func_Len(  vname))  -  pstart -  1));
             bvar.name = (await func_RemoveSuffix( (QB.func_Left(  vname,    pstart -  1))));
          } else {
             bvar.isArray =  False;
             arraySize = "";
             bvar.name =  vname;
          }
-         js = (await func_RegisterVar(  bvar,    js,    isGlobal,    isStatic,    bPreserve,    arraySize));
+         js = (await func_RegisterVar(  bvar,    js,    isGlobal,    isStatic,    bPreserve,    arraySize,    lineNumber));
       } 
    } else {
       var vpartcount = 0;  /* INTEGER */ 
-      var vparts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+      var vparts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
       nextIdx =  0;
       var ___v317799 = 0; ___l6917726: for ( i=  1 ;  i <= (QB.func_UBound(  parts));  i= i + 1) { if (QB.halted()) { return; } ___v317799++;   if (___v317799 % 100 == 0) { await QB.autoLimit(); }
          var p = '';  /* STRING */ 
@@ -1970,7 +1970,7 @@ var DeclareVar = null;
             bvar.isArray =  False;
             arraySize = "";
          }
-         js = (await func_RegisterVar(  bvar,    js,    isGlobal,    isStatic,    bPreserve,    arraySize));
+         js = (await func_RegisterVar(  bvar,    js,    isGlobal,    isStatic,    bPreserve,    arraySize,    lineNumber));
       } 
    }
    if ( isStatic) {
@@ -1983,8 +1983,8 @@ var DeclareVar = null;
    }
 return DeclareVar;
 }
-async function func_RegisterVar(bvar/*VARIABLE*/,js/*STRING*/,isGlobal/*INTEGER*/,isStatic/*INTEGER*/,bPreserve/*STRING*/,arraySize/*STRING*/) {
-if (QB.halted()) { return; }; isGlobal = Math.round(isGlobal); isStatic = Math.round(isStatic); 
+async function func_RegisterVar(bvar/*VARIABLE*/,js/*STRING*/,isGlobal/*INTEGER*/,isStatic/*INTEGER*/,bPreserve/*STRING*/,arraySize/*STRING*/,lineNumber/*INTEGER*/) {
+if (QB.halted()) { return; }; isGlobal = Math.round(isGlobal); isStatic = Math.round(isStatic); lineNumber = Math.round(lineNumber); 
 var RegisterVar = null;
 /* implicit variables: */ 
    var findVar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
@@ -2024,9 +2024,9 @@ var RegisterVar = null;
          varExists =  True;
       }
       if ( varExists) {
-         js =  js + "QB.resizeArray("  +  bvar.jsname + ", ["  + (await func_FormatArraySize(  arraySize))  + "], "  + (await func_InitTypeValue(  bvar.type))  + ", "  +  bPreserve + "); ";
+         js =  js + "QB.resizeArray("  +  bvar.jsname + ", ["  + (await func_FormatArraySize(  arraySize,    lineNumber))  + "], "  + (await func_InitTypeValue(  bvar.type))  + ", "  +  bPreserve + "); ";
       } else {
-         js =  js + "var "  +  bvar.jsname + " = QB.initArray(["  + (await func_FormatArraySize(  arraySize))  + "], "  + (await func_InitTypeValue(  bvar.type))  + "); ";
+         js =  js + "var "  +  bvar.jsname + " = QB.initArray(["  + (await func_FormatArraySize(  arraySize,    lineNumber))  + "], "  + (await func_InitTypeValue(  bvar.type))  + "); ";
       }
    }
    if ( PrintDataTypes) {
@@ -2035,8 +2035,8 @@ var RegisterVar = null;
    RegisterVar =  js;
 return RegisterVar;
 }
-async function sub_RegisterImplicitVar(varname/*STRING*/,dataType/*STRING*/,arraySize/*STRING*/) {
-if (QB.halted()) { return; }; 
+async function sub_RegisterImplicitVar(varname/*STRING*/,dataType/*STRING*/,arraySize/*STRING*/,lineNumber/*INTEGER*/) {
+if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 /* implicit variables: */ 
    var ivar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
    ivar.name = (await func_RemoveSuffix(  varname));
@@ -2044,20 +2044,20 @@ if (QB.halted()) { return; };
    if ( arraySize !=  ""  ) {
       ivar.isArray =  True;
    }
-   QB.arrayValue(jsLines, [ implicitVarLine]).value .text = QB.arrayValue(jsLines, [ implicitVarLine]).value .text + (await func_RegisterVar(  ivar,   ""  ,    False,    False,   ""  ,    arraySize));
+   QB.arrayValue(jsLines, [ implicitVarLine]).value .text = QB.arrayValue(jsLines, [ implicitVarLine]).value .text + (await func_RegisterVar(  ivar,   ""  ,    False,    False,   ""  ,    arraySize,    lineNumber));
 }
-async function func_FormatArraySize(sizeString/*STRING*/) {
-if (QB.halted()) { return; }; 
+async function func_FormatArraySize(sizeString/*STRING*/,lineNumber/*INTEGER*/) {
+if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var FormatArraySize = null;
 /* implicit variables: */ 
    var sizeParams = '';  /* STRING */ 
    sizeParams = "";
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var pcount = 0;  /* INTEGER */ 
    pcount = (await func_ListSplit(  sizeString,   parts));
    var i = 0;  /* INTEGER */ 
    var ___v2196902 = 0; ___l8268084: for ( i=  1 ;  i <=  pcount;  i= i + 1) { if (QB.halted()) { return; } ___v2196902++;   if (___v2196902 % 100 == 0) { await QB.autoLimit(); }
-      var subparts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+      var subparts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
       var scount = 0;  /* INTEGER */ 
       scount = (await func_SLSplit2( QB.arrayValue(parts, [ i]).value  ,   subparts));
       if ( i > 1 ) {
@@ -2072,11 +2072,11 @@ var FormatArraySize = null;
          }
       } 
       if ( toIndex ==   0 ) {
-         sizeParams =  sizeParams + "{l:0,u:"  + QB.arrayValue(subparts, [ 1]).value  + "}";
+         sizeParams =  sizeParams + "{l:0,u:"  + (await func_ConvertExpression( QB.arrayValue(subparts, [ 1]).value  ,    lineNumber))  + "}";
       } else {
          var lb = '';  /* STRING */ var ub = '';  /* STRING */ 
-         lb = (await func_Join( subparts  ,    1 ,    toIndex -  1 ,   " "));
-         ub = (await func_Join( subparts  ,    toIndex +  1 ,    - 1 ,   " "));
+         lb = (await func_ConvertExpression( (await func_Join( subparts  ,    1 ,    toIndex -  1 ,   " "))  ,    lineNumber));
+         ub = (await func_ConvertExpression( (await func_Join( subparts  ,    toIndex +  1 ,    - 1 ,   " "))  ,    lineNumber));
          sizeParams =  sizeParams + "{l:"  +  lb + ",u:"  +  ub + "}";
       }
    } 
@@ -2212,7 +2212,7 @@ var ConvertExpression = null;
                            if ( optionExplicit) {
                               await sub_AddError(  lineNumber,   "Variable '"  + (await func_RemoveSuffix(  varname))  + "' ("  +  dt + ") not defined");
                            } else {
-                              await sub_RegisterImplicitVar(  varname,    dt,   "");
+                              await sub_RegisterImplicitVar(  varname,    dt,   ""  ,    lineNumber);
                               if ((await func_FindVariable(  varname,    bvar,    False))  ) {
                                  js =  js + " "  +  bvar.jsname;
                               } else {
@@ -2282,7 +2282,7 @@ var ConvertExpression = null;
                      await sub_AddError(  lineNumber,   "Missing function or array ["  +  word + "]");
                      js =  js +  fneg + "("  + (await func_ConvertExpression(  ex2,    lineNumber))  + ")";
                   } else {
-                     var params = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+                     var params = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
                      var arraySize = '';  /* STRING */ 
                      var argc = 0;  /* INTEGER */ var ai = 0;  /* INTEGER */ 
                      argc = (await func_ListSplit(  ex2,   params));
@@ -2291,7 +2291,7 @@ var ConvertExpression = null;
                         arraySize =  arraySize + ", 10";
                      } 
                      dt = (await func_DataTypeFromName(  varname));
-                     await sub_RegisterImplicitVar(  varname,    dt,    arraySize);
+                     await sub_RegisterImplicitVar(  varname,    dt,    arraySize,    lineNumber);
                      if ((await func_FindVariable(  varname,    bvar,    True))  ) {
                         if ((QB.func__Trim(  ex2))  ==  ""  ) {
                            js =  js +  fneg +  bvar.jsname;
@@ -2399,7 +2399,7 @@ if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber);
 var ConvertMethodParams = null;
 /* implicit variables: */ 
    var js = '';  /* STRING */ 
-   var params = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var params = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var argc = 0;  /* INTEGER */ 
    argc = (await func_ListSplit(  args,   params));
    var i = 0;  /* INTEGER */ 
@@ -2588,20 +2588,20 @@ if (QB.halted()) { return; };
          if ( lastLine < 0 ) {
             lastLine = (QB.func_UBound(  lines));
          }
-         QB.resizeArray(localMethods, [{l:0,u:0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, false);  /* METHOD */ 
-         QB.resizeArray(localVars, [{l:0,u:0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
+         QB.resizeArray(localMethods, [{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, false);  /* METHOD */ 
+         QB.resizeArray(localVars, [{l:0,u: 0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
          var intConv = '';  /* STRING */ 
          intConv = "";
          var methodDec = '';  /* STRING */ 
          methodDec = "async function "  + QB.arrayValue(methods, [ i]).value .jsname + "(";
          if (QB.arrayValue(methods, [ i]).value .argc > 0 ) {
-            var args = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+            var args = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
             var c = 0;  /* INTEGER */ 
             c = (await func_Split( QB.arrayValue(methods, [ i]).value .args ,   ","  ,   args));
             var a = 0;  /* INTEGER */ 
             var ___v7912182 = 0; ___l5596389: for ( a=  1 ;  a <=  c;  a= a + 1) { if (QB.halted()) { return; } ___v7912182++;   if (___v7912182 % 100 == 0) { await QB.autoLimit(); }
                var v = 0;  /* INTEGER */ 
-               var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+               var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
                v = (await func_Split( QB.arrayValue(args, [ a]).value  ,   ":"  ,   parts));
                methodDec =  methodDec + (await func_RemoveSuffix( QB.arrayValue(parts, [ 1]).value))  + "/*"  + QB.arrayValue(parts, [ 2]).value  + "*/";
                if ( a < c) {
@@ -2657,7 +2657,7 @@ if (QB.halted()) { return; };
          await sub_AddJSLine(  i,   QB.arrayValue(exportLines, [ i]).value);
       } 
       await sub_AddJSLine(  0 ,   "};");
-      QB.resizeArray(exportLines, [{l:0,u:0}], '', false);  /* STRING */ 
+      QB.resizeArray(exportLines, [{l:0,u: 0}], '', false);  /* STRING */ 
    }
 }
 async function sub_ReadLinesFromFile(filename/*STRING*/) {
@@ -2684,7 +2684,7 @@ if (QB.halted()) { return; };
 async function sub_ReadLinesFromText(sourceText/*STRING*/) {
 if (QB.halted()) { return; }; 
 /* implicit variables: */ 
-   var sourceLines = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var sourceLines = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var rawJS = 0;  /* SINGLE */ 
    var lcount = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
@@ -2696,7 +2696,7 @@ if (QB.halted()) { return; };
          var lineIndex = 0;  /* INTEGER */ 
          lineIndex =  i;
          if ((await func_StartsWith( (QB.func_LTrim( (QB.func_UCase(  fline))))  ,   "IMPORT"))  ) {
-            var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+            var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
             var pcount = 0;  /* INTEGER */ 
             pcount = (await func_SLSplit(  fline,   parts  ,    False));
             if ( pcount ==   4 ) {
@@ -2709,7 +2709,7 @@ if (QB.halted()) { return; };
                modLevel =  modLevel +  1;
                var mcount = 0;  /* INTEGER */ 
                mcount = (QB.func_UBound(  modules))  +  1;
-               QB.resizeArray(modules, [{l:0,u:mcount}], {name:'',path:''}, true);  /* MODULE */ 
+               QB.resizeArray(modules, [{l:0,u: mcount}], {name:'',path:''}, true);  /* MODULE */ 
                QB.arrayValue(modules, [ mcount]).value .name =  moduleName;
                QB.arrayValue(modules, [ mcount]).value .path =  sourceUrl;
                currentModuleId =  mcount;
@@ -2760,7 +2760,7 @@ var ReadLine = null;
       return ReadLine;
    }
    var word = '';  /* STRING */ 
-   var words = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var words = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var wcount = 0;  /* INTEGER */ 
    wcount = (await func_SLSplit(  fline,   words  ,    False));
    if ((QB.func_Left( (QB.func_UCase( QB.arrayValue(words, [ 1]).value))  ,    4))  ==  "$END"  ) {
@@ -2787,7 +2787,7 @@ var ReadLine = null;
    if ( wcount ==   1 ) {
       if ((await func_EndsWith( QB.arrayValue(words, [ 1]).value  ,   ":"))  ) {
          index = (QB.func_UBound(  dataLabels))  +  1;
-         QB.resizeArray(dataLabels, [{l:0,u:index}], {text:'',index:0}, true);  /* LABEL */ 
+         QB.resizeArray(dataLabels, [{l:0,u: index}], {text:'',index:0}, true);  /* LABEL */ 
          QB.arrayValue(dataLabels, [ index]).value .text = (QB.func_Left( (QB.func_UCase( QB.arrayValue(words, [ 1]).value))  ,   (QB.func_Len( QB.arrayValue(words, [ 1]).value))  -  1));
          QB.arrayValue(dataLabels, [ index]).value .index = (QB.func_UBound(  dataArray));
          return ReadLine;
@@ -2797,11 +2797,11 @@ var ReadLine = null;
       var dstr = '';  /* STRING */ 
       dstr = (await func_Join( words  ,    2 ,    - 1 ,   " "));
       var dcount = 0;  /* INTEGER */ 
-      var de = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+      var de = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
       dcount = (await func_ListSplit(  dstr,   de));
       var ___v4235128 = 0; ___l3713350: for ( i=  1 ;  i <=  dcount;  i= i + 1) { if (QB.halted()) { return; } ___v4235128++;   if (___v4235128 % 100 == 0) { await QB.autoLimit(); }
          index = (QB.func_UBound(  dataArray))  +  1;
-         QB.resizeArray(dataArray, [{l:0,u:index}], '', true);  /* STRING */ 
+         QB.resizeArray(dataArray, [{l:0,u: index}], '', true);  /* STRING */ 
          QB.arrayValue(dataArray, [ index]).value = QB.arrayValue(de, [ i]).value;
       } 
       return ReadLine;
@@ -2870,7 +2870,7 @@ if (QB.halted()) { return; };
    var i = 0;  /* INTEGER */ 
    var pcount = 0;  /* INTEGER */ 
    var rawJS = 0;  /* INTEGER */ 
-   var parts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    var ___v968821 = 0; ___l7192662: for ( i=  1 ;  i <= (QB.func_UBound(  lines));  i= i + 1) { if (QB.halted()) { return; } ___v968821++;   if (___v968821 % 100 == 0) { await QB.autoLimit(); }
       pcount = (await func_Split( QB.arrayValue(lines, [ i]).value .text ,   " "  ,   parts));
       var word = '';  /* STRING */ 
@@ -2903,20 +2903,20 @@ if (QB.halted()) { return; };
             pend = (QB.func__InStrRev(  mstr,   ")"));
             argstr = (QB.func_Left(  mstr,    pend -  1));
          }
-         var arga = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+         var arga = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
          var m = {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0};  /* METHOD */ 
          m.line =  i;
          m.type =  word;
          m.name =  mname;
          m.argc = (await func_ListSplit(  argstr,   arga));
          m.args = "";
-         var args = QB.initArray([{l:0,u:0}], {name:'',type:''});  /* ARGUMENT */ 
+         var args = QB.initArray([{l:0,u: 0}], {name:'',type:''});  /* ARGUMENT */ 
          if ((QB.func_UBound(  arga))  > 0 ) {
             var a = 0;  /* INTEGER */ 
             var args = '';  /* STRING */ 
             args = "";
             var ___v1187419 = 0; ___l2003016: for ( a=  1 ;  a <=  m.argc;  a= a + 1) { if (QB.halted()) { return; } ___v1187419++;   if (___v1187419 % 100 == 0) { await QB.autoLimit(); }
-               var aparts = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+               var aparts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
                var apcount = 0;  /* INTEGER */ 
                var argname = '';  /* STRING */ 
                var isArray = '';  /* STRING */ 
@@ -2969,13 +2969,13 @@ var Split = null;
    dpos = (QB.func_InStr(  curpos,    cstr,    delimiter));
    var ___v2294313 = 0; ___l3623797: while (!( dpos ==   0)) { if (QB.halted()) { return; }___v2294313++;   if (___v2294313 % 100 == 0) { await QB.autoLimit(); }
       arrpos =  arrpos +  1;
-      QB.resizeArray(results, [{l:0,u:arrpos}], '', true);  /* STRING */ 
+      QB.resizeArray(results, [{l:0,u: arrpos}], '', true);  /* STRING */ 
       QB.arrayValue(results, [ arrpos]).value = (QB.func_Mid(  cstr,    curpos,    dpos -  curpos));
       curpos =  dpos + (QB.func_Len(  delimiter));
       dpos = (QB.func_InStr(  curpos,    cstr,    delimiter));
    }
    arrpos =  arrpos +  1;
-   QB.resizeArray(results, [{l:0,u:arrpos}], '', true);  /* STRING */ 
+   QB.resizeArray(results, [{l:0,u: arrpos}], '', true);  /* STRING */ 
    QB.arrayValue(results, [ arrpos]).value = (QB.func_Mid(  cstr,    curpos));
    Split =  arrpos;
 return Split;
@@ -2987,7 +2987,7 @@ var SLSplit = null;
    var cstr = '';  /* STRING */ 
    var p = 0;  /* LONG */ var curpos = 0;  /* LONG */ var arrpos = 0;  /* LONG */ var dpos = 0;  /* LONG */ 
    cstr = (QB.func__Trim(  sourceString));
-   QB.resizeArray(results, [{l:0,u:0}], '', false);  /* STRING */ 
+   QB.resizeArray(results, [{l:0,u: 0}], '', false);  /* STRING */ 
    var lastChar = '';  /* STRING */ 
    var quoteMode = 0;  /* INTEGER */ 
    var result = '';  /* STRING */ 
@@ -3011,7 +3011,7 @@ var SLSplit = null;
          } else if ( lastChar ==  " "  ) {
          } else {
             count = (QB.func_UBound(  results))  +  1;
-            QB.resizeArray(results, [{l:0,u:count}], '', true);  /* STRING */ 
+            QB.resizeArray(results, [{l:0,u: count}], '', true);  /* STRING */ 
             QB.arrayValue(results, [ count]).value =  result;
             result = "";
          }
@@ -3026,11 +3026,11 @@ var SLSplit = null;
          } else {
             if ( result !=  ""  ) {
                count = (QB.func_UBound(  results))  +  1;
-               QB.resizeArray(results, [{l:0,u:count}], '', true);  /* STRING */ 
+               QB.resizeArray(results, [{l:0,u: count}], '', true);  /* STRING */ 
                QB.arrayValue(results, [ count]).value =  result;
             }
             count = (QB.func_UBound(  results))  +  1;
-            QB.resizeArray(results, [{l:0,u:count}], '', true);  /* STRING */ 
+            QB.resizeArray(results, [{l:0,u: count}], '', true);  /* STRING */ 
             if ( oplen ==   2 ) {
                QB.arrayValue(results, [ count]).value =  c2;
                i =  i +  1;
@@ -3046,7 +3046,7 @@ var SLSplit = null;
    } 
    if ( result !=  ""  ) {
       count = (QB.func_UBound(  results))  +  1;
-      QB.resizeArray(results, [{l:0,u:count}], '', true);  /* STRING */ 
+      QB.resizeArray(results, [{l:0,u: count}], '', true);  /* STRING */ 
       QB.arrayValue(results, [ count]).value =  result;
    }
    SLSplit = (QB.func_UBound(  results));
@@ -3114,7 +3114,7 @@ var SLSplit2 = null;
    var cstr = '';  /* STRING */ 
    var p = 0;  /* LONG */ var curpos = 0;  /* LONG */ var arrpos = 0;  /* LONG */ var dpos = 0;  /* LONG */ 
    cstr = (QB.func__Trim(  sourceString));
-   QB.resizeArray(results, [{l:0,u:0}], '', false);  /* STRING */ 
+   QB.resizeArray(results, [{l:0,u: 0}], '', false);  /* STRING */ 
    var lastChar = '';  /* STRING */ 
    var quoteMode = 0;  /* INTEGER */ 
    var result = '';  /* STRING */ 
@@ -3141,7 +3141,7 @@ var SLSplit2 = null;
          if ( lastChar ==  " "  ) {
          } else {
             count = (QB.func_UBound(  results))  +  1;
-            QB.resizeArray(results, [{l:0,u:count}], '', true);  /* STRING */ 
+            QB.resizeArray(results, [{l:0,u: count}], '', true);  /* STRING */ 
             QB.arrayValue(results, [ count]).value =  result;
             result = "";
          }
@@ -3152,7 +3152,7 @@ var SLSplit2 = null;
    } 
    if ( result !=  ""  ) {
       count = (QB.func_UBound(  results))  +  1;
-      QB.resizeArray(results, [{l:0,u:count}], '', true);  /* STRING */ 
+      QB.resizeArray(results, [{l:0,u: count}], '', true);  /* STRING */ 
       QB.arrayValue(results, [ count]).value =  result;
    }
    SLSplit2 = (QB.func_UBound(  results));
@@ -3165,7 +3165,7 @@ var ListSplit = null;
    var cstr = '';  /* STRING */ 
    var p = 0;  /* LONG */ var curpos = 0;  /* LONG */ var arrpos = 0;  /* LONG */ var dpos = 0;  /* LONG */ 
    cstr = (QB.func__Trim(  sourceString));
-   QB.resizeArray(results, [{l:0,u:0}], '', false);  /* STRING */ 
+   QB.resizeArray(results, [{l:0,u: 0}], '', false);  /* STRING */ 
    var quoteMode = 0;  /* INTEGER */ 
    var result = '';  /* STRING */ 
    var count = 0;  /* INTEGER */ 
@@ -3189,7 +3189,7 @@ var ListSplit = null;
          result =  result +  c;
       } else if ( c ==  ","  ) {
          count = (QB.func_UBound(  results))  +  1;
-         QB.resizeArray(results, [{l:0,u:count}], '', true);  /* STRING */ 
+         QB.resizeArray(results, [{l:0,u: count}], '', true);  /* STRING */ 
          QB.arrayValue(results, [ count]).value =  result;
          result = "";
       } else {
@@ -3198,7 +3198,7 @@ var ListSplit = null;
    } 
    if ( result !=  ""  ) {
       count = (QB.func_UBound(  results))  +  1;
-      QB.resizeArray(results, [{l:0,u:count}], '', true);  /* STRING */ 
+      QB.resizeArray(results, [{l:0,u: count}], '', true);  /* STRING */ 
       QB.arrayValue(results, [ count]).value =  result;
    }
    ListSplit = (QB.func_UBound(  results));
@@ -3211,7 +3211,7 @@ var PrintSplit = null;
    var cstr = '';  /* STRING */ 
    var p = 0;  /* LONG */ var curpos = 0;  /* LONG */ var arrpos = 0;  /* LONG */ var dpos = 0;  /* LONG */ 
    cstr = (QB.func__Trim(  sourceString));
-   QB.resizeArray(results, [{l:0,u:0}], '', false);  /* STRING */ 
+   QB.resizeArray(results, [{l:0,u: 0}], '', false);  /* STRING */ 
    var quoteMode = 0;  /* INTEGER */ 
    var result = '';  /* STRING */ 
    var count = 0;  /* INTEGER */ 
@@ -3236,12 +3236,12 @@ var PrintSplit = null;
       } else if ( c ==  ","  |  c ==  ";"  ) {
          if ( result !=  ""  ) {
             count = (QB.func_UBound(  results))  +  1;
-            QB.resizeArray(results, [{l:0,u:count}], '', true);  /* STRING */ 
+            QB.resizeArray(results, [{l:0,u: count}], '', true);  /* STRING */ 
             QB.arrayValue(results, [ count]).value =  result;
             result = "";
          }
          count = (QB.func_UBound(  results))  +  1;
-         QB.resizeArray(results, [{l:0,u:count}], '', true);  /* STRING */ 
+         QB.resizeArray(results, [{l:0,u: count}], '', true);  /* STRING */ 
          QB.arrayValue(results, [ count]).value =  c;
       } else {
          result =  result +  c;
@@ -3249,7 +3249,7 @@ var PrintSplit = null;
    } 
    if ( result !=  ""  ) {
       count = (QB.func_UBound(  results))  +  1;
-      QB.resizeArray(results, [{l:0,u:count}], '', true);  /* STRING */ 
+      QB.resizeArray(results, [{l:0,u: count}], '', true);  /* STRING */ 
       QB.arrayValue(results, [ count]).value =  result;
    }
    PrintSplit = (QB.func_UBound(  results));
@@ -3305,7 +3305,7 @@ if (QB.halted()) { return; }; sync = Math.round(sync);
 /* implicit variables: */ 
    var mcount = 0;  /* SINGLE */ 
    mcount = (QB.func_UBound(  methods))  +  1;
-   QB.resizeArray(methods, [{l:0,u:mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, true);  /* METHOD */ 
+   QB.resizeArray(methods, [{l:0,u: mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, true);  /* METHOD */ 
    if ( m.type ==  "FUNCTION"  ) {
       m.returnType = (await func_DataTypeFromName(  m.name));
    }
@@ -3319,7 +3319,7 @@ if (QB.halted()) { return; };
 /* implicit variables: */ 
    var mcount = 0;  /* SINGLE */ 
    mcount = (QB.func_UBound(  localMethods))  +  1;
-   QB.resizeArray(localMethods, [{l:0,u:mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, true);  /* METHOD */ 
+   QB.resizeArray(localMethods, [{l:0,u: mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, true);  /* METHOD */ 
    m.uname = (QB.func_UCase( (await func_RemoveSuffix(  m.name))));
    m.jsname =  m.name;
    m.sync =  True;
@@ -3330,7 +3330,7 @@ if (QB.halted()) { return; }; sync = Math.round(sync);
 /* implicit variables: */ 
    var mcount = 0;  /* SINGLE */ 
    mcount = (QB.func_UBound(  exportMethods))  +  1;
-   QB.resizeArray(exportMethods, [{l:0,u:mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, true);  /* METHOD */ 
+   QB.resizeArray(exportMethods, [{l:0,u: mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, true);  /* METHOD */ 
    if ( m.type ==  "FUNCTION"  ) {
       m.returnType = (await func_DataTypeFromName(  m.name));
    }
@@ -3355,7 +3355,7 @@ if (QB.halted()) { return; }; sync = Math.round(sync);
 /* implicit variables: */ 
    var mcount = 0;  /* SINGLE */ 
    mcount = (QB.func_UBound(  methods))  +  1;
-   QB.resizeArray(methods, [{l:0,u:mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, true);  /* METHOD */ 
+   QB.resizeArray(methods, [{l:0,u: mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, true);  /* METHOD */ 
    var m = {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0};  /* METHOD */ 
    m.type =  mtype;
    m.name =  mname;
@@ -3384,7 +3384,7 @@ if (QB.halted()) { return; }; sync = Math.round(sync);
       m2.builtin =  True;
       var mcount = 0;  /* SINGLE */ 
       mcount = (QB.func_UBound(  methods))  +  1;
-      QB.resizeArray(methods, [{l:0,u:mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, true);  /* METHOD */ 
+      QB.resizeArray(methods, [{l:0,u: mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, true);  /* METHOD */ 
       QB.arrayValue(methods, [ mcount]).value =  m2;
    }
 }
@@ -3400,7 +3400,7 @@ if (QB.halted()) { return; }; sync = Math.round(sync);
    m.builtin =  True;
    var mcount = 0;  /* SINGLE */ 
    mcount = (QB.func_UBound(  methods))  +  1;
-   QB.resizeArray(methods, [{l:0,u:mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, true);  /* METHOD */ 
+   QB.resizeArray(methods, [{l:0,u: mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0}, true);  /* METHOD */ 
    QB.arrayValue(methods, [ mcount]).value =  m;
 }
 async function sub_AddLine(lineIndex/*INTEGER*/,fline/*STRING*/) {
@@ -3413,7 +3413,7 @@ if (QB.halted()) { return; }; lineIndex = Math.round(lineIndex);
 /* implicit variables: */ 
    var lcount = 0;  /* INTEGER */ 
    lcount = (QB.func_UBound(  lines))  +  1;
-   QB.resizeArray(lines, [{l:0,u:lcount}], {line:0,text:'',mtype:0,moduleId:0}, true);  /* CODELINE */ 
+   QB.resizeArray(lines, [{l:0,u: lcount}], {line:0,text:'',mtype:0,moduleId:0}, true);  /* CODELINE */ 
    QB.arrayValue(lines, [ lcount]).value .line =  lineIndex;
    QB.arrayValue(lines, [ lcount]).value .text =  fline;
 }
@@ -3422,7 +3422,7 @@ if (QB.halted()) { return; }; sourceLine = Math.round(sourceLine);
 /* implicit variables: */ 
    var lcount = 0;  /* INTEGER */ 
    lcount = (QB.func_UBound(  jsLines))  +  1;
-   QB.resizeArray(jsLines, [{l:0,u:lcount}], {line:0,text:'',mtype:0,moduleId:0}, true);  /* CODELINE */ 
+   QB.resizeArray(jsLines, [{l:0,u: lcount}], {line:0,text:'',mtype:0,moduleId:0}, true);  /* CODELINE */ 
    QB.arrayValue(jsLines, [ lcount]).value .line =  sourceLine;
    QB.arrayValue(jsLines, [ lcount]).value .text =  jsline;
 }
@@ -3431,7 +3431,7 @@ if (QB.halted()) { return; }; sourceLine = Math.round(sourceLine);
 /* implicit variables: */ 
    var lcount = 0;  /* INTEGER */ 
    lcount = (QB.func_UBound(  warnings))  +  1;
-   QB.resizeArray(warnings, [{l:0,u:lcount}], {line:0,text:'',mtype:0,moduleId:0}, true);  /* CODELINE */ 
+   QB.resizeArray(warnings, [{l:0,u: lcount}], {line:0,text:'',mtype:0,moduleId:0}, true);  /* CODELINE */ 
    var l = 0;  /* INTEGER */ 
    if (( sourceLine > 0)  ) {
       l = QB.arrayValue(lines, [ sourceLine]).value .line;
@@ -3523,7 +3523,7 @@ if (QB.halted()) { return; };
 /* implicit variables: */ 
    var vcount = 0;  /* SINGLE */ 
    vcount = (QB.func_UBound(  vlist))  +  1;
-   QB.resizeArray(vlist, [{l:0,u:vcount}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, true);  /* VARIABLE */ 
+   QB.resizeArray(vlist, [{l:0,u: vcount}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, true);  /* VARIABLE */ 
    var nvar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
    nvar.type = (await func_NormalizeType(  bvar.type));
    nvar.name =  bvar.name;
@@ -3576,7 +3576,7 @@ if (QB.halted()) { return; };
 /* implicit variables: */ 
    var tcount = 0;  /* SINGLE */ 
    tcount = (QB.func_UBound(  types))  +  1;
-   QB.resizeArray(types, [{l:0,u:tcount}], {line:0,name:'',argc:0,args:''}, true);  /* QBTYPE */ 
+   QB.resizeArray(types, [{l:0,u: tcount}], {line:0,name:'',argc:0,args:''}, true);  /* QBTYPE */ 
    QB.arrayValue(types, [ tcount]).value =  t;
 }
 async function sub_AddSystemType(tname/*STRING*/,args/*STRING*/) {
@@ -3588,11 +3588,11 @@ if (QB.halted()) { return; };
    var typeId = 0;  /* INTEGER */ 
    typeId = (QB.func_UBound(  types));
    var count = 0;  /* INTEGER */ 
-   var pairs = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+   var pairs = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    count = (await func_Split(  args,   ","  ,   pairs));
    var i = 0;  /* INTEGER */ 
    var ___v7166154 = 0; ___l9252861: for ( i=  1 ;  i <= (QB.func_UBound(  pairs));  i= i + 1) { if (QB.halted()) { return; } ___v7166154++;   if (___v7166154 % 100 == 0) { await QB.autoLimit(); }
-      var nv = QB.initArray([{l:0,u:0}], '');  /* STRING */ 
+      var nv = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
       count = (await func_Split( QB.arrayValue(pairs, [ i]).value  ,   ":"  ,   nv));
       var tvar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
       tvar.typeId =  typeId;

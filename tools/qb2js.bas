@@ -2013,7 +2013,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
             pstart = InStr(vname, "(")
             If pstart > 0 Then
                 bvar.isArray = True
-                arraySize = ConvertExpression(Mid$(vname, pstart + 1, Len(vname) - pstart - 1), lineNumber)
+                arraySize = Mid$(vname, pstart + 1, Len(vname) - pstart - 1)
                 bvar.name = RemoveSuffix(Left$(vname, pstart - 1))
             Else
                 bvar.isArray = False
@@ -2021,7 +2021,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
                 bvar.name = vname
             End If
 
-            js = RegisterVar(bvar, js, isGlobal, isStatic, bPreserve, arraySize)
+            js = RegisterVar(bvar, js, isGlobal, isStatic, bPreserve, arraySize, lineNumber)
         Next i
 
 
@@ -2066,7 +2066,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
                 arraySize = ""
             End If
 
-            js = RegisterVar(bvar, js, isGlobal, isStatic, bPreserve, arraySize)
+            js = RegisterVar(bvar, js, isGlobal, isStatic, bPreserve, arraySize, lineNumber)
         Next i
     End If
 
@@ -2080,7 +2080,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
     End If
 End Function
 
-Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isStatic As Integer, bPreserve As String, arraySize As String)
+Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isStatic As Integer, bPreserve As String, arraySize As String, lineNumber As Integer)
     Dim findVar As Variable
     Dim varExists As Integer
 
@@ -2124,9 +2124,9 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
         End If
 
         If varExists Then
-            js = js + "QB.resizeArray(" + bvar.jsname + ", [" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + ", " + bPreserve + "); "
+            js = js + "QB.resizeArray(" + bvar.jsname + ", [" + FormatArraySize(arraySize, lineNumber) + "], " + InitTypeValue(bvar.type) + ", " + bPreserve + "); "
         Else
-            js = js + "var " + bvar.jsname + " = QB.initArray([" + FormatArraySize(arraySize) + "], " + InitTypeValue(bvar.type) + "); "
+            js = js + "var " + bvar.jsname + " = QB.initArray([" + FormatArraySize(arraySize, lineNumber) + "], " + InitTypeValue(bvar.type) + "); "
         End If
     End If
 
@@ -2135,15 +2135,15 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
     RegisterVar = js
 End Function
 
-Sub RegisterImplicitVar (varname As String, dataType As String, arraySize As String)
+Sub RegisterImplicitVar (varname As String, dataType As String, arraySize As String, lineNumber As Integer)
     Dim ivar As Variable
     ivar.name = RemoveSuffix(varname)
     ivar.type = dataType
     If arraySize <> "" Then ivar.isArray = True
-    jsLines(implicitVarLine).text = jsLines(implicitVarLine).text + RegisterVar(ivar, "", False, False, "", arraySize)
+    jsLines(implicitVarLine).text = jsLines(implicitVarLine).text + RegisterVar(ivar, "", False, False, "", arraySize, lineNumber)
 End Sub
 
-Function FormatArraySize$ (sizeString As String)
+Function FormatArraySize$ (sizeString As String, lineNumber As Integer)
     Dim sizeParams As String: sizeParams = ""
     ReDim parts(0) As String
     Dim pcount As Integer
@@ -2166,12 +2166,12 @@ Function FormatArraySize$ (sizeString As String)
         Next j
 
         If toIndex = 0 Then
-            sizeParams = sizeParams + "{l:0,u:" + subparts(1) + "}"
+            sizeParams = sizeParams + "{l:0,u:" + ConvertExpression(subparts(1), lineNumber) + "}"
         Else
             ' This must be the "x To y" format
             Dim As String lb, ub
-            lb = Join(subparts(), 1, toIndex - 1, " ")
-            ub = Join(subparts(), toIndex + 1, -1, " ")
+            lb = ConvertExpression(Join(subparts(), 1, toIndex - 1, " "), lineNumber)
+            ub = ConvertExpression(Join(subparts(), toIndex + 1, -1, " "), lineNumber)
             sizeParams = sizeParams + "{l:" + lb + ",u:" + ub + "}"
         End If
     Next i
@@ -2303,7 +2303,7 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                                     If optionExplicit Then
                                         AddError lineNumber, "Variable '" + RemoveSuffix(varname) + "' (" + dt + ") not defined"
                                     Else
-                                        RegisterImplicitVar varname, dt, ""
+                                        RegisterImplicitVar varname, dt, "", lineNumber
                                         If FindVariable(varname, bvar, False) Then
                                             js = js + " " + bvar.jsname
                                         Else
@@ -2387,7 +2387,7 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                             arraySize = "10"
                             For ai = 2 To argc: arraySize = arraySize + ", 10": Next ai
                             dt = DataTypeFromName(varname)
-                            RegisterImplicitVar varname, dt, arraySize
+                            RegisterImplicitVar varname, dt, arraySize, lineNumber
                             If FindVariable(varname, bvar, True) Then
                                 If _Trim$(ex2) = "" Then
                                     ' This is the case where the array variable is being passed as a parameter
