@@ -3,8 +3,7 @@ $Console:Only
 '$ExeIcon:'./../gx/resource/gx.ico'
 
 '1) Edit this file as needed.
-'2) Compile to EXE only.
-'3) In console, run:    qb2js qb2js.bas > ../qb2js.js
+'2) In console, run:    node qbc tools/qb2js.bas qb2js.js
 
 Const FILE = 1, TEXT = 2
 Const MWARNING = 0, MERROR = 1
@@ -38,6 +37,7 @@ Type Method
     jsname As String
     sync As Integer
     builtin As Integer
+    dynamic As Integer
 End Type
 
 Type Argument
@@ -2114,7 +2114,12 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
             If FindMethod(bvar.name, m, bvar.type, False) < 1 Then
                 m.name = bvar.name
                 m.type = bvar.type
-                AddLocalMethod m
+                If isGlobal Then
+                    m.dynamic = True
+                    AddMethod m, "", True
+                Else
+                    AddLocalMethod m
+                End If
             End If
         End If
     Else
@@ -3899,10 +3904,12 @@ Function CRLF$: CRLF = CR + LF: End Function
 Function MethodJS$ (m As Method, prefix As String)
     Dim jsname As String
     jsname = prefix
-    If m.type = "FUNCTION" Then
-        jsname = jsname + "func_"
-    Else
-        jsname = jsname + "sub_"
+    If m.dynamic <> True Then
+        If m.type = "FUNCTION" Then
+            jsname = jsname + "func_"
+        Else
+            jsname = jsname + "sub_"
+        End If
     End If
 
     Dim i As Integer
