@@ -4173,6 +4173,8 @@ Sub InitGX
     AddGXConst "GXDEVICE_BUTTON"
     AddGXConst "GXDEVICE_AXIS"
     AddGXConst "GXDEVICE_WHEEL"
+    AddGXConst "GXENTITY_RENDER_DEFAULT"
+    AddGXConst "GXENTITY_RENDER_TOPDOWN"
     AddGXConst "GXTYPE_ENTITY"
     AddGXConst "GXTYPE_FONT"
 
@@ -4193,6 +4195,8 @@ Sub InitGX
     AddGXMethod "FUNCTION", "GXEntityAnimateMode", False
     AddGXMethod "FUNCTION", "GXScreenEntityCreate", False
     AddGXMethod "FUNCTION", "GXEntityCreate", False
+    AddGXMethod "FUNCTION", "GXEntityRenderMode", False
+    AddGXMethod "SUB", "GXEntityRenderMode", False
     AddGXMethod "SUB", "GXEntityCreate", False
     AddGXMethod "FUNCTION", "GXEntityVisible", False
     AddGXMethod "SUB", "GXEntityVisible", False

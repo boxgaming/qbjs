@@ -8,6 +8,7 @@ var GX = new function() {
     var _entities = [];
     var _entities_active = [];
     var _entity_animations = [];
+    var _entity_render_mode = 0;
     var _scene = {};
     var _tileset = {};
     var _tileset_tiles = [];
@@ -326,6 +327,13 @@ var GX = new function() {
                     _entities_active.push(ei);
                 }
             }
+        }
+        if (_entity_render_mode == GX.ENTITY_RENDER_TOPDOWN) {
+            _entities_active.sort(function(ai, bi) {
+                var a = _entities[ai-1];
+                var b = _entities[bi-1];
+                return a.y - b.y;
+            });
         }
 
         // Draw the map tiles
@@ -748,6 +756,13 @@ var GX = new function() {
     
     // Entity Functions
     // -----------------------------------------------------------------------------
+    function _entityRenderMode (renderMode) {
+        if (renderMode != undefined) {
+            _entity_render_mode = renderMode;
+        }
+        return _entity_render_mode;
+    }
+
     function _entityCreate (imageFilename, ewidth, height, seqFrames, uid) {
         var newent = {};
         newent.x = 0;
@@ -1023,6 +1038,7 @@ var GX = new function() {
             }
         }
         catch (ex) {
+            console.log(ex);
             // if the load fails try falling back to the older JSON format
             _map_loading = true;
             var data = null;
@@ -1300,6 +1316,9 @@ var GX = new function() {
     function _mapIsometric(iso) {
         if (iso != undefined) {
             _map.isometric = iso;
+            if (iso) {
+                _entity_render_mode = GX.ENTITY_RENDER_TOPDOWN;
+            }
             _updateSceneSize();
         }
         return _qbBoolean(_map.isometric);
@@ -2824,12 +2843,11 @@ var GX = new function() {
     this.entityCollide = _entityCollide;
     this.entityApplyGravity = _entityApplyGravity;
     this.entityVisible = _entityVisible;
-
     this.entityFrame = _entityFrame;
     this.entitySequence = _entitySequence;
     this.entitySequences = _entitySequences;
     this.entityFrames = _entityFrames;
-
+    this.entityRenderMode = _entityRenderMode;
 
     this.mapColumns = _mapColumns;
     this.mapCreate = _mapCreate;
@@ -3034,6 +3052,9 @@ var GX = new function() {
     this.ACTION_JUMP = 5;
     this.ACTION_JUMP_RIGHT = 6;
     this.ACTION_JUMP_LEFT = 7;
+
+    this.ENTITY_RENDER_DEFAULT = 0;
+    this.ENTITY_RENDER_TOPDOWN = 1;
 
     this.SCENE_FOLLOW_NONE = 0;                // no automatic scene positioning (default)
     this.SCENE_FOLLOW_ENTITY_CENTER = 1;       // center the view on a specified entity

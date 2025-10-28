@@ -90,6 +90,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                          'gxscene_follow_entity_center_x_neg', 'gxscene_constrain_none', 'gxscene_constrain_to_map', 'gxfont_default',
                          'gxfont_default_black', 'gxdevice_keyboard', 'gxdevice_mouse', 'gxdevice_controller', 'gxdevice_button',
                          'gxdevice_axis', 'gxdevice_wheel', 'gxtype_entity', 'gxtype_font', 'gx_cr', 'gx_lf', 'gx_crlf',
+                         'gxentity_render_default', 'gxentity_render_topdown',
                          'local', 'session'];
 
     var builtinObjsWords = ['\\$if', '\\$end if', '\\$endif', '\\$elseif', '\\$else', '\\$noprefix'];
@@ -100,7 +101,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
     var knownMethods = ['gxongameevent', 'gxmousex', 'gxmousey', 'gxsoundload', 'gxsoundplay', 'gxsoundrepeat', 'gxsoundvolume', 'gxsoundpause', 'gxsoundstop',
                         'gxsoundmuted', 'gxsoundmuted', 'gxentityanimate', 'gxentityanimatestop', 'gxentityanimatemode', 'gxentityanimatemode',
                         'gxscreenentitycreate', 'gxentitycreate', 'gxentityvisible', 'gxentitymaplayer', 'gxentitymove', 'gxentitypos', 
-                        'gxentityvx', 'gxentityvy', 'gxentityx', 'gxentityy', 'gxentitywidth', 'gxentityheight', 
+                        'gxentityvx', 'gxentityvy', 'gxentityx', 'gxentityy', 'gxentitywidth', 'gxentityheight', 'gxentityrendermode',
                         'gxentityframe', 'gxentityframes', 'gxentityframenext', 'gxentityframeset', 'gxentitytype',
                         'gxentitytype', 'gxentityuid', 'gxfontuid', 'gxentityapplygravity', 'gxentitycollisionoffset',
                         'gxentitycollisionoffsetleft', 'gxentitycollisionoffsettop', 'gxentitycollisionoffsetright',
