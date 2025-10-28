@@ -332,7 +332,7 @@ var GX = new function() {
             _entities_active.sort(function(ai, bi) {
                 var a = _entities[ai-1];
                 var b = _entities[bi-1];
-                return a.y - b.y;
+                return (a.y + a.height - a.coBottom) - (b.y + b.height - b.coBottom);
             });
         }
 
