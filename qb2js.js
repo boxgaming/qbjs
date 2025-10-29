@@ -1964,7 +1964,7 @@ var DeclareVar = null;
          pstart = (QB.func_InStr(  bvar.name ,   "("));
          if ( pstart > 0 ) {
             bvar.isArray =  True;
-            arraySize = (await func_ConvertExpression( (QB.func_Mid(  bvar.name ,    pstart +  1 ,   (QB.func_Len(  bvar.name))  -  pstart -  1))  ,    lineNumber));
+            arraySize = (QB.func_Mid(  bvar.name ,    pstart +  1 ,   (QB.func_Len(  bvar.name))  -  pstart -  1));
             bvar.name = (await func_RemoveSuffix( (QB.func_Left(  bvar.name ,    pstart -  1))));
          } else {
             bvar.isArray =  False;

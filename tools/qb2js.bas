@@ -2059,7 +2059,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
             pstart = InStr(bvar.name, "(")
             If pstart > 0 Then
                 bvar.isArray = True
-                arraySize = ConvertExpression(Mid$(bvar.name, pstart + 1, Len(bvar.name) - pstart - 1), lineNumber)
+                arraySize = Mid$(bvar.name, pstart + 1, Len(bvar.name) - pstart - 1)
                 bvar.name = RemoveSuffix(Left$(bvar.name, pstart - 1))
             Else
                 bvar.isArray = False
