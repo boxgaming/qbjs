@@ -28,7 +28,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
     var endKeywords = ['next','loop','wend'];
 
     var wordOperators = wordRegexp(['and', 'or', 'not', 'xor', 'is', 'mod', 'eqv', 'imp']);
-    var commonkeywords = ['dim', 'as', 'redim', 'then', 'until', 'exit', 'in', 'to', 'let',
+    var commonkeywords = ['dim', 'as', 'redim', 'then', 'until', 'exit', 'to', 'let',
                           'const', 'integer', 'single', 'double', 'long', '_?unsigned', '_?float', '_?bit', '_?byte',
                           'string', '_?byte', 'object', '_?offset', '_?integer64', 'call', 'step', '_?preserve'];
 

@@ -89,7 +89,7 @@ ReDim Shared As Variable exportConsts(0)
 ReDim Shared As Method exportMethods(0)
 ReDim Shared As String dataArray(0)
 ReDim Shared As Label dataLabels(0)
-Dim Shared As String jsReservedWords(54)
+Dim Shared As String jsReservedWords(55)
 Dim Shared modLevel As Integer
 Dim Shared As String currentMethod
 Dim Shared As String currentModule
@@ -3983,7 +3983,7 @@ Sub InitJSReservedWords
     jsReservedWords(17) = "finally"
     ' float, for, function, goto, if
     jsReservedWords(18) = "implements"
-    ' import, in
+    ' import
     jsReservedWords(19) = "instanceof"
     ' int
     jsReservedWords(20) = "interface"
@@ -4024,6 +4024,7 @@ Sub InitJSReservedWords
     jsReservedWords(52) = "prompt"
     jsReservedWords(53) = "require"
     jsReservedWords(54) = "process"
+    jsReservedWords(55) = "in"
 End Sub
 
 Sub InitGX

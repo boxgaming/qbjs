@@ -23,7 +23,7 @@ async function main() {
    QB.resizeArray(exportMethods, [{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}, false);  /* METHOD */ 
    QB.resizeArray(dataArray, [{l:0,u: 0}], '', false);  /* STRING */ 
    QB.resizeArray(dataLabels, [{l:0,u: 0}], {text:'',index:0}, false);  /* LABEL */ 
-   QB.resizeArray(jsReservedWords, [{l:0,u: 54}], '', false);  /* STRING */ 
+   QB.resizeArray(jsReservedWords, [{l:0,u: 55}], '', false);  /* STRING */ 
    modLevel = 0;  /* INTEGER */ 
    currentMethod = '';  /* STRING */ 
    currentModule = '';  /* STRING */ 
@@ -3899,6 +3899,7 @@ if (QB.halted()) { return; };
    QB.arrayValue(jsReservedWords, [ 52]).value = "prompt";
    QB.arrayValue(jsReservedWords, [ 53]).value = "require";
    QB.arrayValue(jsReservedWords, [ 54]).value = "process";
+   QB.arrayValue(jsReservedWords, [ 55]).value = "in";
 }
 async function sub_InitGX() {
 if (QB.halted()) { return; }; 
