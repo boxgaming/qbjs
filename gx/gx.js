@@ -465,7 +465,9 @@ var GX = new function() {
             await GX.sceneUpdate();
             GX.sceneDraw();
             if (_scene.frame % 10 == 0) {
-                _framerate = Math.round(10 / (timestamp - fpsSnapshot) * 1000);
+                if (_scene.frame > 10) {
+                    _framerate = Math.round(10 / (timestamp - fpsSnapshot) * 1000);
+                }
                 fpsSnapshot = timestamp;
             }
             lastTimestamp = timestamp
