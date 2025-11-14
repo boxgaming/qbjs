@@ -1903,7 +1903,7 @@ var GX = new function() {
                 // calculate the number of seconds since the gravity started being applied
                 var t = (GX.frame() - _entities[eid-1].jumpstart) / GX.frameRate();
                 // adjust the y velocity for gravity
-                var g = _gravity * t ** 2 / 2;
+                var g = _gravity * t ** 2 / 2 * (60 / GX.frameRate());
                 if (g < 1) { g = 1; }
                 _entities[eid-1].vy = GX.entityVY(eid) + g;
                 if (GX.entityVY(eid) > _terminal_velocity) { GX.entityVY(eid, _terminal_velocity); }
