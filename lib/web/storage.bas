@@ -4,46 +4,53 @@ Const SESSION = "SESSION"
 Export LOCAL, SESSION
 Export Clear, Get, Key, Length, Set, Remove
 
-$If Javascript Then
-    function _storage(stype) {
-        return (stype == SESSION) ? sessionStorage : localStorage;
-    }
-$End If
-
 Sub Clear (stype As String)
+    Dim storage As Object: storage = GetStorage(stype)
     $If Javascript Then
-        _storage(stype).clear();
+        storage.clear();
     $End If
 End Sub
 
 Function Get (key As String, stype As String)
+    Dim storage As Object: storage = GetStorage(stype)
     $If Javascript Then
-        var result = _storage(stype).getItem(key);
+        var result = storage.getItem(key);
         if (result == null) { result = ""; }
         Get = result
     $End If
 End Function
 
 Function Key (idx As Integer, stype As String)
+    Dim storage As Object: storage = GetStorage(stype)
     $If Javascript Then
-        Key = _storage(stype).key(idx);
+        Key = storage.key(idx);
     $End If
 End Function
 
 Function Length (stype As String)
+    Dim storage As Object: storage = GetStorage(stype)
     $If Javascript Then
-        Length = _storage(stype).length;
+        Length = storage.length;
     $End If
 End Function
 
 Sub Set (key As String, value As String, stype As String)
+    Dim storage As Object: storage = GetStorage(stype)
     $If Javascript Then
-        _storage(stype).setItem(key, value);
+        storage.setItem(key, value);
     $End If
 End Sub
 
 Sub Remove (key As String, stype As String)
+    Dim storage As Object: storage = GetStorage(stype)
     $If Javascript Then
-        _storage(stype).removeItem(key);
+        storage.removeItem(key);
     $End If
 End Sub
+
+Function GetStorage(stype As String)
+    Dim storage As Object
+    $If Javascript Then
+        GetStorage = (stype == SESSION) ? sessionStorage : localStorage;
+    $End If
+End Function
