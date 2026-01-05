@@ -561,6 +561,8 @@ var IDE = new function() {
         zip.file("qbjs.woff2", await getFile("qbjs.woff2", "blob"));
         zip.file("play.png", await getFile("play.png", "blob"));
         zip.file("qbjs.css", await getFile("export/qbjs.css", "text"));
+        zip.file("fonts/WebPlus_IBM_EGA_8x8.woff", await getFile("fonts/WebPlus_IBM_EGA_8x8.woff", "blob"));
+        zip.file("fonts/README.TXT", await getFile("fonts/README.TXT", "text"));
         zip.file("qb.js", await getFile("qb.js", "text"));
         zip.file("vfs.js", await getFile("vfs.js", "text"));
 

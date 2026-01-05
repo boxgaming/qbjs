@@ -14,8 +14,8 @@
 // Names of the two caches used in this version of the service worker.
 // Change to v2, etc. when you update any of the local resources, which will
 // in turn trigger the install event again.
-const PRECACHE = 'precache-v67';
-const RUNTIME = 'runtime-v8';
+const PRECACHE = 'precache-v69';
+const RUNTIME = 'runtime-v10';
 const PREFIX = (self.location.origin.indexOf("github.io") == -1) ? "/" : "/qbjs/";
 
 // A list of local resources we always want to be cached.
@@ -52,6 +52,8 @@ const PRECACHE_URLS = [
   PREFIX + 'export/logo.png',
   PREFIX + 'export/play.html',
   PREFIX + 'export/qbjs.css',
+  PREFIX + 'fonts/WebPlus_IBM_EGA_8x8.woff',
+  PREFIX + 'fonts/README.TXT',
   PREFIX + 'gx/__gx_font_default_black.png',
   PREFIX + 'gx/__gx_font_default.png',
   PREFIX + 'gx/gx.js',

@@ -13,7 +13,7 @@ var QB = new function() {
         }
     
         stop() {
-            if (this._audioContext) {
+            if (this._audioContext && this._audioContext.state != "closed") {
                 this._audioContext.suspend();
                 this._audioContext.close();
             }
@@ -323,7 +323,7 @@ var QB = new function() {
         if (_player) {
             _player.stop();
         }
-        if (_soundCtx) {
+        if (_soundCtx && _soundCtx.state != "closed") {
             _soundCtx.suspend();
             _soundCtx.close();
         }
@@ -359,9 +359,9 @@ var QB = new function() {
         _nextFontId = 1000;
         _font = 16;
         _fonts = {};
-        _fonts[8] = { name: "dosvga", size: "16px", style: "", offset: 4, monospace: true };
-        _fonts[14] = { name: "dosvga", size: "16px", style: "", offset: 4, monospace: true };
-        _fonts[16] = { name: "dosvga", size: "16px", style: "", offset: 4, monospace: true };
+        _fonts[8] = { name: "dosvga8", size: "8px", style: "", offset: 1, monospace: true, height: 8, width: 8 };
+        _fonts[14] = { name: "dosvga", size: "16px", style: "", offset: 4, monospace: true, height: 14, width: 8 };
+        _fonts[16] = { name: "dosvga", size: "16px", style: "", offset: 4, monospace: true, height: 16, width: 8 };
         GX.vfsCwd(GX.vfs().rootDirectory());
         _fileHandles = {};
         _initColorTable();
@@ -724,18 +724,12 @@ var QB = new function() {
         if (fnt == undefined) {
             fnt = _font;
         }
-        if (fnt < 1000) {
-            return 16;
-        }
         return _fonts[fnt].height;
     };
 
     this.func__FontWidth = function(fnt) {
         if (fnt == undefined) {
             fnt = _font;
-        }
-        if (fnt < 1000) {
-            return 8;
         }
         return _fonts[fnt].width;
     };
@@ -3380,21 +3374,22 @@ var QB = new function() {
         }
         else if (mode == 1) {
             GX.sceneCreate(320, 200);
+            _font = 8;
         }
         else if (mode == 2 || mode == 7 || mode == 13) {
             GX.sceneCreate(320, 200);
+            _font = 8;
         }
         else if (mode == 8) {
             GX.sceneCreate(640, 200);
+            _font = 8;
         }
         else if (mode == 9 || mode == 10) {
             GX.sceneCreate(640, 350);
+            _font = 14;
         }
         else if (mode == 11 || mode == 12) {
             GX.sceneCreate(640, 480);
-        }
-        else if (mode == 13) {
-            GX.sceneCreate(320, 200);
         }
         else if (mode >= 1000) {
             var img = _images[mode];

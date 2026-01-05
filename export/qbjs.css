@@ -1,10 +1,8 @@
-@font-face {
-	font-family: dosvga;
-	src: url(qbjs.woff2);
-}   
+@font-face { font-family: dosvga;  src: url(qbjs.woff2); }
+@font-face { font-family: dosvga8; src: url(fonts/WebPlus_IBM_EGA_8x8.woff); }
 body { 
 	background-color: #000; 
-	font-family: dosvga, Arial, Helvetica, sans-serif;
+	font-family: dosvga, dosvga8, Arial, Helvetica, sans-serif;
 	color: #999;
 }
 #gx-container {
