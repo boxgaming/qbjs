@@ -1016,7 +1016,7 @@ var IDE = new function() {
             var cmwidth = splitWidth;
             if (sizeMode == "min") {
                 cmwidth = -10;
-                editor.getWrapperElement().style.display = "none";
+                codeTabMap[activeCodeTab].content.style.display = "none";
                 _e.rightPanel.style.display = "block";
                 _e.slider.style.display = "none";
             }
@@ -1024,10 +1024,12 @@ var IDE = new function() {
                 cmwidth = window.innerWidth - 12;
                 _e.rightPanel.style.display = "none";
                 _e.slider.style.display = "none";
-                editor.getWrapperElement().style.display = "block";
+                _changeCodeTab(codeTabMap[activeCodeTab].tab);
+                codeTabMap[activeCodeTab].content.style.display = "block";
             }
             else {
-                editor.getWrapperElement().style.display = "block";
+                _changeCodeTab(codeTabMap[activeCodeTab].tab);
+                codeTabMap[activeCodeTab].content.style.display = "block";
                 _e.rightPanel.style.display = "block";
                 _e.slider.style.display = "block";
             }
@@ -1349,7 +1351,7 @@ var IDE = new function() {
         window.onresize();
     }
 
-    function _closeCodeTabs(filepath) {
+    function _closeCodeTabs() {
         for (var filepath in codeTabMap) {
             if (filepath != MAIN_CODE_TAB) {
                 _closeCodeTab(filepath);
@@ -1543,11 +1545,11 @@ var IDE = new function() {
         if (!sliding && !vsliding) { return; }
         if (sliding) {
             splitWidth = event.pageX - 10;
-            window.onresize();
+            window.dispatchEvent(new Event("resize"));
         }
         else {
             splitHeight = window.innerHeight - event.pageY + 35;
-            window.onresize();
+            window.dispatchEvent(new Event("resize"));
         }
     });
 
