@@ -258,6 +258,18 @@ var GX = new function() {
         _updateSceneSize();
     }
 
+    function _sceneWindowSize(swidth, sheight) {
+        _scene.width = Math.floor(swidth / _scene.scaleX);
+        _scene.height = Math.floor(sheight / _scene.scaleY);
+        _canvas.width = swidth;
+        _canvas.height = sheight;
+        if (_scene.scaleX != 1) {
+            _ctx.imageSmoothingEnabled = false;
+            _ctx.scale(_scene.scaleX, _scene.scaleY);
+        }
+        _updateSceneSize();
+    }
+
     function _updateSceneSize() {
         if (GX.tilesetWidth() < 1 || GX.tilesetHeight() < 1) { return; }
     
@@ -2795,6 +2807,7 @@ var GX = new function() {
     this.sceneMove = _sceneMove;
     this.scenePos = _scenePos;
     this.sceneResize = _sceneResize;
+    this.sceneWindowSize = _sceneWindowSize;
     this.sceneRows = _sceneRows;
     this.sceneScale = _sceneScale;
     this.sceneStart = _sceneStart;
