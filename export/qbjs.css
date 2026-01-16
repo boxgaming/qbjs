@@ -37,6 +37,9 @@ body {
 	border: 1px solid #222;
 	background-color: #000;
 }
+#gx-canvas:focus, #gx-container:focus {
+   outline: none;
+}
 #gx-load-screen {
 	display: block;
 	text-align: center;

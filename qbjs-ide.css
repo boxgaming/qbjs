@@ -54,6 +54,9 @@ a:after { content: " >"; }
     background-color: #000;
     font-family: dosvga;
 }
+#gx-canvas:focus, #gx-container:focus {
+    outline: none;
+}
 #output-container {
     position: absolute;
     color: #ccc;

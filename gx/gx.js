@@ -115,6 +115,7 @@ var GX = new function() {
         if (!_canvas) {
 		    _canvas = document.createElement("canvas");
             _canvas.id = "gx-canvas";
+            _canvas.tabIndex = 0;
             document.getElementById("gx-container").appendChild(_canvas);
 
             _canvas.addEventListener("mousemove", function(event) {
@@ -124,6 +125,7 @@ var GX = new function() {
             });
     
             _canvas.addEventListener("mousedown", function(event) {
+                _canvas.focus();
                 event.preventDefault();
                 if (event.button == 0) { _mouseButtons[0] = -1; }
                 else if (event.button == 1) { _mouseButtons[2] = -1; }
