@@ -21,4 +21,8 @@
   There is a large and growing collection of sample BASIC programs to demonstrate graphics, demos, and simple games:  
   https://boxgaming.github.io/qbjs-samples
 
+  **Subproject QBJS_mobile:**
+  There is a Subproject called QBJS_mobile where QBJS is made mobile friendly:
+  https://github.com/greenypopping/qbjs_mobile
+
 In short, QBJS lets you write classic BASIC programs that run in the browser, combining the simplicity of QBasic with modern web platform capabilities — like graphics and sharing — all without needing a native compiler or separate environment.
