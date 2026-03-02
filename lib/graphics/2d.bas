@@ -21,7 +21,7 @@ Sub RotoZoom (centerX As Long, centerY As Long, img As Long, xScale As Single, y
         var cx = imgWidth / 2.0;
         var cy = imgHeight / 2.0;
         
-        var destImg = QB.getImage(destImg);
+        var destImg = QB.getImage(destImage);
         var ctx = destImg.getContext("2d");
         ctx.save();
 
