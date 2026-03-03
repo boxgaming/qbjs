@@ -2708,9 +2708,13 @@ if (QB.halted()) { return; };
                var moduleName = '';  /* STRING */ 
                var sourceUrl = '';  /* STRING */ 
                var importRes = {ok:0,status:0,statusText:'',text:''};  /* FETCHRESPONSE */ 
-               moduleName = QB.arrayValue(parts, [ 2]).value;
                sourceUrl = (QB.func_Mid( QB.arrayValue(parts, [ 4]).value  ,    2 ,   (QB.func_Len( QB.arrayValue(parts, [ 4]).value))  -  2));
                await QB.sub_Fetch(  sourceUrl,    importRes);
+               if ( importRes.status !=   200 ) {
+                  await sub_AddError(  i,   "File not found: "  +  sourceUrl);
+                  continue;
+               }
+               moduleName = QB.arrayValue(parts, [ 2]).value;
                modLevel =  modLevel +  1;
                var mcount = 0;  /* INTEGER */ 
                mcount = (QB.func_UBound(  modules))  +  1;
@@ -2723,6 +2727,9 @@ if (QB.halted()) { return; };
                modLevel =  modLevel -  1;
                currentModuleId =  0;
                currentModule = "";
+               continue;
+            } else {
+               await sub_AddError(  i,   "Syntax Error:  Import [Alias] From "  + (QB.func_Chr(  34))  + "[filename]"  + (QB.func_Chr(  34)));
                continue;
             }
          }

@@ -2809,9 +2809,13 @@ Sub ReadLinesFromText (sourceText As String)
                     Dim moduleName As String
                     Dim sourceUrl As String
                     Dim importRes As FetchResponse
-                    moduleName = parts(2)
                     sourceUrl = Mid$(parts(4), 2, Len(parts(4)) - 2)
                     Fetch sourceUrl, importRes
+                    If importRes.status <> 200 Then
+                        AddError i, "File not found: " + sourceUrl
+                        _Continue
+                    End If
+                    moduleName = parts(2)
                     modLevel = modLevel + 1
 
                     Dim mcount As Integer
@@ -2826,6 +2830,9 @@ Sub ReadLinesFromText (sourceText As String)
                     modLevel = modLevel - 1
                     currentModuleId = 0
                     currentModule = ""
+                    _Continue
+                Else
+                    AddError i, "Syntax Error:  Import [Alias] From " + Chr$(34) + "[filename]" + Chr$(34)
                     _Continue
                 End If
             End If
