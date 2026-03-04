@@ -432,34 +432,40 @@ var QB = new function() {
 
     function _assertNumber(param, arg) {
         if (arg == undefined) { arg = 1; }
+        if (param && param.rgba && typeof param.rgba == "function") {
+            //console.log(param);
+            param = QB.func_Val(param);
+            //console.log(param);
+        }
         if (isNaN(param)) { throw new Error("Number required for method argument " + arg); }
+        return param;
     }
 
     // Extended QB64 Keywords
     // --------------------------------------------
 
     this.func__Acos = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return Math.acos(x);
     };
 
     this.func__Acosh = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return Math.acosh(x);
     };
 
     this.func__Arccot = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return 2 * Math.atan(1) - Math.atan(x);
     };
 
     this.func__Arccsc = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return Math.asin(1 / x);
     };
 
     this.func__Arcsec = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return Math.acos(1 / x);
     };
 
@@ -476,22 +482,22 @@ var QB = new function() {
     };
 
     this.func__Asin = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return Math.asin(x);
     };
 
     this.func__Asinh = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return Math.asinh(x);
     };
 
     this.func__Atanh = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return Math.atanh(x);
     };
 
     this.func__Atan2 = function(y, x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return Math.atan2(y, x);
     };
 
@@ -521,7 +527,7 @@ var QB = new function() {
     };
 
     this.func__Ceil = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return Math.ceil(x);
     };
 
@@ -561,8 +567,8 @@ var QB = new function() {
     };
 
     this.sub__ClipboardImage = async function (imageIdToCopy) {
-        _assertParam(imageIdToCopy);
-        _assertNumber(imageIdToCopy);
+        //_assertParam(imageIdToCopy);
+        imageIdToCopy = _assertNumber(imageIdToCopy);
         if (!_images[imageIdToCopy]) {
           throw new Error("Invalid image ID");
           return;
@@ -577,7 +583,7 @@ var QB = new function() {
     };
 
     this.func__CopyImage = function(srcImageId) {
-        _assertNumber(srcImageId);
+        srcImageId = _assertNumber(srcImageId);
         var srcCanvas = _images[srcImageId].canvas;
         var destImageId = QB.func__NewImage(srcCanvas.width, srcCanvas.height);
         var ctx = _images[destImageId].ctx;
@@ -587,27 +593,27 @@ var QB = new function() {
     };
 
     this.func__Cosh = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return Math.cosh(x);
     };
 
     this.func__Cot = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return 1 / Math.tan(x);
     }
 
     this.func__Coth = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return 1 / Math.tanh(x);
     };
 
     this.func__Csc = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return 1 / Math.sin(x);
     };
 
     this.func__Csch = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return 1 / Math.sinh(x);
     };
 
@@ -616,12 +622,12 @@ var QB = new function() {
     };
 
     this.func__D2R = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return x * Math.PI / 180;
     };
 
     this.func__D2G = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return (x * 10 / 9);
     };
 
@@ -638,7 +644,7 @@ var QB = new function() {
     };
 
     this.sub__Delay = async function(seconds) {
-        _assertNumber(seconds);
+        seconds = _assertNumber(seconds);
         await GX.sleep(seconds*1000);
     };
 
@@ -655,7 +661,7 @@ var QB = new function() {
     };
 
     this.sub__Dest = function(imageId) {
-        _assertNumber(imageId);
+        imageId = _assertNumber(imageId);
         _flushScreenCache(_images[_activeImage]);
         _activeImage = imageId;
     };
@@ -708,7 +714,7 @@ var QB = new function() {
     };
 
     this.sub__Font = function(fnt) {
-        _assertNumber(fnt);
+        fnt = _assertNumber(fnt);
         _font = fnt;
         _locX = 0;
         _lastTextX = 0;
@@ -769,7 +775,7 @@ var QB = new function() {
     };
 
     this.func__G2R = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return (x * 9/10) * Math.PI/180;
     };
 
@@ -799,8 +805,8 @@ var QB = new function() {
     }
 
     this.func__Hypot = function(x, y) {
-        _assertNumber(x, 1);
-        _assertNumber(y, 1);
+        x = _assertNumber(x, 1);
+        y = _assertNumber(y, 2);
         return Math.hypot(x, y);
     };
 
@@ -849,7 +855,7 @@ var QB = new function() {
     };
 
     this.sub__Limit = async function(fps) {
-        _assertNumber(fps);
+        fps = _assertNumber(fps);
         _flushAllScreenCache();
         var frameMillis = 1000 / fps / 1.15;
         await GX.sleep(0);
@@ -1019,7 +1025,7 @@ var QB = new function() {
     };
 
     this.func__MouseButton = function(button) {
-        _assertNumber(button);
+        button = _assertNumber(button);
         return GX.mouseButton(button);
     };
 
@@ -1028,8 +1034,8 @@ var QB = new function() {
     };
     
     this.func__NewImage = function(iwidth, iheight, mode) {
-        _assertNumber(iwidth, 1);
-        _assertNumber(iheight, 2);
+        iwidth = _assertNumber(iwidth, 1);
+        iheight = _assertNumber(iheight, 2);
         var canvas = document.createElement("canvas");
         canvas.id = "qb-canvas-" + _nextImageId;
         if (mode == 0) {
@@ -1137,7 +1143,7 @@ var QB = new function() {
             m = 1;
         }
         else {
-            _assertNumber(m);
+            m = _assertNumber(m);
         }
         return Math.PI * m;
     }
@@ -1247,18 +1253,18 @@ var QB = new function() {
     }
 
     this.func__R2D = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return x*180/Math.PI;
     };
 
     this.func__R2G = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return (x*(9/10))*180/Math.PI;
     };
 
     this.func__Readbit = function(x, y) {
-        _assertNumber(x, 1);
-        _assertNumber(y, 2);
+        x = _assertNumber(x, 1);
+        y = _assertNumber(y, 2);
         var mask = 1 << y;
         if ((x & mask) != 0) {
             return -1;
@@ -1280,8 +1286,8 @@ var QB = new function() {
     };
 
     this.func__Resetbit = function(x, y) {
-        _assertNumber(x, 1);
-        _assertNumber(y, 2);
+        x = _assertNumber(x, 1);
+        y = _assertNumber(y, 2);
         var mask = 1 << y;
         return x & ~mask;
     };
@@ -1313,7 +1319,7 @@ var QB = new function() {
     };
 
     this.func__RGBA = function(r, g, b, a) {
-        _assertNumber(r, 1);
+        r = _assertNumber(r, 1);
         if (a == undefined) {
             a = 255;
         }
@@ -1335,7 +1341,7 @@ var QB = new function() {
     }
 
     this.func__Round = function(value) {
-        _assertNumber(value);
+        value = _assertNumber(value);
         if (value < 0) {
             return -Math.round(-value);
         } else {
@@ -1364,36 +1370,36 @@ var QB = new function() {
     };
 
     this.func__Sec = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return 1 / Math.cos(x);
     };
 
     this.func__Sech = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return 1 / Math.cosh(x);
     };
 
     this.func__Setbit = function(x, y) {
-        _assertNumber(x, 1);
-        _assertNumber(y, 2);
+        x = _assertNumber(x, 1);
+        y = _assertNumber(y, 2);
         var mask = 1 << y;
         return x | mask;
     };
 
     this.func__Shl = function(x, y) {
-        _assertNumber(x, 1);
-        _assertNumber(y, 2);
+        x = _assertNumber(x, 1);
+        y = _assertNumber(y, 2);
         return x << y;
     };
 
     this.func__Shr = function(x, y) {
-        _assertNumber(x, 1);
-        _assertNumber(y, 2);
+        x = _assertNumber(x, 1);
+        y = _assertNumber(y, 2);
         return x >>> y;
     };
 
     this.func__Sinh = function(x) {
-        _assertNumber(x);
+        x = _assertNumber(x);
         return Math.sinh(x);
     };
 
@@ -1402,12 +1408,12 @@ var QB = new function() {
     };
 
     this.sub__Source = function(imageId) {
-        _assertNumber(imageId);
+        imageId = _assertNumber(imageId);
         _sourceImage = imageId;
     };
 
     this.sub__SndClose = function(sid) {
-        _assertNumber(sid);
+        sid = _assertNumber(sid);
         GX.soundClose(sid);
     };
 
@@ -1417,28 +1423,28 @@ var QB = new function() {
     };
 
     this.sub__SndPlay = function(sid) {
-        _assertNumber(sid);
+        sid = _assertNumber(sid);
         GX.soundPlay(sid);
     };
 
     this.sub__SndLoop = function(sid) {
-        _assertNumber(sid);
+        sid = _assertNumber(sid);
         GX.soundRepeat(sid);
     };
 
     this.sub__SndPause = function(sid) {
-        _assertNumber(sid);
+        sid = _assertNumber(sid);
         GX.soundPause(sid);
     };
 
     this.sub__SndStop = function(sid) {
-        _assertNumber(sid);
+        sid = _assertNumber(sid);
         GX.soundStop(sid);
     };
 
     this.sub__SndVol = function(sid, v) {
-        _assertNumber(sid, 1);
-        _assertNumber(v, 2);
+        sid = _assertNumber(sid, 1);
+        v = _assertNumber(v, 2);
         GX.soundVolume(sid, v);
     };
 
@@ -1480,8 +1486,8 @@ var QB = new function() {
     };
 
     this.func__Togglebit = function(x, y) {
-        _assertNumber(x, 1);
-        _assertNumber(y, 2);
+        x = _assertNumber(x, 1);
+        y = _assertNumber(y, 2);
         var mask = 1 << y;
         return x ^ mask;
     };
@@ -1503,7 +1509,7 @@ var QB = new function() {
     // QB45 Keywords
     // --------------------------------------------
     this.func_Abs = function(value) {
-        _assertNumber(value);
+        value = _assertNumber(value);
         return Math.abs(value);
     };
 
@@ -1513,7 +1519,7 @@ var QB = new function() {
             pos = 0;
         }
         else {
-            _assertNumber(pos, 2);
+            pos = _assertNumber(pos, 2);
             pos--; 
         }
 
@@ -1524,7 +1530,7 @@ var QB = new function() {
     }
 
     this.func_Atn = function(value) {
-        _assertNumber(value);
+        value = _assertNumber(value);
         return Math.atan(value);
     };
 
@@ -1551,7 +1557,7 @@ var QB = new function() {
     };
 
     this.func_Chr = function(charCode) {
-        _assertNumber(charCode);
+        charCode = _assertNumber(charCode);
         var uc = _ucharMap[charCode];
         if (uc) { charCode = uc; }
         return String.fromCharCode(charCode);
@@ -1623,7 +1629,7 @@ var QB = new function() {
     };
     
     this.func_Cos = function(value) {
-        _assertNumber(value);
+        value = _assertNumber(value);
         return Math.cos(value);
     };
 
@@ -1974,17 +1980,17 @@ var QB = new function() {
     };
 
     this.sub_Error = function(errorNumber) {
-        _assertNumber(errorNumber);
+        errorNumber = _assertNumber(errorNumber);
         throw new Error("Unhandled Error #" + errorNumber);
     };
 
     this.func_Exp = function(value) {
-        _assertNumber(value);
+        value = _assertNumber(value);
         return Math.exp(value);
     };
 
     this.func_Fix = function(value) {
-        _assertNumber(value);
+        value = _assertNumber(value);
         if (value >=0) {
             return Math.floor(value);
         }
@@ -2005,7 +2011,7 @@ var QB = new function() {
     }
 
     this.func_Hex = function(n) {
-        _assertNumber(n);
+        n = _assertNumber(n);
         return n.toString(16).toUpperCase();
     };
 
@@ -2191,7 +2197,7 @@ var QB = new function() {
     };
 
     this.func_Int = function(value) {
-        _assertNumber(value);
+        value = _assertNumber(value);
         return Math.floor(value);
     };
 
@@ -2202,7 +2208,7 @@ var QB = new function() {
 
     this.func_Left = function(value, n) {
         _assertParam(value, 1);
-        _assertNumber(n, 2);
+        n = _assertNumber(n, 2);
         return String(value).substring(0, n);
     };
 
@@ -2220,12 +2226,12 @@ var QB = new function() {
     };
 
     this.func_Log = function(value) {
-        _assertNumber(value);
+        value = _assertNumber(value);
         return Math.log(value);
     };
 
     this.func_Cdbl = function(value) {
-        _assertNumber(value);
+        value = _assertNumber(value);
         const buffer = new ArrayBuffer(16);
         const view = new DataView(buffer);
         view.setFloat32(1, value);
@@ -2233,7 +2239,7 @@ var QB = new function() {
     };
 
     this.func_Cint = function(value) {
-        _assertNumber(value);
+        value = _assertNumber(value);
         var s = (value < 0) ? -1 : 1;
         var x = value * s;
         var r = Math.round(x);
@@ -2241,7 +2247,7 @@ var QB = new function() {
     };
 
     this.func_Clng = function(value) {
-        _assertNumber(value);
+        value = _assertNumber(value);
         return this.func_Cint(value);
     };
 
@@ -2474,8 +2480,8 @@ var QB = new function() {
 
     this.sub_Locate = function(row, col) {
         // TODO: implement cursor positioning/display parameters
-        if (row == undefined) { row = 1; } else { _assertNumber(row); row = parseInt(row); }
-        if (col == undefined) { col = 1; } else { _assertNumber(col); col = parseInt(col); }
+        if (row == undefined) { row = 1; } else { row = _assertNumber(row); row = parseInt(row); }
+        if (col == undefined) { col = 1; } else { col = _assertNumber(col); col = parseInt(col); }
         if (row && row > 0 && row <= _textRows()) {
             _locY = row-1;
         }
@@ -2497,7 +2503,7 @@ var QB = new function() {
 
     this.func_Mid = function(value, n, len) {
         _assertParam(value, 1);
-        _assertNumber(n, 2);
+        n = _assertNumber(n, 2);
         if (len == undefined) {
             return String(value).substring(n-1);
         }
@@ -2508,7 +2514,7 @@ var QB = new function() {
 
     this.sub_Mid = function(value, n, len, newValue) {
         _assertParam(value, 1);
-        _assertNumber(n, 2);
+        n = _assertNumber(n, 2);
         _assertParam(newValue, 4);
         if (len == undefined) {
             len = String(value).length - n + 1;
@@ -2531,7 +2537,7 @@ var QB = new function() {
     }
 
     this.func_Mki = function(num) {
-        _assertNumber(num);
+        num = _assertNumber(num);
         var ascii = "";
         for (var i=1; i >= 0; i--) {
             ascii += String.fromCharCode((num>>(8*i))&255);
@@ -2540,7 +2546,7 @@ var QB = new function() {
     };
 
     this.func_Mkl = function(num) {
-        _assertNumber(num);
+        num = _assertNumber(num);
         var ascii = "";
         for (var i=3; i >= 0; i--) {
             ascii += String.fromCharCode((num>>(8*i))&255);
@@ -2558,7 +2564,7 @@ var QB = new function() {
     };
 
     this.func_Oct = function(n) {
-        _assertNumber(n);
+        n = _assertNumber(n);
         return n.toString(8).toUpperCase();
     };
 
@@ -3304,7 +3310,7 @@ var QB = new function() {
 
     this.func_Right = function(value, n) {
         _assertParam(value, 1);
-        _assertNumber(n, 2);
+        n = _assertNumber(n, 2);
         if (value == undefined) {
             return "";
         }
@@ -3549,19 +3555,19 @@ var QB = new function() {
     };
 
     this.func_Sgn = function(value) {
-        _assertNumber(value);
+        value = _assertNumber(value);
         if (value > 0) { return 1; }
         else if (value < 0) { return -1; }
         else { return 0; }
     };
 
     this.func_Space = function(ccount) {
-        _assertNumber(ccount);
+        ccount = _assertNumber(ccount);
         return QB.func_String(ccount, " ");
     }
 
     this.func_String = function(ccount, s) {
-        _assertNumber(ccount, 1);
+        ccount = _assertNumber(ccount, 1);
         _assertParam(s, 2);
         if (typeof s === "string") {
             s = s.substring(0, 1);
@@ -3573,7 +3579,7 @@ var QB = new function() {
     };
 
     this.func_Sin = function(value) {
-        _assertNumber(value);
+        value = _assertNumber(value);
         return Math.sin(value);
     };
 
@@ -3581,7 +3587,7 @@ var QB = new function() {
         var elapsed = 0;
         var totalWait = Infinity;
         if (seconds != undefined) {
-            _assertNumber(seconds);
+            seconds = _assertNumber(seconds);
             if (seconds > 0) {
                 totalWait = seconds*1000;
             }
@@ -3597,8 +3603,8 @@ var QB = new function() {
 
 
     this.sub_Sound = async function(freq, duration, shape, decay, gain) {
-        _assertNumber(freq, 1);
-        _assertNumber(duration, 2);
+        freq = _assertNumber(freq, 1);
+        duration = _assertNumber(duration, 2);
         // convert duration to milliseconds
         duration = duration * 1000 / 18;
         if (shape == undefined || (typeof shape != 'string')) { shape = "square"; }
@@ -3631,7 +3637,7 @@ var QB = new function() {
     };
 
     this.func_Sqr = function(value) {
-        _assertNumber(value);
+        value = _assertNumber(value);
         return Math.sqrt(value);
     };
 
@@ -3649,7 +3655,7 @@ var QB = new function() {
     };
 
     this.func_Tan = function(value) {
-        __assertNumber(value);
+        value = __assertNumber(value);
         return Math.tan(value);
     };
 
@@ -3675,7 +3681,7 @@ var QB = new function() {
             dimension = 1;
         }
         else {
-            _assertNumber(dimension, 2);
+            dimension = _assertNumber(dimension, 2);
         }
         return a._dimensions[dimension-1].l;
     };
@@ -3686,7 +3692,7 @@ var QB = new function() {
             dimension = 1;
         }
         else {
-            _assertNumber(dimension, 2);
+            dimension = _assertNumber(dimension, 2);
         }
         return a._dimensions[dimension-1].u;
     };
