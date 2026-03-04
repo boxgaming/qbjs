@@ -2758,7 +2758,7 @@ var QB = new function() {
             ret = _rgb(screen.imgdata.data[pixelIndex], 
                        screen.imgdata.data[pixelIndex + 1], 
                        screen.imgdata.data[pixelIndex + 2], 
-                       screen.imgdata.data[pixelIndex + 3]);
+                       screen.imgdata.data[pixelIndex + 3]/255);
         }
         return ret;
     };
