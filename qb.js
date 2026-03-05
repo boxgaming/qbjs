@@ -218,7 +218,6 @@ var QB = new function() {
     var _rndSeed;
     var _runningFlag = false;
     var _screenDiagInv;
-    var _screenMode;
     var _screenText;
     var _sourceImage = 0;
     var _strokeDrawLength = null;
@@ -433,9 +432,7 @@ var QB = new function() {
     function _assertNumber(param, arg) {
         if (arg == undefined) { arg = 1; }
         if (param && param.rgba && typeof param.rgba == "function") {
-            //console.log(param);
             param = QB.func_Val(param);
-            //console.log(param);
         }
         if (isNaN(param)) { throw new Error("Number required for method argument " + arg); }
         return param;
@@ -793,8 +790,8 @@ var QB = new function() {
 
     this.func__Height = function(imageId) {
         if (imageId == undefined) { imageId = _activeImage; }
-        if (_images[imageId].charSizeMode) {
-            return _height(imageId) / this.func__FontWidth();
+        if (_images[imageId].mode == 0) {
+            return _height(imageId) / this.func__FontHeight();
         }
         return _height(imageId);
     };
@@ -1034,6 +1031,7 @@ var QB = new function() {
     };
     
     this.func__NewImage = function(iwidth, iheight, mode) {
+        if (mode == undefined) { mode = 0; }
         iwidth = _assertNumber(iwidth, 1);
         iheight = _assertNumber(iheight, 2);
         var canvas = document.createElement("canvas");
@@ -1049,7 +1047,8 @@ var QB = new function() {
         ctx = canvas.getContext("2d");
         ctx.lineCap = "butt";
 
-        _images[_nextImageId] = { canvas: canvas, ctx: ctx, lastX: 0, lastY: 0, charSizeMode: (mode == 0), dirty: true };
+        _images[_nextImageId] = { canvas: canvas, ctx: ctx, lastX: 0, lastY: 0, mode: mode, dirty: true };
+        //_images[_nextImageId].mode = mode;
         var tmpId = _nextImageId;
         _nextImageId++;
         return tmpId;
@@ -1494,7 +1493,7 @@ var QB = new function() {
 
     this.func__Width = function(imageId) {
         if (imageId == undefined) { imageId = _activeImage; }
-        if (_images[imageId].charSizeMode) {
+        if (_images[imageId].mode == 0) {
             return _width(imageId) / this.func__FontWidth();
         }
         return _width(imageId);
@@ -2948,7 +2947,7 @@ var QB = new function() {
         // TODO: could be optimized for fixed width fonts which would not require measureText
         var lines = [];
         var tm = ctx.measureText(line);
-        if (tm.width < QB.func__Width() - startX) {
+        if (tm.width < _width() - startX) {
             lines.push(line);
             return lines;
         }
@@ -2957,7 +2956,7 @@ var QB = new function() {
         for (var i=0; i < line.length; i++) {
             var s = line.substring(start, end);
             tm = ctx.measureText(s);
-            if (tm.width > QB.func__Width() - startX) {
+            if (tm.width > _width() - startX) {
                 lines.push(line.substring(start, end-1));
                 start = end - 1;
                 startX = 0;
@@ -3366,7 +3365,6 @@ var QB = new function() {
 
     this.sub_Screen = function(mode) {
         _activeImage = 0;
-        charSizeMode = false;
 
         if (_currScreenImage) {
             _images[_currScreenImage.id] = _currScreenImage;
@@ -3374,7 +3372,7 @@ var QB = new function() {
             _currScreenImage = null;
         }
 
-        _screenMode = mode;
+        var screenMode = mode;
         if (mode == 0) {
             GX.sceneCreate(640, 400);
         }
@@ -3399,10 +3397,10 @@ var QB = new function() {
         }
         else if (mode >= 1000) {
             var img = _images[mode];
+            screenMode = img.mode;
             if (img && img.canvas) {
                 GX.sceneCreate(img.canvas.width, img.canvas.height);
                 this.sub__PutImage(undefined, undefined, undefined, undefined, undefined, undefined, mode);
-                charSizeMode = img.charSizeMode;
                 _currScreenImage = _images[mode];
                 _currScreenImage.id = mode;
                 _images[mode] = _images[0];
@@ -3416,11 +3414,11 @@ var QB = new function() {
         _images[0].lastX = _images[0].canvas.width/2;
         _images[0].lastY = _images[0].canvas.height/2;
         _images[0].canvas.style.cursor = "default";
+        _images[0].mode = screenMode;
 
         _screenDiagInv = 1/Math.sqrt(_images[0].canvas.width*_images[0].canvas.width + _images[0].canvas.height*_images[0].canvas.height);
         
         // initialize the graphics
-        _screenMode = mode;
         if (mode < 2) {
             _fgColor = _color(7); 
         }
@@ -3466,10 +3464,10 @@ var QB = new function() {
         var fw = QB.func__FontWidth();
         if (fw > 0) {
             var fh = QB.func__FontHeight();
-            for (var i=0; i < Math.floor(QB.func__Height()/fh); i++)
+            for (var i=0; i < Math.floor(_height()/fh); i++)
             {
                 var col = [];
-                for (var j=0; j < Math.floor(QB.func__Width()/fw); j++) {
+                for (var j=0; j < Math.floor(_width()/fw); j++) {
                     col.push({ text: " " });
                 }
                 _screenText.push(col);
@@ -3482,7 +3480,7 @@ var QB = new function() {
             _screenText[i-1] = _screenText[i];
         }
         var col = [];
-        for (var j=0; j < Math.floor(QB.func__Width()/QB.func__FontWidth()); j++) {
+        for (var j=0; j < Math.floor(_width()/QB.func__FontWidth()); j++) {
             col.push({ text: " " });
         }
         _screenText[_screenText.length-1] = col;
@@ -3493,7 +3491,7 @@ var QB = new function() {
         var col = _locX; 
         if (_screenText.length < 1 || row >= _screenText.length) { return; }
         for (var i=0; i < text.length; i++) {
-            if (_screenText.length > row && _screenText[row].length > col+i) {
+            if (_screenText.length > row && _screenText[row] && _screenText[row].length > col+i) {
                 _screenText[row][col+i].text = text.substring(i, i+1);
                 _screenText[row][col+i].fgcolor = _fgColor;
                 _screenText[row][col+i].bgcolor = _bgColor;
