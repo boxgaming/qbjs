@@ -3404,6 +3404,7 @@ var QB = new function() {
                 _currScreenImage = _images[mode];
                 _currScreenImage.id = mode;
                 _images[mode] = _images[0];
+                _images[mode].mode = screenMode;
             }
         }
         else {
