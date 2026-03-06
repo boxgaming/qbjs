@@ -564,7 +564,6 @@ var QB = new function() {
     };
 
     this.sub__ClipboardImage = async function (imageIdToCopy) {
-        //_assertParam(imageIdToCopy);
         imageIdToCopy = _assertNumber(imageIdToCopy);
         if (!_images[imageIdToCopy]) {
           throw new Error("Invalid image ID");
@@ -1031,7 +1030,15 @@ var QB = new function() {
     };
     
     this.func__NewImage = function(iwidth, iheight, mode) {
-        if (mode == undefined) { mode = 0; }
+        if (mode == undefined) {
+            // default to the same mode as the active image (_Dest)
+            if (_images && _images[_activeImage] && _images[_activeImage].mode) {
+                mode = _images[_activeImage].mode;
+            }
+            else { 
+                mode = 0;
+            } 
+        }
         iwidth = _assertNumber(iwidth, 1);
         iheight = _assertNumber(iheight, 2);
         var canvas = document.createElement("canvas");
@@ -1048,7 +1055,6 @@ var QB = new function() {
         ctx.lineCap = "butt";
 
         _images[_nextImageId] = { canvas: canvas, ctx: ctx, lastX: 0, lastY: 0, mode: mode, dirty: true };
-        //_images[_nextImageId].mode = mode;
         var tmpId = _nextImageId;
         _nextImageId++;
         return tmpId;
