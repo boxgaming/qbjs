@@ -3373,24 +3373,18 @@ var QB = new function() {
         }
 
         var screenMode = mode;
+        _font = _screenModeFont(screenMode);
         if (mode == 0) {
             GX.sceneCreate(640, 400, true);
         }
-        else if (mode == 1) {
+        else if (mode == 1 || mode == 7 || mode == 13) {
             GX.sceneCreate(320, 200, true);
-            _font = 8;
         }
-        else if (mode == 2 || mode == 7 || mode == 13) {
-            GX.sceneCreate(320, 200, true);
-            _font = 8;
-        }
-        else if (mode == 8) {
+        else if (mode == 2 || mode == 8) {
             GX.sceneCreate(640, 200, true);
-            _font = 8;
         }
         else if (mode == 9 || mode == 10) {
             GX.sceneCreate(640, 350, true);
-            _font = 14;
         }
         else if (mode == 11 || mode == 12) {
             GX.sceneCreate(640, 480, true);
@@ -3398,6 +3392,7 @@ var QB = new function() {
         else if (mode >= 1000) {
             var img = _images[mode];
             screenMode = img.mode;
+            _font = _screenModeFont(screenMode);
             if (img && img.canvas) {
                 GX.sceneCreate(img.canvas.width, img.canvas.height, true);
                 this.sub__PutImage(undefined, undefined, undefined, undefined, undefined, undefined, mode);
@@ -3446,6 +3441,18 @@ var QB = new function() {
         
         // TODO: set the appropriate default font for the selected screen mode above instead of here
     };
+
+    function _screenModeFont(mode)
+    {
+        var font = 16;
+        if (mode == 1 || mode == 2 || mode == 7 || mode == 8 || mode == 13) {
+            font = 8;
+        }
+        else if (mode == 9 || mode == 10) {
+            font = 14;
+        }
+        return font;
+    }
 
     this.func_Screen = function(row, col, colorflag) {
         if (colorflag) {
