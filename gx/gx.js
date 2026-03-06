@@ -110,7 +110,7 @@ var GX = new function() {
 
     // Scene Functions
     // -----------------------------------------------------------------
-    function _sceneCreate(width, height) {
+    function _sceneCreate(width, height, supressEvents) {
         _canvas = document.getElementById("gx-canvas");
         if (!_canvas) {
 		    _canvas = document.createElement("canvas");
@@ -242,7 +242,10 @@ var GX = new function() {
         _scene.constrainMode = GX.SCENE_CONSTRAIN_NONE;
         _scene.active = false;
 
-        _customEvent(GX.EVENT_INIT);
+        if (!supressEvents) {
+            window.dispatchEvent(new Event("gxscenecreate"));
+            _customEvent(GX.EVENT_INIT);
+        }
     }
 
     // Resize the scene with the specified pixel width and height.

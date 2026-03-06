@@ -3374,32 +3374,32 @@ var QB = new function() {
 
         var screenMode = mode;
         if (mode == 0) {
-            GX.sceneCreate(640, 400);
+            GX.sceneCreate(640, 400, true);
         }
         else if (mode == 1) {
-            GX.sceneCreate(320, 200);
+            GX.sceneCreate(320, 200, true);
             _font = 8;
         }
         else if (mode == 2 || mode == 7 || mode == 13) {
-            GX.sceneCreate(320, 200);
+            GX.sceneCreate(320, 200, true);
             _font = 8;
         }
         else if (mode == 8) {
-            GX.sceneCreate(640, 200);
+            GX.sceneCreate(640, 200, true);
             _font = 8;
         }
         else if (mode == 9 || mode == 10) {
-            GX.sceneCreate(640, 350);
+            GX.sceneCreate(640, 350, true);
             _font = 14;
         }
         else if (mode == 11 || mode == 12) {
-            GX.sceneCreate(640, 480);
+            GX.sceneCreate(640, 480, true);
         }
         else if (mode >= 1000) {
             var img = _images[mode];
             screenMode = img.mode;
             if (img && img.canvas) {
-                GX.sceneCreate(img.canvas.width, img.canvas.height);
+                GX.sceneCreate(img.canvas.width, img.canvas.height, true);
                 this.sub__PutImage(undefined, undefined, undefined, undefined, undefined, undefined, mode);
                 _currScreenImage = _images[mode];
                 _currScreenImage.id = mode;
@@ -4584,6 +4584,10 @@ var QB = new function() {
         _initInKeyMap();
         _initKeyHitMap();
         _initCharMap();
+
+        addEventListener("gxscenecreate", function(event) {
+            _images[0].mode = 32;
+        });
 
         addEventListener("keydown", function(event) { 
             if (!_runningFlag) { return; }
