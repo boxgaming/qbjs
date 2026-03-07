@@ -467,13 +467,12 @@ var IDE = new function() {
     }
 
     function _shareProgram() {
-        var zout = new Shorty();
         var b64 = LZUTF8.compress(editor.getValue(), { outputEncoding: "Base64" });
         var baseUrl = location.href.split('?')[0];
 
         var mode = _e.shareMode.value;
         var codeShare = _e.shareCode;
-        var url = baseUrl + "?";
+        var url = baseUrl + "#";
         if (mode) {
             url += "mode=" + mode + "&";
         }
@@ -514,7 +513,6 @@ var IDE = new function() {
 
     function _changeKeyMap(newKeyMap) {
         keyMap = newKeyMap;
-        //editor.setOption("keyMap", keyMap);
         for (var key in codeTabMap) {
             if (codeTabMap[key].editor) {
                 codeTabMap[key].editor.setOption("keyMap", keyMap);
