@@ -1450,7 +1450,10 @@ var QB = new function() {
     this.sub__SndVol = function(sid, v) {
         sid = _assertNumber(sid, 1);
         v = _assertNumber(v, 2);
-        GX.soundVolume(sid, v);
+        var snd = GX.getSound(sid);
+        if (snd) {
+            snd.volume = v;
+        }
     };
 
     this.func__StartDir = function() {
