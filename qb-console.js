@@ -116,10 +116,36 @@ function _QB() {
     }
 
     async function sub_Fetch (url, fetchRes) {
+        const path = require("path");
         const fs = require("fs");
-        const data = fs.readFileSync(url, 'utf8');
-        fetchRes.ok = true;
-        fetchRes.text = data;
+        try {
+            // attempt to find file in local project directory
+            const data = fs.readFileSync(url, 'utf8');
+            fetchRes.ok = true;
+            fetchRes.status = 200;
+            fetchRes.text = data;
+        }
+        catch (e) {
+            try {
+                // look for the file in the standard lib location
+                const data = fs.readFileSync(__dirname + path.sep + url, 'utf8');
+                fetchRes.ok = true;
+                fetchRes.status = 200;
+                fetchRes.text = data;
+            }
+            catch (e2) {
+                try {
+                    // try to load from url
+                    var response = await fetch(url);
+                    var responseText = await(response.text());
+                    fetchRes.ok = response.ok;
+                    fetchRes.status = response.status;
+                    fetchRes.statusText = response.statusText;
+                    fetchRes.text = responseText;
+                }
+                catch (e3) {}
+            }
+        }
     }
 
     async function func_Fetch(url) {
