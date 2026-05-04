@@ -844,11 +844,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     js = ConvertSub(m, Join(parts(), 2, -1, " "), i)
                 Else
                     js = "// " + l
-                    If first = "GOTO" Then
-                        AddWarning i, "Missing or unsupported method: '<a href='https://xkcd.com/292/' target='_blank'>GOTO</a>'"
-                    Else
-                        AddWarning i, "Missing or unsupported method: '" + parts(1) + "' - ignoring line"
-                    End If
+                    AddWarning i, "Missing or unsupported method: '" + parts(1) + "' - ignoring line"
                 End If
             End If
 
@@ -2102,12 +2098,12 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
         Dim v As String: v = "var "
         If isGlobal Then
             If Not varExists Then
-                jsLines(sharedVarLine).text = jsLines(sharedVarLine).text + "var " + bvar.jsname + " = " + InitTypeValue(bvar.type) + "; "
+                jsLines(sharedVarLine).text = jsLines(sharedVarLine).text + "var " + bvar.jsname + " = " + InitTypeValue(bvar.type, lineNumber) + "; "
             End If
             v = ""
         End If
      
-        js = js + v + bvar.jsname + " = " + InitTypeValue(bvar.type) + "; "
+        js = js + v + bvar.jsname + " = " + InitTypeValue(bvar.type, lineNumber) + "; "
         ' If this is a FUNCTION or SUB type we also need to make sure this method name is registered in the current scope
         If bvar.type = "SUB" Or bvar.type = "FUNCTION" Then
             Dim m As Method
@@ -2124,14 +2120,14 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
         End If
     Else
         If isGlobal And Not varExists Then
-            jsLines(sharedVarLine).text = jsLines(sharedVarLine).text + "var " + bvar.jsname + " = QB.initArray([0], " + InitTypeValue(bvar.type) + "); "
+            jsLines(sharedVarLine).text = jsLines(sharedVarLine).text + "var " + bvar.jsname + " = QB.initArray([0], " + InitTypeValue(bvar.type, lineNumber) + "); "
             varExists = True
         End If
 
         If varExists Then
-            js = js + "QB.resizeArray(" + bvar.jsname + ", [" + FormatArraySize(arraySize, lineNumber) + "], " + InitTypeValue(bvar.type) + ", " + bPreserve + "); "
+            js = js + "QB.resizeArray(" + bvar.jsname + ", [" + FormatArraySize(arraySize, lineNumber) + "], " + InitTypeValue(bvar.type, lineNumber) + ", " + bPreserve + "); "
         Else
-            js = js + "var " + bvar.jsname + " = QB.initArray([" + FormatArraySize(arraySize, lineNumber) + "], " + InitTypeValue(bvar.type) + "); "
+            js = js + "var " + bvar.jsname + " = QB.initArray([" + FormatArraySize(arraySize, lineNumber) + "], " + InitTypeValue(bvar.type, lineNumber) + "); "
         End If
     End If
 
@@ -2183,7 +2179,7 @@ Function FormatArraySize$ (sizeString As String, lineNumber As Integer)
     FormatArraySize = sizeParams
 End Function
 
-Function InitTypeValue$ (vtype As String)
+Function InitTypeValue$ (vtype As String, lineNumber As Integer)
     Dim value As String
     If vtype = "STRING" Then
         value = "''"
@@ -2198,16 +2194,21 @@ Function InitTypeValue$ (vtype As String)
     ElseIf vtype = "FUNCTION" Or vtype = "SUB" Then
         value = "function() { return 0; }"
     Else ' Custom Type
-        value = "{"
         Dim typeId As Integer
         typeId = FindTypeId(vtype)
-        Dim i As Integer
-        For i = 1 To UBound(typeVars)
-            If typeId = typeVars(i).typeId Then
-                value = value + typeVars(i).name + ":" + InitTypeValue(typeVars(i).type) + ","
-            End If
-        Next i
-        value = Left$(value, Len(value) - 1) + "}"
+        If typeId = -1 Then
+            AddError lineNumber, "Unknown type: " + vtype
+            value = "''"
+        Else
+            value = "{"
+            Dim i As Integer
+            For i = 1 To UBound(typeVars)
+                If typeId = typeVars(i).typeId Then
+                    value = value + typeVars(i).name + ":" + InitTypeValue(typeVars(i).type, lineNumber) + ","
+                End If
+            Next i
+            value = Left$(value, Len(value) - 1) + "}"
+        End If
     End If
 
     InitTypeValue = value
@@ -3717,19 +3718,39 @@ Function NormalizeType$ (itype As String)
         otype = "_BIT"
     ElseIf itype = "_UNSIGNED BIT" Then
         otype = "_UNSIGNED _BIT"
+    ElseIf itype = "UNSIGNED _BIT" Then
+        otype = "_UNSIGNED _BIT"
+    ElseIf itype = "UNSIGNED BIT" Then
+        otype = "_UNSIGNED _BIT"
     ElseIf itype = "BYTE" Then
         otype = "_BYTE"
     ElseIf itype = "_UNSIGNED BYTE" Then
         otype = "_UNSIGNED _BYTE"
+    ElseIf itype = "UNSIGNED _BYTE" Then
+        otype = "_UNSIGNED _BYTE"
+    ElseIf itype = "UNSIGNED BYTE" Then
+        otype = "_UNSIGNED _BYTE"
+    ElseIf itype = "UNSIGNED INTEGER" Then
+        otype = "_UNSIGNED INTEGER"
+    ElseIf itype = "UNSIGNED LONG" Then
+        otype = "_UNSIGNED LONG"
     ElseIf itype = "INTEGER64" Then
         otype = "_INTEGER64"
     ElseIf itype = "_UNSIGNED INTEGER64" Then
+        otype = "_UNSIGNED _INTEGER64"
+    ElseIf itype = "UNSIGNED _INTEGER64" Then
+        otype = "_UNSIGNED _INTEGER64"
+    ElseIf itype = "UNSIGNED INTEGER64" Then
         otype = "_UNSIGNED _INTEGER64"
     ElseIf itype = "FLOAT" Then
         otype = "_FLOAT"
     ElseIf itype = "OFFSET" Then
         otype = "_OFFSET"
     ElseIf itype = "_UNSIGNED OFFSET" Then
+        otype = "_UNSIGNED _OFFSET"
+    ElseIf itype = "UNSIGNED _OFFSET" Then
+        otype = "_UNSIGNED _OFFSET"
+    ElseIf itype = "UNSIGNED OFFSET" Then
         otype = "_UNSIGNED _OFFSET"
     Else
         otype = itype

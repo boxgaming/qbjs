@@ -722,11 +722,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
                js = (await func_ConvertSub(  m,   (await func_Join( parts  ,    2 ,    - 1 ,   " "))  ,    i));
             } else {
                js = "// "  +  l;
-               if ( first ==  "GOTO"  ) {
-                  await sub_AddWarning(  i,   "Missing or unsupported method: '<a href='https://xkcd.com/292/' target='_blank'>GOTO</a>'");
-               } else {
-                  await sub_AddWarning(  i,   "Missing or unsupported method: '"  + QB.arrayValue(parts, [ 1]).value  + "' - ignoring line");
-               }
+               await sub_AddWarning(  i,   "Missing or unsupported method: '"  + QB.arrayValue(parts, [ 1]).value  + "' - ignoring line");
             }
          }
          if (( indent < 0)  ) {
@@ -2005,11 +2001,11 @@ var RegisterVar = null;
       v = "var ";
       if ( isGlobal) {
          if (~ varExists) {
-            QB.arrayValue(jsLines, [ sharedVarLine]).value .text = QB.arrayValue(jsLines, [ sharedVarLine]).value .text + "var "  +  bvar.jsname + " = "  + (await func_InitTypeValue(  bvar.type))  + "; ";
+            QB.arrayValue(jsLines, [ sharedVarLine]).value .text = QB.arrayValue(jsLines, [ sharedVarLine]).value .text + "var "  +  bvar.jsname + " = "  + (await func_InitTypeValue(  bvar.type ,    lineNumber))  + "; ";
          }
          v = "";
       }
-      js =  js +  v +  bvar.jsname + " = "  + (await func_InitTypeValue(  bvar.type))  + "; ";
+      js =  js +  v +  bvar.jsname + " = "  + (await func_InitTypeValue(  bvar.type ,    lineNumber))  + "; ";
       if ( bvar.type ==  "SUB"  |  bvar.type ==  "FUNCTION"  ) {
          var m = {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0};  /* METHOD */ 
          if ((await func_FindMethod(  bvar.name ,    m,    bvar.type ,    False))  < 1 ) {
@@ -2025,13 +2021,13 @@ var RegisterVar = null;
       }
    } else {
       if ( isGlobal & ~ varExists) {
-         QB.arrayValue(jsLines, [ sharedVarLine]).value .text = QB.arrayValue(jsLines, [ sharedVarLine]).value .text + "var "  +  bvar.jsname + " = QB.initArray([0], "  + (await func_InitTypeValue(  bvar.type))  + "); ";
+         QB.arrayValue(jsLines, [ sharedVarLine]).value .text = QB.arrayValue(jsLines, [ sharedVarLine]).value .text + "var "  +  bvar.jsname + " = QB.initArray([0], "  + (await func_InitTypeValue(  bvar.type ,    lineNumber))  + "); ";
          varExists =  True;
       }
       if ( varExists) {
-         js =  js + "QB.resizeArray("  +  bvar.jsname + ", ["  + (await func_FormatArraySize(  arraySize,    lineNumber))  + "], "  + (await func_InitTypeValue(  bvar.type))  + ", "  +  bPreserve + "); ";
+         js =  js + "QB.resizeArray("  +  bvar.jsname + ", ["  + (await func_FormatArraySize(  arraySize,    lineNumber))  + "], "  + (await func_InitTypeValue(  bvar.type ,    lineNumber))  + ", "  +  bPreserve + "); ";
       } else {
-         js =  js + "var "  +  bvar.jsname + " = QB.initArray(["  + (await func_FormatArraySize(  arraySize,    lineNumber))  + "], "  + (await func_InitTypeValue(  bvar.type))  + "); ";
+         js =  js + "var "  +  bvar.jsname + " = QB.initArray(["  + (await func_FormatArraySize(  arraySize,    lineNumber))  + "], "  + (await func_InitTypeValue(  bvar.type ,    lineNumber))  + "); ";
       }
    }
    if ( PrintDataTypes) {
@@ -2088,8 +2084,8 @@ var FormatArraySize = null;
    FormatArraySize =  sizeParams;
 return FormatArraySize;
 }
-async function func_InitTypeValue(vtype/*STRING*/) {
-if (QB.halted()) { return; }; 
+async function func_InitTypeValue(vtype/*STRING*/,lineNumber/*INTEGER*/) {
+if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber); 
 var InitTypeValue = null;
 /* implicit variables: */ 
    var value = '';  /* STRING */ 
@@ -2102,16 +2098,21 @@ var InitTypeValue = null;
    } else if ( vtype ==  "FUNCTION"  |  vtype ==  "SUB"  ) {
       value = "function() { return 0; }";
    } else {
-      value = "{";
       var typeId = 0;  /* INTEGER */ 
       typeId = (await func_FindTypeId(  vtype));
-      var i = 0;  /* INTEGER */ 
-      var ___v781213 = 0; ___l2188060: for ( i=  1 ;  i <= (QB.func_UBound(  typeVars));  i= i + 1) { if (QB.halted()) { return; } ___v781213++;   if (___v781213 % 100 == 0) { await QB.autoLimit(); }
-         if ( typeId ==  QB.arrayValue(typeVars, [ i]).value .typeId ) {
-            value =  value + QB.arrayValue(typeVars, [ i]).value .name + ":"  + (await func_InitTypeValue( QB.arrayValue(typeVars, [ i]).value .type))  + ",";
-         }
-      } 
-      value = (QB.func_Left(  value,   (QB.func_Len(  value))  -  1))  + "}";
+      if ( typeId ==   - 1 ) {
+         await sub_AddError(  lineNumber,   "Unknown type: "  +  vtype);
+         value = "''";
+      } else {
+         value = "{";
+         var i = 0;  /* INTEGER */ 
+         var ___v781213 = 0; ___l2188060: for ( i=  1 ;  i <= (QB.func_UBound(  typeVars));  i= i + 1) { if (QB.halted()) { return; } ___v781213++;   if (___v781213 % 100 == 0) { await QB.autoLimit(); }
+            if ( typeId ==  QB.arrayValue(typeVars, [ i]).value .typeId ) {
+               value =  value + QB.arrayValue(typeVars, [ i]).value .name + ":"  + (await func_InitTypeValue( QB.arrayValue(typeVars, [ i]).value .type ,    lineNumber))  + ",";
+            }
+         } 
+         value = (QB.func_Left(  value,   (QB.func_Len(  value))  -  1))  + "}";
+      }
    }
    InitTypeValue =  value;
 return InitTypeValue;
@@ -3563,19 +3564,39 @@ var NormalizeType = null;
       otype = "_BIT";
    } else if ( itype ==  "_UNSIGNED BIT"  ) {
       otype = "_UNSIGNED _BIT";
+   } else if ( itype ==  "UNSIGNED _BIT"  ) {
+      otype = "_UNSIGNED _BIT";
+   } else if ( itype ==  "UNSIGNED BIT"  ) {
+      otype = "_UNSIGNED _BIT";
    } else if ( itype ==  "BYTE"  ) {
       otype = "_BYTE";
    } else if ( itype ==  "_UNSIGNED BYTE"  ) {
       otype = "_UNSIGNED _BYTE";
+   } else if ( itype ==  "UNSIGNED _BYTE"  ) {
+      otype = "_UNSIGNED _BYTE";
+   } else if ( itype ==  "UNSIGNED BYTE"  ) {
+      otype = "_UNSIGNED _BYTE";
+   } else if ( itype ==  "UNSIGNED INTEGER"  ) {
+      otype = "_UNSIGNED INTEGER";
+   } else if ( itype ==  "UNSIGNED LONG"  ) {
+      otype = "_UNSIGNED LONG";
    } else if ( itype ==  "INTEGER64"  ) {
       otype = "_INTEGER64";
    } else if ( itype ==  "_UNSIGNED INTEGER64"  ) {
+      otype = "_UNSIGNED _INTEGER64";
+   } else if ( itype ==  "UNSIGNED _INTEGER64"  ) {
+      otype = "_UNSIGNED _INTEGER64";
+   } else if ( itype ==  "UNSIGNED INTEGER64"  ) {
       otype = "_UNSIGNED _INTEGER64";
    } else if ( itype ==  "FLOAT"  ) {
       otype = "_FLOAT";
    } else if ( itype ==  "OFFSET"  ) {
       otype = "_OFFSET";
    } else if ( itype ==  "_UNSIGNED OFFSET"  ) {
+      otype = "_UNSIGNED _OFFSET";
+   } else if ( itype ==  "UNSIGNED _OFFSET"  ) {
+      otype = "_UNSIGNED _OFFSET";
+   } else if ( itype ==  "UNSIGNED OFFSET"  ) {
       otype = "_UNSIGNED _OFFSET";
    } else {
       otype =  itype;
