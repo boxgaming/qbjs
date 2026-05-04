@@ -13,10 +13,8 @@ if (args.length > 0) {
 http.createServer((req, res) => {
     if (fs.existsSync(__dirname + '/.root-path-override')) {
         overridePath = fs.readFileSync(__dirname + '/.root-path-override').toString().trim();
-        console.log("overridePath: " + overridePath);
         if (fs.existsSync(overridePath)) {
             rootPath = overridePath;
-            console.log("rootPath replaced");
             fs.unlinkSync(__dirname + "/.root-path-override");
         }
     }
