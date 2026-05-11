@@ -2253,10 +2253,16 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                 Dim uword As String: uword = UCase$(_Trim$(word))
                 If uword = "NOT" Then
                     js = js + "~"
+                ElseIf uword = "NEGATE" Or uword = "_NEGATE" Then
+                    js = js + "!"
                 ElseIf uword = "AND" Then
                     js = js + " & "
                 ElseIf uword = "OR" Then
                     js = js + " | "
+                ElseIf uword = "ANDALSO" Or uword = "_ANDALSO" Then
+                    js = js + " && "
+                ElseIf uword = "ORELSE" Or uword = "_ORELSE" Then
+                    js = js + " || "
                 ElseIf uword = "MOD" Then
                     js = js + " % "
                 ElseIf uword = "XOR" Then

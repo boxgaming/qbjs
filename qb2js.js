@@ -2164,10 +2164,16 @@ var ConvertExpression = null;
             uword = (QB.func_UCase( (QB.func__Trim(  word))));
             if ( uword ==  "NOT"  ) {
                js =  js + "~";
+            } else if ( uword ==  "NEGATE"  |  uword ==  "_NEGATE"  ) {
+               js =  js + "!";
             } else if ( uword ==  "AND"  ) {
                js =  js + " & ";
             } else if ( uword ==  "OR"  ) {
                js =  js + " | ";
+            } else if ( uword ==  "ANDALSO"  |  uword ==  "_ANDALSO"  ) {
+               js =  js + " && ";
+            } else if ( uword ==  "ORELSE"  |  uword ==  "_ORELSE"  ) {
+               js =  js + " || ";
             } else if ( uword ==  "MOD"  ) {
                js =  js + " % ";
             } else if ( uword ==  "XOR"  ) {

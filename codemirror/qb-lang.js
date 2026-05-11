@@ -27,7 +27,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
     var middleKeywords = ['else','elseif','case','then'];
     var endKeywords = ['next','loop','wend'];
 
-    var wordOperators = wordRegexp(['and', 'or', 'not', 'xor', 'is', 'mod', 'eqv', 'imp']);
+    var wordOperators = wordRegexp(['and', 'or', 'not', 'xor', 'is', 'mod', 'eqv', 'imp', '_?andalso', '_?orelse', '_?negate']);
     var commonkeywords = ['dim', 'as', 'redim', 'then', 'until', 'exit', 'to', 'let',
                           'const', 'integer', 'single', 'double', 'long', '_?unsigned', '_?float', '_?bit', '_?byte',
                           'string', '_?byte', 'object', '_?offset', '_?integer64', 'call', 'step', '_?preserve'];
@@ -44,7 +44,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              '_?echo', '_?environcount', '_?fileexists', '_?font', '_?fontwidth', '_?fontheight', '_?freefont',
                              '_?freeimage', '_?fullscreen', '_?g2d', '_?g2r', '_?green', '_?green32', '_?height', '_?hypot', "_?inflate",
                              '_?instrrev', '_?limit', '_?keyclear', '_?keydown', '_?keyhit', '_?loadfont', '_?loadimage',
-                             '_?mousebutton', '_?mousehide', '_?mouseinput', '_?mouseshow', '_?mousewheel', '_?mousex', '_?mousey',
+                             '_?mousebutton', '_?mousehide', '_?mouseinput', '_?mouseshow', '_?mousewheel', '_?mousex', '_?mousey', 
                              '_?newimage', '_?numlock', '_?os', '_?palettecolor', '_?pi', '_?printstring', '_?printwidth', '_?printmode', '_?putimage',
                              '_?r2d', '_?r2g', '_?readbit', '_?red', '_?red32', '_?resetbit', '_?resize', '_?resizewidth',
                              '_?resizeheight', '_?rgb', '_?rgba', '_?rgb32', '_?rgba32', '_?round',
