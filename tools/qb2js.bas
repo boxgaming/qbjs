@@ -4540,8 +4540,10 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Command$", False
     AddQBMethod "FUNCTION", "Cos", False
     AddQBMethod "FUNCTION", "Csrlin", False
-    AddQBMethod "FUNCTION", "Cvi", False
-    AddQBMethod "FUNCTION", "Cvl", False
+    AddQBMethod "FUNCTION", "CVI", False
+    AddQBMethod "FUNCTION", "CVL", False
+    AddQBMethod "FUNCTION", "CVS", False
+    AddQBMethod "FUNCTION", "CVD", False
     AddQBMethod "FUNCTION", "Date$", False
     AddQBMethod "SUB", "Draw", False
     AddQBMethod "FUNCTION", "Environ", False
@@ -4573,8 +4575,10 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "Mid$", False
     AddQBMethod "SUB", "Mid$", False
     AddQBMethod "SUB", "MkDir", False
-    AddQBMethod "FUNCTION", "Mki$", False
-    AddQBMethod "FUNCTION", "Mkl$", False
+    AddQBMethod "FUNCTION", "MKI$", False
+    AddQBMethod "FUNCTION", "MKL$", False
+    AddQBMethod "FUNCTION", "MKS$", False
+    AddQBMethod "FUNCTION", "MKD$", False
     AddQBMethod "SUB", "Name", False
     AddQBMethod "FUNCTION", "Oct$", False
     AddQBMethod "SUB", "Open", True

@@ -1645,24 +1645,23 @@ var QB = new function() {
         return _locY + 1;
     };
 
-    this.func_Cvi = function(numString) {
+    this.func_CVI = function(numString) {
         _assertParam(numString);
-        var result = 0;
-        numString = numString.split("").reverse().join("");
-        for (let i=1;i>=0;i--) {
-            result+=numString.charCodeAt(1-i)<<(8*i);
-        }
-        return result;
+        return _mstrToNum(numString, "integer");
     };
 
-    this.func_Cvl = function(numString) {
+    this.func_CVL = function(numString) {
+        return _mstrToNum(numString, "long");
+    };
+
+    this.func_CVS = function(numString) {
         _assertParam(numString);
-        var result = 0;
-        numString = numString.split("").reverse().join("");
-        for (let i=3;i>=0;i--) {
-            result+=numString.charCodeAt(3-i)<<(8*i);
-        }
-        return result;
+        return _mstrToNum(numString, "single");
+    };
+
+    this.func_CVD = function(numString) {
+        _assertParam(numString);
+        return _mstrToNum(numString, "double");
     };
 
     this.func_Date = function() {
@@ -2544,23 +2543,66 @@ var QB = new function() {
         vfs.createDirectory(filename, parentNode);
     }
 
-    this.func_Mki = function(num) {
+    this.func_MKI = function(num) {
         num = _assertNumber(num);
-        var ascii = "";
-        for (var i=1; i >= 0; i--) {
-            ascii += String.fromCharCode((num>>(8*i))&255);
-        }
-        return ascii.split("").reverse().join("");
+        return _numToMStr(num, "integer");
     };
 
-    this.func_Mkl = function(num) {
+    this.func_MKL = function(num) {
         num = _assertNumber(num);
-        var ascii = "";
-        for (var i=3; i >= 0; i--) {
-            ascii += String.fromCharCode((num>>(8*i))&255);
-        }
-        return ascii.split("").reverse().join("");
+        return _numToMStr(num, "long");
     };
+
+    this.func_MKS = function(num) {
+        num = _assertNumber(num);
+        return _numToMStr(num, "single");
+    };
+
+    this.func_MKD = function(num) {
+        num = _assertNumber(num);
+        return _numToMStr(num, "double");
+    };
+
+    function _numToMStr(num, type) {
+        var size;
+        if      (type == "integer") { size = 2; }
+        else if (type == "long")    { size = 4; }
+        else if (type == "single")  { size = 4; }
+        else if (type == "double")  { size = 8; }
+        else { 
+            throw new Error("Invalid variable type."); 
+        }
+        
+        var buffer = new ArrayBuffer(size);
+        var view = new DataView(buffer);
+        if      (type == "integer") { view.setInt16(0, num, true);   }
+        else if (type == "long")    { view.setInt32(0, num, true);   }
+        else if (type == "single")  { view.setFloat32(0, num, true); }
+        else if (type == "double")  { view.setFloat64(0, num, true); }
+        var a = new Uint8Array(buffer);
+        var ascii = "";
+        for (var i=0; i < a.length; i++) {
+            ascii += String.fromCharCode(a[i]);//QB.func_Chr(a[i]);
+        }
+        return ascii;        
+    }
+
+    function _mstrToNum(str, type) {
+        var byteArray = new Uint8Array(str.length);
+        for (var i = 0; i < str.length; i++) {
+            byteArray[i] = str.charCodeAt(i);
+        }
+        //var buffer = byteArray.buffer.slice(byteArray.byteOffset, byteArray.byteOffset + 4);
+        //var view = new DataView(buffer);
+        var view = new DataView(byteArray.buffer);
+        if      (type == "integer") { return view.getInt16(0, true);   }
+        else if (type == "long")    { return view.getInt32(0, true);   }
+        else if (type == "single")  { return view.getFloat32(0, true); }
+        else if (type == "double")  { return view.getFloat64(0, true); }
+        else { 
+            throw new Error("Invalid variable type."); 
+        }
+    }
 
     this.sub_Name = function(oldName, newName) {
         _assertParam(oldName, 1);
