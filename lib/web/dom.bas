@@ -1,6 +1,7 @@
 Export Add, Alert, Confirm, Create, Event, Container, Get, GetImage, Remove, Prompt
 Export DialogClose, DialogShowModal, DialogShow, Focus, HasFocus, SelectAll
 Export RequestFullscreen, StopPropagation, SetTimeout, RequestAnimationFrame
+Export Document, Window
 
 $If Javascript Then
     if (QB._domElements) {
@@ -106,7 +107,19 @@ End Sub
 
 Function Container
     $If Javascript Then
-        Container = document.getElementById("gx-container");
+        return document.getElementById("gx-container");
+    $End If
+End Function
+
+Function Window
+    $If Javascript Then
+        return window;
+    $End If
+End Function
+
+Function Document
+    $If Javascript Then
+        return document;
     $End If
 End Function
 
