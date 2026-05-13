@@ -1,4 +1,6 @@
 Export Add, Alert, Confirm, Create, Event, Container, Get, GetImage, Remove, Prompt
+Export DialogClose, DialogShowModal, DialogShow, Focus, HasFocus, SelectAll
+Export RequestFullscreen, StopPropagation, SetTimeout, RequestAnimationFrame
 
 $If Javascript Then
     if (QB._domElements) {
@@ -139,3 +141,63 @@ Function Prompt (text As String, defaultValue As String)
     $End If
     Prompt = result;
 End Function
+
+Sub DialogClose (element As Object)
+    $If Javascript Then
+        element.close();
+    $End If
+End Sub
+
+Sub DialogShowModal (element As Object)
+    $If Javascript Then
+        element.showModal();
+    $End If
+End Sub
+
+Sub DialogShow(element As Object)
+    $If Javascript Then
+        element.show();
+    $End If
+End Sub
+
+Sub Focus (element As Object)
+    $If Javascript Then
+        element.focus();
+    $End If
+End Sub
+
+Function HasFocus (element As Object)
+    $If Javascript Then
+        HasFocus = element.hasFocus();
+    $End If
+End Function
+
+Sub SelectAll (element As Object)
+    $If Javascript Then
+        element.select();
+    $End If
+End Sub
+
+Sub RequestFullscreen (element As Object)
+    $If Javascript Then
+        element.requestFullscreen();
+    $End If
+End Sub
+
+Sub StopPropagation (e As Object)
+    $If Javascript Then
+        e.stopPropagation();
+    $End If
+End Sub
+
+Sub SetTimeout (fnCallback As Sub, millis As Integer)
+    $If Javascript Then
+        setTimeout(fnCallback, millis);
+    $End If
+End Sub
+
+Sub RequestAnimationFrame (fnCallback As Sub)
+    $If Javascript Then
+        requestAnimationFrame(fnCallback);
+    $End If
+End Sub
