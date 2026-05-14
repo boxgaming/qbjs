@@ -2,7 +2,7 @@ Export Await, Call, InstanceOf, IsRunning, SetTimeout, TimeInMillis
 
 Function Await (fn, thisArg)
 $If Javascript Then
-    return await fn.apply(ctx, Array.prototype.slice.call(arguments, 2));
+    return await fn.apply(thisArg, Array.prototype.slice.call(arguments, 2));
 $End If
 End Function
 
