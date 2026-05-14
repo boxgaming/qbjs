@@ -1,7 +1,6 @@
 Export Add, Alert, Confirm, Create, Event, Container, Get, GetImage, Remove, Prompt
 Export DialogClose, DialogShowModal, DialogShow, Focus, HasFocus, SelectAll
-Export RequestFullscreen, StopPropagation, SetTimeout, RequestAnimationFrame
-Export Document, Window
+Export RequestFullscreen, StopPropagation, RequestAnimationFrame, Document, Window
 
 $If Javascript Then
     if (QB._domElements) {
@@ -200,12 +199,6 @@ End Sub
 Sub StopPropagation (e As Object)
     $If Javascript Then
         e.stopPropagation();
-    $End If
-End Sub
-
-Sub SetTimeout (fnCallback As Sub, millis As Integer)
-    $If Javascript Then
-        setTimeout(fnCallback, millis);
     $End If
 End Sub
 

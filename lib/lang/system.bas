@@ -1,4 +1,4 @@
-Export Await, Call, IsRunning, TimeInMillis
+Export Await, Call, InstanceOf, IsRunning, SetTimeout, TimeInMillis
 
 Function Await (fn, thisArg)
 $If Javascript Then
@@ -24,11 +24,23 @@ $If Javascript Then
 $End If
 End Sub
 
+Function InstanceOf (className)
+$If Javascript Then
+    return Reflect.construct(window[className], Array.prototype.slice.call(arguments, 1));
+$End If
+End Function
+
 Function IsRunning
 $If Javascript Then
     return QB.toBoolean(QB.running());
 $End If
 End Function
+
+Sub SetTimeout (fnCallback As Sub, millis As Integer)
+    $If Javascript Then
+        setTimeout(fnCallback, millis);
+    $End If
+End Sub
 
 Function TimeInMillis
 $If Javascript Then
