@@ -28,6 +28,7 @@ Type CodeLine
     text As String
     mtype As Integer
     moduleId As Integer
+    module As Integer
 End Type
 
 Type Method
@@ -112,6 +113,7 @@ Dim Shared As Integer optionExplicit
 Dim Shared As Integer optionExplicitArray
 
 Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
+    condWords(1) = "IF": condWords(2) = "ELSEIF": condWords(3) = "WHILE": condWords(4) = "UNTIL"
     ReDim As CodeLine jsLines(0)
     ReDim As Module moduleMap()
     ReDim As CodeLine warnings(0)
@@ -121,18 +123,19 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
     Dim keys(0) As Method
     Dim m As Module 
     keys = GetMapKeys(SortModules)
-    'AddJSLine 0, "// " + Str$(UBound(keys))
     For i = 1 To UBound(keys)
         m = moduleMap(keys(i))
-        'AddJSLine 0, "// " + keys(i) + " : " + m.name
         activeModule = m
         Compile m.source, m.name
     Next i
     activeModule = undefined
-
     Compile source, ""
 End Sub
 
+' We need to make sure that modules are compiled before other modules
+' into which they are being imported.  This method will generate a
+' circular dependency error in the case that two libraries import
+' each other
 Function SortModules
     Dim results() As Object
     ReDim moduleNames(0) As String
@@ -152,18 +155,6 @@ Function SortModules
             $If Javascript Then
                 importCount = Object.keys(m.imports).length;
             $End If
-            'AddJSLine 0, "// " + m.path + " : " + importCount
-
-            'Dim As String k
-            '$If Javascript Then
-            '    var kkeys = Object.keys(m.imports);
-            '    for (var ii=0; ii < kkeys.length; ii++) {
-            '        k = kkeys[ii];
-            '$End If
-            '        AddJSLine 0, "//   - " + k
-            '$If Javascript Then
-            '    }
-            '$End If
 
             If importCount = 0 Then
                 results(m.path) = m
@@ -176,12 +167,7 @@ Function SortModules
                     mm = moduleMap(moduleNames(k))
                     If Not mm.processed Then
                         $If Javascript Then
-                            if (mm.imports[m.path]) { 
-                                delete mm.imports[m.path]; 
-                        $End If
-                                'AddJSLine 0, "// deleting " + m.path + " from " + mm.path
-                        $If Javascript Then
-                            }
+                            if (mm.imports[m.path]) { delete mm.imports[m.path]; }
                         $End If
                     End If
                 Next k
@@ -189,31 +175,18 @@ Function SortModules
                 skipCount = skipCount + 1
             End If
         Next i
-        'AddJSLine 0, "// skipCount: " + Str$(skipCount) + " lastSkipCount: " + Str$(lastSkipCount)
     Loop While skipCount > 0 And lastSkipCount > skipCount
+
     If skipCount > 0 Then 
         AddError 0, "Circular import dependency"
-        'AddJSLine 0, "// CIRCULAR IMPORT DEPENDENCY!!"
     End If
+
     SortModules = results
 End Function
 
 Sub Compile (source As String, moduleName As String)
-    condWords(1) = "IF": condWords(2) = "ELSEIF": condWords(3) = "WHILE": condWords(4) = "UNTIL"
-    currentModule = moduleName
-
     ResetDataStructures
-    If moduleName = "" Then
-        'ReDim As CodeLine jsLines(0)
-        currentModuleId = 0
-    End If
-
-    'If sourceType = FILE Then
-    '    ReadLinesFromFile source
-    'Else
-    '    RegisterImports source
-        ReadLinesFromText source
-    'End If
+    ReadLinesFromText source
 
     FindMethods
     programMethods = UBound(methods)
@@ -228,7 +201,6 @@ Sub Compile (source As String, moduleName As String)
     '      which will allow us to call the converter from a web application
     Dim selfConvert As Integer
     Dim isGX As Integer: isGX = False
-    'If sourceType = FILE Then selfConvert = EndsWith(source, "qb2js.bas")
     If forceSelfConvert Then selfConvert = True
 
     If selfConvert Then
@@ -238,8 +210,6 @@ Sub Compile (source As String, moduleName As String)
     ElseIf moduleName <> "" Then
         AddJSLine 0, "async function __qblib_" + moduleName + "() {"
 
-    'ElseIf sourceType = FILE Then
-    '    AddJSLine 0, "async function init() {"
     End If
 
     ' Initialize any imported libraries
@@ -248,7 +218,6 @@ Sub Compile (source As String, moduleName As String)
         AddJSLine i, importLines(i)
     Next i
     ReDim As String importLines(0)
-
 
     ' Add a placeholder lines for constants, shared variables and static method variables
     ' These lines will be appended to as shared variable declarations are encountered
@@ -305,7 +274,8 @@ Sub Compile (source As String, moduleName As String)
         AddJSLine 0, "         line: QB.arrayValue(warnings, [i]).value.line,"
         AddJSLine 0, "         text: QB.arrayValue(warnings, [i]).value.text,"
         AddJSLine 0, "         mtype: QB.arrayValue(warnings, [i]).value.mtype,"
-        AddJSLine 0, "         moduleId: QB.arrayValue(warnings, [i]).value.moduleId"
+        AddJSLine 0, "         moduleId: QB.arrayValue(warnings, [i]).value.moduleId,"
+        AddJSLine 0, "         module: QB.arrayValue(warnings, [i]).value.module,"
         AddJSLine 0, "      });"
         AddJSLine 0, "   }"
         AddJSLine 0, "   return w;"
@@ -365,10 +335,6 @@ Sub Compile (source As String, moduleName As String)
 
     ElseIf moduleName <> "" Then
         AddJSLine 0, "}"
-        'AddJSLine 0, "const " + moduleName + " = await _" + moduleName + "();"
-
-    'ElseIf sourceType = FILE Then
-    '    AddJSLine 0, "};"
     End If
 End Sub
 
@@ -423,9 +389,6 @@ Sub ResetDataStructures
     ReDim As Module modules(0)
     ReDim As Method exportMethods(0)
     ReDim As Variable exportConsts(0)
-    'If modLevel = 0 Then
-    '    ReDim As CodeLine warnings(0)
-    'End If
     currentMethod = ""
     programMethods = 0
     staticVarLine = 0
@@ -2824,30 +2787,6 @@ Sub ConvertMethods ()
     End If
 End Sub
 
-
-Sub ReadLinesFromFile (filename As String)
-    Dim fline As String
-    Dim lineIndex As Integer
-    Dim rawJS
-    Open filename For Input As #1
-    Do Until EOF(1)
-        Line Input #1, fline
-        lineIndex = lineIndex + 1
-
-        If _Trim$(fline) <> "" Then ' remove all blank lines
-
-            While EndsWith(fline, " _")
-                Dim nextLine As String
-                Line Input #1, nextLine
-                fline = Left$(fline, Len(fline) - 1) + nextLine
-            Wend
-
-            rawJS = ReadLine(lineIndex, fline, rawJS)
-        End If
-    Loop
-    Close #1
-End Sub
-
 Sub RegisterImports (sourceText As String, parentModule As Object)
     ReDim As String sourceLines(0)
     Dim rawJS
@@ -3656,6 +3595,8 @@ Sub AddExportMethod (m As Method, prefix As String)', sync As Integer)
 End Sub
 
 Sub AddLibMethod (m As Method)
+    If activeModule = undefined Then Exit Sub
+
     Dim libMethods(0) As Method
     libMethods = activeModule.exportMethods
     Dim mcount: mcount = UBound(libMethods) + 1
@@ -3680,6 +3621,8 @@ Sub AddExportConst (vname As String)
 End Sub
 
 Sub AddLibConst (vname As String)
+    If activeModule = undefined Then Exit Sub
+
     Dim v As Variable
     v.type = "CONST"
     v.name = vname
@@ -3745,6 +3688,7 @@ Sub __AddLine (lineIndex As Integer, fline As String)
     ReDim _Preserve As CodeLine lines(lcount)
     lines(lcount).line = lineIndex
     lines(lcount).text = fline
+    lines(lcount).module = activeModule
 End Sub
 
 Sub AddJSLine (sourceLine As Integer, jsline As String)
@@ -3765,6 +3709,7 @@ Sub AddWarning (sourceLine As Integer, msgText As String)
     warnings(lcount).line = l
     warnings(lcount).text = msgText
     warnings(lcount).moduleId = currentModuleId
+    warnings(lcount).module = lines(sourceLine).module
 End Sub
 
 Sub AddError (sourceLine As Integer, msgText As String)

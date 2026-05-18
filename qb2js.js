@@ -1,7 +1,7 @@
 if (typeof QB == 'undefined' && module) { QB = require('./qb-console.js').QB(); }
 async function _QBCompiler() {
 /* global constants: */ const FILE  =    1 ; const   TEXT  =    2; const MWARNING  =    0 ; const   MERROR  =    1; const False  =    0; const True  =   ~ False; const PrintDataTypes  =    True; const PrintLineMapping  =    False; const PrintTokenizedLine  =    False; 
-/* shared variables: */ var moduleMap = QB.initArray([0], {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}); var modules = QB.initArray([0], {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}); var lines = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0}); var jsLines = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0}); var methods = QB.initArray([0], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}); var localMethods = QB.initArray([0], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}); var types = QB.initArray([0], {line:0,name:'',argc:0,args:''}); var typeVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var globalVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var localVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var warnings = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0}); var importLines = QB.initArray([0], ''); var exportLines = QB.initArray([0], ''); var exportConsts = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var exportMethods = QB.initArray([0], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}); var dataArray = QB.initArray([0], ''); var dataLabels = QB.initArray([0], {text:'',index:0}); var jsReservedWords = QB.initArray([0], ''); var modLevel = 0; var currentMethod = ''; var activeModule = {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}; var currentModule = ''; var currentModuleId = 0; var programMethods = 0; var constVarLine = 0; var sharedVarLine = 0; var staticVarLine = 0; var implicitVarLine = 0; var condWords = QB.initArray([0], ''); var forceSelfConvert = 0; var optionExplicit = 0; var optionExplicitArray = 0; 
+/* shared variables: */ var moduleMap = QB.initArray([0], {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}); var modules = QB.initArray([0], {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}); var lines = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0,module:0}); var jsLines = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0,module:0}); var methods = QB.initArray([0], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}); var localMethods = QB.initArray([0], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}); var types = QB.initArray([0], {line:0,name:'',argc:0,args:''}); var typeVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var globalVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var localVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var warnings = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0,module:0}); var importLines = QB.initArray([0], ''); var exportLines = QB.initArray([0], ''); var exportConsts = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var exportMethods = QB.initArray([0], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}); var dataArray = QB.initArray([0], ''); var dataLabels = QB.initArray([0], {text:'',index:0}); var jsReservedWords = QB.initArray([0], ''); var modLevel = 0; var currentMethod = ''; var activeModule = {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}; var currentModule = ''; var currentModuleId = 0; var programMethods = 0; var constVarLine = 0; var sharedVarLine = 0; var staticVarLine = 0; var implicitVarLine = 0; var condWords = QB.initArray([0], ''); var forceSelfConvert = 0; var optionExplicit = 0; var optionExplicitArray = 0; 
 /* static method variables: */ 
 async function main() {
 
@@ -10,15 +10,15 @@ async function main() {
    // Only
    QB.resizeArray(moduleMap, [], {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}, false);  /* MODULE */ 
    QB.resizeArray(modules, [{l:0,u: 0}], {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}, false);  /* MODULE */ 
-   QB.resizeArray(lines, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
-   QB.resizeArray(jsLines, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
+   QB.resizeArray(lines, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0,module:0}, false);  /* CODELINE */ 
+   QB.resizeArray(jsLines, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0,module:0}, false);  /* CODELINE */ 
    QB.resizeArray(methods, [{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}, false);  /* METHOD */ 
    QB.resizeArray(localMethods, [{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}, false);  /* METHOD */ 
    QB.resizeArray(types, [{l:0,u: 0}], {line:0,name:'',argc:0,args:''}, false);  /* QBTYPE */ 
    QB.resizeArray(typeVars, [{l:0,u: 0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
    QB.resizeArray(globalVars, [{l:0,u: 0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
    QB.resizeArray(localVars, [{l:0,u: 0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
-   QB.resizeArray(warnings, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
+   QB.resizeArray(warnings, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0,module:0}, false);  /* CODELINE */ 
    QB.resizeArray(importLines, [{l:0,u: 0}], '', false);  /* STRING */ 
    QB.resizeArray(exportLines, [{l:0,u: 0}], '', false);  /* STRING */ 
    QB.resizeArray(exportConsts, [{l:0,u: 0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
@@ -45,9 +45,13 @@ async function main() {
 async function sub_QBToJS(source/*STRING*/,sourceType/*INTEGER*/,moduleName/*STRING*/) {
 if (QB.halted()) { return; }; sourceType = Math.round(sourceType); 
 /* implicit variables: */ 
-   QB.resizeArray(jsLines, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
+   QB.arrayValue(condWords, [ 1]).value = "IF";
+   QB.arrayValue(condWords, [ 2]).value = "ELSEIF";
+   QB.arrayValue(condWords, [ 3]).value = "WHILE";
+   QB.arrayValue(condWords, [ 4]).value = "UNTIL";
+   QB.resizeArray(jsLines, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0,module:0}, false);  /* CODELINE */ 
    QB.resizeArray(moduleMap, [], {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}, false);  /* MODULE */ 
-   QB.resizeArray(warnings, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
+   QB.resizeArray(warnings, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0,module:0}, false);  /* CODELINE */ 
    await sub_RegisterImports(  source);
    var i = 0;  /* INTEGER */ 
    var keys = QB.initArray([{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0});  /* METHOD */ 
@@ -92,11 +96,7 @@ var SortModules = null;
                mm = QB.arrayValue(moduleMap, [QB.arrayValue(moduleNames, [ k]).value]).value;
                if (~ mm.processed ) {
                   //-------- BEGIN JS native code block --------
-                            if (mm.imports[m.path]) { 
-                                delete mm.imports[m.path]; 
-//-------- END JS native code block --------
-                  //-------- BEGIN JS native code block --------
-                            }
+                            if (mm.imports[m.path]) { delete mm.imports[m.path]; }
 //-------- END JS native code block --------
                }
             } 
@@ -114,15 +114,7 @@ return SortModules;
 async function sub_Compile(source/*STRING*/,moduleName/*STRING*/) {
 if (QB.halted()) { return; }; 
 /* implicit variables: */ 
-   QB.arrayValue(condWords, [ 1]).value = "IF";
-   QB.arrayValue(condWords, [ 2]).value = "ELSEIF";
-   QB.arrayValue(condWords, [ 3]).value = "WHILE";
-   QB.arrayValue(condWords, [ 4]).value = "UNTIL";
-   currentModule =  moduleName;
    await sub_ResetDataStructures();
-   if ( moduleName ==  ""  ) {
-      currentModuleId =  0;
-   }
    await sub_ReadLinesFromText(  source);
    await sub_FindMethods();
    programMethods = (QB.func_UBound(  methods));
@@ -197,7 +189,8 @@ if (QB.halted()) { return; };
       await sub_AddJSLine(  0 ,   "         line: QB.arrayValue(warnings, [i]).value.line,");
       await sub_AddJSLine(  0 ,   "         text: QB.arrayValue(warnings, [i]).value.text,");
       await sub_AddJSLine(  0 ,   "         mtype: QB.arrayValue(warnings, [i]).value.mtype,");
-      await sub_AddJSLine(  0 ,   "         moduleId: QB.arrayValue(warnings, [i]).value.moduleId");
+      await sub_AddJSLine(  0 ,   "         moduleId: QB.arrayValue(warnings, [i]).value.moduleId,");
+      await sub_AddJSLine(  0 ,   "         module: QB.arrayValue(warnings, [i]).value.module,");
       await sub_AddJSLine(  0 ,   "      });");
       await sub_AddJSLine(  0 ,   "   }");
       await sub_AddJSLine(  0 ,   "   return w;");
@@ -299,7 +292,7 @@ if (QB.halted()) { return; };
 async function sub_ResetDataStructures() {
 if (QB.halted()) { return; }; 
 /* implicit variables: */ 
-   QB.resizeArray(lines, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0}, false);  /* CODELINE */ 
+   QB.resizeArray(lines, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0,module:0}, false);  /* CODELINE */ 
    QB.resizeArray(methods, [{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}, false);  /* METHOD */ 
    QB.resizeArray(types, [{l:0,u: 0}], {line:0,name:'',argc:0,args:''}, false);  /* QBTYPE */ 
    QB.resizeArray(typeVars, [{l:0,u: 0}], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}, false);  /* VARIABLE */ 
@@ -2685,27 +2678,6 @@ if (QB.halted()) { return; };
       QB.resizeArray(exportLines, [{l:0,u: 0}], '', false);  /* STRING */ 
    }
 }
-async function sub_ReadLinesFromFile(filename/*STRING*/) {
-if (QB.halted()) { return; }; 
-/* implicit variables: */ 
-   var fline = '';  /* STRING */ 
-   var lineIndex = 0;  /* INTEGER */ 
-   var rawJS = 0;  /* SINGLE */ 
-   await QB.sub_Open(filename, QB.INPUT, 1);
-   var ___v3158374 = 0; ___l9836021: while (!((QB.func_EOF(  1)))) { if (QB.halted()) { return; }___v3158374++;   if (___v3158374 % 100 == 0) { await QB.autoLimit(); }
-      var ___v7575471 = new Array(1); await QB.sub_LineInputFromFile(1, ___v7575471);  fline = ___v7575471[0]; 
-      lineIndex =  lineIndex +  1;
-      if ((QB.func__Trim(  fline))  !=  ""  ) {
-         var ___v4840382 = 0; ___l546714: while ((await func_EndsWith(  fline,   " _"))) { if (QB.halted()) { return; }___v4840382++;   if (___v4840382 % 100 == 0) { await QB.autoLimit(); }
-            var nextLine = '';  /* STRING */ 
-            var ___v6712186 = new Array(1); await QB.sub_LineInputFromFile(1, ___v6712186);  nextLine = ___v6712186[0]; 
-            fline = (QB.func_Left(  fline,   (QB.func_Len(  fline))  -  1))  +  nextLine;
-         }
-         rawJS = (await func_ReadLine(  lineIndex,    fline,    rawJS));
-      }
-   }
-   QB.sub_Close(1);
-}
 async function sub_RegisterImports(sourceText/*STRING*/,parentModule/*OBJECT*/) {
 if (QB.halted()) { return; }; 
 /* implicit variables: */ 
@@ -2714,7 +2686,7 @@ if (QB.halted()) { return; };
    var lcount = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
    lcount = (await func_Split(  sourceText,   await func_LF(),   sourceLines));
-   var ___v4235128 = 0; ___l3713350: for ( i=  1 ;  i <=  lcount;  i= i + 1) { if (QB.halted()) { return; } ___v4235128++;   if (___v4235128 % 100 == 0) { await QB.autoLimit(); }
+   var ___v3158374 = 0; ___l9836021: for ( i=  1 ;  i <=  lcount;  i= i + 1) { if (QB.halted()) { return; } ___v3158374++;   if (___v3158374 % 100 == 0) { await QB.autoLimit(); }
       var fline = '';  /* STRING */ 
       fline = QB.arrayValue(sourceLines, [ i]).value;
       if ((await func_StartsWith( (QB.func_LTrim( (QB.func_UCase(  fline))))  ,   "IMPORT "))  ) {
@@ -2766,7 +2738,7 @@ if (QB.halted()) { return; };
    var lcount = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
    lcount = (await func_Split(  sourceText,   await func_LF(),   sourceLines));
-   var ___v5244827 = 0; ___l9968987: for ( i=  1 ;  i <=  lcount;  i= i + 1) { if (QB.halted()) { return; } ___v5244827++;   if (___v5244827 % 100 == 0) { await QB.autoLimit(); }
+   var ___v546714 = 0; ___l7575471: for ( i=  1 ;  i <=  lcount;  i= i + 1) { if (QB.halted()) { return; } ___v546714++;   if (___v546714 % 100 == 0) { await QB.autoLimit(); }
       var fline = '';  /* STRING */ 
       fline = QB.arrayValue(sourceLines, [ i]).value;
       if ((QB.func__Trim(  fline))  !=  ""  ) {
@@ -2797,12 +2769,12 @@ if (QB.halted()) { return; };
                var j = 0;  /* INTEGER */ 
                var moduleMethods = QB.initArray([{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0});  /* METHOD */ 
                moduleMethods =  m.exportMethods;
-               var ___v9061123 = 0; ___l8860056: for ( j=  1 ;  j <= (QB.func_UBound(  moduleMethods));  j= j + 1) { if (QB.halted()) { return; } ___v9061123++;   if (___v9061123 % 100 == 0) { await QB.autoLimit(); }
+               var ___v6712186 = 0; ___l4840382: for ( j=  1 ;  j <= (QB.func_UBound(  moduleMethods));  j= j + 1) { if (QB.halted()) { return; } ___v6712186++;   if (___v6712186 % 100 == 0) { await QB.autoLimit(); }
                   await sub_AddExportMethod( QB.arrayValue(moduleMethods, [ j]).value  ,    moduleName + ".");
                } 
                var moduleConsts = QB.initArray([{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0});  /* METHOD */ 
                moduleConsts =  m.exportConsts;
-               var ___v968821 = 0; ___l7192662: for ( j=  1 ;  j <= (QB.func_UBound(  moduleConsts));  j= j + 1) { if (QB.halted()) { return; } ___v968821++;   if (___v968821 % 100 == 0) { await QB.autoLimit(); }
+               var ___v4235128 = 0; ___l3713350: for ( j=  1 ;  j <= (QB.func_UBound(  moduleConsts));  j= j + 1) { if (QB.halted()) { return; } ___v4235128++;   if (___v4235128 % 100 == 0) { await QB.autoLimit(); }
                   await sub_AddExportConst( QB.arrayValue(moduleConsts, [ j]).value  ,    moduleName + ".");
                } 
                continue;
@@ -2812,7 +2784,7 @@ if (QB.halted()) { return; };
             }
          }
          fline = (await func_Replace(  fline,   await func_CR(),   ""));
-         var ___v1187419 = 0; ___l2003016: while ((await func_EndsWith(  fline,   " _"))) { if (QB.halted()) { return; }___v1187419++;   if (___v1187419 % 100 == 0) { await QB.autoLimit(); }
+         var ___v5244827 = 0; ___l9968987: while ((await func_EndsWith(  fline,   " _"))) { if (QB.halted()) { return; }___v5244827++;   if (___v5244827 % 100 == 0) { await QB.autoLimit(); }
             i =  i +  1;
             var nextLine = '';  /* STRING */ 
             nextLine = (await func_Replace( QB.arrayValue(sourceLines, [ i]).value  ,   await func_CR(),   ""));
@@ -2829,7 +2801,7 @@ var ReadLine = null;
    var quoteDepth = 0;  /* INTEGER */ 
    quoteDepth =  0;
    var i = 0;  /* INTEGER */ 
-   var ___v5598645 = 0; ___l8648248: for ( i=  1 ;  i <= (QB.func_Len(  fline));  i= i + 1) { if (QB.halted()) { return; } ___v5598645++;   if (___v5598645 % 100 == 0) { await QB.autoLimit(); }
+   var ___v9061123 = 0; ___l8860056: for ( i=  1 ;  i <= (QB.func_Len(  fline));  i= i + 1) { if (QB.halted()) { return; } ___v9061123++;   if (___v9061123 % 100 == 0) { await QB.autoLimit(); }
       var c = '';  /* STRING */ var c4 = '';  /* STRING */ 
       c = (QB.func_Mid(  fline,    i,    1));
       c4 = (QB.func_UCase( (QB.func_Mid(  fline,    i,    4))));
@@ -2842,7 +2814,7 @@ var ReadLine = null;
       }
       if ( quoteDepth ==   0 & ( c ==  "'"  |  c4 ==  "REM ")  ) {
          fline = (QB.func_Left(  fline,    i -  1));
-         break ___l8648248;
+         break ___l8860056;
       }
    } 
    ReadLine =  rawJS;
@@ -2889,7 +2861,7 @@ var ReadLine = null;
       var dcount = 0;  /* INTEGER */ 
       var de = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
       dcount = (await func_ListSplit(  dstr,   de));
-      var ___v2294313 = 0; ___l3623797: for ( i=  1 ;  i <=  dcount;  i= i + 1) { if (QB.halted()) { return; } ___v2294313++;   if (___v2294313 % 100 == 0) { await QB.autoLimit(); }
+      var ___v968821 = 0; ___l7192662: for ( i=  1 ;  i <=  dcount;  i= i + 1) { if (QB.halted()) { return; } ___v968821++;   if (___v968821 % 100 == 0) { await QB.autoLimit(); }
          index = (QB.func_UBound(  dataArray))  +  1;
          QB.resizeArray(dataArray, [{l:0,u: index}], '', true);  /* STRING */ 
          QB.arrayValue(dataArray, [ index]).value = QB.arrayValue(de, [ i]).value;
@@ -2897,7 +2869,7 @@ var ReadLine = null;
       return ReadLine;
    }
    var ifIdx = 0;  /* INTEGER */ var thenIdx = 0;  /* INTEGER */ var elseIdx = 0;  /* INTEGER */ 
-   var ___v506980 = 0; ___l9919851: for ( i=  1 ;  i <=  wcount;  i= i + 1) { if (QB.halted()) { return; } ___v506980++;   if (___v506980 % 100 == 0) { await QB.autoLimit(); }
+   var ___v1187419 = 0; ___l2003016: for ( i=  1 ;  i <=  wcount;  i= i + 1) { if (QB.halted()) { return; } ___v1187419++;   if (___v1187419 % 100 == 0) { await QB.autoLimit(); }
       word = (QB.func_UCase( QB.arrayValue(words, [ i]).value));
       if ( word ==  "IF"  ) {
          ifIdx =  i;
@@ -2936,7 +2908,7 @@ if (QB.halted()) { return; }; lineIndex = Math.round(lineIndex);
    var quoteDepth = 0;  /* INTEGER */ 
    quoteDepth =  0;
    var i = 0;  /* INTEGER */ 
-   var ___v985931 = 0; ___l5229358: for ( i=  1 ;  i <= (QB.func_Len(  fline));  i= i + 1) { if (QB.halted()) { return; } ___v985931++;   if (___v985931 % 100 == 0) { await QB.autoLimit(); }
+   var ___v5598645 = 0; ___l8648248: for ( i=  1 ;  i <= (QB.func_Len(  fline));  i= i + 1) { if (QB.halted()) { return; } ___v5598645++;   if (___v5598645 % 100 == 0) { await QB.autoLimit(); }
       var c = '';  /* STRING */ 
       c = (QB.func_Mid(  fline,    i,    1));
       if ( c ==  (QB.func_Chr(  34))  ) {
@@ -2961,7 +2933,7 @@ if (QB.halted()) { return; };
    var pcount = 0;  /* INTEGER */ 
    var rawJS = 0;  /* INTEGER */ 
    var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
-   var ___v9380960 = 0; ___l5820094: for ( i=  1 ;  i <= (QB.func_UBound(  lines));  i= i + 1) { if (QB.halted()) { return; } ___v9380960++;   if (___v9380960 % 100 == 0) { await QB.autoLimit(); }
+   var ___v2294313 = 0; ___l3623797: for ( i=  1 ;  i <= (QB.func_UBound(  lines));  i= i + 1) { if (QB.halted()) { return; } ___v2294313++;   if (___v2294313 % 100 == 0) { await QB.autoLimit(); }
       pcount = (await func_Split( QB.arrayValue(lines, [ i]).value .text ,   " "  ,   parts));
       var word = '';  /* STRING */ 
       word = (QB.func_UCase( QB.arrayValue(parts, [ 1]).value));
@@ -3005,7 +2977,7 @@ if (QB.halted()) { return; };
             var a = 0;  /* INTEGER */ 
             var args = '';  /* STRING */ 
             args = "";
-            var ___v6696478 = 0; ___l1383297: for ( a=  1 ;  a <=  m.argc;  a= a + 1) { if (QB.halted()) { return; } ___v6696478++;   if (___v6696478 % 100 == 0) { await QB.autoLimit(); }
+            var ___v506980 = 0; ___l9919851: for ( a=  1 ;  a <=  m.argc;  a= a + 1) { if (QB.halted()) { return; } ___v506980++;   if (___v506980 % 100 == 0) { await QB.autoLimit(); }
                var aparts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
                var apcount = 0;  /* INTEGER */ 
                var argname = '';  /* STRING */ 
@@ -3049,7 +3021,7 @@ var Split = null;
    if ( delimiter ==  " "  ) {
       cstr = (QB.func_RTrim( (QB.func_LTrim(  cstr))));
       p = (QB.func_InStr(  cstr,   "  "));
-      var ___v3378422 = 0; ___l8671363: while ( p > 0) { if (QB.halted()) { return; }___v3378422++;   if (___v3378422 % 100 == 0) { await QB.autoLimit(); }
+      var ___v985931 = 0; ___l5229358: while ( p > 0) { if (QB.halted()) { return; }___v985931++;   if (___v985931 % 100 == 0) { await QB.autoLimit(); }
          cstr = (QB.func_Mid(  cstr,    1 ,    p -  1))  + (QB.func_Mid(  cstr,    p +  1));
          p = (QB.func_InStr(  cstr,   "  "));
       }
@@ -3057,7 +3029,7 @@ var Split = null;
    curpos =  1;
    arrpos =  0;
    dpos = (QB.func_InStr(  curpos,    cstr,    delimiter));
-   var ___v6096486 = 0; ___l4237103: while (!( dpos ==   0)) { if (QB.halted()) { return; }___v6096486++;   if (___v6096486 % 100 == 0) { await QB.autoLimit(); }
+   var ___v9380960 = 0; ___l5820094: while (!( dpos ==   0)) { if (QB.halted()) { return; }___v9380960++;   if (___v9380960 % 100 == 0) { await QB.autoLimit(); }
       arrpos =  arrpos +  1;
       QB.resizeArray(results, [{l:0,u: arrpos}], '', true);  /* STRING */ 
       QB.arrayValue(results, [ arrpos]).value = (QB.func_Mid(  cstr,    curpos,    dpos -  curpos));
@@ -3083,7 +3055,7 @@ var SLSplit = null;
    var result = '';  /* STRING */ 
    var count = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
-   var ___v8784156 = 0; ___l9087062: for ( i=  1 ;  i <= (QB.func_Len(  cstr));  i= i + 1) { if (QB.halted()) { return; } ___v8784156++;   if (___v8784156 % 100 == 0) { await QB.autoLimit(); }
+   var ___v6696478 = 0; ___l1383297: for ( i=  1 ;  i <= (QB.func_Len(  cstr));  i= i + 1) { if (QB.halted()) { return; } ___v6696478++;   if (___v6696478 % 100 == 0) { await QB.autoLimit(); }
       var c = '';  /* STRING */ var c2 = '';  /* STRING */ 
       c = (QB.func_Mid(  cstr,    i,    1));
       c2 = (QB.func_Mid(  cstr,    i,    2));
@@ -3179,7 +3151,7 @@ if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber);
    var i = 0;  /* INTEGER */ 
    var quoteMode = 0;  /* INTEGER */ 
    var paren = 0;  /* INTEGER */ 
-   var ___v1999065 = 0; ___l561406: for ( i=  1 ;  i <= (QB.func_Len(  sourceString));  i= i + 1) { if (QB.halted()) { return; } ___v1999065++;   if (___v1999065 % 100 == 0) { await QB.autoLimit(); }
+   var ___v3378422 = 0; ___l8671363: for ( i=  1 ;  i <= (QB.func_Len(  sourceString));  i= i + 1) { if (QB.halted()) { return; } ___v3378422++;   if (___v3378422 % 100 == 0) { await QB.autoLimit(); }
       var c = '';  /* STRING */ 
       c = (QB.func_Mid(  sourceString,    i,    1));
       if ( c ==  (QB.func_Chr(  34))  ) {
@@ -3211,7 +3183,7 @@ var SLSplit2 = null;
    var paren = 0;  /* INTEGER */ 
    var count = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
-   var ___v7166154 = 0; ___l9252861: for ( i=  1 ;  i <= (QB.func_Len(  cstr));  i= i + 1) { if (QB.halted()) { return; } ___v7166154++;   if (___v7166154 % 100 == 0) { await QB.autoLimit(); }
+   var ___v6096486 = 0; ___l4237103: for ( i=  1 ;  i <= (QB.func_Len(  cstr));  i= i + 1) { if (QB.halted()) { return; } ___v6096486++;   if (___v6096486 % 100 == 0) { await QB.autoLimit(); }
       var c = '';  /* STRING */ 
       c = (QB.func_Mid(  cstr,    i,    1));
       if ( c ==  (QB.func_Chr(  34))  ) {
@@ -3261,7 +3233,7 @@ var ListSplit = null;
    var count = 0;  /* INTEGER */ 
    var paren = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
-   var ___v4766153 = 0; ___l1277227: for ( i=  1 ;  i <= (QB.func_Len(  cstr));  i= i + 1) { if (QB.halted()) { return; } ___v4766153++;   if (___v4766153 % 100 == 0) { await QB.autoLimit(); }
+   var ___v8784156 = 0; ___l9087062: for ( i=  1 ;  i <= (QB.func_Len(  cstr));  i= i + 1) { if (QB.halted()) { return; } ___v8784156++;   if (___v8784156 % 100 == 0) { await QB.autoLimit(); }
       var c = '';  /* STRING */ 
       c = (QB.func_Mid(  cstr,    i,    1));
       if ( c ==  (QB.func_Chr(  34))  ) {
@@ -3307,7 +3279,7 @@ var PrintSplit = null;
    var count = 0;  /* INTEGER */ 
    var paren = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
-   var ___v8031864 = 0; ___l8707944: for ( i=  1 ;  i <= (QB.func_Len(  cstr));  i= i + 1) { if (QB.halted()) { return; } ___v8031864++;   if (___v8031864 % 100 == 0) { await QB.autoLimit(); }
+   var ___v1999065 = 0; ___l561406: for ( i=  1 ;  i <= (QB.func_Len(  cstr));  i= i + 1) { if (QB.halted()) { return; } ___v1999065++;   if (___v1999065 % 100 == 0) { await QB.autoLimit(); }
       var c = '';  /* STRING */ 
       c = (QB.func_Mid(  cstr,    i,    1));
       if ( c ==  (QB.func_Chr(  34))  ) {
@@ -3352,7 +3324,7 @@ if (QB.halted()) { return; };
    await QB.sub_Print(["Methods"]);
    await QB.sub_Print(["------------------------------------------------------------"]);
    var i = 0;  /* INTEGER */ 
-   var ___v6214768 = 0; ___l3487226: for ( i=  1 ;  i <= (QB.func_UBound(  methods));  i= i + 1) { if (QB.halted()) { return; } ___v6214768++;   if (___v6214768 % 100 == 0) { await QB.autoLimit(); }
+   var ___v7166154 = 0; ___l9252861: for ( i=  1 ;  i <= (QB.func_UBound(  methods));  i= i + 1) { if (QB.halted()) { return; } ___v7166154++;   if (___v7166154 % 100 == 0) { await QB.autoLimit(); }
       var m = {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0};  /* METHOD */ 
       m = QB.arrayValue(methods, [ i]).value;
       await QB.sub_Print([(QB.func_Str(  m.line))  + ": "  +  m.type + " - "  +  m.name + " ["  +  m.jsname + "] - "  +  m.returnType + " - "  +  m.args]);
@@ -3365,12 +3337,12 @@ if (QB.halted()) { return; };
    await QB.sub_Print(["Types"]);
    await QB.sub_Print(["------------------------------------------------------------"]);
    var i = 0;  /* INTEGER */ 
-   var ___v3984435 = 0; ___l2626260: for ( i=  1 ;  i <= (QB.func_UBound(  types));  i= i + 1) { if (QB.halted()) { return; } ___v3984435++;   if (___v3984435 % 100 == 0) { await QB.autoLimit(); }
+   var ___v4766153 = 0; ___l1277227: for ( i=  1 ;  i <= (QB.func_UBound(  types));  i= i + 1) { if (QB.halted()) { return; } ___v4766153++;   if (___v4766153 % 100 == 0) { await QB.autoLimit(); }
       var t = {line:0,name:'',argc:0,args:''};  /* QBTYPE */ 
       t = QB.arrayValue(types, [ i]).value;
       await QB.sub_Print([(QB.func_Str(  t.line))  + ": "  +  t.name]);
       var v = 0;  /* INTEGER */ 
-      var ___v6023253 = 0; ___l5006956: for ( v=  1 ;  v <= (QB.func_UBound(  typeVars));  v= v + 1) { if (QB.halted()) { return; } ___v6023253++;   if (___v6023253 % 100 == 0) { await QB.autoLimit(); }
+      var ___v8031864 = 0; ___l8707944: for ( v=  1 ;  v <= (QB.func_UBound(  typeVars));  v= v + 1) { if (QB.halted()) { return; } ___v8031864++;   if (___v8031864 % 100 == 0) { await QB.autoLimit(); }
          if (QB.arrayValue(typeVars, [ i]).value .typeId ==   i) {
             await QB.sub_Print(["  -> "  + QB.arrayValue(typeVars, [ v]).value .name + ": "  + QB.arrayValue(typeVars, [ v]).value .type]);
          }
@@ -3434,6 +3406,9 @@ if (QB.halted()) { return; };
 async function sub_AddLibMethod(m/*METHOD*/) {
 if (QB.halted()) { return; }; 
 /* implicit variables: */ 
+   if ( activeModule ==   undefined ) {
+      return;
+   }
    var libMethods = QB.initArray([{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0});  /* METHOD */ 
    libMethods =  activeModule.exportMethods;
    var mcount = 0;  /* SINGLE */ 
@@ -3458,6 +3433,9 @@ if (QB.halted()) { return; };
 async function sub_AddLibConst(vname/*STRING*/) {
 if (QB.halted()) { return; }; 
 /* implicit variables: */ 
+   if ( activeModule ==   undefined ) {
+      return;
+   }
    var v = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
    v.type = "CONST";
    v.name =  vname;
@@ -3527,16 +3505,17 @@ if (QB.halted()) { return; }; lineIndex = Math.round(lineIndex);
 /* implicit variables: */ 
    var lcount = 0;  /* INTEGER */ 
    lcount = (QB.func_UBound(  lines))  +  1;
-   QB.resizeArray(lines, [{l:0,u: lcount}], {line:0,text:'',mtype:0,moduleId:0}, true);  /* CODELINE */ 
+   QB.resizeArray(lines, [{l:0,u: lcount}], {line:0,text:'',mtype:0,moduleId:0,module:0}, true);  /* CODELINE */ 
    QB.arrayValue(lines, [ lcount]).value .line =  lineIndex;
    QB.arrayValue(lines, [ lcount]).value .text =  fline;
+   QB.arrayValue(lines, [ lcount]).value .module =  activeModule;
 }
 async function sub_AddJSLine(sourceLine/*INTEGER*/,jsline/*STRING*/) {
 if (QB.halted()) { return; }; sourceLine = Math.round(sourceLine); 
 /* implicit variables: */ 
    var lcount = 0;  /* INTEGER */ 
    lcount = (QB.func_UBound(  jsLines))  +  1;
-   QB.resizeArray(jsLines, [{l:0,u: lcount}], {line:0,text:'',mtype:0,moduleId:0}, true);  /* CODELINE */ 
+   QB.resizeArray(jsLines, [{l:0,u: lcount}], {line:0,text:'',mtype:0,moduleId:0,module:0}, true);  /* CODELINE */ 
    QB.arrayValue(jsLines, [ lcount]).value .line =  sourceLine;
    QB.arrayValue(jsLines, [ lcount]).value .text =  jsline;
 }
@@ -3545,7 +3524,7 @@ if (QB.halted()) { return; }; sourceLine = Math.round(sourceLine);
 /* implicit variables: */ 
    var lcount = 0;  /* INTEGER */ 
    lcount = (QB.func_UBound(  warnings))  +  1;
-   QB.resizeArray(warnings, [{l:0,u: lcount}], {line:0,text:'',mtype:0,moduleId:0}, true);  /* CODELINE */ 
+   QB.resizeArray(warnings, [{l:0,u: lcount}], {line:0,text:'',mtype:0,moduleId:0,module:0}, true);  /* CODELINE */ 
    var l = 0;  /* INTEGER */ 
    if (( sourceLine > 0)  ) {
       l = QB.arrayValue(lines, [ sourceLine]).value .line;
@@ -3553,6 +3532,7 @@ if (QB.halted()) { return; }; sourceLine = Math.round(sourceLine);
    QB.arrayValue(warnings, [ lcount]).value .line =  l;
    QB.arrayValue(warnings, [ lcount]).value .text =  msgText;
    QB.arrayValue(warnings, [ lcount]).value .moduleId =  currentModuleId;
+   QB.arrayValue(warnings, [ lcount]).value .module = QB.arrayValue(lines, [ sourceLine]).value .module;
 }
 async function sub_AddError(sourceLine/*INTEGER*/,msgText/*STRING*/) {
 if (QB.halted()) { return; }; sourceLine = Math.round(sourceLine); 
@@ -3725,7 +3705,7 @@ if (QB.halted()) { return; };
    var pairs = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    count = (await func_Split(  args,   ","  ,   pairs));
    var i = 0;  /* INTEGER */ 
-   var ___v8378968 = 0; ___l2597776: for ( i=  1 ;  i <= (QB.func_UBound(  pairs));  i= i + 1) { if (QB.halted()) { return; } ___v8378968++;   if (___v8378968 % 100 == 0) { await QB.autoLimit(); }
+   var ___v6214768 = 0; ___l3487226: for ( i=  1 ;  i <= (QB.func_UBound(  pairs));  i= i + 1) { if (QB.halted()) { return; } ___v6214768++;   if (___v6214768 % 100 == 0) { await QB.autoLimit(); }
       var nv = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
       count = (await func_Split( QB.arrayValue(pairs, [ i]).value  ,   ":"  ,   nv));
       var tvar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
@@ -3755,7 +3735,7 @@ var RemoveSuffix = null;
    var c = '';  /* STRING */ 
    vname = (QB.func__Trim(  vname));
    i = (QB.func_Len(  vname));
-   var ___v637532 = 0; ___l1396109: while (~ done) { if (QB.halted()) { return; }___v637532++;   if (___v637532 % 100 == 0) { await QB.autoLimit(); }
+   var ___v3984435 = 0; ___l2626260: while (~ done) { if (QB.halted()) { return; }___v3984435++;   if (___v3984435 % 100 == 0) { await QB.autoLimit(); }
       c = (QB.func_Mid(  vname,    i,    1));
       if ( c ==  "`"  |  c ==  "%"  |  c ==  "&"  |  c ==  "$"  |  c ==  "~"  |  c ==  "!"  |  c ==  "#"  ) {
          i =  i -  1;
@@ -3771,10 +3751,10 @@ if (QB.halted()) { return; };
 var IsJSReservedWord = null;
 /* implicit variables: */ 
    var found = 0;  /* INTEGER */ var i = 0;  /* INTEGER */ 
-   var ___v5478771 = 0; ___l9909723: for ( i=  1 ;  i <= (QB.func_UBound(  jsReservedWords));  i= i + 1) { if (QB.halted()) { return; } ___v5478771++;   if (___v5478771 % 100 == 0) { await QB.autoLimit(); }
+   var ___v6023253 = 0; ___l5006956: for ( i=  1 ;  i <= (QB.func_UBound(  jsReservedWords));  i= i + 1) { if (QB.halted()) { return; } ___v6023253++;   if (___v6023253 % 100 == 0) { await QB.autoLimit(); }
       if (QB.arrayValue(jsReservedWords, [ i]).value  ==   vname) {
          found =  True;
-         break ___l9909723;
+         break ___l5006956;
       }
    } 
    IsJSReservedWord =  found;
@@ -3858,7 +3838,7 @@ var Join = null;
    }
    var s = '';  /* STRING */ 
    var i = 0;  /* INTEGER */ 
-   var ___v4677356 = 0; ___l5489768: for ( i=  startIndex;  i <=  endIndex;  i= i + 1) { if (QB.halted()) { return; } ___v4677356++;   if (___v4677356 % 100 == 0) { await QB.autoLimit(); }
+   var ___v8378968 = 0; ___l2597776: for ( i=  startIndex;  i <=  endIndex;  i= i + 1) { if (QB.halted()) { return; } ___v8378968++;   if (___v8378968 % 100 == 0) { await QB.autoLimit(); }
       s =  s + QB.arrayValue(parts, [ i]).value;
       if ( i !=  (QB.func_UBound(  parts))  ) {
          s =  s +  delimiter;
@@ -3879,7 +3859,7 @@ var GetMapKeys = null;
    size =  keys.length -  2;
    var results = QB.initArray([{l:0,u: size}], '');  /* STRING */ 
    var i = 0;  /* INTEGER */ 
-   var ___v3111601 = 0; ___l1327849: for ( i=  2 ;  i <=  keys.length -  1;  i= i + 1) { if (QB.halted()) { return; } ___v3111601++;   if (___v3111601 % 100 == 0) { await QB.autoLimit(); }
+   var ___v637532 = 0; ___l1396109: for ( i=  2 ;  i <=  keys.length -  1;  i= i + 1) { if (QB.halted()) { return; } ___v637532++;   if (___v637532 % 100 == 0) { await QB.autoLimit(); }
       QB.arrayValue(results, [ i - 1]).value =  keys[i];
    } 
    GetMapKeys =  results;
@@ -3902,7 +3882,7 @@ var Replace = null;
    var i = 0;  /* INTEGER */ 
    var slen = 0;  /* INTEGER */ 
    slen = (QB.func_Len(  searchString));
-   var ___v4842554 = 0; ___l9429657: for ( i=  1 ;  i <= (QB.func_Len(  s));  i= i + 1) { if (QB.halted()) { return; } ___v4842554++;   if (___v4842554 % 100 == 0) { await QB.autoLimit(); }
+   var ___v5478771 = 0; ___l9909723: for ( i=  1 ;  i <= (QB.func_Len(  s));  i= i + 1) { if (QB.halted()) { return; } ___v5478771++;   if (___v5478771 % 100 == 0) { await QB.autoLimit(); }
       if ((QB.func_Mid(  s,    i,    slen))  ==   searchString) {
          ns =  ns +  newString;
          i =  i +  slen -  1;
@@ -3950,7 +3930,7 @@ var MethodJS = null;
    var i = 0;  /* INTEGER */ 
    var c = '';  /* STRING */ 
    var a = 0;  /* INTEGER */ 
-   var ___v7825921 = 0; ___l7377666: for ( i=  1 ;  i <= (QB.func_Len(  m.name));  i= i + 1) { if (QB.halted()) { return; } ___v7825921++;   if (___v7825921 % 100 == 0) { await QB.autoLimit(); }
+   var ___v4677356 = 0; ___l5489768: for ( i=  1 ;  i <= (QB.func_Len(  m.name));  i= i + 1) { if (QB.halted()) { return; } ___v4677356++;   if (___v4677356 % 100 == 0) { await QB.autoLimit(); }
       c = (QB.func_Mid(  m.name ,    i,    1));
       a = (QB.func_Asc(  c));
       if ( a ==   46 ) {
@@ -3979,7 +3959,7 @@ var GXMethodJS = null;
    var i = 0;  /* INTEGER */ 
    var c = '';  /* STRING */ 
    var a = 0;  /* INTEGER */ 
-   var ___v6319283 = 0; ___l9195389: for ( i=  startIdx +  1 ;  i <= (QB.func_Len(  mname));  i= i + 1) { if (QB.halted()) { return; } ___v6319283++;   if (___v6319283 % 100 == 0) { await QB.autoLimit(); }
+   var ___v3111601 = 0; ___l1327849: for ( i=  startIdx +  1 ;  i <= (QB.func_Len(  mname));  i= i + 1) { if (QB.halted()) { return; } ___v3111601++;   if (___v3111601 % 100 == 0) { await QB.autoLimit(); }
       c = (QB.func_Mid(  mname,    i,    1));
       a = (QB.func_Asc(  c));
       if (( a >=  65 &  a <=  90)  | ( a >=  97 &  a <=  122)  | ( a >=  48 &  a <=  57)  |  a ==   95 |  a ==   46 ) {
@@ -4617,7 +4597,8 @@ function getWarnings() {
          line: QB.arrayValue(warnings, [i]).value.line,
          text: QB.arrayValue(warnings, [i]).value.text,
          mtype: QB.arrayValue(warnings, [i]).value.mtype,
-         moduleId: QB.arrayValue(warnings, [i]).value.moduleId
+         moduleId: QB.arrayValue(warnings, [i]).value.moduleId,
+         module: QB.arrayValue(warnings, [i]).value.module,
       });
    }
    return w;

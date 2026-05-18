@@ -301,6 +301,7 @@ let VFS = function() {
         'bi':            'text/qbjs',
         'bin':           'application/octet-stream',
         'bm':            'text/qbjs',
+        'qbjs':          'text/qbjs',
         'bmp':           'image/bmp',
         'body':          'text/html',
         'c':             'text/x-csrc',
