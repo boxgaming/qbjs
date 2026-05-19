@@ -1,5 +1,5 @@
+Import OBJ From "lib/lang/object.bas"
 Option _Explicit
-$Console:Only
 
 '1) Edit this file as needed.
 '2) In console, run:    node qbc tools/qb2js.bas qb2js.js
@@ -152,9 +152,12 @@ Function SortModules
             If m.processed Then _Continue
 
             Dim As Integer importCount
-            $If Javascript Then
-                importCount = Object.keys(m.imports).length;
-            $End If
+            Dim ikeys(0) As String
+            ikeys = OBJ.Keys(m.imports)
+            importCount = UBound(ikeys)
+            '$If Javascript Then
+            '    importCount = Object.keys(m.imports).length;
+            '$End If
 
             If importCount = 0 Then
                 results(m.path) = m
@@ -166,9 +169,10 @@ Function SortModules
                 For k = 1 To UBound(moduleNames)
                     mm = moduleMap(moduleNames(k))
                     If Not mm.processed Then
-                        $If Javascript Then
-                            if (mm.imports[m.path]) { delete mm.imports[m.path]; }
-                        $End If
+                        If OBJ.HasProperty(mm.imports, m.path) Then OBJ.DeleteProperty(mm.imports, m.path)
+                        '$If Javascript Then
+                        '    if (mm.imports[m.path]) { delete mm.imports[m.path]; }
+                        '$End If
                     End If
                 Next k
             Else
@@ -203,11 +207,12 @@ Sub Compile (source As String, moduleName As String)
     Dim isGX As Integer: isGX = False
     If forceSelfConvert Then selfConvert = True
 
-    If selfConvert Then
+    If selfConvert And moduleName = "" Then
         AddJSLine 0, "if (typeof QB == 'undefined' && module) { QB = require('./qb-console.js').QB(); }"
         AddJSLine 0, "async function _QBCompiler() {"
+    End If
 
-    ElseIf moduleName <> "" Then
+    If moduleName <> "" Then
         AddJSLine 0, "async function __qblib_" + moduleName + "() {"
 
     End If
@@ -2834,9 +2839,10 @@ Sub RegisterImports (sourceText As String, parentModule As Object)
 
                 'AddJSLine 0, "// parentModule: " + parentModule
                 If parentModule <> undefined Then
-                    $If Javascript Then
-                        parentModule.imports[m.path] = m.path;
-                    $End If
+                    OBJ.SetProperty parentModule.imports, m.path, m.path
+                    '$If Javascript Then
+                    '    parentModule.imports[m.path] = m.path;
+                    '$End If
                     'AddJSLine 0, "// m.path: " + m.path + " added to parent: " + parentModule.path
                 End If
             End If

@@ -1,13 +1,167 @@
+async function __qblib_lib_lang_object_bas() {
+/* global constants: */ 
+/* shared variables: */ 
+/* static method variables: */ 
+async function main() {
+
+/* implicit variables: */ 
+} await main();
+
+async function sub_Assign(target/*OBJECT*/,source/*OBJECT*/) {
+if (QB.halted()) { return; }; 
+/* implicit variables: */ 
+   //-------- BEGIN JS native code block --------
+    Object.assign(target, source);
+//-------- END JS native code block --------
+}
+async function func_Create(proto/*OBJECT*/) {
+if (QB.halted()) { return; }; 
+var Create = null;
+/* implicit variables: */ 
+   //-------- BEGIN JS native code block --------
+    return Object.create(proto);
+//-------- END JS native code block --------
+return Create;
+}
+async function func_GetProperty(obj/*OBJECT*/,pname/*STRING*/) {
+if (QB.halted()) { return; }; 
+var GetProperty = null;
+/* implicit variables: */ 
+   //-------- BEGIN JS native code block --------
+    return obj[pname];
+//-------- END JS native code block --------
+return GetProperty;
+}
+async function func_HasProperty(obj/*OBJECT*/,pname/*STRING*/) {
+if (QB.halted()) { return; }; 
+var HasProperty = null;
+/* implicit variables: */ 
+   //-------- BEGIN JS native code block --------
+    return QB.toBoolean(obj[pname] != undefined);
+//-------- END JS native code block --------
+return HasProperty;
+}
+async function func_Keys(obj/*OBJECT*/) {
+if (QB.halted()) { return; }; 
+var Keys = null;
+/* implicit variables: */ 
+   var k = {};  /* OBJECT */ 
+   //-------- BEGIN JS native code block --------
+    k = Object.keys(obj);
+//-------- END JS native code block --------
+   var i = 0;  /* INTEGER */ 
+   var results = QB.initArray([{l:0,u: k.length}], {});  /* OBJECT */ 
+   var ___v7641413 = 0; ___l0: for ( i=  0 ;  i <=  k.length -  1;  i= i + 1) { if (QB.halted()) { return; } ___v7641413++;   if (___v7641413 % 100 == 0) { await QB.autoLimit(); }
+      QB.arrayValue(results, [ i + 1]).value =  k[i];
+   } 
+   Keys =  results;
+return Keys;
+}
+async function sub_SetProperty(obj/*OBJECT*/,pname/*STRING*/,pvalue/*OBJECT*/) {
+if (QB.halted()) { return; }; 
+/* implicit variables: */ 
+   //-------- BEGIN JS native code block --------
+    obj[pname] = pvalue;
+//-------- END JS native code block --------
+}
+async function sub_DeleteProperty(obj/*OBJECT*/,pname/*STRING*/) {
+if (QB.halted()) { return; }; 
+/* implicit variables: */ 
+   //-------- BEGIN JS native code block --------
+    delete obj[pname];
+//-------- END JS native code block --------
+}
+return {
+sub_Assign: sub_Assign,
+func_Create: func_Create,
+func_GetProperty: func_GetProperty,
+func_HasProperty: func_HasProperty,
+func_Keys: func_Keys,
+sub_SetProperty: sub_SetProperty,
+sub_DeleteProperty: sub_DeleteProperty,
+};
+async function compile(src) {
+   await sub_QBToJS(src, TEXT, '');
+   var js = '';
+   for (var i=1; i<= QB.func_UBound(jsLines); i++) {
+      js += QB.arrayValue(jsLines, [i]).value.text + '\n';
+   }
+   return js;
+}
+function getWarnings() {
+   var w = [];
+   for (var i=1; i <= QB.func_UBound(warnings); i++) {
+      w.push({
+         line: QB.arrayValue(warnings, [i]).value.line,
+         text: QB.arrayValue(warnings, [i]).value.text,
+         mtype: QB.arrayValue(warnings, [i]).value.mtype,
+         moduleId: QB.arrayValue(warnings, [i]).value.moduleId,
+         module: QB.arrayValue(warnings, [i]).value.module,
+      });
+   }
+   return w;
+}
+function _getMethods(methods) {
+   var m = [];
+   for (var i=1; i <= QB.func_UBound(methods); i++) {
+      var lidx = QB.arrayValue(methods, [i]).value.line;
+      m.push({
+         line: QB.arrayValue(lines, [lidx]).value.line,
+         type: QB.arrayValue(methods, [i]).value.type,
+         returnType: QB.arrayValue(methods, [i]).value.returnType,
+         name: QB.arrayValue(methods, [i]).value.name,
+         uname: QB.arrayValue(methods, [i]).value.uname,
+         jsname: QB.arrayValue(methods, [i]).value.jsname,
+         argc: QB.arrayValue(methods, [i]).value.argc,
+         args: QB.arrayValue(methods, [i]).value.args
+      });
+   }
+   return m;
+}
+function getMethods() { return _getMethods(methods); }
+function getExportMethods() { return _getMethods(exportMethods); }
+function getExportConsts() {
+   var c = [];
+   for (var i=1; i <= QB.func_UBound(exportConsts); i++) {
+      c.push({
+         name: QB.arrayValue(exportConsts, [i]).value.name,
+         jsname: QB.arrayValue(exportConsts, [i]).value.jsname
+      });
+   }
+   return c;
+}
+function getSourceLine(jsLine) {
+   if (jsLine == 0) { return 0; }
+   var line = QB.arrayValue(jsLines, [jsLine]).value.line;
+   line = QB.arrayValue(lines, [line]).value.line;
+   return line;
+}
+function getModule(id) {
+   return QB.arrayValue(modules, [id]).value;
+}
+function setSelfConvert() { sub_SetSelfConvert(); }
+
+return {
+   compile: compile,
+   getWarnings: getWarnings,
+   getMethods: getMethods,
+   getExportMethods: getExportMethods,
+   getExportConsts: getExportConsts,
+   getSourceLine: getSourceLine,
+   getModule: getModule,
+   setSelfConvert: setSelfConvert,
+};
+}
+if (typeof module != 'undefined') { module.exports.QBCompiler = _QBCompiler; }
 if (typeof QB == 'undefined' && module) { QB = require('./qb-console.js').QB(); }
 async function _QBCompiler() {
+var OBJ = await __qblib_lib_lang_object_bas();
 /* global constants: */ const FILE  =    1 ; const   TEXT  =    2; const MWARNING  =    0 ; const   MERROR  =    1; const False  =    0; const True  =   ~ False; const PrintDataTypes  =    True; const PrintLineMapping  =    False; const PrintTokenizedLine  =    False; 
 /* shared variables: */ var moduleMap = QB.initArray([0], {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}); var modules = QB.initArray([0], {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}); var lines = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0,module:0}); var jsLines = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0,module:0}); var methods = QB.initArray([0], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}); var localMethods = QB.initArray([0], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}); var types = QB.initArray([0], {line:0,name:'',argc:0,args:''}); var typeVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var globalVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var localVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var warnings = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0,module:0}); var importLines = QB.initArray([0], ''); var exportLines = QB.initArray([0], ''); var exportConsts = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var exportMethods = QB.initArray([0], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}); var dataArray = QB.initArray([0], ''); var dataLabels = QB.initArray([0], {text:'',index:0}); var jsReservedWords = QB.initArray([0], ''); var modLevel = 0; var currentMethod = ''; var activeModule = {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}; var currentModule = ''; var currentModuleId = 0; var programMethods = 0; var constVarLine = 0; var sharedVarLine = 0; var staticVarLine = 0; var implicitVarLine = 0; var condWords = QB.initArray([0], ''); var forceSelfConvert = 0; var optionExplicit = 0; var optionExplicitArray = 0; 
 /* static method variables: */ 
 async function main() {
 
 /* implicit variables: */ 
-   // $Console
-   // Only
    QB.resizeArray(moduleMap, [], {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}, false);  /* MODULE */ 
    QB.resizeArray(modules, [{l:0,u: 0}], {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}, false);  /* MODULE */ 
    QB.resizeArray(lines, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0,module:0}, false);  /* CODELINE */ 
@@ -57,7 +211,7 @@ if (QB.halted()) { return; }; sourceType = Math.round(sourceType);
    var keys = QB.initArray([{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0});  /* METHOD */ 
    var m = {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0};  /* MODULE */ 
    keys = (await func_GetMapKeys( await func_SortModules()));
-   var ___v7641413 = 0; ___l0: for ( i=  1 ;  i <= (QB.func_UBound(  keys));  i= i + 1) { if (QB.halted()) { return; } ___v7641413++;   if (___v7641413 % 100 == 0) { await QB.autoLimit(); }
+   var ___v1068624 = 0; ___l3576428: for ( i=  1 ;  i <= (QB.func_UBound(  keys));  i= i + 1) { if (QB.halted()) { return; } ___v1068624++;   if (___v1068624 % 100 == 0) { await QB.autoLimit(); }
       m = QB.arrayValue(moduleMap, [QB.arrayValue(keys, [ i]).value]).value;
       activeModule =  m;
       await sub_Compile(  m.source ,    m.name);
@@ -74,30 +228,30 @@ var SortModules = null;
    moduleNames = (await func_GetMapKeys(  moduleMap));
    var i = 0;  /* INTEGER */ var skipCount = 0;  /* INTEGER */ var lastSkipCount = 0;  /* INTEGER */ 
    skipCount = (QB.func_UBound(  moduleNames));
-   var ___v1068624 = 0; ___l3576428: do { if (QB.halted()) { return; }___v1068624++;   if (___v1068624 % 100 == 0) { await QB.autoLimit(); }
+   var ___v480418 = 0; ___l7075312: do { if (QB.halted()) { return; }___v480418++;   if (___v480418 % 100 == 0) { await QB.autoLimit(); }
       lastSkipCount =  skipCount;
       skipCount =  0;
-      var ___v480418 = 0; ___l7075312: for ( i=  1 ;  i <= (QB.func_UBound(  moduleNames));  i= i + 1) { if (QB.halted()) { return; } ___v480418++;   if (___v480418 % 100 == 0) { await QB.autoLimit(); }
+      var ___v7288614 = 0; ___l5364588: for ( i=  1 ;  i <= (QB.func_UBound(  moduleNames));  i= i + 1) { if (QB.halted()) { return; } ___v7288614++;   if (___v7288614 % 100 == 0) { await QB.autoLimit(); }
          var m = {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0};  /* MODULE */ 
          m = QB.arrayValue(moduleMap, [QB.arrayValue(moduleNames, [ i]).value]).value;
          if ( m.processed ) {
             continue;
          }
          var importCount = 0;  /* INTEGER */ 
-         //-------- BEGIN JS native code block --------
-                importCount = Object.keys(m.imports).length;
-//-------- END JS native code block --------
+         var ikeys = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
+         ikeys = (await OBJ.func_Keys(  m.imports));
+         importCount = (QB.func_UBound(  ikeys));
          if ( importCount ==   0 ) {
             QB.arrayValue(results, [ m.path]).value =  m;
             m.processed =  - 1;
             var k = 0;  /* INTEGER */ 
             var mm = {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0};  /* MODULE */ 
-            var ___v7288614 = 0; ___l5364588: for ( k=  1 ;  k <= (QB.func_UBound(  moduleNames));  k= k + 1) { if (QB.halted()) { return; } ___v7288614++;   if (___v7288614 % 100 == 0) { await QB.autoLimit(); }
+            var ___v2480838 = 0; ___l6161923: for ( k=  1 ;  k <= (QB.func_UBound(  moduleNames));  k= k + 1) { if (QB.halted()) { return; } ___v2480838++;   if (___v2480838 % 100 == 0) { await QB.autoLimit(); }
                mm = QB.arrayValue(moduleMap, [QB.arrayValue(moduleNames, [ k]).value]).value;
                if (~ mm.processed ) {
-                  //-------- BEGIN JS native code block --------
-                            if (mm.imports[m.path]) { delete mm.imports[m.path]; }
-//-------- END JS native code block --------
+                  if ((await OBJ.func_HasProperty(  mm.imports ,    m.path))  ) {
+                     await OBJ.sub_DeleteProperty( ( mm.imports ,   m.path));
+                  }
                }
             } 
          } else {
@@ -127,14 +281,15 @@ if (QB.halted()) { return; };
    if ( forceSelfConvert) {
       selfConvert =  True;
    }
-   if ( selfConvert) {
+   if ( selfConvert &  moduleName ==  ""  ) {
       await sub_AddJSLine(  0 ,   "if (typeof QB == 'undefined' && module) { QB = require('./qb-console.js').QB(); }");
       await sub_AddJSLine(  0 ,   "async function _QBCompiler() {");
-   } else if ( moduleName !=  ""  ) {
+   }
+   if ( moduleName !=  ""  ) {
       await sub_AddJSLine(  0 ,   "async function __qblib_"  +  moduleName + "() {");
    }
    var i = 0;  /* INTEGER */ 
-   var ___v2480838 = 0; ___l6161923: for ( i=  1 ;  i <= (QB.func_UBound(  importLines));  i= i + 1) { if (QB.halted()) { return; } ___v2480838++;   if (___v2480838 % 100 == 0) { await QB.autoLimit(); }
+   var ___v9476965 = 0; ___l4082566: for ( i=  1 ;  i <= (QB.func_UBound(  importLines));  i= i + 1) { if (QB.halted()) { return; } ___v9476965++;   if (___v9476965 % 100 == 0) { await QB.autoLimit(); }
       await sub_AddJSLine(  i,   QB.arrayValue(importLines, [ i]).value);
    } 
    QB.resizeArray(importLines, [{l:0,u: 0}], '', false);  /* STRING */ 
@@ -262,17 +417,17 @@ if (QB.halted()) { return; };
    var i = 0;  /* INTEGER */ var j = 0;  /* INTEGER */ var jsidx = 0;  /* INTEGER */ 
    var typestr = '';  /* STRING */ 
    typestr = "{ ";
-   var ___v9476965 = 0; ___l4082566: for ( i=  1 ;  i <= (QB.func_UBound(  jsLines));  i= i + 1) { if (QB.halted()) { return; } ___v9476965++;   if (___v9476965 % 100 == 0) { await QB.autoLimit(); }
+   var ___v9837131 = 0; ___l7070014: for ( i=  1 ;  i <= (QB.func_UBound(  jsLines));  i= i + 1) { if (QB.halted()) { return; } ___v9837131++;   if (___v9837131 % 100 == 0) { await QB.autoLimit(); }
       if (QB.arrayValue(jsLines, [ i]).value .text ==  "QB.start();"  ) {
          jsidx =  i;
-         break ___l4082566;
+         break ___l7070014;
       }
    } 
-   var ___v9837131 = 0; ___l7070014: for ( i=  1 ;  i <= (QB.func_UBound(  types));  i= i + 1) { if (QB.halted()) { return; } ___v9837131++;   if (___v9837131 % 100 == 0) { await QB.autoLimit(); }
+   var ___v4633799 = 0; ___l4271988: for ( i=  1 ;  i <= (QB.func_UBound(  types));  i= i + 1) { if (QB.halted()) { return; } ___v4633799++;   if (___v4633799 % 100 == 0) { await QB.autoLimit(); }
       typestr =  typestr + QB.arrayValue(types, [ i]).value .name + ":[";
       var idx = 0;  /* INTEGER */ 
       idx =  0;
-      var ___v4633799 = 0; ___l4271988: for ( j=  1 ;  j <= (QB.func_UBound(  typeVars));  j= j + 1) { if (QB.halted()) { return; } ___v4633799++;   if (___v4633799 % 100 == 0) { await QB.autoLimit(); }
+      var ___v6800396 = 0; ___l6924219: for ( j=  1 ;  j <= (QB.func_UBound(  typeVars));  j= j + 1) { if (QB.halted()) { return; } ___v6800396++;   if (___v6800396 % 100 == 0) { await QB.autoLimit(); }
          if (QB.arrayValue(typeVars, [ j]).value .typeId ==   i) {
             if ( idx > 0 ) {
                typestr =  typestr + ", ";
@@ -319,7 +474,7 @@ if (QB.halted()) { return; };
    ds = "["  + (await func_Join( dataArray  ,    1 ,    - 1 ,   ","))  + "]";
    await sub_AddJSLine(  0 ,   "QB.setData("  +  ds + ");");
    var i = 0;  /* INTEGER */ 
-   var ___v6800396 = 0; ___l6924219: for ( i=  1 ;  i <= (QB.func_UBound(  dataLabels));  i= i + 1) { if (QB.halted()) { return; } ___v6800396++;   if (___v6800396 % 100 == 0) { await QB.autoLimit(); }
+   var ___v2269004 = 0; ___l6304556: for ( i=  1 ;  i <= (QB.func_UBound(  dataLabels));  i= i + 1) { if (QB.halted()) { return; } ___v2269004++;   if (___v2269004 % 100 == 0) { await QB.autoLimit(); }
       await sub_AddJSLine(  0 ,   "QB.setDataLabel('"  + QB.arrayValue(dataLabels, [ i]).value .text + "', "  + (QB.func_Str( QB.arrayValue(dataLabels, [ i]).value .index))  + ");");
    } 
 }
@@ -327,7 +482,7 @@ async function sub_PrintJS() {
 if (QB.halted()) { return; }; 
 /* implicit variables: */ 
    var i = 0;  /* INTEGER */ 
-   var ___v2269004 = 0; ___l6304556: for ( i=  1 ;  i <= (QB.func_UBound(  jsLines));  i= i + 1) { if (QB.halted()) { return; } ___v2269004++;   if (___v2269004 % 100 == 0) { await QB.autoLimit(); }
+   var ___v209622 = 0; ___l5319874: for ( i=  1 ;  i <= (QB.func_UBound(  jsLines));  i= i + 1) { if (QB.halted()) { return; } ___v209622++;   if (___v209622 % 100 == 0) { await QB.autoLimit(); }
       await QB.sub_Print([QB.arrayValue(jsLines, [ i]).value .text]);
    } 
 }
@@ -356,7 +511,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
    var ctype = '';  /* STRING */ 
    await sub_AddJSLine(  firstLine,   "/* implicit variables: */ ");
    implicitVarLine = (QB.func_UBound(  jsLines));
-   var ___v209622 = 0; ___l5319874: for ( i=  firstLine;  i <=  lastLine;  i= i + 1) { if (QB.halted()) { return; } ___v209622++;   if (___v209622 % 100 == 0) { await QB.autoLimit(); }
+   var ___v5183483 = 0; ___l2788304: for ( i=  firstLine;  i <=  lastLine;  i= i + 1) { if (QB.halted()) { return; } ___v5183483++;   if (___v5183483 % 100 == 0) { await QB.autoLimit(); }
       indent =  0;
       tempIndent =  0;
       var l = '';  /* STRING */ 
@@ -417,7 +572,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
             var constCount = 0;  /* INTEGER */ 
             constCount = (await func_ListSplit( (await func_Join( parts  ,    2 ,    - 1 ,   " "))  ,   constParts));
             var constIdx = 0;  /* INTEGER */ 
-            var ___v5183483 = 0; ___l2788304: for ( constIdx=  1 ;  constIdx <=  constCount;  constIdx= constIdx + 1) { if (QB.halted()) { return; } ___v5183483++;   if (___v5183483 % 100 == 0) { await QB.autoLimit(); }
+            var ___v6522939 = 0; ___l1979270: for ( constIdx=  1 ;  constIdx <=  constCount;  constIdx= constIdx + 1) { if (QB.halted()) { return; } ___v6522939++;   if (___v6522939 % 100 == 0) { await QB.autoLimit(); }
                var eqi = 0;  /* INTEGER */ 
                eqi = (QB.func_InStr( QB.arrayValue(constParts, [ constIdx]).value  ,   "="));
                if ( eqi < 1 ) {
@@ -465,7 +620,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
                var cscount = 0;  /* INTEGER */ 
                cscount = (await func_ListSplit( (await func_Join( parts  ,    2 ,    - 1 ,   " "))  ,   caseParts));
                var ci = 0;  /* INTEGER */ 
-               var ___v6522939 = 0; ___l1979270: for ( ci=  1 ;  ci <=  cscount;  ci= ci + 1) { if (QB.halted()) { return; } ___v6522939++;   if (___v6522939 % 100 == 0) { await QB.autoLimit(); }
+               var ___v2750404 = 0; ___l7473842: for ( ci=  1 ;  ci <=  cscount;  ci= ci + 1) { if (QB.halted()) { return; } ___v2750404++;   if (___v2750404 % 100 == 0) { await QB.autoLimit(); }
                   js =  js + "case "  + (await func_ConvertExpression( QB.arrayValue(caseParts, [ ci]).value  ,    i))  + ": ";
                } 
             }
@@ -480,7 +635,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
             fcond = " <= ";
             stepIdx =  0;
             var fi = 0;  /* INTEGER */ 
-            var ___v2750404 = 0; ___l7473842: for ( fi=  2 ;  fi <= (QB.func_UBound(  parts));  fi= fi + 1) { if (QB.halted()) { return; } ___v2750404++;   if (___v2750404 % 100 == 0) { await QB.autoLimit(); }
+            var ___v1348867 = 0; ___l6907899: for ( fi=  2 ;  fi <= (QB.func_UBound(  parts));  fi= fi + 1) { if (QB.halted()) { return; } ___v1348867++;   if (___v1348867 % 100 == 0) { await QB.autoLimit(); }
                var fword = '';  /* STRING */ 
                fword = (QB.func_UCase( QB.arrayValue(parts, [ fi]).value));
                if ( fword ==  "="  ) {
@@ -517,9 +672,9 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
             QB.arrayValue(containers, [ cindex]).value .type = "IF";
             QB.arrayValue(containers, [ cindex]).value .line =  i;
             var thenIndex = 0;  /* INTEGER */ 
-            var ___v1348867 = 0; ___l6907899: for ( thenIndex=  2 ;  thenIndex <= (QB.func_UBound(  parts));  thenIndex= thenIndex + 1) { if (QB.halted()) { return; } ___v1348867++;   if (___v1348867 % 100 == 0) { await QB.autoLimit(); }
+            var ___v6696454 = 0; ___l6660608: for ( thenIndex=  2 ;  thenIndex <= (QB.func_UBound(  parts));  thenIndex= thenIndex + 1) { if (QB.halted()) { return; } ___v6696454++;   if (___v6696454 % 100 == 0) { await QB.autoLimit(); }
                if ((QB.func_UCase( QB.arrayValue(parts, [ thenIndex]).value))  ==  "THEN"  ) {
-                  break ___l6907899;
+                  break ___l6660608;
                }
             } 
             js = "if ("  + (await func_ConvertExpression( (await func_Join( parts  ,    2 ,    thenIndex -  1 ,   " "))  ,    i))  + ") {";
@@ -536,13 +691,13 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
                var npcount = 0;  /* INTEGER */ 
                var npi = 0;  /* INTEGER */ 
                npcount = (await func_ListSplit( (await func_Join( parts  ,    2 ,    - 1 ,   " "))  ,   nparts));
-               var ___v6696454 = 0; ___l6660608: for ( npi=  1 ;  npi <=  npcount;  npi= npi + 1) { if (QB.halted()) { return; } ___v6696454++;   if (___v6696454 % 100 == 0) { await QB.autoLimit(); }
+               var ___v1477568 = 0; ___l3050709: for ( npi=  1 ;  npi <=  npcount;  npi= npi + 1) { if (QB.halted()) { return; } ___v1477568++;   if (___v1477568 % 100 == 0) { await QB.autoLimit(); }
                   if ((await func_CheckBlockEnd( containers  ,    cindex,    first,    i))  ) {
                      js =  js + "} ";
                      indent =  - 1;
                      cindex =  cindex -  1;
                   } else {
-                     break ___l6660608;
+                     break ___l3050709;
                   }
                } 
             } else {
@@ -664,10 +819,10 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
                js = "return;";
             } else if ( second ==  "DO"  |  second ==  "WHILE"  |  second ==  "FOR"  ) {
                var lli = 0;  /* INTEGER */ 
-               var ___v1477568 = 0; ___l3050709: for ( lli=  cindex;  lli >=  0 ;  lli= lli +  - 1) { if (QB.halted()) { return; } ___v1477568++;   if (___v1477568 % 100 == 0) { await QB.autoLimit(); }
+               var ___v9383081 = 0; ___l3103119: for ( lli=  cindex;  lli >=  0 ;  lli= lli +  - 1) { if (QB.halted()) { return; } ___v9383081++;   if (___v9383081 % 100 == 0) { await QB.autoLimit(); }
                   if ( lli > 0 ) {
                      if (QB.arrayValue(containers, [ lli]).value .type ==   second) {
-                        break ___l3050709;
+                        break ___l3103119;
                      }
                   }
                } 
@@ -692,7 +847,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
                var excount = 0;  /* INTEGER */ 
                excount = (await func_ListSplit( (await func_Join( parts  ,    2 ,    - 1 ,   " "))  ,   exparts));
                var exi = 0;  /* INTEGER */ 
-               var ___v9383081 = 0; ___l3103119: for ( exi=  1 ;  exi <=  excount;  exi= exi + 1) { if (QB.halted()) { return; } ___v9383081++;   if (___v9383081 % 100 == 0) { await QB.autoLimit(); }
+               var ___v9412093 = 0; ___l1448348: for ( exi=  1 ;  exi <=  excount;  exi= exi + 1) { if (QB.halted()) { return; } ___v9412093++;   if (___v9412093 % 100 == 0) { await QB.autoLimit(); }
                   await sub_ParseExport( QB.arrayValue(exparts, [ exi]).value  ,    i);
                } 
                continue;
@@ -723,21 +878,21 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
          } else if ( c > 2 |  first ==  "LET"  ) {
             var assignment = 0;  /* INTEGER */ 
             assignment =  0;
-            var ___v9412093 = 0; ___l1448348: for ( j=  1 ;  j <= (QB.func_UBound(  parts));  j= j + 1) { if (QB.halted()) { return; } ___v9412093++;   if (___v9412093 % 100 == 0) { await QB.autoLimit(); }
+            var ___v4587751 = 0; ___l2417220: for ( j=  1 ;  j <= (QB.func_UBound(  parts));  j= j + 1) { if (QB.halted()) { return; } ___v4587751++;   if (___v4587751 % 100 == 0) { await QB.autoLimit(); }
                if (QB.arrayValue(parts, [ j]).value  ==  "="  ) {
                   if ( j > 1 ) {
                      if ((QB.func_UCase( QB.arrayValue(parts, [ j -  1]).value))  ==  "_CLIPBOARD$"  ) {
-                        break ___l1448348;
+                        break ___l2417220;
                      }
                      if ((QB.func_UCase( QB.arrayValue(parts, [ j -  1]).value))  ==  "_CLIPBOARDIMAGE"  ) {
-                        break ___l1448348;
+                        break ___l2417220;
                      }
                      if ((QB.func_UCase( QB.arrayValue(parts, [ 1]).value))  ==  "MID$"  ) {
-                        break ___l1448348;
+                        break ___l2417220;
                      }
                   }
                   assignment =  j;
-                  break ___l1448348;
+                  break ___l2417220;
                }
             } 
             var asnVarIndex = 0;  /* SINGLE */ 
@@ -812,12 +967,12 @@ var IsValidVarname = null;
    }
    c = (QB.func_Asc( (QB.func_Mid(  vname,    1 ,    1))));
    if (( c >=  65 &  c <=  90)  |  c ==   95 ) {
-      var ___v4587751 = 0; ___l2417220: for ( i=  2 ;  i <= (QB.func_Len(  vname));  i= i + 1) { if (QB.halted()) { return; } ___v4587751++;   if (___v4587751 % 100 == 0) { await QB.autoLimit(); }
+      var ___v399634 = 0; ___l8893418: for ( i=  2 ;  i <= (QB.func_Len(  vname));  i= i + 1) { if (QB.halted()) { return; } ___v399634++;   if (___v399634 % 100 == 0) { await QB.autoLimit(); }
          c = (QB.func_Asc( (QB.func_Mid(  vname,    i,    1))));
          if (( c >=  65 &  c <=  90)  | ( c >=  48 &  c <=  57)  |  c ==   95 ) {
          } else {
             valid =  False;
-            break ___l2417220;
+            break ___l8893418;
          }
       } 
    } else {
@@ -831,7 +986,7 @@ if (QB.halted()) { return; };
 var BeginPhraseFor = null;
 /* implicit variables: */ 
    var bp = '';  /* STRING */ 
-   var ___v8893418 =  endPhrase; switch (___v8893418) {
+   var ___v1986333 =  endPhrase; switch (___v1986333) {
       case "NEXT": 
       bp = "FOR";
       break; case "LOOP": 
@@ -851,7 +1006,7 @@ if (QB.halted()) { return; };
 var EndPhraseFor = null;
 /* implicit variables: */ 
    var ep = '';  /* STRING */ 
-   var ___v399634 =  beginPhrase; switch (___v399634) {
+   var ___v785196 =  beginPhrase; switch (___v785196) {
       case "FOR": 
       ep = "NEXT";
       break; case "DO": 
@@ -890,13 +1045,13 @@ var FixCondition = null;
 /* implicit variables: */ 
    FixCondition = "";
    var c = 0;  /* INTEGER */ var j = 0;  /* INTEGER */ 
-   var ___v785196 = 0; ___l1986333: for ( j=  0 ;  j <= (QB.func_UBound(  condWords));  j= j + 1) { if (QB.halted()) { return; } ___v785196++;   if (___v785196 % 100 == 0) { await QB.autoLimit(); }
+   var ___v1962776 = 0; ___l8086727: for ( j=  0 ;  j <= (QB.func_UBound(  condWords));  j= j + 1) { if (QB.halted()) { return; } ___v1962776++;   if (___v1962776 % 100 == 0) { await QB.autoLimit(); }
       if ((QB.func_InStr(  word,   QB.arrayValue(condWords, [ j]).value  + "("))  ==   1 ) {
          var a1 = '';  /* STRING */ 
          a1 = (QB.func_Mid( QB.arrayValue(parts, [ idx]).value  ,   (QB.func_Len( QB.arrayValue(condWords, [ j]).value))  +  1));
          c = (await func_SLSplit(  prefix + QB.arrayValue(condWords, [ j]).value  + " "  +  a1 + (await func_Join( parts  ,    idx +  1 ,    - 1 ,   " "))  ,   parts  ,    True));
          FixCondition = QB.arrayValue(condWords, [ j]).value;
-         break ___l1986333;
+         break ___l8086727;
       }
    } 
 return FixCondition;
@@ -987,7 +1142,7 @@ var ConvertSub = null;
             args = (await func_Join( parts  ,    2 ,    - 1 ,   " "));
             m.sync =  True;
          } else if (QB.arrayValue(parts, [ 1]).value  ==  "="  ) {
-            var ___v8086727 =  m.name; switch (___v8086727) {
+            var ___v2367710 =  m.name; switch (___v2367710) {
                case "_Clipboard$": 
                m.jsname = "QB.sub__Clipboard";
                break; case "_ClipboardImage": 
@@ -1340,7 +1495,7 @@ var ConvertSubName = null;
    var asIndex = 0;  /* INTEGER */ 
    argc = (await func_SLSplit2(  args,   parts));
    var i = 0;  /* INTEGER */ 
-   var ___v2367710 = 0; ___l1962776: for ( i=  1 ;  i <=  argc;  i= i + 1) { if (QB.halted()) { return; } ___v2367710++;   if (___v2367710 % 100 == 0) { await QB.autoLimit(); }
+   var ___v293531 = 0; ___l6928664: for ( i=  1 ;  i <=  argc;  i= i + 1) { if (QB.halted()) { return; } ___v293531++;   if (___v293531 % 100 == 0) { await QB.autoLimit(); }
       if ((QB.func_UCase( QB.arrayValue(parts, [ i]).value))  ==  "AS"  ) {
          asIndex =  i;
       }
@@ -1389,7 +1544,7 @@ var ConvertRead = null;
    var p = '';  /* STRING */ 
    pcount = (await func_ListSplit(  args,   parts));
    var i = 0;  /* INTEGER */ 
-   var ___v293531 = 0; ___l6928664: for ( i=  1 ;  i <=  pcount;  i= i + 1) { if (QB.halted()) { return; } ___v293531++;   if (___v293531 % 100 == 0) { await QB.autoLimit(); }
+   var ___v1198679 = 0; ___l5930740: for ( i=  1 ;  i <=  pcount;  i= i + 1) { if (QB.halted()) { return; } ___v1198679++;   if (___v1198679 % 100 == 0) { await QB.autoLimit(); }
       p = (QB.func__Trim( QB.arrayValue(parts, [ i]).value));
       vcount = (QB.func_UBound(  vars))  +  1;
       QB.resizeArray(vars, [{l:0,u: vcount}], '', true);  /* STRING */ 
@@ -1398,7 +1553,7 @@ var ConvertRead = null;
    vname = await func_GenJSVar();
    js = "var "  +  vname + " = new Array("  + (QB.func_Str( (QB.func_UBound(  vars))))  + "); ";
    js =  js + (await func_CallMethod(  m))  + "("  +  vname + "); ";
-   var ___v1198679 = 0; ___l5930740: for ( i=  1 ;  i <= (QB.func_UBound(  vars));  i= i + 1) { if (QB.halted()) { return; } ___v1198679++;   if (___v1198679 % 100 == 0) { await QB.autoLimit(); }
+   var ___v499794 = 0; ___l731166: for ( i=  1 ;  i <= (QB.func_UBound(  vars));  i= i + 1) { if (QB.halted()) { return; } ___v499794++;   if (___v499794 % 100 == 0) { await QB.autoLimit(); }
       js =  js + (await func_ConvertExpression( QB.arrayValue(vars, [ i]).value  ,    lineNumber))  + " = "  +  vname + "["  + (QB.func_Str(  i -  1))  + "]; ";
    } 
    ConvertRead =  js;
@@ -1518,7 +1673,7 @@ var ConvertPrint = null;
    }
    js =  js + "[";
    var i = 0;  /* INTEGER */ 
-   var ___v499794 = 0; ___l731166: for ( i=  startIdx;  i <=  pcount;  i= i + 1) { if (QB.halted()) { return; } ___v499794++;   if (___v499794 % 100 == 0) { await QB.autoLimit(); }
+   var ___v9602898 = 0; ___l2970642: for ( i=  startIdx;  i <=  pcount;  i= i + 1) { if (QB.halted()) { return; } ___v9602898++;   if (___v9602898 % 100 == 0) { await QB.autoLimit(); }
       if ( i > startIdx) {
          js =  js + ",";
       }
@@ -1558,7 +1713,7 @@ var ConvertWrite = null;
    }
    js =  js + "[";
    var i = 0;  /* INTEGER */ 
-   var ___v9602898 = 0; ___l2970642: for ( i=  startIdx;  i <=  pcount;  i= i + 1) { if (QB.halted()) { return; } ___v9602898++;   if (___v9602898 % 100 == 0) { await QB.autoLimit(); }
+   var ___v5068431 = 0; ___l9446731: for ( i=  startIdx;  i <=  pcount;  i= i + 1) { if (QB.halted()) { return; } ___v5068431++;   if (___v5068431 % 100 == 0) { await QB.autoLimit(); }
       if ( i > startIdx) {
          js =  js + ",";
       }
@@ -1649,7 +1804,7 @@ var ConvertInput = null;
    var p = '';  /* STRING */ 
    pcount = (await func_PrintSplit(  args,   parts));
    var i = 0;  /* INTEGER */ 
-   var ___v5068431 = 0; ___l9446731: for ( i=  1 ;  i <=  pcount;  i= i + 1) { if (QB.halted()) { return; } ___v5068431++;   if (___v5068431 % 100 == 0) { await QB.autoLimit(); }
+   var ___v1096603 = 0; ___l9618737: for ( i=  1 ;  i <=  pcount;  i= i + 1) { if (QB.halted()) { return; } ___v1096603++;   if (___v1096603 % 100 == 0) { await QB.autoLimit(); }
       p = (QB.func__Trim( QB.arrayValue(parts, [ i]).value));
       if ( p ==  ";"  ) {
          if ( i ==   1 ) {
@@ -1668,7 +1823,7 @@ var ConvertInput = null;
    vname = await func_GenJSVar();
    js = "var "  +  vname + " = new Array("  + (QB.func_Str( (QB.func_UBound(  vars))))  + "); ";
    js =  js + (await func_CallMethod(  m))  + "("  +  vname + ", "  +  preventNewline + ", "  +  addQuestionPrompt + ", "  +  promptStr + "); ";
-   var ___v1096603 = 0; ___l9618737: for ( i=  1 ;  i <= (QB.func_UBound(  vars));  i= i + 1) { if (QB.halted()) { return; } ___v1096603++;   if (___v1096603 % 100 == 0) { await QB.autoLimit(); }
+   var ___v1895559 = 0; ___l3151653: for ( i=  1 ;  i <= (QB.func_UBound(  vars));  i= i + 1) { if (QB.halted()) { return; } ___v1895559++;   if (___v1895559 % 100 == 0) { await QB.autoLimit(); }
       var vartype = '';  /* STRING */ 
       vartype = (await func_GetVarType( QB.arrayValue(vars, [ i]).value));
       if ( vartype ==  "_BIT"  |  vartype ==  "_BYTE"  |  vartype ==  "INTEGER"  |  vartype ==  "LONG"  |  vartype ==  "_INTEGER64"  |  vartype ==  "_OFFSET"  |  vartype ==  "_UNSIGNED _BIT"  |  vartype ==  "_UNSIGNED _BYTE"  |  vartype ==  "_UNSIGNED INTEGER"  |  vartype ==  "_UNSIGNED LONG"  |  vartype ==  "_UNSIGNED _INTEGER64"  |  vartype ==  "_UNSIGNED _OFFSET"  ) {
@@ -1704,7 +1859,7 @@ var ConvertFileInput = null;
    js = "var "  +  vname + " = new Array("  + (QB.func_Str( (QB.func_UBound(  parts))  -  1))  + "); ";
    js =  js + (await func_CallMethod(  m))  + "("  +  fh + ", "  +  vname + "); ";
    var i = 0;  /* INTEGER */ 
-   var ___v1895559 = 0; ___l3151653: for ( i=  2 ;  i <= (QB.func_UBound(  parts));  i= i + 1) { if (QB.halted()) { return; } ___v1895559++;   if (___v1895559 % 100 == 0) { await QB.autoLimit(); }
+   var ___v2994856 = 0; ___l7811670: for ( i=  2 ;  i <= (QB.func_UBound(  parts));  i= i + 1) { if (QB.halted()) { return; } ___v2994856++;   if (___v2994856 % 100 == 0) { await QB.autoLimit(); }
       var vartype = '';  /* STRING */ 
       vartype = (await func_GetVarType( QB.arrayValue(parts, [ i]).value));
       if ( vartype ==  "_BIT"  |  vartype ==  "_BYTE"  |  vartype ==  "INTEGER"  |  vartype ==  "LONG"  |  vartype ==  "_INTEGER64"  |  vartype ==  "_OFFSET"  |  vartype ==  "_UNSIGNED _BIT"  |  vartype ==  "_UNSIGNED _BYTE"  |  vartype ==  "_UNSIGNED INTEGER"  |  vartype ==  "_UNSIGNED LONG"  |  vartype ==  "_UNSIGNED _INTEGER64"  |  vartype ==  "_UNSIGNED _OFFSET"  ) {
@@ -1757,8 +1912,8 @@ var GetVarType = null;
          typeId = (await func_FindTypeId(  v.type));
          var i = 0;  /* INTEGER */ 
          var j = 0;  /* INTEGER */ 
-         var ___v2994856 = 0; ___l7811670: for ( i=  2 ;  i <=  pcount;  i= i + 1) { if (QB.halted()) { return; } ___v2994856++;   if (___v2994856 % 100 == 0) { await QB.autoLimit(); }
-            var ___v3066750 = 0; ___l525742: for ( j=  1 ;  j <= (QB.func_UBound(  typeVars));  j= j + 1) { if (QB.halted()) { return; } ___v3066750++;   if (___v3066750 % 100 == 0) { await QB.autoLimit(); }
+         var ___v3066750 = 0; ___l525742: for ( i=  2 ;  i <=  pcount;  i= i + 1) { if (QB.halted()) { return; } ___v3066750++;   if (___v3066750 % 100 == 0) { await QB.autoLimit(); }
+            var ___v317799 = 0; ___l6917726: for ( j=  1 ;  j <= (QB.func_UBound(  typeVars));  j= j + 1) { if (QB.halted()) { return; } ___v317799++;   if (___v317799 % 100 == 0) { await QB.autoLimit(); }
                if (QB.arrayValue(typeVars, [ j]).value .typeId ==   typeId & QB.arrayValue(typeVars, [ j]).value .name ==  QB.arrayValue(parts, [ i]).value  ) {
                   vartype = QB.arrayValue(typeVars, [ j]).value .type;
                   typeId = (await func_FindTypeId(  vartype));
@@ -1822,7 +1977,7 @@ var FindParamChar = null;
    var quote = 0;  /* INTEGER */ 
    var paren = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
-   var ___v317799 = 0; ___l6917726: for ( i=  1 ;  i <= (QB.func_Len(  s));  i= i + 1) { if (QB.halted()) { return; } ___v317799++;   if (___v317799 % 100 == 0) { await QB.autoLimit(); }
+   var ___v13278 = 0; ___l7133573: for ( i=  1 ;  i <= (QB.func_Len(  s));  i= i + 1) { if (QB.halted()) { return; } ___v13278++;   if (___v13278 % 100 == 0) { await QB.autoLimit(); }
       c = (QB.func_Mid(  s,    i,    1));
       if ( c ==  (QB.func_Chr(  34))  ) {
          quote = ~ quote;
@@ -1832,7 +1987,7 @@ var FindParamChar = null;
          paren =  paren -  1;
       } else if (~ quote &  paren ==   0 &  c ==   ch) {
          idx =  i;
-         break ___l6917726;
+         break ___l7133573;
       }
    } 
    FindParamChar =  idx;
@@ -1862,7 +2017,7 @@ if (QB.halted()) { return; }; typeId = Math.round(typeId); lineNumber = Math.rou
    asIdx =  0;
    bvar.typeId =  typeId;
    var i = 0;  /* INTEGER */ 
-   var ___v13278 = 0; ___l7133573: for ( i=  1 ;  i <= (QB.func_UBound(  parts));  i= i + 1) { if (QB.halted()) { return; } ___v13278++;   if (___v13278 % 100 == 0) { await QB.autoLimit(); }
+   var ___v2196902 = 0; ___l8268084: for ( i=  1 ;  i <= (QB.func_UBound(  parts));  i= i + 1) { if (QB.halted()) { return; } ___v2196902++;   if (___v2196902 % 100 == 0) { await QB.autoLimit(); }
       if ((QB.func_UCase( QB.arrayValue(parts, [ i]).value))  ==  "AS"  ) {
          asIdx =  i;
       }
@@ -1876,7 +2031,7 @@ if (QB.halted()) { return; }; typeId = Math.round(typeId); lineNumber = Math.rou
          nextIdx =  asIdx +  3;
       }
       vnamecount = (await func_ListSplit( (await func_Join( parts  ,    nextIdx,    - 1 ,   " "))  ,   varnames));
-      var ___v2196902 = 0; ___l8268084: for ( i=  1 ;  i <=  vnamecount;  i= i + 1) { if (QB.halted()) { return; } ___v2196902++;   if (___v2196902 % 100 == 0) { await QB.autoLimit(); }
+      var ___v1168370 = 0; ___l6205736: for ( i=  1 ;  i <=  vnamecount;  i= i + 1) { if (QB.halted()) { return; } ___v1168370++;   if (___v1168370 % 100 == 0) { await QB.autoLimit(); }
          vname = (QB.func__Trim( QB.arrayValue(varnames, [ i]).value));
          pstart = (QB.func_InStr(  vname,   "("));
          if ( pstart > 0 ) {
@@ -1946,7 +2101,7 @@ var DeclareVar = null;
       }
    }
    var i = 0;  /* INTEGER */ 
-   var ___v1168370 = 0; ___l6205736: for ( i=  1 ;  i <= (QB.func_UBound(  parts));  i= i + 1) { if (QB.halted()) { return; } ___v1168370++;   if (___v1168370 % 100 == 0) { await QB.autoLimit(); }
+   var ___v781213 = 0; ___l2188060: for ( i=  1 ;  i <= (QB.func_UBound(  parts));  i= i + 1) { if (QB.halted()) { return; } ___v781213++;   if (___v781213 % 100 == 0) { await QB.autoLimit(); }
       if ((QB.func_UCase( QB.arrayValue(parts, [ i]).value))  ==  "AS"  ) {
          asIdx =  i;
       }
@@ -1967,7 +2122,7 @@ var DeclareVar = null;
       }
       bvar.typeId = (await func_FindTypeId(  bvar.type));
       vnamecount = (await func_ListSplit( (await func_Join( parts  ,    nextIdx,    - 1 ,   " "))  ,   varnames));
-      var ___v781213 = 0; ___l2188060: for ( i=  1 ;  i <=  vnamecount;  i= i + 1) { if (QB.halted()) { return; } ___v781213++;   if (___v781213 % 100 == 0) { await QB.autoLimit(); }
+      var ___v2123458 = 0; ___l1920088: for ( i=  1 ;  i <=  vnamecount;  i= i + 1) { if (QB.halted()) { return; } ___v2123458++;   if (___v2123458 % 100 == 0) { await QB.autoLimit(); }
          vname = (QB.func__Trim( QB.arrayValue(varnames, [ i]).value));
          pstart = (QB.func_InStr(  vname,   "("));
          if ( pstart > 0 ) {
@@ -1985,7 +2140,7 @@ var DeclareVar = null;
       var vpartcount = 0;  /* INTEGER */ 
       var vparts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
       nextIdx =  0;
-      var ___v2123458 = 0; ___l1920088: for ( i=  1 ;  i <= (QB.func_UBound(  parts));  i= i + 1) { if (QB.halted()) { return; } ___v2123458++;   if (___v2123458 % 100 == 0) { await QB.autoLimit(); }
+      var ___v2643608 = 0; ___l7528362: for ( i=  1 ;  i <= (QB.func_UBound(  parts));  i= i + 1) { if (QB.halted()) { return; } ___v2643608++;   if (___v2643608 % 100 == 0) { await QB.autoLimit(); }
          var p = '';  /* STRING */ 
          p = (QB.func_UCase( QB.arrayValue(parts, [ i]).value));
          if ( p ==  "DIM"  |  p ==  "REDIM"  |  p ==  "SHARED"  |  p ==  "_PRESERVE"  |  p ==  "PRESERVE"  |  p ==  "STATIC"  ) {
@@ -1993,7 +2148,7 @@ var DeclareVar = null;
          }
       } 
       vnamecount = (await func_ListSplit( (await func_Join( parts  ,    nextIdx,    - 1 ,   " "))  ,   varnames));
-      var ___v2643608 = 0; ___l7528362: for ( i=  1 ;  i <=  vnamecount;  i= i + 1) { if (QB.halted()) { return; } ___v2643608++;   if (___v2643608 % 100 == 0) { await QB.autoLimit(); }
+      var ___v8284426 = 0; ___l5183001: for ( i=  1 ;  i <=  vnamecount;  i= i + 1) { if (QB.halted()) { return; } ___v8284426++;   if (___v8284426 % 100 == 0) { await QB.autoLimit(); }
          vpartcount = (await func_SLSplit2( QB.arrayValue(varnames, [ i]).value  ,   vparts));
          if ( vpartcount ==   1 ) {
             bvar.type = (await func_DataTypeFromName( QB.arrayValue(vparts, [ 1]).value));
@@ -2106,7 +2261,7 @@ var FormatArraySize = null;
    var pcount = 0;  /* INTEGER */ 
    pcount = (await func_ListSplit(  sizeString,   parts));
    var i = 0;  /* INTEGER */ 
-   var ___v8284426 = 0; ___l5183001: for ( i=  1 ;  i <=  pcount;  i= i + 1) { if (QB.halted()) { return; } ___v8284426++;   if (___v8284426 % 100 == 0) { await QB.autoLimit(); }
+   var ___v2687041 = 0; ___l3696339: for ( i=  1 ;  i <=  pcount;  i= i + 1) { if (QB.halted()) { return; } ___v2687041++;   if (___v2687041 % 100 == 0) { await QB.autoLimit(); }
       var subparts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
       var scount = 0;  /* INTEGER */ 
       scount = (await func_SLSplit2( QB.arrayValue(parts, [ i]).value  ,   subparts));
@@ -2115,10 +2270,10 @@ var FormatArraySize = null;
       }
       var j = 0;  /* INTEGER */ var toIndex = 0;  /* INTEGER */ 
       toIndex =  0;
-      var ___v2687041 = 0; ___l3696339: for ( j=  0 ;  j <=  scount;  j= j + 1) { if (QB.halted()) { return; } ___v2687041++;   if (___v2687041 % 100 == 0) { await QB.autoLimit(); }
+      var ___v27859 = 0; ___l1910613: for ( j=  0 ;  j <=  scount;  j= j + 1) { if (QB.halted()) { return; } ___v27859++;   if (___v27859 % 100 == 0) { await QB.autoLimit(); }
          if ("TO"  ==  (QB.func_UCase( QB.arrayValue(subparts, [ j]).value))  ) {
             toIndex =  j;
-            break ___l3696339;
+            break ___l1910613;
          }
       } 
       if ( toIndex ==   0 ) {
@@ -2155,7 +2310,7 @@ var InitTypeValue = null;
       } else {
          value = "{";
          var i = 0;  /* INTEGER */ 
-         var ___v27859 = 0; ___l1910613: for ( i=  1 ;  i <= (QB.func_UBound(  typeVars));  i= i + 1) { if (QB.halted()) { return; } ___v27859++;   if (___v27859 % 100 == 0) { await QB.autoLimit(); }
+         var ___v550793 = 0; ___l5187230: for ( i=  1 ;  i <= (QB.func_UBound(  typeVars));  i= i + 1) { if (QB.halted()) { return; } ___v550793++;   if (___v550793 % 100 == 0) { await QB.autoLimit(); }
             if ( typeId ==  QB.arrayValue(typeVars, [ i]).value .typeId ) {
                value =  value + QB.arrayValue(typeVars, [ i]).value .name + ":"  + (await func_InitTypeValue( QB.arrayValue(typeVars, [ i]).value .type ,    lineNumber))  + ",";
             }
@@ -2173,10 +2328,10 @@ var FindTypeId = null;
    var id = 0;  /* INTEGER */ 
    id =  - 1;
    var i = 0;  /* INTEGER */ 
-   var ___v550793 = 0; ___l5187230: for ( i=  1 ;  i <= (QB.func_UBound(  types));  i= i + 1) { if (QB.halted()) { return; } ___v550793++;   if (___v550793 % 100 == 0) { await QB.autoLimit(); }
+   var ___v357299 = 0; ___l3810077: for ( i=  1 ;  i <= (QB.func_UBound(  types));  i= i + 1) { if (QB.halted()) { return; } ___v357299++;   if (___v357299 % 100 == 0) { await QB.autoLimit(); }
       if (QB.arrayValue(types, [ i]).value .name ==   typeName) {
          id =  i;
-         break ___l5187230;
+         break ___l3810077;
       }
    } 
    FindTypeId =  id;
@@ -2197,7 +2352,7 @@ var ConvertExpression = null;
    var stringLiteral = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
    i =  1;
-   var ___v357299 = 0; ___l3810077: while ( i <= (QB.func_Len(  ex))) { if (QB.halted()) { return; }___v357299++;   if (___v357299 % 100 == 0) { await QB.autoLimit(); }
+   var ___v9516727 = 0; ___l8615415: while ( i <= (QB.func_Len(  ex))) { if (QB.halted()) { return; }___v9516727++;   if (___v9516727 % 100 == 0) { await QB.autoLimit(); }
       c = (QB.func_Mid(  ex,    i,    1));
       if ( c ==  (QB.func_Chr(  34))  ) {
          js =  js +  c;
@@ -2302,7 +2457,7 @@ var ConvertExpression = null;
             var stringLiteral2 = 0;  /* INTEGER */ 
             stringLiteral2 =  False;
             i =  i +  1;
-            var ___v9516727 = 0; ___l8615415: while (~ done &  i <= (QB.func_Len(  ex))) { if (QB.halted()) { return; }___v9516727++;   if (___v9516727 % 100 == 0) { await QB.autoLimit(); }
+            var ___v5059488 = 0; ___l1660812: while (~ done &  i <= (QB.func_Len(  ex))) { if (QB.halted()) { return; }___v5059488++;   if (___v5059488 % 100 == 0) { await QB.autoLimit(); }
                c2 = (QB.func_Mid(  ex,    i,    1));
                if ( c2 ==  (QB.func_Chr(  34))  ) {
                   stringLiteral2 = ~ stringLiteral2;
@@ -2348,7 +2503,7 @@ var ConvertExpression = null;
                      var argc = 0;  /* INTEGER */ var ai = 0;  /* INTEGER */ 
                      argc = (await func_ListSplit(  ex2,   params));
                      arraySize = "10";
-                     var ___v5059488 = 0; ___l1660812: for ( ai=  2 ;  ai <=  argc;  ai= ai + 1) { if (QB.halted()) { return; } ___v5059488++;   if (___v5059488 % 100 == 0) { await QB.autoLimit(); }
+                     var ___v7915529 = 0; ___l2245664: for ( ai=  2 ;  ai <=  argc;  ai= ai + 1) { if (QB.halted()) { return; } ___v7915529++;   if (___v7915529 % 100 == 0) { await QB.autoLimit(); }
                         arraySize =  arraySize + ", 10";
                      } 
                      dt = (await func_DataTypeFromName(  varname));
@@ -2387,26 +2542,26 @@ var ConvertIntDiv = null;
    var idx = 0;  /* INTEGER */ var sidx = 0;  /* INTEGER */ var eidx = 0;  /* INTEGER */ var smode = 0;  /* INTEGER */ var qmode = 0;  /* INTEGER */ var pcount = 0;  /* INTEGER */ var ci = 0;  /* INTEGER */ 
    var c = '';  /* STRING */ 
    idx = (QB.func_InStr(  s,   "\\"));
-   var ___v7915529 = 0; ___l2245664: while ( idx > 0) { if (QB.halted()) { return; }___v7915529++;   if (___v7915529 % 100 == 0) { await QB.autoLimit(); }
+   var ___v5360622 = 0; ___l1095753: while ( idx > 0) { if (QB.halted()) { return; }___v5360622++;   if (___v5360622 % 100 == 0) { await QB.autoLimit(); }
       smode =  0;
       qmode =  0;
       pcount =  0;
-      var ___v5360622 = 0; ___l1095753: for ( sidx=  idx -  1 ;  sidx >=  1 ;  sidx= sidx +  - 1) { if (QB.halted()) { return; } ___v5360622++;   if (___v5360622 % 100 == 0) { await QB.autoLimit(); }
+      var ___v3032967 = 0; ___l8024389: for ( sidx=  idx -  1 ;  sidx >=  1 ;  sidx= sidx +  - 1) { if (QB.halted()) { return; } ___v3032967++;   if (___v3032967 % 100 == 0) { await QB.autoLimit(); }
          c = (QB.func_Mid(  s,    sidx,    1));
          if ( c ==  " "  ) {
             if ( smode ==   0 ) {
             } else if ( smode ==   1 ) {
                if ( pcount <=  0 ) {
-                  var ___v3032967 = 0; ___l8024389: for ( ci=  sidx -  1 ;  ci >=  1 ;  ci= ci +  - 1) { if (QB.halted()) { return; } ___v3032967++;   if (___v3032967 % 100 == 0) { await QB.autoLimit(); }
+                  var ___v3082602 = 0; ___l882600: for ( ci=  sidx -  1 ;  ci >=  1 ;  ci= ci +  - 1) { if (QB.halted()) { return; } ___v3082602++;   if (___v3082602 % 100 == 0) { await QB.autoLimit(); }
                      c = (QB.func_Mid(  s,    ci,    1));
                      if ( c !=  " "  ) {
                         if ( c ==  "-"  ) {
                            sidx =  ci;
                         }
-                        break ___l8024389;
+                        break ___l882600;
                      }
                   } 
-                  break ___l1095753;
+                  break ___l8024389;
                }
                smode =  0;
             }
@@ -2426,13 +2581,13 @@ var ConvertIntDiv = null;
       pcount = (QB.func_Abs(  pcount));
       smode =  0;
       qmode =  0;
-      var ___v3082602 = 0; ___l882600: for ( eidx=  idx +  1 ;  eidx <= (QB.func_Len(  s));  eidx= eidx + 1) { if (QB.halted()) { return; } ___v3082602++;   if (___v3082602 % 100 == 0) { await QB.autoLimit(); }
+      var ___v7516135 = 0; ___l6110892: for ( eidx=  idx +  1 ;  eidx <= (QB.func_Len(  s));  eidx= eidx + 1) { if (QB.halted()) { return; } ___v7516135++;   if (___v7516135 % 100 == 0) { await QB.autoLimit(); }
          c = (QB.func_Mid(  s,    eidx,    1));
          if ( c ==  " "  |  c ==  "-"  ) {
             if ( smode ==   0 ) {
             } else if ( smode ==   1 ) {
                if ( pcount ==   0 ) {
-                  break ___l882600;
+                  break ___l6110892;
                }
                smode =  0;
             }
@@ -2464,7 +2619,7 @@ var ConvertMethodParams = null;
    var argc = 0;  /* INTEGER */ 
    argc = (await func_ListSplit(  args,   params));
    var i = 0;  /* INTEGER */ 
-   var ___v7516135 = 0; ___l6110892: for ( i=  1 ;  i <=  argc;  i= i + 1) { if (QB.halted()) { return; } ___v7516135++;   if (___v7516135 % 100 == 0) { await QB.autoLimit(); }
+   var ___v8299279 = 0; ___l3705068: for ( i=  1 ;  i <=  argc;  i= i + 1) { if (QB.halted()) { return; } ___v8299279++;   if (___v8299279 % 100 == 0) { await QB.autoLimit(); }
       if ( i > 1 ) {
          js =  js + ",";
       }
@@ -2498,7 +2653,7 @@ var FindVariable = null;
    var i = 0;  /* INTEGER */ 
    var fvarname = '';  /* STRING */ 
    fvarname = (QB.func__Trim( (QB.func_UCase( (await func_RemoveSuffix(  varname))))));
-   var ___v8299279 = 0; ___l3705068: for ( i=  1 ;  i <= (QB.func_UBound(  localVars));  i= i + 1) { if (QB.halted()) { return; } ___v8299279++;   if (___v8299279 % 100 == 0) { await QB.autoLimit(); }
+   var ___v8279706 = 0; ___l1908614: for ( i=  1 ;  i <= (QB.func_UBound(  localVars));  i= i + 1) { if (QB.halted()) { return; } ___v8279706++;   if (___v8279706 % 100 == 0) { await QB.autoLimit(); }
       if (QB.arrayValue(localVars, [ i]).value .isArray ==   isArray & (QB.func_UCase( QB.arrayValue(localVars, [ i]).value .name))  ==   fvarname) {
          found =  True;
          bvar.type = QB.arrayValue(localVars, [ i]).value .type;
@@ -2508,11 +2663,11 @@ var FindVariable = null;
          bvar.isArray = QB.arrayValue(localVars, [ i]).value .isArray;
          bvar.arraySize = QB.arrayValue(localVars, [ i]).value .arraySize;
          bvar.typeId = QB.arrayValue(localVars, [ i]).value .typeId;
-         break ___l3705068;
+         break ___l1908614;
       }
    } 
    if (~ found) {
-      var ___v8279706 = 0; ___l1908614: for ( i=  1 ;  i <= (QB.func_UBound(  globalVars));  i= i + 1) { if (QB.halted()) { return; } ___v8279706++;   if (___v8279706 % 100 == 0) { await QB.autoLimit(); }
+      var ___v9492710 = 0; ___l9444140: for ( i=  1 ;  i <= (QB.func_UBound(  globalVars));  i= i + 1) { if (QB.halted()) { return; } ___v9492710++;   if (___v9492710 % 100 == 0) { await QB.autoLimit(); }
          if (QB.arrayValue(globalVars, [ i]).value .isArray ==   isArray & (QB.func_UCase( QB.arrayValue(globalVars, [ i]).value .name))  ==   fvarname) {
             found =  True;
             bvar.type = QB.arrayValue(globalVars, [ i]).value .type;
@@ -2522,7 +2677,7 @@ var FindVariable = null;
             bvar.isArray = QB.arrayValue(globalVars, [ i]).value .isArray;
             bvar.arraySize = QB.arrayValue(globalVars, [ i]).value .arraySize;
             bvar.typeId = QB.arrayValue(globalVars, [ i]).value .typeId;
-            break ___l1908614;
+            break ___l9444140;
          }
       } 
    }
@@ -2538,7 +2693,7 @@ var FindMethod = null;
    var found = 0;  /* INTEGER */ 
    found =  0;
    var i = 0;  /* INTEGER */ 
-   var ___v9492710 = 0; ___l9444140: for ( i=  1 ;  i <= (QB.func_UBound(  localMethods));  i= i + 1) { if (QB.halted()) { return; } ___v9492710++;   if (___v9492710 % 100 == 0) { await QB.autoLimit(); }
+   var ___v7912182 = 0; ___l5596389: for ( i=  1 ;  i <= (QB.func_UBound(  localMethods));  i= i + 1) { if (QB.halted()) { return; } ___v7912182++;   if (___v7912182 % 100 == 0) { await QB.autoLimit(); }
       if (QB.arrayValue(localMethods, [ i]).value .uname ==   umname) {
          found =  True;
          m.line = QB.arrayValue(localMethods, [ i]).value .line;
@@ -2551,11 +2706,11 @@ var FindMethod = null;
          m.args = QB.arrayValue(localMethods, [ i]).value .args;
          m.sync = QB.arrayValue(localMethods, [ i]).value .sync;
          found =  i;
-         break ___l9444140;
+         break ___l5596389;
       }
    } 
    if (~ found) {
-      var ___v7912182 = 0; ___l5596389: for ( i=  1 ;  i <= (QB.func_UBound(  methods));  i= i + 1) { if (QB.halted()) { return; } ___v7912182++;   if (___v7912182 % 100 == 0) { await QB.autoLimit(); }
+      var ___v6209402 = 0; ___l959311: for ( i=  1 ;  i <= (QB.func_UBound(  methods));  i= i + 1) { if (QB.halted()) { return; } ___v6209402++;   if (___v6209402 % 100 == 0) { await QB.autoLimit(); }
          if ((~ includeBuiltIn)  & QB.arrayValue(methods, [ i]).value .builtin ) {
          } else if (QB.arrayValue(methods, [ i]).value .uname ==   umname & QB.arrayValue(methods, [ i]).value .type ==   t) {
             found =  True;
@@ -2569,11 +2724,11 @@ var FindMethod = null;
             m.args = QB.arrayValue(methods, [ i]).value .args;
             m.sync = QB.arrayValue(methods, [ i]).value .sync;
             found =  i;
-            break ___l5596389;
+            break ___l959311;
          }
       } 
       if (~ found) {
-         var ___v6209402 = 0; ___l959311: for ( i=  1 ;  i <= (QB.func_UBound(  exportMethods));  i= i + 1) { if (QB.halted()) { return; } ___v6209402++;   if (___v6209402 % 100 == 0) { await QB.autoLimit(); }
+         var ___v8582140 = 0; ___l4159691: for ( i=  1 ;  i <= (QB.func_UBound(  exportMethods));  i= i + 1) { if (QB.halted()) { return; } ___v8582140++;   if (___v8582140 % 100 == 0) { await QB.autoLimit(); }
             if (QB.arrayValue(exportMethods, [ i]).value .uname ==   umname & QB.arrayValue(exportMethods, [ i]).value .type ==   t) {
                found =  True;
                m.line = QB.arrayValue(exportMethods, [ i]).value .line;
@@ -2586,7 +2741,7 @@ var FindMethod = null;
                m.args = QB.arrayValue(exportMethods, [ i]).value .args;
                m.sync = QB.arrayValue(exportMethods, [ i]).value .sync;
                found =  i;
-               break ___l959311;
+               break ___l4159691;
             }
          } 
       }
@@ -2599,7 +2754,7 @@ if (QB.halted()) { return; };
 /* implicit variables: */ 
    await sub_AddJSLine(  0 ,   "");
    var i = 0;  /* INTEGER */ 
-   var ___v8582140 = 0; ___l4159691: for ( i=  1 ;  i <= (QB.func_UBound(  methods));  i= i + 1) { if (QB.halted()) { return; } ___v8582140++;   if (___v8582140 % 100 == 0) { await QB.autoLimit(); }
+   var ___v4216568 = 0; ___l2369846: for ( i=  1 ;  i <= (QB.func_UBound(  methods));  i= i + 1) { if (QB.halted()) { return; } ___v4216568++;   if (___v4216568 % 100 == 0) { await QB.autoLimit(); }
       if ((QB.arrayValue(methods, [ i]).value .line !=   0)  ) {
          var lastLine = 0;  /* INTEGER */ 
          lastLine = QB.arrayValue(methods, [ i +  1]).value .line -  1;
@@ -2617,7 +2772,7 @@ if (QB.halted()) { return; };
             var c = 0;  /* INTEGER */ 
             c = (await func_Split( QB.arrayValue(methods, [ i]).value .args ,   ","  ,   args));
             var a = 0;  /* INTEGER */ 
-            var ___v4216568 = 0; ___l2369846: for ( a=  1 ;  a <=  c;  a= a + 1) { if (QB.halted()) { return; } ___v4216568++;   if (___v4216568 % 100 == 0) { await QB.autoLimit(); }
+            var ___v8444489 = 0; ___l5921883: for ( a=  1 ;  a <=  c;  a= a + 1) { if (QB.halted()) { return; } ___v8444489++;   if (___v8444489 % 100 == 0) { await QB.autoLimit(); }
                var v = 0;  /* INTEGER */ 
                var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
                v = (await func_Split( QB.arrayValue(args, [ a]).value  ,   ":"  ,   parts));
@@ -2671,7 +2826,7 @@ if (QB.halted()) { return; };
    } 
    if ((QB.func_UBound(  exportLines))  > 0 ) {
       await sub_AddJSLine(  0 ,   "return {");
-      var ___v8444489 = 0; ___l5921883: for ( i=  1 ;  i <= (QB.func_UBound(  exportLines));  i= i + 1) { if (QB.halted()) { return; } ___v8444489++;   if (___v8444489 % 100 == 0) { await QB.autoLimit(); }
+      var ___v3158374 = 0; ___l9836021: for ( i=  1 ;  i <= (QB.func_UBound(  exportLines));  i= i + 1) { if (QB.halted()) { return; } ___v3158374++;   if (___v3158374 % 100 == 0) { await QB.autoLimit(); }
          await sub_AddJSLine(  i,   QB.arrayValue(exportLines, [ i]).value);
       } 
       await sub_AddJSLine(  0 ,   "};");
@@ -2686,7 +2841,7 @@ if (QB.halted()) { return; };
    var lcount = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
    lcount = (await func_Split(  sourceText,   await func_LF(),   sourceLines));
-   var ___v3158374 = 0; ___l9836021: for ( i=  1 ;  i <=  lcount;  i= i + 1) { if (QB.halted()) { return; } ___v3158374++;   if (___v3158374 % 100 == 0) { await QB.autoLimit(); }
+   var ___v546714 = 0; ___l7575471: for ( i=  1 ;  i <=  lcount;  i= i + 1) { if (QB.halted()) { return; } ___v546714++;   if (___v546714 % 100 == 0) { await QB.autoLimit(); }
       var fline = '';  /* STRING */ 
       fline = QB.arrayValue(sourceLines, [ i]).value;
       if ((await func_StartsWith( (QB.func_LTrim( (QB.func_UCase(  fline))))  ,   "IMPORT "))  ) {
@@ -2722,9 +2877,7 @@ if (QB.halted()) { return; };
                await sub_RegisterImports(  m.source ,    m);
             }
             if ( parentModule !=   undefined ) {
-               //-------- BEGIN JS native code block --------
-                        parentModule.imports[m.path] = m.path;
-//-------- END JS native code block --------
+               await OBJ.sub_SetProperty(  parentModule.imports ,    m.path ,    m.path);
             }
          }
       }
@@ -2738,7 +2891,7 @@ if (QB.halted()) { return; };
    var lcount = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
    lcount = (await func_Split(  sourceText,   await func_LF(),   sourceLines));
-   var ___v546714 = 0; ___l7575471: for ( i=  1 ;  i <=  lcount;  i= i + 1) { if (QB.halted()) { return; } ___v546714++;   if (___v546714 % 100 == 0) { await QB.autoLimit(); }
+   var ___v6712186 = 0; ___l4840382: for ( i=  1 ;  i <=  lcount;  i= i + 1) { if (QB.halted()) { return; } ___v6712186++;   if (___v6712186 % 100 == 0) { await QB.autoLimit(); }
       var fline = '';  /* STRING */ 
       fline = QB.arrayValue(sourceLines, [ i]).value;
       if ((QB.func__Trim(  fline))  !=  ""  ) {
@@ -2769,12 +2922,12 @@ if (QB.halted()) { return; };
                var j = 0;  /* INTEGER */ 
                var moduleMethods = QB.initArray([{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0});  /* METHOD */ 
                moduleMethods =  m.exportMethods;
-               var ___v6712186 = 0; ___l4840382: for ( j=  1 ;  j <= (QB.func_UBound(  moduleMethods));  j= j + 1) { if (QB.halted()) { return; } ___v6712186++;   if (___v6712186 % 100 == 0) { await QB.autoLimit(); }
+               var ___v4235128 = 0; ___l3713350: for ( j=  1 ;  j <= (QB.func_UBound(  moduleMethods));  j= j + 1) { if (QB.halted()) { return; } ___v4235128++;   if (___v4235128 % 100 == 0) { await QB.autoLimit(); }
                   await sub_AddExportMethod( QB.arrayValue(moduleMethods, [ j]).value  ,    moduleName + ".");
                } 
                var moduleConsts = QB.initArray([{l:0,u: 0}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0});  /* METHOD */ 
                moduleConsts =  m.exportConsts;
-               var ___v4235128 = 0; ___l3713350: for ( j=  1 ;  j <= (QB.func_UBound(  moduleConsts));  j= j + 1) { if (QB.halted()) { return; } ___v4235128++;   if (___v4235128 % 100 == 0) { await QB.autoLimit(); }
+               var ___v5244827 = 0; ___l9968987: for ( j=  1 ;  j <= (QB.func_UBound(  moduleConsts));  j= j + 1) { if (QB.halted()) { return; } ___v5244827++;   if (___v5244827 % 100 == 0) { await QB.autoLimit(); }
                   await sub_AddExportConst( QB.arrayValue(moduleConsts, [ j]).value  ,    moduleName + ".");
                } 
                continue;
@@ -2784,7 +2937,7 @@ if (QB.halted()) { return; };
             }
          }
          fline = (await func_Replace(  fline,   await func_CR(),   ""));
-         var ___v5244827 = 0; ___l9968987: while ((await func_EndsWith(  fline,   " _"))) { if (QB.halted()) { return; }___v5244827++;   if (___v5244827 % 100 == 0) { await QB.autoLimit(); }
+         var ___v9061123 = 0; ___l8860056: while ((await func_EndsWith(  fline,   " _"))) { if (QB.halted()) { return; }___v9061123++;   if (___v9061123 % 100 == 0) { await QB.autoLimit(); }
             i =  i +  1;
             var nextLine = '';  /* STRING */ 
             nextLine = (await func_Replace( QB.arrayValue(sourceLines, [ i]).value  ,   await func_CR(),   ""));
@@ -2801,7 +2954,7 @@ var ReadLine = null;
    var quoteDepth = 0;  /* INTEGER */ 
    quoteDepth =  0;
    var i = 0;  /* INTEGER */ 
-   var ___v9061123 = 0; ___l8860056: for ( i=  1 ;  i <= (QB.func_Len(  fline));  i= i + 1) { if (QB.halted()) { return; } ___v9061123++;   if (___v9061123 % 100 == 0) { await QB.autoLimit(); }
+   var ___v968821 = 0; ___l7192662: for ( i=  1 ;  i <= (QB.func_Len(  fline));  i= i + 1) { if (QB.halted()) { return; } ___v968821++;   if (___v968821 % 100 == 0) { await QB.autoLimit(); }
       var c = '';  /* STRING */ var c4 = '';  /* STRING */ 
       c = (QB.func_Mid(  fline,    i,    1));
       c4 = (QB.func_UCase( (QB.func_Mid(  fline,    i,    4))));
@@ -2814,7 +2967,7 @@ var ReadLine = null;
       }
       if ( quoteDepth ==   0 & ( c ==  "'"  |  c4 ==  "REM ")  ) {
          fline = (QB.func_Left(  fline,    i -  1));
-         break ___l8860056;
+         break ___l7192662;
       }
    } 
    ReadLine =  rawJS;
@@ -2861,7 +3014,7 @@ var ReadLine = null;
       var dcount = 0;  /* INTEGER */ 
       var de = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
       dcount = (await func_ListSplit(  dstr,   de));
-      var ___v968821 = 0; ___l7192662: for ( i=  1 ;  i <=  dcount;  i= i + 1) { if (QB.halted()) { return; } ___v968821++;   if (___v968821 % 100 == 0) { await QB.autoLimit(); }
+      var ___v1187419 = 0; ___l2003016: for ( i=  1 ;  i <=  dcount;  i= i + 1) { if (QB.halted()) { return; } ___v1187419++;   if (___v1187419 % 100 == 0) { await QB.autoLimit(); }
          index = (QB.func_UBound(  dataArray))  +  1;
          QB.resizeArray(dataArray, [{l:0,u: index}], '', true);  /* STRING */ 
          QB.arrayValue(dataArray, [ index]).value = QB.arrayValue(de, [ i]).value;
@@ -2869,7 +3022,7 @@ var ReadLine = null;
       return ReadLine;
    }
    var ifIdx = 0;  /* INTEGER */ var thenIdx = 0;  /* INTEGER */ var elseIdx = 0;  /* INTEGER */ 
-   var ___v1187419 = 0; ___l2003016: for ( i=  1 ;  i <=  wcount;  i= i + 1) { if (QB.halted()) { return; } ___v1187419++;   if (___v1187419 % 100 == 0) { await QB.autoLimit(); }
+   var ___v5598645 = 0; ___l8648248: for ( i=  1 ;  i <=  wcount;  i= i + 1) { if (QB.halted()) { return; } ___v5598645++;   if (___v5598645 % 100 == 0) { await QB.autoLimit(); }
       word = (QB.func_UCase( QB.arrayValue(words, [ i]).value));
       if ( word ==  "IF"  ) {
          ifIdx =  i;
@@ -2908,7 +3061,7 @@ if (QB.halted()) { return; }; lineIndex = Math.round(lineIndex);
    var quoteDepth = 0;  /* INTEGER */ 
    quoteDepth =  0;
    var i = 0;  /* INTEGER */ 
-   var ___v5598645 = 0; ___l8648248: for ( i=  1 ;  i <= (QB.func_Len(  fline));  i= i + 1) { if (QB.halted()) { return; } ___v5598645++;   if (___v5598645 % 100 == 0) { await QB.autoLimit(); }
+   var ___v2294313 = 0; ___l3623797: for ( i=  1 ;  i <= (QB.func_Len(  fline));  i= i + 1) { if (QB.halted()) { return; } ___v2294313++;   if (___v2294313 % 100 == 0) { await QB.autoLimit(); }
       var c = '';  /* STRING */ 
       c = (QB.func_Mid(  fline,    i,    1));
       if ( c ==  (QB.func_Chr(  34))  ) {
@@ -2933,7 +3086,7 @@ if (QB.halted()) { return; };
    var pcount = 0;  /* INTEGER */ 
    var rawJS = 0;  /* INTEGER */ 
    var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
-   var ___v2294313 = 0; ___l3623797: for ( i=  1 ;  i <= (QB.func_UBound(  lines));  i= i + 1) { if (QB.halted()) { return; } ___v2294313++;   if (___v2294313 % 100 == 0) { await QB.autoLimit(); }
+   var ___v506980 = 0; ___l9919851: for ( i=  1 ;  i <= (QB.func_UBound(  lines));  i= i + 1) { if (QB.halted()) { return; } ___v506980++;   if (___v506980 % 100 == 0) { await QB.autoLimit(); }
       pcount = (await func_Split( QB.arrayValue(lines, [ i]).value .text ,   " "  ,   parts));
       var word = '';  /* STRING */ 
       word = (QB.func_UCase( QB.arrayValue(parts, [ 1]).value));
@@ -2977,7 +3130,7 @@ if (QB.halted()) { return; };
             var a = 0;  /* INTEGER */ 
             var args = '';  /* STRING */ 
             args = "";
-            var ___v506980 = 0; ___l9919851: for ( a=  1 ;  a <=  m.argc;  a= a + 1) { if (QB.halted()) { return; } ___v506980++;   if (___v506980 % 100 == 0) { await QB.autoLimit(); }
+            var ___v985931 = 0; ___l5229358: for ( a=  1 ;  a <=  m.argc;  a= a + 1) { if (QB.halted()) { return; } ___v985931++;   if (___v985931 % 100 == 0) { await QB.autoLimit(); }
                var aparts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
                var apcount = 0;  /* INTEGER */ 
                var argname = '';  /* STRING */ 
@@ -3021,7 +3174,7 @@ var Split = null;
    if ( delimiter ==  " "  ) {
       cstr = (QB.func_RTrim( (QB.func_LTrim(  cstr))));
       p = (QB.func_InStr(  cstr,   "  "));
-      var ___v985931 = 0; ___l5229358: while ( p > 0) { if (QB.halted()) { return; }___v985931++;   if (___v985931 % 100 == 0) { await QB.autoLimit(); }
+      var ___v9380960 = 0; ___l5820094: while ( p > 0) { if (QB.halted()) { return; }___v9380960++;   if (___v9380960 % 100 == 0) { await QB.autoLimit(); }
          cstr = (QB.func_Mid(  cstr,    1 ,    p -  1))  + (QB.func_Mid(  cstr,    p +  1));
          p = (QB.func_InStr(  cstr,   "  "));
       }
@@ -3029,7 +3182,7 @@ var Split = null;
    curpos =  1;
    arrpos =  0;
    dpos = (QB.func_InStr(  curpos,    cstr,    delimiter));
-   var ___v9380960 = 0; ___l5820094: while (!( dpos ==   0)) { if (QB.halted()) { return; }___v9380960++;   if (___v9380960 % 100 == 0) { await QB.autoLimit(); }
+   var ___v6696478 = 0; ___l1383297: while (!( dpos ==   0)) { if (QB.halted()) { return; }___v6696478++;   if (___v6696478 % 100 == 0) { await QB.autoLimit(); }
       arrpos =  arrpos +  1;
       QB.resizeArray(results, [{l:0,u: arrpos}], '', true);  /* STRING */ 
       QB.arrayValue(results, [ arrpos]).value = (QB.func_Mid(  cstr,    curpos,    dpos -  curpos));
@@ -3055,7 +3208,7 @@ var SLSplit = null;
    var result = '';  /* STRING */ 
    var count = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
-   var ___v6696478 = 0; ___l1383297: for ( i=  1 ;  i <= (QB.func_Len(  cstr));  i= i + 1) { if (QB.halted()) { return; } ___v6696478++;   if (___v6696478 % 100 == 0) { await QB.autoLimit(); }
+   var ___v3378422 = 0; ___l8671363: for ( i=  1 ;  i <= (QB.func_Len(  cstr));  i= i + 1) { if (QB.halted()) { return; } ___v3378422++;   if (___v3378422 % 100 == 0) { await QB.autoLimit(); }
       var c = '';  /* STRING */ var c2 = '';  /* STRING */ 
       c = (QB.func_Mid(  cstr,    i,    1));
       c2 = (QB.func_Mid(  cstr,    i,    2));
@@ -3151,7 +3304,7 @@ if (QB.halted()) { return; }; lineNumber = Math.round(lineNumber);
    var i = 0;  /* INTEGER */ 
    var quoteMode = 0;  /* INTEGER */ 
    var paren = 0;  /* INTEGER */ 
-   var ___v3378422 = 0; ___l8671363: for ( i=  1 ;  i <= (QB.func_Len(  sourceString));  i= i + 1) { if (QB.halted()) { return; } ___v3378422++;   if (___v3378422 % 100 == 0) { await QB.autoLimit(); }
+   var ___v6096486 = 0; ___l4237103: for ( i=  1 ;  i <= (QB.func_Len(  sourceString));  i= i + 1) { if (QB.halted()) { return; } ___v6096486++;   if (___v6096486 % 100 == 0) { await QB.autoLimit(); }
       var c = '';  /* STRING */ 
       c = (QB.func_Mid(  sourceString,    i,    1));
       if ( c ==  (QB.func_Chr(  34))  ) {
@@ -3183,7 +3336,7 @@ var SLSplit2 = null;
    var paren = 0;  /* INTEGER */ 
    var count = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
-   var ___v6096486 = 0; ___l4237103: for ( i=  1 ;  i <= (QB.func_Len(  cstr));  i= i + 1) { if (QB.halted()) { return; } ___v6096486++;   if (___v6096486 % 100 == 0) { await QB.autoLimit(); }
+   var ___v8784156 = 0; ___l9087062: for ( i=  1 ;  i <= (QB.func_Len(  cstr));  i= i + 1) { if (QB.halted()) { return; } ___v8784156++;   if (___v8784156 % 100 == 0) { await QB.autoLimit(); }
       var c = '';  /* STRING */ 
       c = (QB.func_Mid(  cstr,    i,    1));
       if ( c ==  (QB.func_Chr(  34))  ) {
@@ -3233,7 +3386,7 @@ var ListSplit = null;
    var count = 0;  /* INTEGER */ 
    var paren = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
-   var ___v8784156 = 0; ___l9087062: for ( i=  1 ;  i <= (QB.func_Len(  cstr));  i= i + 1) { if (QB.halted()) { return; } ___v8784156++;   if (___v8784156 % 100 == 0) { await QB.autoLimit(); }
+   var ___v1999065 = 0; ___l561406: for ( i=  1 ;  i <= (QB.func_Len(  cstr));  i= i + 1) { if (QB.halted()) { return; } ___v1999065++;   if (___v1999065 % 100 == 0) { await QB.autoLimit(); }
       var c = '';  /* STRING */ 
       c = (QB.func_Mid(  cstr,    i,    1));
       if ( c ==  (QB.func_Chr(  34))  ) {
@@ -3279,7 +3432,7 @@ var PrintSplit = null;
    var count = 0;  /* INTEGER */ 
    var paren = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
-   var ___v1999065 = 0; ___l561406: for ( i=  1 ;  i <= (QB.func_Len(  cstr));  i= i + 1) { if (QB.halted()) { return; } ___v1999065++;   if (___v1999065 % 100 == 0) { await QB.autoLimit(); }
+   var ___v7166154 = 0; ___l9252861: for ( i=  1 ;  i <= (QB.func_Len(  cstr));  i= i + 1) { if (QB.halted()) { return; } ___v7166154++;   if (___v7166154 % 100 == 0) { await QB.autoLimit(); }
       var c = '';  /* STRING */ 
       c = (QB.func_Mid(  cstr,    i,    1));
       if ( c ==  (QB.func_Chr(  34))  ) {
@@ -3324,7 +3477,7 @@ if (QB.halted()) { return; };
    await QB.sub_Print(["Methods"]);
    await QB.sub_Print(["------------------------------------------------------------"]);
    var i = 0;  /* INTEGER */ 
-   var ___v7166154 = 0; ___l9252861: for ( i=  1 ;  i <= (QB.func_UBound(  methods));  i= i + 1) { if (QB.halted()) { return; } ___v7166154++;   if (___v7166154 % 100 == 0) { await QB.autoLimit(); }
+   var ___v4766153 = 0; ___l1277227: for ( i=  1 ;  i <= (QB.func_UBound(  methods));  i= i + 1) { if (QB.halted()) { return; } ___v4766153++;   if (___v4766153 % 100 == 0) { await QB.autoLimit(); }
       var m = {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0};  /* METHOD */ 
       m = QB.arrayValue(methods, [ i]).value;
       await QB.sub_Print([(QB.func_Str(  m.line))  + ": "  +  m.type + " - "  +  m.name + " ["  +  m.jsname + "] - "  +  m.returnType + " - "  +  m.args]);
@@ -3337,12 +3490,12 @@ if (QB.halted()) { return; };
    await QB.sub_Print(["Types"]);
    await QB.sub_Print(["------------------------------------------------------------"]);
    var i = 0;  /* INTEGER */ 
-   var ___v4766153 = 0; ___l1277227: for ( i=  1 ;  i <= (QB.func_UBound(  types));  i= i + 1) { if (QB.halted()) { return; } ___v4766153++;   if (___v4766153 % 100 == 0) { await QB.autoLimit(); }
+   var ___v8031864 = 0; ___l8707944: for ( i=  1 ;  i <= (QB.func_UBound(  types));  i= i + 1) { if (QB.halted()) { return; } ___v8031864++;   if (___v8031864 % 100 == 0) { await QB.autoLimit(); }
       var t = {line:0,name:'',argc:0,args:''};  /* QBTYPE */ 
       t = QB.arrayValue(types, [ i]).value;
       await QB.sub_Print([(QB.func_Str(  t.line))  + ": "  +  t.name]);
       var v = 0;  /* INTEGER */ 
-      var ___v8031864 = 0; ___l8707944: for ( v=  1 ;  v <= (QB.func_UBound(  typeVars));  v= v + 1) { if (QB.halted()) { return; } ___v8031864++;   if (___v8031864 % 100 == 0) { await QB.autoLimit(); }
+      var ___v6214768 = 0; ___l3487226: for ( v=  1 ;  v <= (QB.func_UBound(  typeVars));  v= v + 1) { if (QB.halted()) { return; } ___v6214768++;   if (___v6214768 % 100 == 0) { await QB.autoLimit(); }
          if (QB.arrayValue(typeVars, [ i]).value .typeId ==   i) {
             await QB.sub_Print(["  -> "  + QB.arrayValue(typeVars, [ v]).value .name + ": "  + QB.arrayValue(typeVars, [ v]).value .type]);
          }
@@ -3705,7 +3858,7 @@ if (QB.halted()) { return; };
    var pairs = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
    count = (await func_Split(  args,   ","  ,   pairs));
    var i = 0;  /* INTEGER */ 
-   var ___v6214768 = 0; ___l3487226: for ( i=  1 ;  i <= (QB.func_UBound(  pairs));  i= i + 1) { if (QB.halted()) { return; } ___v6214768++;   if (___v6214768 % 100 == 0) { await QB.autoLimit(); }
+   var ___v3984435 = 0; ___l2626260: for ( i=  1 ;  i <= (QB.func_UBound(  pairs));  i= i + 1) { if (QB.halted()) { return; } ___v3984435++;   if (___v3984435 % 100 == 0) { await QB.autoLimit(); }
       var nv = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
       count = (await func_Split( QB.arrayValue(pairs, [ i]).value  ,   ":"  ,   nv));
       var tvar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
@@ -3735,7 +3888,7 @@ var RemoveSuffix = null;
    var c = '';  /* STRING */ 
    vname = (QB.func__Trim(  vname));
    i = (QB.func_Len(  vname));
-   var ___v3984435 = 0; ___l2626260: while (~ done) { if (QB.halted()) { return; }___v3984435++;   if (___v3984435 % 100 == 0) { await QB.autoLimit(); }
+   var ___v6023253 = 0; ___l5006956: while (~ done) { if (QB.halted()) { return; }___v6023253++;   if (___v6023253 % 100 == 0) { await QB.autoLimit(); }
       c = (QB.func_Mid(  vname,    i,    1));
       if ( c ==  "`"  |  c ==  "%"  |  c ==  "&"  |  c ==  "$"  |  c ==  "~"  |  c ==  "!"  |  c ==  "#"  ) {
          i =  i -  1;
@@ -3751,10 +3904,10 @@ if (QB.halted()) { return; };
 var IsJSReservedWord = null;
 /* implicit variables: */ 
    var found = 0;  /* INTEGER */ var i = 0;  /* INTEGER */ 
-   var ___v6023253 = 0; ___l5006956: for ( i=  1 ;  i <= (QB.func_UBound(  jsReservedWords));  i= i + 1) { if (QB.halted()) { return; } ___v6023253++;   if (___v6023253 % 100 == 0) { await QB.autoLimit(); }
+   var ___v8378968 = 0; ___l2597776: for ( i=  1 ;  i <= (QB.func_UBound(  jsReservedWords));  i= i + 1) { if (QB.halted()) { return; } ___v8378968++;   if (___v8378968 % 100 == 0) { await QB.autoLimit(); }
       if (QB.arrayValue(jsReservedWords, [ i]).value  ==   vname) {
          found =  True;
-         break ___l5006956;
+         break ___l2597776;
       }
    } 
    IsJSReservedWord =  found;
@@ -3838,7 +3991,7 @@ var Join = null;
    }
    var s = '';  /* STRING */ 
    var i = 0;  /* INTEGER */ 
-   var ___v8378968 = 0; ___l2597776: for ( i=  startIndex;  i <=  endIndex;  i= i + 1) { if (QB.halted()) { return; } ___v8378968++;   if (___v8378968 % 100 == 0) { await QB.autoLimit(); }
+   var ___v637532 = 0; ___l1396109: for ( i=  startIndex;  i <=  endIndex;  i= i + 1) { if (QB.halted()) { return; } ___v637532++;   if (___v637532 % 100 == 0) { await QB.autoLimit(); }
       s =  s + QB.arrayValue(parts, [ i]).value;
       if ( i !=  (QB.func_UBound(  parts))  ) {
          s =  s +  delimiter;
@@ -3859,7 +4012,7 @@ var GetMapKeys = null;
    size =  keys.length -  2;
    var results = QB.initArray([{l:0,u: size}], '');  /* STRING */ 
    var i = 0;  /* INTEGER */ 
-   var ___v637532 = 0; ___l1396109: for ( i=  2 ;  i <=  keys.length -  1;  i= i + 1) { if (QB.halted()) { return; } ___v637532++;   if (___v637532 % 100 == 0) { await QB.autoLimit(); }
+   var ___v5478771 = 0; ___l9909723: for ( i=  2 ;  i <=  keys.length -  1;  i= i + 1) { if (QB.halted()) { return; } ___v5478771++;   if (___v5478771 % 100 == 0) { await QB.autoLimit(); }
       QB.arrayValue(results, [ i - 1]).value =  keys[i];
    } 
    GetMapKeys =  results;
@@ -3882,7 +4035,7 @@ var Replace = null;
    var i = 0;  /* INTEGER */ 
    var slen = 0;  /* INTEGER */ 
    slen = (QB.func_Len(  searchString));
-   var ___v5478771 = 0; ___l9909723: for ( i=  1 ;  i <= (QB.func_Len(  s));  i= i + 1) { if (QB.halted()) { return; } ___v5478771++;   if (___v5478771 % 100 == 0) { await QB.autoLimit(); }
+   var ___v4677356 = 0; ___l5489768: for ( i=  1 ;  i <= (QB.func_Len(  s));  i= i + 1) { if (QB.halted()) { return; } ___v4677356++;   if (___v4677356 % 100 == 0) { await QB.autoLimit(); }
       if ((QB.func_Mid(  s,    i,    slen))  ==   searchString) {
          ns =  ns +  newString;
          i =  i +  slen -  1;
@@ -3930,7 +4083,7 @@ var MethodJS = null;
    var i = 0;  /* INTEGER */ 
    var c = '';  /* STRING */ 
    var a = 0;  /* INTEGER */ 
-   var ___v4677356 = 0; ___l5489768: for ( i=  1 ;  i <= (QB.func_Len(  m.name));  i= i + 1) { if (QB.halted()) { return; } ___v4677356++;   if (___v4677356 % 100 == 0) { await QB.autoLimit(); }
+   var ___v3111601 = 0; ___l1327849: for ( i=  1 ;  i <= (QB.func_Len(  m.name));  i= i + 1) { if (QB.halted()) { return; } ___v3111601++;   if (___v3111601 % 100 == 0) { await QB.autoLimit(); }
       c = (QB.func_Mid(  m.name ,    i,    1));
       a = (QB.func_Asc(  c));
       if ( a ==   46 ) {
@@ -3959,7 +4112,7 @@ var GXMethodJS = null;
    var i = 0;  /* INTEGER */ 
    var c = '';  /* STRING */ 
    var a = 0;  /* INTEGER */ 
-   var ___v3111601 = 0; ___l1327849: for ( i=  startIdx +  1 ;  i <= (QB.func_Len(  mname));  i= i + 1) { if (QB.halted()) { return; } ___v3111601++;   if (___v3111601 % 100 == 0) { await QB.autoLimit(); }
+   var ___v4842554 = 0; ___l9429657: for ( i=  startIdx +  1 ;  i <= (QB.func_Len(  mname));  i= i + 1) { if (QB.halted()) { return; } ___v4842554++;   if (___v4842554 % 100 == 0) { await QB.autoLimit(); }
       c = (QB.func_Mid(  mname,    i,    1));
       a = (QB.func_Asc(  c));
       if (( a >=  65 &  a <=  90)  | ( a >=  97 &  a <=  122)  | ( a >=  48 &  a <=  57)  |  a ==   95 |  a ==   46 ) {
