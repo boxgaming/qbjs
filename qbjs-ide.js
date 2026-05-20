@@ -313,27 +313,29 @@ var IDE = new function() {
     }
 
     async function _showMethodDialog() {
+        if (GX.sceneActive() || QB.running()) { return; }
+
         // compile the source
         var qbCode = editor.getValue();
         if (codeTabMap[activeCodeTab].editor) {
             var vfs = QB.vfs();
-            console.log(codeTabMap[activeCodeTab]);
             var tcode = vfs.getTypeFromName(codeTabMap[activeCodeTab].filepath);
-            console.log(tcode);
             if (tcode == "text/qbjs") {
                 qbCode = codeTabMap[activeCodeTab].editor.getValue();
-                console.log(qbCode);
             }
         }
+        GX.reset();
+        QB.start();
         if (!QBCompiler) { QBCompiler = await _QBCompiler(); }
         var jsCode = await QBCompiler.compile(qbCode);
-        
+        QB.halt();
+
         var mbody = document.getElementById("methods-content");
         mbody.innerHTML = "";
-        _addMethods(mbody, QBCompiler.getMethods(), _gotoMethod);
+        _addMethods(mbody, await QBCompiler.getMethods(), _gotoMethod);
 
-        var imports = QBCompiler.getExportMethods();
-        var consts = QBCompiler.getExportConsts();
+        var imports = await QBCompiler.getExportMethods();
+        var consts = await QBCompiler.getExportConsts();
         for (var i=0; i < consts.length; i++) {
             var obj = consts[i];
             obj.uname = obj.name.toUpperCase();
@@ -349,9 +351,11 @@ var IDE = new function() {
     }
     
     function _gotoMethod(e) {
-        editor.setCursor({ line: e.target.parentNode.line - 1 }); 
         _closeDialog();
-    };
+        document.activeElement.blur();
+        codeTabMap[activeCodeTab].editor.focus();
+        codeTabMap[activeCodeTab].editor.setCursor({ line: e.target.parentNode.line - 1 }); 
+    }
 
     function _addMethods(mbody, methods, fnCallback) {
         methods.sort((a, b) => a.uname.localeCompare(b.uname));
