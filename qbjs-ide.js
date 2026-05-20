@@ -195,6 +195,7 @@ var IDE = new function() {
         });
 
         codeTabMap[MAIN_CODE_TAB] = {
+            filepath: "main.bas",
             tab: document.getElementById("mainbas"),
             content: document.getElementById("code"),
             editor: editor,
@@ -312,17 +313,29 @@ var IDE = new function() {
     }
 
     async function _showMethodDialog() {
+        if (GX.sceneActive() || QB.running()) { return; }
+
         // compile the source
         var qbCode = editor.getValue();
+        if (codeTabMap[activeCodeTab].editor) {
+            var vfs = QB.vfs();
+            var tcode = vfs.getTypeFromName(codeTabMap[activeCodeTab].filepath);
+            if (tcode == "text/qbjs") {
+                qbCode = codeTabMap[activeCodeTab].editor.getValue();
+            }
+        }
+        GX.reset();
+        QB.start();
         if (!QBCompiler) { QBCompiler = await _QBCompiler(); }
         var jsCode = await QBCompiler.compile(qbCode);
-        
+        QB.halt();
+
         var mbody = document.getElementById("methods-content");
         mbody.innerHTML = "";
-        _addMethods(mbody, QBCompiler.getMethods(), _gotoMethod);
+        _addMethods(mbody, await QBCompiler.getMethods(), _gotoMethod);
 
-        var imports = QBCompiler.getExportMethods();
-        var consts = QBCompiler.getExportConsts();
+        var imports = await QBCompiler.getExportMethods();
+        var consts = await QBCompiler.getExportConsts();
         for (var i=0; i < consts.length; i++) {
             var obj = consts[i];
             obj.uname = obj.name.toUpperCase();
@@ -338,9 +351,11 @@ var IDE = new function() {
     }
     
     function _gotoMethod(e) {
-        editor.setCursor({ line: e.target.parentNode.line - 1 }); 
         _closeDialog();
-    };
+        document.activeElement.blur();
+        codeTabMap[activeCodeTab].editor.focus();
+        codeTabMap[activeCodeTab].editor.setCursor({ line: e.target.parentNode.line - 1 }); 
+    }
 
     function _addMethods(mbody, methods, fnCallback) {
         methods.sort((a, b) => a.uname.localeCompare(b.uname));
@@ -374,7 +389,6 @@ var IDE = new function() {
             return result;
         }
         for (var i=0; i < args.length; i++) {
-            console.log(args[i]);
             var nv = args[i].split(":");
             if (result != "") {
                 result += ", ";
@@ -826,6 +840,7 @@ var IDE = new function() {
                 table.append(tr);
                 tr.codeLine = w[i].line - 1;
                 tr.moduleId = w[i].moduleId;
+                tr.module = w[i].module;
                 tr.onclick = _gotoWarning;
             }
         }
@@ -838,8 +853,10 @@ var IDE = new function() {
         if (selectedError) { selectedError.classList.remove("selected"); }
         this.classList.add("selected");
         selectedError = this;
-        if (this.moduleId) {
-            var module = QBCompiler.getModule(this.moduleId);
+        if (this.module) {
+        //if (this.moduleId) {
+            //var module = QBCompiler.getModule(this.moduleId);
+            var module = this.module;
             var vfs = QB.vfs();
             var file = vfs.getNode(module.path, vfs.rootDirectory());
             if (file) {
@@ -1245,6 +1262,7 @@ var IDE = new function() {
             div.appendChild(cdiv);
 
             codeTabMap[fullpath] = {
+                filepath: fullpath,
                 tab: tdiv,
                 content: div,
                 text: false
@@ -1269,6 +1287,7 @@ var IDE = new function() {
             div.appendChild(cdiv);
 
             codeTabMap[fullpath] = {
+                filepath: fullpath,
                 tab: tdiv,
                 content: div,
                 text: false
@@ -1283,6 +1302,7 @@ var IDE = new function() {
             div.appendChild(cdiv);
 
             codeTabMap[fullpath] = {
+                filepath: fullpath,
                 tab: tdiv,
                 content: div,
                 text: false
@@ -1309,6 +1329,7 @@ var IDE = new function() {
             });
             cm.setValue(vfs.readText(node));
             codeTabMap[fullpath] = {
+                filepath: fullpath,
                 tab: tdiv,
                 content: div,
                 editor: cm,

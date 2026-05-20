@@ -1,6 +1,5 @@
+Import OBJ From "lib/lang/object.bas"
 Option _Explicit
-$Console:Only
-'$ExeIcon:'./../gx/resource/gx.ico'
 
 '1) Edit this file as needed.
 '2) In console, run:    node qbc tools/qb2js.bas qb2js.js
@@ -17,6 +16,11 @@ Const PrintTokenizedLine = False
 Type Module
     name As String
     path As String
+    source As String
+    exportMethods As Object
+    exportConsts As Object
+    imports As Object 
+    processed As Integer
 End Type
 
 Type CodeLine
@@ -24,6 +28,7 @@ Type CodeLine
     text As String
     mtype As Integer
     moduleId As Integer
+    module As Integer
 End Type
 
 Type Method
@@ -74,6 +79,7 @@ Type Container
     line As Integer
 End Type
 
+ReDim Shared As Module moduleMap()
 ReDim Shared As Module modules(0)
 ReDim Shared As CodeLine lines(0)
 ReDim Shared As CodeLine jsLines(0)
@@ -84,6 +90,7 @@ ReDim Shared As Variable typeVars(0)
 ReDim Shared As Variable globalVars(0)
 ReDim Shared As Variable localVars(0)
 ReDim Shared As CodeLine warnings(0)
+ReDim Shared As String importLines(0)
 ReDim Shared As String exportLines(0)
 ReDim Shared As Variable exportConsts(0)
 ReDim Shared As Method exportMethods(0)
@@ -92,6 +99,7 @@ ReDim Shared As Label dataLabels(0)
 Dim Shared As String jsReservedWords(55)
 Dim Shared modLevel As Integer
 Dim Shared As String currentMethod
+Dim Shared As Module activeModule
 Dim Shared As String currentModule
 Dim Shared As Integer currentModuleId
 Dim Shared As Integer programMethods
@@ -104,31 +112,79 @@ Dim Shared As Integer forceSelfConvert
 Dim Shared As Integer optionExplicit
 Dim Shared As Integer optionExplicitArray
 
-' Only execute the conversion from the native version if we have been passed the
-' source file to convert on the command line
-If Command$ <> "" Then
-    QBToJS Command$, FILE, ""
-    PrintJS
-    System
-End If
-
-'$Include: 'qb2js.bi'
-
 Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
     condWords(1) = "IF": condWords(2) = "ELSEIF": condWords(3) = "WHILE": condWords(4) = "UNTIL"
-    currentModule = moduleName
+    ReDim As CodeLine jsLines(0)
+    ReDim As Module moduleMap()
+    ReDim As CodeLine warnings(0)
+    RegisterImports source
 
+    Dim i As Integer
+    Dim keys(0) As Method
+    Dim m As Module 
+    keys = GetMapKeys(SortModules)
+    For i = 1 To UBound(keys)
+        m = moduleMap(keys(i))
+        activeModule = m
+        Compile m.source, m.name
+    Next i
+
+    activeModule = undefined
+    Compile source, "", forceSelfConvert
+End Sub
+
+' We need to make sure that modules are compiled before other modules
+' into which they are being imported.  This method will generate a
+' circular dependency error in the case that two libraries import
+' each other
+Function SortModules
+    Dim results() As Object
+    ReDim moduleNames(0) As String
+    moduleNames = GetMapKeys(moduleMap)
+    
+    Dim As Integer i, skipCount, lastSkipCount
+    skipCount = UBound(moduleNames)
+    Do 
+        lastSkipCount = skipCount
+        skipCount = 0
+        For i = 1 To UBound(moduleNames)
+            Dim m As Module
+            m = moduleMap(moduleNames(i))
+            If m.processed Then _Continue
+
+            Dim As Integer importCount
+            Dim ikeys(0) As String
+            ikeys = OBJ.Keys(m.imports)
+            importCount = UBound(ikeys)
+            If importCount = 0 Then
+                results(m.path) = m
+                m.processed = -1
+
+                ' remove this dependency from all of the other lists
+                Dim k As Integer
+                Dim mm As Module
+                For k = 1 To UBound(moduleNames)
+                    mm = moduleMap(moduleNames(k))
+                    If Not mm.processed Then
+                        If OBJ.HasProperty(mm.imports, m.path) Then OBJ.DeleteProperty mm.imports, m.path
+                    End If
+                Next k
+            Else
+                skipCount = skipCount + 1
+            End If
+        Next i
+    Loop While skipCount > 0 And lastSkipCount > skipCount
+
+    If skipCount > 0 Then 
+        AddError 0, "Circular import dependency"
+    End If
+
+    SortModules = results
+End Function
+
+Sub Compile (source As String, moduleName As String, selfConvert)
     ResetDataStructures
-    If moduleName = "" Then
-        ReDim As CodeLine jsLines(0)
-        currentModuleId = 0
-    End If
-
-    If sourceType = FILE Then
-        ReadLinesFromFile source
-    Else
-        ReadLinesFromText source
-    End If
+    ReadLinesFromText source
 
     FindMethods
     programMethods = UBound(methods)
@@ -141,21 +197,24 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
     '   2) Forgo initializing the game events and default screen
     '   3) Add an externally callable javascript function named "compile"
     '      which will allow us to call the converter from a web application
-    Dim selfConvert As Integer
     Dim isGX As Integer: isGX = False
-    If sourceType = FILE Then selfConvert = EndsWith(source, "qb2js.bas")
-    If forceSelfConvert Then selfConvert = True
 
-    If selfConvert Then
+    If selfConvert And moduleName = "" Then
         AddJSLine 0, "if (typeof QB == 'undefined' && module) { QB = require('./qb-console.js').QB(); }"
         AddJSLine 0, "async function _QBCompiler() {"
-
-    ElseIf moduleName <> "" Then
-        AddJSLine 0, "async function _" + moduleName + "() {"
-
-    ElseIf sourceType = FILE Then
-        AddJSLine 0, "async function init() {"
     End If
+
+    If moduleName <> "" Then
+        AddJSLine 0, "async function __qblib_" + moduleName + "() {"
+
+    End If
+
+    ' Initialize any imported libraries
+    Dim i As Integer
+    For i = 1 To UBound(importLines)
+        AddJSLine i, importLines(i)
+    Next i
+    ReDim As String importLines(0)
 
     ' Add a placeholder lines for constants, shared variables and static method variables
     ' These lines will be appended to as shared variable declarations are encountered
@@ -212,7 +271,8 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         AddJSLine 0, "         line: QB.arrayValue(warnings, [i]).value.line,"
         AddJSLine 0, "         text: QB.arrayValue(warnings, [i]).value.text,"
         AddJSLine 0, "         mtype: QB.arrayValue(warnings, [i]).value.mtype,"
-        AddJSLine 0, "         moduleId: QB.arrayValue(warnings, [i]).value.moduleId"
+        AddJSLine 0, "         moduleId: QB.arrayValue(warnings, [i]).value.moduleId,"
+        AddJSLine 0, "         module: QB.arrayValue(warnings, [i]).value.module,"
         AddJSLine 0, "      });"
         AddJSLine 0, "   }"
         AddJSLine 0, "   return w;"
@@ -272,10 +332,6 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
 
     ElseIf moduleName <> "" Then
         AddJSLine 0, "}"
-        AddJSLine 0, "const " + moduleName + " = await _" + moduleName + "();"
-
-    ElseIf sourceType = FILE Then
-        AddJSLine 0, "};"
     End If
 End Sub
 
@@ -327,12 +383,9 @@ Sub ResetDataStructures
     ReDim As Variable localVars(0)
     ReDim As String dataArray(0)
     ReDim As Label dataLabels(0)
-    If modLevel = 0 Then
-        ReDim As CodeLine warnings(0)
-        ReDim As Method exportMethods(0)
-        ReDim As Variable exportConsts(0)
-        ReDim As Module modules(0)
-    End If
+    ReDim As Module modules(0)
+    ReDim As Method exportMethods(0)
+    ReDim As Variable exportConsts(0)
     currentMethod = ""
     programMethods = 0
     staticVarLine = 0
@@ -384,7 +437,6 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
     implicitVarLine = UBound(jsLines)
 
     For i = firstLine To lastLine
-        'AddWarning i, Right$("    " + Str$(cindex), 4) + "|" + lines(i).text
         indent = 0
         tempIndent = 0
         Dim l As String
@@ -683,11 +735,6 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 indent = 1
 
             ElseIf first = "WEND" Then
-                'ctype = ""
-                'If cindex > 0 Then ctype = containers(cindex).type
-                'If ctype <> "WHILE" Then
-                '    AddWarning i, "WEND without WHILE"
-                'Else
                 If CheckBlockEnd(containers(), cindex, first, i) Then
                     js = "}"
                     cindex = cindex - 1
@@ -973,7 +1020,7 @@ Sub ParseExport (s As String, lineIndex As Integer)
         End If
         exportedItem = es.jsname
         es.name = exportName
-        AddExportMethod es, currentModule + ".", True
+        AddLibMethod es
         exportName = "sub_" + exportName
         RegisterExport exportName, exportedItem
         found = True
@@ -987,7 +1034,7 @@ Sub ParseExport (s As String, lineIndex As Integer)
         End If
         exportedItem = ef.jsname
         ef.name = exportName
-        AddExportMethod ef, currentModule + ".", True
+        AddLibMethod ef
         exportName = "func_" + exportName
         RegisterExport exportName, exportedItem
         found = True
@@ -1005,7 +1052,8 @@ Sub ParseExport (s As String, lineIndex As Integer)
             exportedItem = ev.jsname
             If exportName = "" Then exportName = parts(1)
             ev.name = exportName
-            AddExportConst currentModule + "." + exportName
+            'AddExportConst currentModule + "." + exportName
+            AddLibConst exportName
             RegisterExport exportName, exportedItem
             found = True
         End If
@@ -1914,7 +1962,6 @@ Sub DeclareTypeVar (parts() As String, typeId As Integer, lineNumber As Integer)
             bvar.type = NormalizeType("_UNSIGNED " + UCase$(parts(asIdx + 2)))
             nextIdx = asIdx + 3
         End If
-        'bvar.typeId = FindTypeId(bvar.type)
 
         vnamecount = ListSplit(Join(parts(), nextIdx, -1, " "), varnames())
         For i = 1 To vnamecount
@@ -1937,7 +1984,6 @@ Sub DeclareTypeVar (parts() As String, typeId As Integer, lineNumber As Integer)
         bvar.name = parts(1)
         bvar.type = UCase$(parts(3))
         If bvar.type = "_UNSIGNED" Or bvar.type = "UNSIGNED" Then bvar.type = NormalizeType("_UNSIGNED " + UCase$(parts(4)))
-        'bvar.typeId = FindTypeId(bvar.type)
         AddVariable bvar, typeVars()
     End If
 
@@ -2565,47 +2611,6 @@ Function FindVariable (varname As String, bvar As Variable, isArray As Integer)
     FindVariable = found
 End Function
 
-Function FindMethodOld (mname As String, m As Method, t As String, includeBuiltIn As Integer)
-    Dim found As Integer: found = False
-    Dim i As Integer
-    For i = 1 To UBound(methods)
-        If (Not includeBuiltIn) And methods(i).builtin Then
-            ' Skip it
-        ElseIf methods(i).uname = _Trim$(UCase$(RemoveSuffix(mname))) And methods(i).type = t Then
-            found = True
-            m.line = methods(i).line
-            m.type = methods(i).type
-            m.returnType = methods(i).returnType
-            m.name = methods(i).name
-            m.jsname = methods(i).jsname
-            m.uname = methods(i).uname
-            m.argc = methods(i).argc
-            m.args = methods(i).args
-            m.sync = methods(i).sync
-            Exit For
-        End If
-    Next i
-    If Not found Then
-        For i = 1 To UBound(exportMethods)
-            If exportMethods(i).uname = _Trim$(UCase$(RemoveSuffix(mname))) And exportMethods(i).type = t Then
-                found = True
-                m.line = exportMethods(i).line
-                m.type = exportMethods(i).type
-                m.returnType = exportMethods(i).returnType
-                m.name = exportMethods(i).name
-                m.jsname = exportMethods(i).jsname
-                m.uname = exportMethods(i).uname
-                m.argc = exportMethods(i).argc
-                m.args = exportMethods(i).args
-                m.sync = exportMethods(i).sync
-                Exit For
-            End If
-        Next i
-
-    End If
-    FindMethodOld = found
-End Function
-
 Function FindMethod (mname As String, m As Method, t As String, includeBuiltIn As Integer)
     Dim umname As String: umname = _Trim$(UCase$(RemoveSuffix(mname)))
     Dim found As Integer: found = 0
@@ -2769,28 +2774,55 @@ Sub ConvertMethods ()
     End If
 End Sub
 
-
-Sub ReadLinesFromFile (filename As String)
-    Dim fline As String
-    Dim lineIndex As Integer
+Sub RegisterImports (sourceText As String, parentModule As Object)
+    ReDim As String sourceLines(0)
     Dim rawJS
-    Open filename For Input As #1
-    Do Until EOF(1)
-        Line Input #1, fline
-        lineIndex = lineIndex + 1
+    Dim lcount As Integer
+    Dim i As Integer
+    lcount = Split(sourceText, LF, sourceLines())
+    For i = 1 To lcount
+        Dim fline As String
+        fline = sourceLines(i)
+        If StartsWith(LTrim$(UCase$(fline)), "IMPORT ") Then
+            ReDim parts(0) As String
+            Dim pcount As Integer
+            pcount = SLSplit(fline, parts(), False)
+            If pcount = 4 Then
+                Dim sourceUrl As String
+                Dim importRes As FetchResponse
+                sourceUrl = Mid$(parts(4), 2, Len(parts(4)) - 2)
+                Dim m As Module
+                m.path = sourceUrl
+                m.name = Replace(LCase$(sourceUrl), "://", "_")
+                m.name = Replace(m.name, "/", "_")
+                m.name = Replace(m.name, "\", "_")
+                m.name = Replace(m.name, ".", "_")
+                Dim mm As Module
+                mm = moduleMap(m.path)
+                If mm.name = "" Then
+                    Dim As Method mmethods(0)
+                    Dim As Variable mconsts(0)
+                    m.exportMethods = mmethods
+                    m.exportConsts = mconsts
+                    moduleMap(m.path) = m
+                    Dim importRes As FetchResponse
+                    sourceUrl = Mid$(parts(4), 2, Len(parts(4)) - 2)
+                    Fetch sourceUrl, importRes
+                    If importRes.status <> 200 Then
+                        AddError i, "File not found: " + sourceUrl
+                        _Continue
+                    End If
+                    m.source = importRes.text
 
-        If _Trim$(fline) <> "" Then ' remove all blank lines
+                    RegisterImports m.source, m 
+                End If
 
-            While EndsWith(fline, " _")
-                Dim nextLine As String
-                Line Input #1, nextLine
-                fline = Left$(fline, Len(fline) - 1) + nextLine
-            Wend
-
-            rawJS = ReadLine(lineIndex, fline, rawJS)
+                If parentModule <> undefined Then
+                    OBJ.SetProperty parentModule.imports, m.path, m.path
+                End If
+            End If
         End If
-    Loop
-    Close #1
+    Next i
 End Sub
 
 Sub ReadLinesFromText (sourceText As String)
@@ -2808,7 +2840,7 @@ Sub ReadLinesFromText (sourceText As String)
             Dim lineIndex As Integer
             lineIndex = i
 
-            If StartsWith(LTrim$(UCase$(fline)), "IMPORT") Then
+            If StartsWith(LTrim$(UCase$(fline)), "IMPORT ") Then
                 ReDim parts(0) As String
                 Dim pcount As Integer
                 pcount = SLSplit(fline, parts(), False)
@@ -2817,26 +2849,36 @@ Sub ReadLinesFromText (sourceText As String)
                     Dim sourceUrl As String
                     Dim importRes As FetchResponse
                     sourceUrl = Mid$(parts(4), 2, Len(parts(4)) - 2)
-                    Fetch sourceUrl, importRes
-                    If importRes.status <> 200 Then
-                        AddError i, "File not found: " + sourceUrl
-                        _Continue
-                    End If
                     moduleName = parts(2)
                     modLevel = modLevel + 1
+
+                    Dim m As Module
+                    m = moduleMap(sourceUrl)
+
+                    Dim il As Integer
+                    il = UBound(importLines) + 1
+                    ReDim _Preserve importLines(il) As String
+                    importLines(il) = "var " + moduleName + " = await __qblib_" + m.name + "();"
 
                     Dim mcount As Integer
                     mcount = UBound(modules) + 1
                     ReDim _Preserve modules(mcount) As Module
                     modules(mcount).name = moduleName
                     modules(mcount).path = sourceUrl
-                    currentModuleId = mcount
 
-                    QBToJS importRes.text, TEXT, moduleName
-                    ResetDataStructures
-                    modLevel = modLevel - 1
-                    currentModuleId = 0
-                    currentModule = ""
+                    Dim j As Integer
+                    Dim moduleMethods(0) As Method
+                    moduleMethods = m.exportMethods
+                    For j = 1 To UBound(moduleMethods)
+                        AddExportMethod moduleMethods(j), moduleName + "."
+                    Next j
+
+                    Dim moduleConsts(0) As Method
+                    moduleConsts = m.exportConsts
+                    For j = 1 To UBound(moduleConsts)
+                        AddExportConst moduleConsts(j), moduleName + "."
+                    Next j
+
                     _Continue
                 Else
                     AddError i, "Syntax Error:  Import [Alias] From " + Chr$(34) + "[filename]" + Chr$(34)
@@ -3519,7 +3561,7 @@ Sub AddLocalMethod (m As Method)
     localMethods(mcount) = m
 End Sub
 
-Sub AddExportMethod (m As Method, prefix As String, sync As Integer)
+Sub AddExportMethod (m As Method, prefix As String)', sync As Integer)
     Dim mcount: mcount = UBound(exportMethods) + 1
     ReDim _Preserve As Method exportMethods(mcount)
     If m.type = "FUNCTION" Then
@@ -3529,8 +3571,23 @@ Sub AddExportMethod (m As Method, prefix As String, sync As Integer)
     m.jsname = MethodJS(m, prefix)
     m.uname = UCase$(prefix) + m.uname
     m.name = prefix + m.name
-    m.sync = sync
+    m.sync = True 'sync
     exportMethods(mcount) = m
+End Sub
+
+Sub AddLibMethod (m As Method)
+    If activeModule = undefined Then Exit Sub
+
+    Dim libMethods(0) As Method
+    libMethods = activeModule.exportMethods
+    Dim mcount: mcount = UBound(libMethods) + 1
+    ReDim _Preserve As Method libMethods(mcount)
+    If m.type = "FUNCTION" Then
+        m.returnType = DataTypeFromName(m.name)
+    End If
+    m.uname = UCase$(RemoveSuffix(m.name))
+    m.sync = True 'sync
+    libMethods(mcount) = m
 End Sub
 
 Sub AddExportConst (vname As String)
@@ -3541,6 +3598,15 @@ Sub AddExportConst (vname As String)
     AddVariable v, exportConsts()
 End Sub
 
+Sub AddLibConst (vname As String)
+    If activeModule = undefined Then Exit Sub
+
+    Dim v As Variable
+    v.type = "CONST"
+    v.name = vname
+    v.isConst = True
+    AddVariable v, activeModule.exportConsts
+End Sub
 
 Sub AddGXMethod (mtype As String, mname As String, sync As Integer)
     Dim mcount: mcount = UBound(methods) + 1
@@ -3600,6 +3666,7 @@ Sub __AddLine (lineIndex As Integer, fline As String)
     ReDim _Preserve As CodeLine lines(lcount)
     lines(lcount).line = lineIndex
     lines(lcount).text = fline
+    lines(lcount).module = activeModule
 End Sub
 
 Sub AddJSLine (sourceLine As Integer, jsline As String)
@@ -3620,6 +3687,7 @@ Sub AddWarning (sourceLine As Integer, msgText As String)
     warnings(lcount).line = l
     warnings(lcount).text = msgText
     warnings(lcount).moduleId = currentModuleId
+    warnings(lcount).module = lines(sourceLine).module
 End Sub
 
 Sub AddError (sourceLine As Integer, msgText As String)
@@ -3890,7 +3958,6 @@ Function StartsWith (s As String, finds As String)
 End Function
 
 Function Join$ (parts() As String, startIndex As Integer, endIndex As Integer, delimiter As String)
-
     If endIndex = -1 Then endIndex = UBound(parts)
     Dim s As String
     Dim i As Integer
@@ -3901,6 +3968,19 @@ Function Join$ (parts() As String, startIndex As Integer, endIndex As Integer, d
         End If
     Next i
     Join = s
+End Function
+
+Function GetMapKeys (map)
+    Dim keys(0) As Object
+    keys = OBJ.Keys(map)
+    Dim size As Integer
+    size = UBound(keys) - 2
+    Dim results(size) As String
+    Dim i As Integer
+    For i = 3 To UBound(keys)
+        results(i-2) = keys(i)       
+    Next i 
+    GetMapKeys = results
 End Function
 
 Function LPad$ (s As String, padChar As String, swidth As Integer)
