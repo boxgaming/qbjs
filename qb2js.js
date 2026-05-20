@@ -37,7 +37,7 @@ if (QB.halted()) { return; };
 var HasProperty = null;
 /* implicit variables: */ 
    //-------- BEGIN JS native code block --------
-    return QB.toBoolean(obj[pname] != undefined);
+    return (obj[pname] != undefined) ? -1 : 0;
 //-------- END JS native code block --------
 return HasProperty;
 }
@@ -80,79 +80,7 @@ func_Keys: func_Keys,
 sub_SetProperty: sub_SetProperty,
 sub_DeleteProperty: sub_DeleteProperty,
 };
-async function compile(src) {
-   await sub_QBToJS(src, TEXT, '');
-   var js = '';
-   for (var i=1; i<= QB.func_UBound(jsLines); i++) {
-      js += QB.arrayValue(jsLines, [i]).value.text + '\n';
-   }
-   return js;
 }
-function getWarnings() {
-   var w = [];
-   for (var i=1; i <= QB.func_UBound(warnings); i++) {
-      w.push({
-         line: QB.arrayValue(warnings, [i]).value.line,
-         text: QB.arrayValue(warnings, [i]).value.text,
-         mtype: QB.arrayValue(warnings, [i]).value.mtype,
-         moduleId: QB.arrayValue(warnings, [i]).value.moduleId,
-         module: QB.arrayValue(warnings, [i]).value.module,
-      });
-   }
-   return w;
-}
-function _getMethods(methods) {
-   var m = [];
-   for (var i=1; i <= QB.func_UBound(methods); i++) {
-      var lidx = QB.arrayValue(methods, [i]).value.line;
-      m.push({
-         line: QB.arrayValue(lines, [lidx]).value.line,
-         type: QB.arrayValue(methods, [i]).value.type,
-         returnType: QB.arrayValue(methods, [i]).value.returnType,
-         name: QB.arrayValue(methods, [i]).value.name,
-         uname: QB.arrayValue(methods, [i]).value.uname,
-         jsname: QB.arrayValue(methods, [i]).value.jsname,
-         argc: QB.arrayValue(methods, [i]).value.argc,
-         args: QB.arrayValue(methods, [i]).value.args
-      });
-   }
-   return m;
-}
-function getMethods() { return _getMethods(methods); }
-function getExportMethods() { return _getMethods(exportMethods); }
-function getExportConsts() {
-   var c = [];
-   for (var i=1; i <= QB.func_UBound(exportConsts); i++) {
-      c.push({
-         name: QB.arrayValue(exportConsts, [i]).value.name,
-         jsname: QB.arrayValue(exportConsts, [i]).value.jsname
-      });
-   }
-   return c;
-}
-function getSourceLine(jsLine) {
-   if (jsLine == 0) { return 0; }
-   var line = QB.arrayValue(jsLines, [jsLine]).value.line;
-   line = QB.arrayValue(lines, [line]).value.line;
-   return line;
-}
-function getModule(id) {
-   return QB.arrayValue(modules, [id]).value;
-}
-function setSelfConvert() { sub_SetSelfConvert(); }
-
-return {
-   compile: compile,
-   getWarnings: getWarnings,
-   getMethods: getMethods,
-   getExportMethods: getExportMethods,
-   getExportConsts: getExportConsts,
-   getSourceLine: getSourceLine,
-   getModule: getModule,
-   setSelfConvert: setSelfConvert,
-};
-}
-if (typeof module != 'undefined') { module.exports.QBCompiler = _QBCompiler; }
 if (typeof QB == 'undefined' && module) { QB = require('./qb-console.js').QB(); }
 async function _QBCompiler() {
 var OBJ = await __qblib_lib_lang_object_bas();
@@ -217,7 +145,7 @@ if (QB.halted()) { return; }; sourceType = Math.round(sourceType);
       await sub_Compile(  m.source ,    m.name);
    } 
    activeModule =  undefined;
-   await sub_Compile(  source,   "");
+   await sub_Compile(  source,   ""  ,    forceSelfConvert);
 }
 async function func_SortModules() {
 if (QB.halted()) { return; }; 
@@ -250,7 +178,7 @@ var SortModules = null;
                mm = QB.arrayValue(moduleMap, [QB.arrayValue(moduleNames, [ k]).value]).value;
                if (~ mm.processed ) {
                   if ((await OBJ.func_HasProperty(  mm.imports ,    m.path))  ) {
-                     await OBJ.sub_DeleteProperty( ( mm.imports ,   m.path));
+                     await OBJ.sub_DeleteProperty(  mm.imports ,    m.path);
                   }
                }
             } 
@@ -265,7 +193,7 @@ var SortModules = null;
    SortModules =  results;
 return SortModules;
 }
-async function sub_Compile(source/*STRING*/,moduleName/*STRING*/) {
+async function sub_Compile(source/*STRING*/,moduleName/*STRING*/,selfConvert/*SINGLE*/) {
 if (QB.halted()) { return; }; 
 /* implicit variables: */ 
    await sub_ResetDataStructures();
@@ -275,12 +203,8 @@ if (QB.halted()) { return; };
    await sub_InitGX();
    await sub_InitQBMethods();
    await sub_InitJSReservedWords();
-   var selfConvert = 0;  /* INTEGER */ 
    var isGX = 0;  /* INTEGER */ 
    isGX =  False;
-   if ( forceSelfConvert) {
-      selfConvert =  True;
-   }
    if ( selfConvert &  moduleName ==  ""  ) {
       await sub_AddJSLine(  0 ,   "if (typeof QB == 'undefined' && module) { QB = require('./qb-console.js').QB(); }");
       await sub_AddJSLine(  0 ,   "async function _QBCompiler() {");
@@ -4004,16 +3928,14 @@ async function func_GetMapKeys(map/*SINGLE*/) {
 if (QB.halted()) { return; }; 
 var GetMapKeys = null;
 /* implicit variables: */ 
-   var keys = {};  /* OBJECT */ 
-   //-------- BEGIN JS native code block --------
-    keys = Object.keys(map);
-//-------- END JS native code block --------
+   var keys = QB.initArray([{l:0,u: 0}], {});  /* OBJECT */ 
+   keys = (await OBJ.func_Keys(  map));
    var size = 0;  /* INTEGER */ 
-   size =  keys.length -  2;
+   size = (QB.func_UBound(  keys))  -  2;
    var results = QB.initArray([{l:0,u: size}], '');  /* STRING */ 
    var i = 0;  /* INTEGER */ 
-   var ___v5478771 = 0; ___l9909723: for ( i=  2 ;  i <=  keys.length -  1;  i= i + 1) { if (QB.halted()) { return; } ___v5478771++;   if (___v5478771 % 100 == 0) { await QB.autoLimit(); }
-      QB.arrayValue(results, [ i - 1]).value =  keys[i];
+   var ___v5478771 = 0; ___l9909723: for ( i=  3 ;  i <= (QB.func_UBound(  keys));  i= i + 1) { if (QB.halted()) { return; } ___v5478771++;   if (___v5478771 % 100 == 0) { await QB.autoLimit(); }
+      QB.arrayValue(results, [ i - 2]).value = QB.arrayValue(keys, [ i]).value;
    } 
    GetMapKeys =  results;
 return GetMapKeys;

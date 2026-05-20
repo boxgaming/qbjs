@@ -128,8 +128,9 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
         activeModule = m
         Compile m.source, m.name
     Next i
+
     activeModule = undefined
-    Compile source, ""
+    Compile source, "", forceSelfConvert
 End Sub
 
 ' We need to make sure that modules are compiled before other modules
@@ -155,10 +156,6 @@ Function SortModules
             Dim ikeys(0) As String
             ikeys = OBJ.Keys(m.imports)
             importCount = UBound(ikeys)
-            '$If Javascript Then
-            '    importCount = Object.keys(m.imports).length;
-            '$End If
-
             If importCount = 0 Then
                 results(m.path) = m
                 m.processed = -1
@@ -169,10 +166,7 @@ Function SortModules
                 For k = 1 To UBound(moduleNames)
                     mm = moduleMap(moduleNames(k))
                     If Not mm.processed Then
-                        If OBJ.HasProperty(mm.imports, m.path) Then OBJ.DeleteProperty(mm.imports, m.path)
-                        '$If Javascript Then
-                        '    if (mm.imports[m.path]) { delete mm.imports[m.path]; }
-                        '$End If
+                        If OBJ.HasProperty(mm.imports, m.path) Then OBJ.DeleteProperty mm.imports, m.path
                     End If
                 Next k
             Else
@@ -188,7 +182,7 @@ Function SortModules
     SortModules = results
 End Function
 
-Sub Compile (source As String, moduleName As String)
+Sub Compile (source As String, moduleName As String, selfConvert)
     ResetDataStructures
     ReadLinesFromText source
 
@@ -203,9 +197,7 @@ Sub Compile (source As String, moduleName As String)
     '   2) Forgo initializing the game events and default screen
     '   3) Add an externally callable javascript function named "compile"
     '      which will allow us to call the converter from a web application
-    Dim selfConvert As Integer
     Dim isGX As Integer: isGX = False
-    If forceSelfConvert Then selfConvert = True
 
     If selfConvert And moduleName = "" Then
         AddJSLine 0, "if (typeof QB == 'undefined' && module) { QB = require('./qb-console.js').QB(); }"
@@ -445,7 +437,6 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
     implicitVarLine = UBound(jsLines)
 
     For i = firstLine To lastLine
-        'AddWarning i, Right$("    " + Str$(cindex), 4) + "|" + lines(i).text
         indent = 0
         tempIndent = 0
         Dim l As String
@@ -744,11 +735,6 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 indent = 1
 
             ElseIf first = "WEND" Then
-                'ctype = ""
-                'If cindex > 0 Then ctype = containers(cindex).type
-                'If ctype <> "WHILE" Then
-                '    AddWarning i, "WEND without WHILE"
-                'Else
                 If CheckBlockEnd(containers(), cindex, first, i) Then
                     js = "}"
                     cindex = cindex - 1
@@ -1034,7 +1020,6 @@ Sub ParseExport (s As String, lineIndex As Integer)
         End If
         exportedItem = es.jsname
         es.name = exportName
-        'AddExportMethod es, currentModule + ".", True
         AddLibMethod es
         exportName = "sub_" + exportName
         RegisterExport exportName, exportedItem
@@ -1049,7 +1034,6 @@ Sub ParseExport (s As String, lineIndex As Integer)
         End If
         exportedItem = ef.jsname
         ef.name = exportName
-        'AddExportMethod ef, currentModule + ".", True
         AddLibMethod ef
         exportName = "func_" + exportName
         RegisterExport exportName, exportedItem
@@ -1978,7 +1962,6 @@ Sub DeclareTypeVar (parts() As String, typeId As Integer, lineNumber As Integer)
             bvar.type = NormalizeType("_UNSIGNED " + UCase$(parts(asIdx + 2)))
             nextIdx = asIdx + 3
         End If
-        'bvar.typeId = FindTypeId(bvar.type)
 
         vnamecount = ListSplit(Join(parts(), nextIdx, -1, " "), varnames())
         For i = 1 To vnamecount
@@ -2001,7 +1984,6 @@ Sub DeclareTypeVar (parts() As String, typeId As Integer, lineNumber As Integer)
         bvar.name = parts(1)
         bvar.type = UCase$(parts(3))
         If bvar.type = "_UNSIGNED" Or bvar.type = "UNSIGNED" Then bvar.type = NormalizeType("_UNSIGNED " + UCase$(parts(4)))
-        'bvar.typeId = FindTypeId(bvar.type)
         AddVariable bvar, typeVars()
     End If
 
@@ -2805,12 +2787,10 @@ Sub RegisterImports (sourceText As String, parentModule As Object)
             ReDim parts(0) As String
             Dim pcount As Integer
             pcount = SLSplit(fline, parts(), False)
-            'AddJSLine 0, "// RAW: " + pcount + " : " + fline
             If pcount = 4 Then
                 Dim sourceUrl As String
                 Dim importRes As FetchResponse
                 sourceUrl = Mid$(parts(4), 2, Len(parts(4)) - 2)
-                'AddWarning 0, sourceUrl
                 Dim m As Module
                 m.path = sourceUrl
                 m.name = Replace(LCase$(sourceUrl), "://", "_")
@@ -2837,13 +2817,8 @@ Sub RegisterImports (sourceText As String, parentModule As Object)
                     RegisterImports m.source, m 
                 End If
 
-                'AddJSLine 0, "// parentModule: " + parentModule
                 If parentModule <> undefined Then
                     OBJ.SetProperty parentModule.imports, m.path, m.path
-                    '$If Javascript Then
-                    '    parentModule.imports[m.path] = m.path;
-                    '$End If
-                    'AddJSLine 0, "// m.path: " + m.path + " added to parent: " + parentModule.path
                 End If
             End If
         End If
@@ -3611,9 +3586,6 @@ Sub AddLibMethod (m As Method)
         m.returnType = DataTypeFromName(m.name)
     End If
     m.uname = UCase$(RemoveSuffix(m.name))
-    'm.jsname = MethodJS(m, prefix)
-    'm.uname = UCase$(prefix) + m.uname
-    'm.name = prefix + m.name
     m.sync = True 'sync
     libMethods(mcount) = m
 End Sub
@@ -3986,7 +3958,6 @@ Function StartsWith (s As String, finds As String)
 End Function
 
 Function Join$ (parts() As String, startIndex As Integer, endIndex As Integer, delimiter As String)
-
     If endIndex = -1 Then endIndex = UBound(parts)
     Dim s As String
     Dim i As Integer
@@ -4000,16 +3971,14 @@ Function Join$ (parts() As String, startIndex As Integer, endIndex As Integer, d
 End Function
 
 Function GetMapKeys (map)
-    Dim keys As Object
-$If Javascript Then
-    keys = Object.keys(map);
-$End If
+    Dim keys(0) As Object
+    keys = OBJ.Keys(map)
     Dim size As Integer
-    size = keys.length - 2
+    size = UBound(keys) - 2
     Dim results(size) As String
     Dim i As Integer
-    For i = 2 To keys.length - 1
-        results(i-1) = keys[i]       
+    For i = 3 To UBound(keys)
+        results(i-2) = keys(i)       
     Next i 
     GetMapKeys = results
 End Function

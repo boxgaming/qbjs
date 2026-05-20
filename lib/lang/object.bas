@@ -21,7 +21,7 @@ End Function
 
 Function HasProperty (obj As Object, pname As String)
 $If Javascript Then
-    return QB.toBoolean(obj[pname] != undefined);
+    return (obj[pname] != undefined) ? -1 : 0;
 $End If
 End Function
 
