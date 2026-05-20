@@ -2213,7 +2213,7 @@ Function FormatArraySize$ (sizeString As String, lineNumber As Integer)
         Next j
 
         If toIndex = 0 Then
-            sizeParams = sizeParams + "{l:0,u:" + ConvertExpression(subparts(1), lineNumber) + "}"
+            sizeParams = sizeParams + "{l:0,u:" + ConvertExpression(parts(i), lineNumber) + "}"
         Else
             ' This must be the "x To y" format
             Dim As String lb, ub

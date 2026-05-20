@@ -2201,7 +2201,7 @@ var FormatArraySize = null;
          }
       } 
       if ( toIndex ==   0 ) {
-         sizeParams =  sizeParams + "{l:0,u:"  + (await func_ConvertExpression( QB.arrayValue(subparts, [ 1]).value  ,    lineNumber))  + "}";
+         sizeParams =  sizeParams + "{l:0,u:"  + (await func_ConvertExpression( QB.arrayValue(parts, [ i]).value  ,    lineNumber))  + "}";
       } else {
          var lb = '';  /* STRING */ var ub = '';  /* STRING */ 
          lb = (await func_ConvertExpression( (await func_Join( subparts  ,    1 ,    toIndex -  1 ,   " "))  ,    lineNumber));
