@@ -2876,6 +2876,7 @@ Sub ReadLinesFromText (sourceText As String)
                     Dim moduleConsts(0) As Method
                     moduleConsts = m.exportConsts
                     For j = 1 To UBound(moduleConsts)
+                        'AddWarning 0, "adding const: [" + moduleConsts(j) + "]"
                         AddExportConst moduleConsts(j), moduleName + "."
                     Next j
 
@@ -3590,11 +3591,7 @@ Sub AddLibMethod (m As Method)
     libMethods(mcount) = m
 End Sub
 
-Sub AddExportConst (vname As String)
-    Dim v As Variable
-    v.type = "CONST"
-    v.name = vname
-    v.isConst = True
+Sub AddExportConst (v As Variable) 'name As String)
     AddVariable v, exportConsts()
 End Sub
 

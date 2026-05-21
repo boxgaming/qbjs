@@ -3498,13 +3498,9 @@ if (QB.halted()) { return; };
    m.sync =  True;
    QB.arrayValue(libMethods, [ mcount]).value =  m;
 }
-async function sub_AddExportConst(vname/*STRING*/) {
+async function sub_AddExportConst(v/*VARIABLE*/) {
 if (QB.halted()) { return; }; 
 /* implicit variables: */ 
-   var v = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
-   v.type = "CONST";
-   v.name =  vname;
-   v.isConst =  True;
    await sub_AddVariable(  v,   exportConsts);
 }
 async function sub_AddLibConst(vname/*STRING*/) {
