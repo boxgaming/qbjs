@@ -3464,9 +3464,11 @@ if (QB.halted()) { return; };
    m.sync =  True;
    QB.arrayValue(localMethods, [ mcount]).value =  m;
 }
-async function sub_AddExportMethod(m/*METHOD*/,prefix/*STRING*/) {
+async function sub_AddExportMethod(om/*METHOD*/,prefix/*STRING*/) {
 if (QB.halted()) { return; }; 
 /* implicit variables: */ 
+   var m = {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0};  /* METHOD */ 
+   await OBJ.sub_Assign(  m,    om);
    var mcount = 0;  /* SINGLE */ 
    mcount = (QB.func_UBound(  exportMethods))  +  1;
    QB.resizeArray(exportMethods, [{l:0,u: mcount}], {line:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}, true);  /* METHOD */ 

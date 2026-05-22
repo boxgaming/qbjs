@@ -2876,7 +2876,6 @@ Sub ReadLinesFromText (sourceText As String)
                     Dim moduleConsts(0) As Method
                     moduleConsts = m.exportConsts
                     For j = 1 To UBound(moduleConsts)
-                        'AddWarning 0, "adding const: [" + moduleConsts(j) + "]"
                         AddExportConst moduleConsts(j), moduleName + "."
                     Next j
 
@@ -3562,7 +3561,9 @@ Sub AddLocalMethod (m As Method)
     localMethods(mcount) = m
 End Sub
 
-Sub AddExportMethod (m As Method, prefix As String)', sync As Integer)
+Sub AddExportMethod (om As Method, prefix As String)', sync As Integer)
+    Dim m As Method
+    OBJ.Assign m, om
     Dim mcount: mcount = UBound(exportMethods) + 1
     ReDim _Preserve As Method exportMethods(mcount)
     If m.type = "FUNCTION" Then
