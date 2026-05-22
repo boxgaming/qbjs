@@ -861,10 +861,13 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
                 If assignment > 0 Then
                     ' This is a variable assignment
-                    Dim As String leftSide, rightSide
+                    Dim As String leftSide, rightSide, leftConverted, rightConverted
                     leftSide = _Trim$(Join(parts(), asnVarIndex, assignment - 1, " "))
                     rightSide = _Trim$(Join(parts(), assignment + 1, -1, " "))
-                    js = RemoveSuffix(ConvertExpression(leftSide, i)) + " = " + ConvertExpression(rightSide, i) + ";"
+                    leftConverted = ConvertExpression(leftSide, i)
+                    rightConverted = ConvertExpression(rightSide, i)
+                    If IsIntegerVar(leftSide) Then rightConverted = "Math.round( " + rightConverted + " )"
+                    js = RemoveSuffix(leftConverted) + " = " + rightConverted + ";"
                 Else
                     ' Check to see if there was no space left between the sub name and initial paren
                     Dim parendx As Integer
@@ -908,6 +911,18 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
     End If
 
 End Sub
+
+Function IsIntegerVar (text As String)
+    Dim typeName As String
+    typeName = GetVarType(text)
+    If typeName = "_BIT" Or typeName = "_UNSIGNED _BIT" Or _
+       typeName = "_BYTE" Or typeName = "_UNSIGNED _BYTE" Or _
+       typeName = "INTEGER" Or typeName = "_UNSIGNED INTEGER" Or _
+       typeName = "LONG" Or typeName = "_UNSIGNED LONG" Or _
+       typeName = "_INTEGER64" Or typeName = "_UNSIGNED _INTEGER64" Then
+        IsIntegerVar = True
+    End If
+End Function
 
 Function IsValidVarname (varname As String)
     Dim As String vname, s
