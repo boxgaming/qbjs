@@ -3516,9 +3516,13 @@ if (QB.halted()) { return; };
    m.sync = Math.round(  True );
    QB.arrayValue(libMethods, [ mcount]).value =  m;
 }
-async function sub_AddExportConst(v/*VARIABLE*/) {
+async function sub_AddExportConst(ov/*VARIABLE*/,prefix/*STRING*/) {
 if (QB.halted()) { return; }; 
 /* implicit variables: */ 
+   var v = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
+   await OBJ.sub_Assign(  v,    ov);
+   v.uname = (QB.func_UCase(  prefix))  +  v.uname;
+   v.name =  prefix +  v.name;
    await sub_AddVariable(  v,   exportConsts);
 }
 async function sub_AddLibConst(vname/*STRING*/) {

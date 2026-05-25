@@ -1067,7 +1067,6 @@ Sub ParseExport (s As String, lineIndex As Integer)
             exportedItem = ev.jsname
             If exportName = "" Then exportName = parts(1)
             ev.name = exportName
-            'AddExportConst currentModule + "." + exportName
             AddLibConst exportName
             RegisterExport exportName, exportedItem
             found = True
@@ -3576,7 +3575,7 @@ Sub AddLocalMethod (m As Method)
     localMethods(mcount) = m
 End Sub
 
-Sub AddExportMethod (om As Method, prefix As String)', sync As Integer)
+Sub AddExportMethod (om As Method, prefix As String)
     Dim m As Method
     OBJ.Assign m, om
     Dim mcount: mcount = UBound(exportMethods) + 1
@@ -3588,7 +3587,7 @@ Sub AddExportMethod (om As Method, prefix As String)', sync As Integer)
     m.jsname = MethodJS(m, prefix)
     m.uname = UCase$(prefix) + m.uname
     m.name = prefix + m.name
-    m.sync = True 'sync
+    m.sync = True
     exportMethods(mcount) = m
 End Sub
 
@@ -3607,7 +3606,11 @@ Sub AddLibMethod (m As Method)
     libMethods(mcount) = m
 End Sub
 
-Sub AddExportConst (v As Variable) 'name As String)
+Sub AddExportConst (ov As Variable, prefix As String)
+    Dim v As Variable
+    OBJ.Assign v, ov
+    v.uname = UCase$(prefix) + v.uname
+    v.name = prefix + v.name
     AddVariable v, exportConsts()
 End Sub
 
