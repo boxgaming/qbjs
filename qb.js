@@ -1313,15 +1313,15 @@ var QB = new function() {
     };
 
     this.func__RGB = function(r, g, b) {
-        return this.func__RGBA(r, g, b).toNumber();
+        return this.func__RGBA(r, g, b);
     };
 
     this.func__RGB32 = function(r, g, b, a) {
-        return this.func__RGBA(r, g, b, a).toNumber();
+        return this.func__RGBA(r, g, b, a);
     };
 
     this.func__RGBA32 = function(r, g, b, a) {
-        return this.func__RGBA(r, g, b, a).toNumber();
+        return this.func__RGBA(r, g, b, a);
     };
 
     this.func__RGBA = function(r, g, b, a) {
