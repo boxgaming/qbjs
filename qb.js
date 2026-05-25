@@ -1247,13 +1247,14 @@ var QB = new function() {
             b: b,
             a: a,
             rgba: function() { return "rgba(" + this.r + "," + this.g + "," + this.b + "," + this.a + ")"; },
-            toString: function() {
+            toNumber: function () {
                 var hexrep = ("00" + (255*a).toString(16)).slice(-2) +
                              ("00" + r.toString(16)).slice(-2) +
                              ("00" + g.toString(16)).slice(-2) +
                              ("00" + b.toString(16)).slice(-2);
-                return parseInt(hexrep, 16).toString();
-            }
+                return parseInt(hexrep, 16);
+            },
+            toString: function() { return this.toNumber(); }
         }
     }
 
@@ -1312,15 +1313,15 @@ var QB = new function() {
     };
 
     this.func__RGB = function(r, g, b) {
-        return this.func__RGBA(r, g, b);
+        return this.func__RGBA(r, g, b).toNumber();
     };
 
     this.func__RGB32 = function(r, g, b, a) {
-        return this.func__RGBA(r, g, b, a);
+        return this.func__RGBA(r, g, b, a).toNumber();
     };
 
     this.func__RGBA32 = function(r, g, b, a) {
-        return this.func__RGBA(r, g, b, a);
+        return this.func__RGBA(r, g, b, a).toNumber();
     };
 
     this.func__RGBA = function(r, g, b, a) {
@@ -1342,7 +1343,7 @@ var QB = new function() {
         }
         a = a / 255;
 
-        return _rgb(r, g, b, a);
+        return _rgb(r, g, b, a).toNumber();
     }
 
     this.func__Round = function(value) {
@@ -2814,7 +2815,7 @@ var QB = new function() {
             ret = _rgb(screen.imgdata.data[pixelIndex], 
                        screen.imgdata.data[pixelIndex + 1], 
                        screen.imgdata.data[pixelIndex + 2], 
-                       screen.imgdata.data[pixelIndex + 3]/255);
+                       screen.imgdata.data[pixelIndex + 3]/255).toNumber();
         }
         return ret;
     };
