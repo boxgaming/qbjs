@@ -77,6 +77,7 @@ Type Container
     type As String
     label As String
     line As Integer
+    caseVar As String
 End Type
 
 ReDim Shared As Module moduleMap()
@@ -536,27 +537,34 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 cindex = cindex + 1
                 containers(cindex).type = "SELECT CASE"
                 containers(cindex).line = i
-
                 caseVar = GenJSVar
+                containers(cindex).caseVar = caseVar
                 js = "var " + caseVar + " = " + ConvertExpression(Join(parts(), 3, -1, " "), i) + "; "
-                js = js + "switch (" + caseVar + ") {"
                 indent = 1
                 caseCount = 0
 
             ElseIf first = "CASE" Then
-                If caseCount > 0 Then js = "break; "
+                'If caseCount > 0 Then js = "break; "
+                If caseCount > 0 Then js = "} "
                 If UCase$(parts(2)) = "ELSE" Then
-                    js = js + "default:"
+                    js = js + "else {"
                 ElseIf UCase$(parts(2)) = "IS" Then
-                    js = js + "case " + caseVar + " " + ConvertExpression(Join(parts(), 3, -1, " "), i) + ":"
+                    If caseCount > 0 Then js = js + "else "
+                    js = js + "if ( " + caseVar + " " + ConvertExpression(Join(parts(), 3, -1, " "), i) + " ) { "
                 Else
                     ReDim As String caseParts(0)
                     Dim cscount As Integer
                     cscount = ListSplit(Join(parts(), 2, -1, " "), caseParts())
+                    If caseCount > 0 Then js = js + "else "
+                    js = js + "if ("
+                    caseVar = containers(cindex).caseVar
                     Dim ci As Integer
                     For ci = 1 To cscount
-                        js = js + "case " + ConvertExpression(caseParts(ci), i) + ": "
+                        If ci > 1 Then js = js + " || "
+                        'js = js + "case " + ConvertExpression(caseParts(ci), i) + ": "
+                        js = js + caseVar + " == " + ConvertExpression(caseParts(ci), i)
                     Next ci
+                    js = js + ") {"
                 End If
                 caseCount = caseCount + 1
 
@@ -666,7 +674,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                         End If
                     ElseIf second = "SELECT" Then
                         If CheckBlockEnd(containers(), cindex, "END SELECT", i) Then
-                            js = "break;" + " }"
+                            js = " }"
                             indent = -1
                             cindex = cindex - 1
                         End If

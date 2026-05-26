@@ -426,7 +426,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
    var totalIndent = 0;  /* INTEGER */ 
    totalIndent = Math.round(  1 );
    var caseCount = 0;  /* INTEGER */ 
-   var containers = QB.initArray([{l:0,u: 10000}], {mode:0,type:'',label:'',line:0});  /* CONTAINER */ 
+   var containers = QB.initArray([{l:0,u: 10000}], {mode:0,type:'',label:'',line:0,caseVar:''});  /* CONTAINER */ 
    var cindex = 0;  /* INTEGER */ 
    var caseVar = '';  /* STRING */ 
    var currType = 0;  /* INTEGER */ 
@@ -527,26 +527,38 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
             QB.arrayValue(containers, [ cindex]).value .type = "SELECT CASE";
             QB.arrayValue(containers, [ cindex]).value .line = Math.round(  i );
             caseVar = await func_GenJSVar();
+            QB.arrayValue(containers, [ cindex]).value .caseVar =  caseVar;
             js = "var "  +  caseVar + " = "  + (await func_ConvertExpression( (await func_Join( parts  ,    3 ,    - 1 ,   " "))  ,    i))  + "; ";
-            js =  js + "switch ("  +  caseVar + ") {";
             indent = Math.round(  1 );
             caseCount = Math.round(  0 );
          } else if ( first ==  "CASE"  ) {
             if ( caseCount > 0 ) {
-               js = "break; ";
+               js = "} ";
             }
             if ((QB.func_UCase( QB.arrayValue(parts, [ 2]).value))  ==  "ELSE"  ) {
-               js =  js + "default:";
+               js =  js + "else {";
             } else if ((QB.func_UCase( QB.arrayValue(parts, [ 2]).value))  ==  "IS"  ) {
-               js =  js + "case "  +  caseVar + " "  + (await func_ConvertExpression( (await func_Join( parts  ,    3 ,    - 1 ,   " "))  ,    i))  + ":";
+               if ( caseCount > 0 ) {
+                  js =  js + "else ";
+               }
+               js =  js + "if ( "  +  caseVar + " "  + (await func_ConvertExpression( (await func_Join( parts  ,    3 ,    - 1 ,   " "))  ,    i))  + " ) { ";
             } else {
                var caseParts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
                var cscount = 0;  /* INTEGER */ 
                cscount = Math.round( (await func_ListSplit( (await func_Join( parts  ,    2 ,    - 1 ,   " "))  ,   caseParts)) );
+               if ( caseCount > 0 ) {
+                  js =  js + "else ";
+               }
+               js =  js + "if (";
+               caseVar = QB.arrayValue(containers, [ cindex]).value .caseVar;
                var ci = 0;  /* INTEGER */ 
                var ___v2750404 = 0; ___l7473842: for ( ci=  1 ;  ci <=  cscount;  ci= ci + 1) { if (QB.halted()) { return; } ___v2750404++;   if (___v2750404 % 100 == 0) { await QB.autoLimit(); }
-                  js =  js + "case "  + (await func_ConvertExpression( QB.arrayValue(caseParts, [ ci]).value  ,    i))  + ": ";
+                  if ( ci > 1 ) {
+                     js =  js + " || ";
+                  }
+                  js =  js +  caseVar + " == "  + (await func_ConvertExpression( QB.arrayValue(caseParts, [ ci]).value  ,    i));
                } 
+               js =  js + ") {";
             }
             caseCount = Math.round(  caseCount +  1 );
          } else if ( first ==  "FOR"  ) {
@@ -650,7 +662,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
                   }
                } else if ( second ==  "SELECT"  ) {
                   if ((await func_CheckBlockEnd( containers  ,    cindex,   "END SELECT"  ,    i))  ) {
-                     js = "break;"  + " }";
+                     js = " }";
                      indent = Math.round(  - 1 );
                      cindex = Math.round(  cindex -  1 );
                   }
@@ -926,18 +938,18 @@ if (QB.halted()) { return; };
 var BeginPhraseFor = null;
 /* implicit variables: */ 
    var bp = '';  /* STRING */ 
-   var ___v1986333 =  endPhrase; switch (___v1986333) {
-      case "NEXT": 
+   var ___v1986333 =  endPhrase; 
+      if (___v1986333 == "NEXT") {
       bp = "FOR";
-      break; case "LOOP": 
+      } else if (___v1986333 == "LOOP") {
       bp = "DO";
-      break; case "WEND": 
+      } else if (___v1986333 == "WEND") {
       bp = "WHILE";
-      break; case "END IF"  : case   "ENDIF": 
+      } else if (___v1986333 == "END IF"   || ___v1986333 ==   "ENDIF") {
       bp = "IF";
-      break; case "END SELECT": 
+      } else if (___v1986333 == "END SELECT") {
       bp = "SELECT CASE";
-   break; }
+    }
    BeginPhraseFor =  bp;
 return BeginPhraseFor;
 }
@@ -946,18 +958,18 @@ if (QB.halted()) { return; };
 var EndPhraseFor = null;
 /* implicit variables: */ 
    var ep = '';  /* STRING */ 
-   var ___v785196 =  beginPhrase; switch (___v785196) {
-      case "FOR": 
+   var ___v785196 =  beginPhrase; 
+      if (___v785196 == "FOR") {
       ep = "NEXT";
-      break; case "DO": 
+      } else if (___v785196 == "DO") {
       ep = "LOOP";
-      break; case "WHILE": 
+      } else if (___v785196 == "WHILE") {
       ep = "WEND";
-      break; case "IF": 
+      } else if (___v785196 == "IF") {
       ep = "END IF";
-      break; case "SELECT CASE": 
+      } else if (___v785196 == "SELECT CASE") {
       ep = "END SELECT";
-   break; }
+    }
    EndPhraseFor =  ep;
 return EndPhraseFor;
 }
@@ -1082,12 +1094,12 @@ var ConvertSub = null;
             args = (await func_Join( parts  ,    2 ,    - 1 ,   " "));
             m.sync = Math.round(  True );
          } else if (QB.arrayValue(parts, [ 1]).value  ==  "="  ) {
-            var ___v2367710 =  m.name; switch (___v2367710) {
-               case "_Clipboard$": 
+            var ___v2367710 =  m.name; 
+               if (___v2367710 == "_Clipboard$") {
                m.jsname = "QB.sub__Clipboard";
-               break; case "_ClipboardImage": 
+               } else if (___v2367710 == "_ClipboardImage") {
                m.jsname = "QB.sub__ClipboardImage";
-            break; }
+             }
             args = (await func_Join( parts  ,    2 ,    - 1 ,   " "));
          }
       }
