@@ -24,7 +24,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
     var identifiers = new RegExp("^[A-Za-z][_A-Za-z0-9]*");
 
     var openingKeywords = ['sub','select','while','if','function', 'property', 'with', 'for', 'type\\s'];
-    var middleKeywords = ['else','elseif','case','then'];
+    var middleKeywords = ['else','elseif','case','everycase','then'];
     var endKeywords = ['next','loop','wend'];
 
     var wordOperators = wordRegexp(['and', 'or', 'not', 'xor', 'is', 'mod', 'eqv', 'imp', '_?andalso', '_?orelse', '_?negate']);

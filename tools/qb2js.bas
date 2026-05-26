@@ -78,6 +78,7 @@ Type Container
     label As String
     line As Integer
     caseVar As String
+    everyCase As Integer
 End Type
 
 ReDim Shared As Module moduleMap()
@@ -539,6 +540,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 containers(cindex).line = i
                 caseVar = GenJSVar
                 containers(cindex).caseVar = caseVar
+                If UCase$(parts(2)) = "EVERYCASE" Then containers(cindex).everyCase = True
                 js = "var " + caseVar + " = " + ConvertExpression(Join(parts(), 3, -1, " "), i) + "; "
                 indent = 1
                 caseCount = 0
@@ -547,22 +549,39 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 'If caseCount > 0 Then js = "break; "
                 If caseCount > 0 Then js = "} "
                 If UCase$(parts(2)) = "ELSE" Then
-                    js = js + "else {"
+                    If Not containers(cindex).everyCase Then js = js + "else "
+                    js = js + "{ "
                 ElseIf UCase$(parts(2)) = "IS" Then
-                    If caseCount > 0 Then js = js + "else "
+                    If caseCount > 0 And Not containers(cindex).everyCase Then js = js + "else "
                     js = js + "if ( " + caseVar + " " + ConvertExpression(Join(parts(), 3, -1, " "), i) + " ) { "
                 Else
                     ReDim As String caseParts(0)
                     Dim cscount As Integer
                     cscount = ListSplit(Join(parts(), 2, -1, " "), caseParts())
-                    If caseCount > 0 Then js = js + "else "
+                    If caseCount > 0 And Not containers(cindex).everyCase Then js = js + "else "
                     js = js + "if ("
                     caseVar = containers(cindex).caseVar
                     Dim ci As Integer
                     For ci = 1 To cscount
                         If ci > 1 Then js = js + " || "
-                        'js = js + "case " + ConvertExpression(caseParts(ci), i) + ": "
-                        js = js + caseVar + " == " + ConvertExpression(caseParts(ci), i)
+                        ReDim As String caseSegments(0)
+                        Dim As Integer csegcount, toIndex, csi
+                        toIndex = 0
+                        csegcount = SLSplit2(caseParts(ci), caseSegments())
+                        For csi = 0 To csegcount
+                            If "TO" = UCase$(caseSegments(csi)) Then
+                                toIndex = csi
+                                Exit For
+                            End If
+                        Next csi
+                        If toIndex = 0 Then
+                            js = js + caseVar + " == " + ConvertExpression(caseParts(ci), i)
+                        Else
+                            Dim As String lvalue, rvalue
+                            lvalue = ConvertExpression(Join(caseSegments(), 1, toIndex - 1, " "), i)
+                            rvalue = ConvertExpression(Join(caseSegments(), toIndex + 1, -1, " "), i)
+                            js = js + "( " + caseVar + " >= " + lvalue + " && " + caseVar + " <= " + rvalue + ") "
+                        End If
                     Next ci
                     js = js + ") {"
                 End If
