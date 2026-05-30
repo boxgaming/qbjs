@@ -536,12 +536,15 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
             ElseIf first = "SELECT" Then
                 cindex = cindex + 1
-                containers(cindex).type = "SELECT CASE"
+                containers(cindex).type = "SELECT"
                 containers(cindex).line = i
                 caseVar = GenJSVar
+                containers(cindex).label = GenJSVar
                 containers(cindex).caseVar = caseVar
+                js = containers(cindex).label + ": { "
+
                 If UCase$(parts(2)) = "EVERYCASE" Then containers(cindex).everyCase = True
-                js = "var " + caseVar + " = " + ConvertExpression(Join(parts(), 3, -1, " "), i) + "; "
+                js = js + "var " + caseVar + " = " + ConvertExpression(Join(parts(), 3, -1, " "), i) + "; "
                 indent = 1
                 caseCount = 0
 
@@ -693,7 +696,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                         End If
                     ElseIf second = "SELECT" Then
                         If CheckBlockEnd(containers(), cindex, "END SELECT", i) Then
-                            js = " }"
+                            js = " } }"
                             indent = -1
                             cindex = cindex - 1
                         End If
@@ -800,7 +803,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 ElseIf second = "SUB" Then
                     js = "return;"
 
-                ElseIf second = "DO" Or second = "WHILE" Or second = "FOR" Then
+                ElseIf second = "DO" Or second = "WHILE" Or second = "FOR" Or second = "SELECT" Then
                     Dim lli As Integer
                     For lli = cindex To 0 Step -1
                         If lli > 0 Then
@@ -994,7 +997,7 @@ Function BeginPhraseFor$ (endPhrase As String)
         Case "LOOP": bp = "DO"
         Case "WEND": bp = "WHILE"
         Case "END IF", "ENDIF": bp = "IF"
-        Case "END SELECT": bp = "SELECT CASE"
+        Case "END SELECT": bp = "SELECT"
     End Select
     BeginPhraseFor = bp
 End Function
@@ -1006,7 +1009,7 @@ Function EndPhraseFor$ (beginPhrase As String)
         Case "DO": ep = "LOOP"
         Case "WHILE": ep = "WEND"
         Case "IF": ep = "END IF"
-        Case "SELECT CASE": ep = "END SELECT"
+        Case "SELECT": ep = "END SELECT"
     End Select
     EndPhraseFor = ep
 End Function
