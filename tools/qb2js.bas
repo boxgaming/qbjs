@@ -77,6 +77,7 @@ Type Container
     type As String
     label As String
     line As Integer
+    caseCount As Integer
     caseVar As String
     everyCase As Integer
 End Type
@@ -425,7 +426,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
     Dim m As Method
     Dim totalIndent As Integer
     totalIndent = 1
-    Dim caseCount As Integer
+    'Dim caseCount As Integer
     Dim containers(10000) As Container ' TODO: replace hardcoded limit?
     Dim cindex As Integer
     Dim caseVar As String
@@ -499,6 +500,8 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
         Else
             CheckParen lines(i).text, i
 
+            If first <> "CASE" AndAlso first <> "END" AndAlso containers(cindex).type = "SELECT" Then AddError i, "Expected CASE expression: " + first
+
             If first = "CONST" Then
                 ReDim As String constParts(0)
                 Dim As Integer constCount
@@ -541,29 +544,49 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 caseVar = GenJSVar
                 containers(cindex).label = GenJSVar
                 containers(cindex).caseVar = caseVar
+                containers(cindex).caseCount = 0
                 js = containers(cindex).label + ": { "
 
                 If UCase$(parts(2)) = "EVERYCASE" Then containers(cindex).everyCase = True
                 js = js + "var " + caseVar + " = " + ConvertExpression(Join(parts(), 3, -1, " "), i) + "; "
                 indent = 1
-                caseCount = 0
+                'caseCount = 0
 
             ElseIf first = "CASE" Then
-                'If caseCount > 0 Then js = "break; "
-                If caseCount > 0 Then js = "} "
+                Dim pcindex As Integer
+                pcindex = cindex
+                If containers(pcindex).type = "CASE" Then pcindex = cindex - 1
+                If containers(pcindex).type <> "SELECT" Then
+                    AddError i, "CASE without SELECT CASE"
+                    _Continue
+                End If
+                If containers(pcindex).caseCount > 0 Then 
+                    js = "} } "
+                Else
+                    cindex = cindex + 1
+                End if
+                containers(cindex).type = "CASE"
+                containers(cindex).line = i
+                containers(cindex).label = GenJSVar
+                
+                'If caseCount > 0 Then js = "} "
                 If UCase$(parts(2)) = "ELSE" Then
-                    If Not containers(cindex).everyCase Then js = js + "else "
-                    js = js + "{ "
+                    If Not containers(pcindex).everyCase Then js = js + "else "
+                    js = js + "{ " + containers(cindex).label + ": { "
                 ElseIf UCase$(parts(2)) = "IS" Then
-                    If caseCount > 0 And Not containers(cindex).everyCase Then js = js + "else "
-                    js = js + "if ( " + caseVar + " " + ConvertExpression(Join(parts(), 3, -1, " "), i) + " ) { "
+                    'If caseCount > 0 And Not containers(cindex).everyCase Then js = js + "else "
+                    If containers(pcindex).caseCount > 0 And Not containers(pcindex).everyCase Then js = js + "else "
+                    'js = js + "if ( " + caseVar + " " + ConvertExpression(Join(parts(), 3, -1, " "), i) + " ) { "
+                    js = js + "if ( " + containers(pcindex).caseVar + " " + ConvertExpression(Join(parts(), 3, -1, " "), i) + " ) { "
+                    js = js + containers(cindex).label + ": { "
                 Else
                     ReDim As String caseParts(0)
                     Dim cscount As Integer
                     cscount = ListSplit(Join(parts(), 2, -1, " "), caseParts())
-                    If caseCount > 0 And Not containers(cindex).everyCase Then js = js + "else "
+                    'If caseCount > 0 And Not containers(cindex).everyCase Then js = js + "else "
+                    If containers(pcindex).caseCount > 0 And Not containers(pcindex).everyCase Then js = js + "else "
                     js = js + "if ("
-                    caseVar = containers(cindex).caseVar
+                    caseVar = containers(pcindex).caseVar
                     Dim ci As Integer
                     For ci = 1 To cscount
                         If ci > 1 Then js = js + " || "
@@ -586,9 +609,10 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                             js = js + "( " + caseVar + " >= " + lvalue + " && " + caseVar + " <= " + rvalue + ") "
                         End If
                     Next ci
-                    js = js + ") {"
+                    js = js + ") {" + containers(cindex).label + ": { "
                 End If
-                caseCount = caseCount + 1
+                'caseCount = caseCount + 1
+                containers(pcindex).caseCount = containers(pcindex).caseCount + 1
 
             ElseIf first = "FOR" Then
                 Dim fstep As String: fstep = "1"
@@ -696,9 +720,15 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                         End If
                     ElseIf second = "SELECT" Then
                         If CheckBlockEnd(containers(), cindex, "END SELECT", i) Then
-                            js = " } }"
+                            js = " } "
                             indent = -1
-                            cindex = cindex - 1
+                            If containers(cindex).type = "CASE" Then
+                                cindex = cindex - 2
+                                js = js + " } } "
+                            Else
+                                cindex = cindex - 1
+                                AddWarning i, "Empty SELECT CASE block"
+                            End If
                         End If
                     Else
                         AddError i, "Syntax error after END"
@@ -803,7 +833,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 ElseIf second = "SUB" Then
                     js = "return;"
 
-                ElseIf second = "DO" Or second = "WHILE" Or second = "FOR" Or second = "SELECT" Then
+                ElseIf second = "DO" Or second = "WHILE" Or second = "FOR" Or second = "SELECT" Or second = "CASE" Then
                     Dim lli As Integer
                     For lli = cindex To 0 Step -1
                         If lli > 0 Then
@@ -1020,6 +1050,7 @@ Function CheckBlockEnd (cstack() As Container, cindex As Integer, endPhrase As S
     success = True
     beginPhrase = BeginPhraseFor(endPhrase)
     If cindex > 0 Then ctype = cstack(cindex).type
+    If ctype = "CASE" And beginPhrase = "SELECT" Then ctype = cstack(cindex-1).type
     If ctype <> beginPhrase Then
         AddError lineNumber, endPhrase + " without " + beginPhrase
         success = False
