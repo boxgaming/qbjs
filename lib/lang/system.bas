@@ -1,4 +1,5 @@
-Export Await, Call, InstanceOf, IsRunning, SetTimeout, TimeInMillis
+Export Await, Call, InstanceOf, IsRunning, SetTimeout, TypeOf, TimeInMillis
+Export ToFloat, ToInteger, ToBoolean
 
 Function Await (fn, thisArg)
 $If Javascript Then
@@ -30,6 +31,12 @@ $If Javascript Then
 $End If
 End Function
 
+Function TypeOf (o)
+$If Javascript Then
+    return typeof o;
+$End If
+End Function
+
 Function IsRunning
 $If Javascript Then
     return QB.toBoolean(QB.running());
@@ -45,5 +52,31 @@ End Sub
 Function TimeInMillis
 $If Javascript Then
     return Date.now();
+$End If
+End Function
+
+Function ToInteger (value) 
+$If Javascript Then
+    var result = parseInt(value);
+    if (isNaN(result)) {
+        result = 0;
+    }
+    return result;
+$End If
+End Function
+
+Function ToFloat (value)
+$If Javascript Then 
+    var result = parseFloat(value);
+    if (isNaN(result)) {
+        result = 0;
+    }
+    return result;
+$End If
+End Function
+
+Function ToBoolean (value)
+$If Javascript Then 
+    return value ? -1 : 0;
 $End If
 End Function
