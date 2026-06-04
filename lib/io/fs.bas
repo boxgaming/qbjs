@@ -1,11 +1,10 @@
-Const ALL = 0
-Const FILE = 1
-Const DIRECTORY = 2
+Option Explicit
+Const ALL = 0, FILE = 1, DIRECTORY = 2
 
 Export ALL, FILE, DIRECTORY
-Export ListDirectory, DownloadFile, UploadFile
+Export ListDirectory, DownloadFile, UploadFile, ReadText, WriteText, GetFilename, GetParentPath
 
-Function ListDirectory(dirpath As String, listMode As Integer)
+Function ListDirectory (dirpath As String, listMode As Integer)
     If dirpath = undefined Then dirpath = ""
     If listMode = undefined Then listMode = ALL
 
@@ -51,7 +50,7 @@ Function ListDirectory(dirpath As String, listMode As Integer)
     ListDirectory = results
 End Function
 
-Sub DownloadFile(filepath As String)
+Sub DownloadFile (filepath As String)
     $If Javascript Then
         var vfs = QB.vfs();
         var file = vfs.getNode(filepath, QB.vfsCwd());
@@ -62,7 +61,7 @@ Sub DownloadFile(filepath As String)
     $End If
 End Sub
 
-Sub UploadFile(destpath As String, filter As String, fnCallback As Object)
+Sub UploadFile (destpath As String, filter As String, fnCallback As Object)
     $If Javascript Then
         var vfs = QB.vfs();
         var parentDir = null;
@@ -110,3 +109,38 @@ Sub UploadFile(destpath As String, filter As String, fnCallback As Object)
         fileInput.click();
     $End If
 End Sub
+
+Function ReadText (filename As String)
+    If FileExists(filename) Then
+        Dim fh As Integer
+        fh = FreeFile
+        Open filename For Binary As #fh
+        Dim text As String
+        text = Space$(LOF(fh))
+        Get #fh, , text
+        Close #fh
+    End if
+    ReadText = text
+End Function
+
+Sub WriteText (filename As String, text As String)
+    Dim fh As Integer
+    fh = FreeFile
+    Open filename For Binary As #fh
+    Put #fh, , text
+    Close #fh
+End Sub
+
+Function GetFilename (filepath As String)
+    $If Javascript Then
+        var vfs = QB.vfs();
+        return vfs.getFileName(filepath);
+    $End If
+End Function
+
+Function GetParentPath (filepath As String)
+    $If Javascript Then
+        var vfs = QB.vfs();
+        return vfs.getParentPath(filepath);
+    $End If
+End Function
