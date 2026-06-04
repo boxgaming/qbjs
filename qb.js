@@ -2314,6 +2314,12 @@ var QB = new function() {
         _strokeDrawColor = _color(color);
     };
 
+    this.func_FreeFile = function() {
+        var i = 1;
+        while (_fileHandles[i]) { i++; }
+        return i;
+    };
+
     this.sub_Files = function(path) {
         var vfs = GX.vfs();
         var vfsCwd = GX.vfsCwd();
