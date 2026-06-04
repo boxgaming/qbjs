@@ -1,3 +1,6 @@
+Import String From "lib/lang/string.bas"
+
+Option Explicit
 Const NONE = "NONE"
 Const FATAL = "FATAL"
 Const ERROR = "ERROR"
@@ -78,10 +81,15 @@ Sub Echo (msg As String)
 End Sub
 
 Function EscapeHtml (text As String)
-    text = GXSTR_Replace(text, "&", "&amp;")
-    text = GXSTR_Replace(text, "<", "&lt;")
-    text = GXSTR_Replace(text, ">", "&gt;")
-    text = GXSTR_Replace(text, Chr$(34), "&quot;")
-    text = GXSTR_Replace(text, "'", "&#039;")
+    text = String.Replace(text, "&", "&amp;")
+    text = String.Replace(text, "<", "&lt;")
+    text = String.Replace(text, ">", "&gt;")
+    text = String.Replace(text, Chr$(34), "&quot;")
+    text = String.Replace(text, "'", "&#039;")
+    'text = GXSTR_Replace(text, "&", "&amp;")
+    'text = GXSTR_Replace(text, "<", "&lt;")
+    'text = GXSTR_Replace(text, ">", "&gt;")
+    'text = GXSTR_Replace(text, Chr$(34), "&quot;")
+    'text = GXSTR_Replace(text, "'", "&#039;")
     EscapeHtml = text
 End Function
