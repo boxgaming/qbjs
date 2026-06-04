@@ -1,19 +1,18 @@
+Import Sys From "lib/lang/system.bas"
+Import JSArray From "lib/lang/array.bas"
+
 Export EndsWith, Includes, Match, PadEnd, PadStart, Replace
 Export Search, Split, StartsWith, TrimEnd, TrimStart
 
 Function EndsWith (s As String, searchStr As String)
-    $If Javascript Then
-        EndsWith = QB.toBoolean(s.endsWith(searchStr));
-    $End If
+    EndsWith = Sys.ToBoolean(Sys.Call(s.endsWith, s, searchStr))
 End Function
 
 Function Includes (s As String, searchStr As String)
-    $If Javascript Then
-        Includes = QB.toBoolean(s.includes(searchStr));
-    $End If
+    Includes = Sys.ToBoolean(Sys.Call(s.includes, s, searchStr))
 End Function
 
-Sub Match (s As String, regex As String, result() As String, g As Object)
+Function Match (s As String, regex As String, g As Object)
     Dim jsresult As Object
     $If Javascript Then
         if (g == undefined) { g = 0; }
@@ -26,80 +25,55 @@ Sub Match (s As String, regex As String, result() As String, g As Object)
             if (value) { jsresult.push(value); }
         }
     $End If
-    ToQBArray jsresult, result
+    Match = JSArray.ToQBArray(jsresult)
+End Function
+
+Sub Match (s As String, regex As String, result() As String, g As Object)
+    result = Match(s, regex, g)
 End Function
 
 Function PadEnd (s As String, targetLength As Integer, padStr As String)
-    $If Javascript Then
-        PadEnd = s.padEnd(targetLength, padStr);
-    $End If
+    PadEnd = Sys.Call(s.padEnd, s, targetLength, padStr)
 End Function
 
 Function PadStart (s As String, targetLength As Integer, padStr As String)
-    $If Javascript Then
-        PadStart = s.padStart(targetLength, padStr);
-    $End If
+    PadStart = Sys.Call(s.padStart, s, targetLength, padStr)
 End Function
 
 Function Replace (s As String, searchStr As String, replaceStr As String, regex As Integer)
-    $If Javascript Then
-        if (regex) {
-            Replace = s.replace(new RegExp(searchStr, "g"), replaceStr);
-        }
-        else {
-            Replace = s.replaceAll(searchStr, replaceStr);
-        }
-    $End If
+    If regex Then
+        Replace = Sys.Call(s.replace, s, Sys.InstanceOf("RegExp", searchStr, "g"), replaceStr)
+    Else
+        Replace = Sys.Call(s.replaceAll, s, searchStr, replaceStr)
+    End If
 End Function
 
-Sub ToQBArray (jsArray As Object, result() As String)
-    Dim i, part As String
-    If jsArray Then
-        ReDim result(jsArray.length) As String
-        For i = 1 To jsArray.length
-            $If Javascript Then
-                part = jsArray[i-1];
-            $End If
-            result(i) = part
-        Next i
-    Else
-        ReDim result(0) As String
-    End If
-End Sub
+Function Search (s As String, regex As String)
+    Search = Sys.Call(s.search, s, Sys.InstanceOf("RegExp", regex, "g")) + 1
+End Function
 
-Function Search(s As String, regex As String)
-    $If Javascript Then
-        Search = s.search(new RegExp(regex, "g")) + 1;
-    $End If
+Function Split (s As String, delimeter As String, regex As String)
+    Dim jsresult As Object
+    If regex Then
+        jsresult = Sys.Call(s.split, s, Sys.InstanceOf("RegExp", delimiter, "g"))
+    Else
+        jsresult = Sys.Call(s.split, s, delimiter)
+    End If
+    Split = JSArray.ToQBArray(jsresult)
 End Function
 
 Sub Split (s As String, delimiter As String, result() As String, regex As Integer)
-    Dim jsresult As Object
-    $If Javascript Then
-        if (regex) {
-            jsresult = s.split(new RegExp(delimiter, "g"));
-        }
-        else {
-            jsresult = s.split(delimiter);
-        }
-    $End If
-    ToQBArray jsresult, result
+    Split = Split(s, delimeter, regex)
 End Sub
 
 Function StartsWith (s As String, searchStr As String)
-    $If Javascript Then
-        StartsWith = QB.toBoolean(s.startsWith(searchStr));
-    $End If
+    StartsWith = Sys.ToBoolean(Sys.Call(s.startsWith, s, searchStr))
 End Function
 
 Function TrimEnd (s As String)
-    $If Javascript Then
-        TrimEnd = s.trimEnd();
-    $End If
+    TrimEnd = Sys.Call(s.trimEnd, s)
 End Function
 
 Function TrimStart (s As String)
-    $If Javascript Then
-        TrimStart = s.trimStart();
-    $End If
+    TrimStart = Sys.Call(s.trimStart, s)
 End Function
