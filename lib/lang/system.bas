@@ -1,3 +1,4 @@
+Option Explicit
 Export Await, Call, InstanceOf, IsRunning, SetTimeout, TypeOf, TimeInMillis
 Export ToFloat, ToInteger, ToBoolean
 
@@ -27,7 +28,7 @@ End Sub
 
 Function InstanceOf (className)
 $If Javascript Then
-    return Reflect.construct(window[className], Array.prototype.slice.call(arguments, 1));
+    return Reflect.construct(globalThis[className], Array.prototype.slice.call(arguments, 1));
 $End If
 End Function
 

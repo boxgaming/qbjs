@@ -1,5 +1,6 @@
 Import Sys From "lib/lang/system.bas"
 Import JSArray From "lib/lang/array.bas"
+Option Explicit
 
 Export EndsWith, Includes, Match, PadEnd, PadStart, Replace
 Export Search, Split, StartsWith, TrimEnd, TrimStart
@@ -52,7 +53,8 @@ Function Search (s As String, regex As String)
     Search = Sys.Call(s.search, s, Sys.InstanceOf("RegExp", regex, "g")) + 1
 End Function
 
-Function Split (s As String, delimeter As String, regex As String)
+Function Split (s As String, delimiter As String, regex As Integer)
+    If delimiter = undefined Then delimiter = ","
     Dim jsresult As Object
     If regex Then
         jsresult = Sys.Call(s.split, s, Sys.InstanceOf("RegExp", delimiter, "g"))
@@ -63,7 +65,7 @@ Function Split (s As String, delimeter As String, regex As String)
 End Function
 
 Sub Split (s As String, delimiter As String, result() As String, regex As Integer)
-    Split = Split(s, delimeter, regex)
+    Split = Split(s, delimiter, regex)
 End Sub
 
 Function StartsWith (s As String, searchStr As String)

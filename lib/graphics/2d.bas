@@ -1,6 +1,5 @@
-Const DEFAULT = "butt"
-Const ROUND = "round"
-Const SQUARE = "square"
+Option Explicit
+Const DEFAULT = "butt", ROUND = "round", SQUARE = "square"
 
 Export DEFAULT, ROUND, SQUARE
 Export RotoZoom, SaveImage
@@ -9,11 +8,10 @@ Export Shadow, ShadowOff, LineWidth, LineCap, LineDash, LineDashOff
 Export FillCircle, Ellipse, FillEllipse, Curve, Bezier
 
 Sub RotoZoom (centerX As Long, centerY As Long, img As Long, xScale As Single, yScale As Single, rotation As Single)
-    Dim newImage As Long
     Dim imgWidth, imgHeight
     imgWidth = _Width(img)
     imgHeight = _Height(img)
-    Dim destImg As Long
+    Dim destImage As Long
     destImage = _Dest
 
     $If Javascript Then

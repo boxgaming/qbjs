@@ -1,4 +1,4 @@
-Import SYS From "lib/lang/System.bas"
+Import SYS From "lib/lang/system.bas"
 Import JSArray From "lib/lang/array.bas"
 
 Export Add, Alert, Confirm, Create, Event, Container, Get, GetImage, Remove
