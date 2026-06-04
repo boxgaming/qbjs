@@ -1,90 +1,70 @@
-Export Add, Alert, Confirm, Create, Event, Container, Get, GetImage, Remove, Prompt
-Export DialogClose, DialogShowModal, DialogShow, Focus, HasFocus, SelectAll
+Import SYS From "lib/lang/System.bas"
+Import JSArray From "lib/lang/array.bas"
+
+Export Add, Alert, Confirm, Create, Event, Container, Get, GetImage, Remove
+Export GetAttribute, SetAttribute, GetAttributeNames, GetElementsByClassName
+Export Prompt, DialogClose, DialogShowModal, DialogShow, Focus, HasFocus, SelectAll
 Export RequestFullscreen, StopPropagation, RequestAnimationFrame, Document, Window
 
-$If Javascript Then
-    if (QB._domElements) {
-        var e = null;    
-        while (e = QB._domElements.pop()) {
-            e.remove();
-        }
-    }
-    else { 
-        QB._domElements = []; 
-    }
+Dim e As Object
+If QB._domElements Then
+    e = JSArray.Pop(QB._domElements)
+    While e
+        Remove e
+        e = JSArray.Pop(QB._domElements)
+    Wend 
+Else
+    QB._domElements = JSArray.Create
+End If
 
-    if (QB._domEvents) {
-        while (e = QB._domEvents.pop()) {
-            e.target.removeEventListener(e.eventType, e.callbackFn);
-        }
-    }
-    else {
-        QB._domEvents = [];
-    }
-$End If
+If QB._domEvents Then
+    e = JSArray.Pop(QB._domEvents)
+    While e
+        Sys.Call e.target.removeEventListener, e.target, e.eventType, e.callbackFn
+    e = JSArray.Pop(QB._domEvents)
+    Wend
+Else
+    QB._domEvents = JSArray.Create
+End If
 
-Sub Alert (text As String) 
-    $If Javascript Then
-        alert(text);
-    $End If
+
+Sub Alert (text As String)
+    Sys.Call window.alert, , text 
 End Sub
 
-Function Confirm (text As String) 
+Function Confirm (text As String)
     $If Javascript Then
-        Confirm = confirm(text) ? -1 : 0;
+        Confirm = QB.toBoolean(confirm(text));
     $End If
 End Function
 
 Sub Add (e As Object, parent As Object, beforeElement As Object)
-    $If Javascript Then
-        if (typeof e == "string") {
-            e = document.getElementById(e);
-        }
-
-        if (parent == undefined || parent == "") {
-            parent = await func_Container(); 
-        }
-        else if (typeof parent == "string") {
-            parent = document.getElementById(parent);
-        }
-
-        if (beforeElement == undefined || beforeElement == "") {
-            beforeElement = null;
-        }
-        else if (typeof beforeElement == "string") {
-            beforeElement = document.getElementById(beforeElement);
-        }
-        
-        parent.insertBefore(e, beforeElement);
-    $End If
+    If Sys.TypeOf(e) = "string" Then e = Sys.Call(document.getElementById, document, e)
+    If parent = undefined OrElse parent = "" Then parent = Container
+    If Sys.TypeOf(parent) = "string" Then parent = Sys.Call(document.getElementById, document, parent)
+    If beforeElement = "" Then beforeElement = undefined
+    If Sys.TypeOf(beforeElement) = "string" Then beforeElement = Sys.Call(document.getElementById, document, beforeElement)
+    Sys.Call parent.insertBefore, parent, e, beforeElement
 End Sub
 
 Function Create (etype As String, parent As Object, content As String, eid As String, beforeElement As Object)
-    $If Javascript Then
-        var e = document.createElement(etype); 
-        if (eid != undefined && eid != "") {
-            e.id = eid;
-        }
-        e.className = "qbjs";
-        
-        if (content != undefined) {
-            if (e.value != undefined) {
-                e.value = content;
-            }
-            if (e.innerHTML != undefined) {
-                e.innerHTML = content;
-            }
-        }
+    Dim e As Object
+    e = Sys.Call(document.createElement, document, etype)
+    If eid <> undefined AndAlso eid <> "" Then e.id = eid
+    e.className = "qbjs"
 
-        QB._domElements.push(e);
-        await sub_Add(e, parent, beforeElement);
-        Create = e;
-    $End If    
+    If content <> undefined Then
+        If e.value <> undefined Then e.value = content
+        If e.innerHTML <> undefined Then e.innerHTML = content
+    End If
+
+    Sys.Call QB._domElements.push, QB._domElements, e
+    Add e, parent, beforeElement
+    Create = e
 End Function
 
 Sub Create (etype As String, parent As Object, content As String, eid As String, beforeElement As Object) 
-    Dim e
-    e = Create(etype, parent, content, eid, beforeElement)
+    Dim e As Object: e = Create(etype, parent, content, eid, beforeElement)
 End Sub
 
 Sub Event (target As Object, eventType As String, callbackFn As Object)
@@ -105,9 +85,7 @@ Sub Event (target As Object, eventType As String, callbackFn As Object)
 End Sub
 
 Function Container
-    $If Javascript Then
-        return document.getElementById("gx-container");
-    $End If
+    Container = Get("gx-container")
 End Function
 
 Function Window
@@ -123,87 +101,85 @@ Function Document
 End Function
 
 Function Get (eid As String)
-    $If Javascript Then
-        Get = document.getElementById(eid);
-    $End If
+    Get = Sys.Call(document.getElementById, document, eid)
 End Function
 
-Function GetImage (imageId As Integer) 
+Function GetAttribute (e As Object, attributeName As String)
+    If Sys.TypeOf(e) = "string" Then e = Sys.Call(document.getElementById, document, e)
+    GetAttribute = Sys.Call(e.getAttribute, e, attributeName)
+End Function
+
+Sub SetAttribute (e As Object, attributeName As String, attributeValue As String)
+    If Sys.TypeOf(e) = "string" Then e = Sys.Call(document.getElementById, document, e)
+    Sys.Call e.setAttribute, e, attributeName, attributeValue
+End Sub
+
+Function GetAttributeNames (e As Object)
+    If Sys.TypeOf(e) = "string" Then e = Sys.Call(document.getElementById, document, e)
+    GetAttributeNames = JSArray.ToQBArray(Sys.Call(e.getAttributeNames, e))
+End Function
+
+Function GetElementsByClassName (className As String, e As Object)
+    If e = undefined Then 
+        e = Document
+    ElseIf Sys.TypeOf(e) = "string" Then
+        e = Sys.Call(document.getElementById, document, e)
+    End If
+    Dim elements As Object
+    elements = Sys.Call(e.getElementsByClassName, e, className)
+    GetElementsByClassName = JSArray.ToQBArray(elements)
+End Function
+
+Function GetImage (imageId As Integer)
     $If Javascript Then
         GetImage = QB.getImage(imageId);
     $End If
 End Function
 
 Sub Remove (e As Object)
-    $If Javascript Then
-        if (typeof e == "string") {
-            e = document.getElementById(e);
-        }
-        if (e != undefined && e != null) {
-            e.remove();
-        }
-    $End If
+    If Sys.TypeOf(e) = "string" Then e = Sys.Call(document.getElementById, document, e)
+    Sys.Call e.remove, e
 End Sub
 
 Function Prompt (text As String, defaultValue As String)
     Dim result As String
-    $If Javascript Then
-        result = prompt(text, defaultValue);
-        if (!result) { result = ""; }
-    $End If
-    Prompt = result;
+    result = Sys.Call(window.prompt, , text, defaultValue)
+    If Negate result Then result = ""
+    Prompt = result
 End Function
 
 Sub DialogClose (element As Object)
-    $If Javascript Then
-        element.close();
-    $End If
+    Sys.Call element.close, element
 End Sub
 
 Sub DialogShowModal (element As Object)
-    $If Javascript Then
-        element.showModal();
-    $End If
+    Sys.Call element.showModal, element
 End Sub
 
 Sub DialogShow(element As Object)
-    $If Javascript Then
-        element.show();
-    $End If
+    Sys.Call element.show, element
 End Sub
 
 Sub Focus (element As Object)
-    $If Javascript Then
-        element.focus();
-    $End If
+    Sys.Call element.focus, element
 End Sub
 
 Function HasFocus (element As Object)
-    $If Javascript Then
-        HasFocus = element.hasFocus();
-    $End If
+    HasFocus = Sys.Call(element.hasFocus, element)
 End Function
 
 Sub SelectAll (element As Object)
-    $If Javascript Then
-        element.select();
-    $End If
+    Sys.Call element.select, element
 End Sub
 
 Sub RequestFullscreen (element As Object)
-    $If Javascript Then
-        element.requestFullscreen();
-    $End If
+    Sys.Call element.requestFullscreen, element
 End Sub
 
 Sub StopPropagation (e As Object)
-    $If Javascript Then
-        e.stopPropagation();
-    $End If
+    Sys.Call e.stopPropagation, e
 End Sub
 
 Sub RequestAnimationFrame (fnCallback As Sub)
-    $If Javascript Then
-        requestAnimationFrame(fnCallback);
-    $End If
+    Sys.Call requestAnimationFrame, , fnCallback
 End Sub
