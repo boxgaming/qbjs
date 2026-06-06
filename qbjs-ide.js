@@ -265,11 +265,11 @@ var IDE = new function() {
     }    
 
     function _getErrorLine(error, stackDepth) {
-        if (!stackDepth)  {
-            stackDepth = 0;
-        }
-        else if (error._stackDepth) {
+        if (error._stackDepth) {
             stackDepth = error._stackDepth;
+        }
+        else if (!stackDepth)  {
+            stackDepth = 0;
         }
 
         var cdepth = 0;
@@ -447,7 +447,7 @@ var IDE = new function() {
                 _addWarningCell(tr, ":");
                 _addWarningCell(tr, srcLine);
                 _addWarningCell(tr, ":");
-                _addWarningCell(tr, "<div style='white-space:pre'>" + error.message + "\n<div style='color:#666'>" + error.stack + "</div></div>", "99%");
+                _addWarningCell(tr, "<div style='white-space:pre'>" + _escapeHTML(error.message) + "\n<div style='color:#666'>" + _escapeHTML(error.stack) + "</div></div>", "99%");
                 tr.codeLine = srcLine - 1;
                 tr.onclick = _gotoWarning;
                 table.append(tr);
@@ -463,6 +463,15 @@ var IDE = new function() {
         _e.gxContainer.focus();
 
         return false;
+    }
+
+    function _escapeHTML(text) {
+        text = text.replaceAll("&", "&amp;");
+        text = text.replaceAll("<", "&lt;");
+        text = text.replaceAll(">", "&gt;");
+        text = text.replaceAll('"', "&quot;");
+        text = text.replaceAll("'", "&#039;");
+        return text;
     }
 
     function _hasError() {
