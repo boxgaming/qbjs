@@ -1,6 +1,6 @@
 Option Explicit
 Export Await, Call, InstanceOf, IsRunning, SetTimeout, TypeOf, TimeInMillis
-Export ToFloat, ToInteger, ToBoolean
+Export ToFloat, ToInteger, ToBoolean, ToString
 
 Function Await (fn, thisArg)
 $If Javascript Then
@@ -79,5 +79,11 @@ End Function
 Function ToBoolean (value)
 $If Javascript Then 
     return value ? -1 : 0;
+$End If
+End Function
+
+Function ToString (value)
+$If Javascript Then
+    return `${value}`;
 $End If
 End Function
