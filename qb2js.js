@@ -2861,6 +2861,7 @@ if (QB.halted()) { return; };
             m.name = (await func_Replace(  m.name ,   "/"  ,   "_"));
             m.name = (await func_Replace(  m.name ,   "\\"  ,   "_"));
             m.name = (await func_Replace(  m.name ,   "."  ,   "_"));
+            m.name = (await func_Replace(  m.name ,   "-"  ,   "_"));
             var mm = {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0};  /* MODULE */ 
             mm = QB.arrayValue(moduleMap, [ m.path]).value;
             if ( mm.name ==  ""  ) {

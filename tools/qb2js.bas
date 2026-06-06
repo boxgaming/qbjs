@@ -2872,6 +2872,7 @@ Sub RegisterImports (sourceText As String, parentModule As Object)
                 m.name = Replace(m.name, "/", "_")
                 m.name = Replace(m.name, "\", "_")
                 m.name = Replace(m.name, ".", "_")
+                m.name = Replace(m.name, "-", "_")
                 Dim mm As Module
                 mm = moduleMap(m.path)
                 If mm.name = "" Then
