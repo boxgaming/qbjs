@@ -1,15 +1,9 @@
 Option Explicit
-Export Assign, Create, GetProperty, HasProperty, Keys, SetProperty, DeleteProperty
+Export Assign, GetProperty, HasProperty, Keys, SetProperty, DeleteProperty
 
 Sub Assign (target As Object, source As Object)
 $If Javascript Then
     Object.assign(target, source);
-$End If
-End Sub
-
-Function Create (proto As Object)
-$If Javascript Then
-    return Object.create(proto);
 $End If
 End Sub
 
