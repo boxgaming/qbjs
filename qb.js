@@ -3719,7 +3719,7 @@ var QB = new function() {
     };
 
     this.func_Tan = function(value) {
-        value = __assertNumber(value);
+        value = _assertNumber(value);
         return Math.tan(value);
     };
 
