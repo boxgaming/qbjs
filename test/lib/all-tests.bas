@@ -1,0 +1,1 @@
+Import LangTests From "test/lib/lang/all-tests.bas"
