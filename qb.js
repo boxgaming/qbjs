@@ -3769,7 +3769,7 @@ var QB = new function() {
     this.func_Val = function(value) {
         _assertParam(value);
         var ret;
-        value = value.toString();
+        value = value.toString().toUpperCase();
         value = value.replaceAll(/\s/g, "");
         if (value.substring(0, 2) == "&H") {
             ret = parseInt(value.slice(2), 16);
