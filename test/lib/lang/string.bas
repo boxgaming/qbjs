@@ -52,4 +52,4 @@ UT.AssertEquals results(4), "test"
 UT.AssertTrue String.StartsWith("foobar", "foo")
 UT.AssertFalse String.StartsWith("foobar", "bar")
 
-Console.Echo "lib/lang/string tests completed with no errors in " + (Sys.TimeInMillis - ts) + " millisecond(s)"
+Console.Echo "lib/lang/string - tests completed with no errors in " + (Sys.TimeInMillis - ts) + " millisecond(s)"

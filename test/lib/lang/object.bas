@@ -48,4 +48,4 @@ UT.AssertEquals UBound(props), 2
 UT.AssertEquals props(1), "firstName"
 UT.AssertEquals props(2), "favorite color"
 
-Console.Echo "lib/lang/object tests completed with no errors in " + (Sys.TimeInMillis - ts) + " millisecond(s)"
+Console.Echo "lib/lang/object - tests completed with no errors in " + (Sys.TimeInMillis - ts) + " millisecond(s)"
