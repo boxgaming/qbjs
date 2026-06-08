@@ -2020,7 +2020,7 @@ var QB = new function() {
 
     this.func_Hex = function(n) {
         n = _assertNumber(n);
-        return n.toString(16).toUpperCase();
+        return Math.round(n).toString(16).toUpperCase();
     };
 
     this.func_EOF = function(fh) {
@@ -2622,7 +2622,7 @@ var QB = new function() {
 
     this.func_Oct = function(n) {
         n = _assertNumber(n);
-        return n.toString(8).toUpperCase();
+        return Math.round(n).toString(8).toUpperCase();
     };
 
     this.sub_Open = async function(path, mode, handle) {
