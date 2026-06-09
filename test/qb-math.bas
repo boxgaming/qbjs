@@ -45,6 +45,11 @@ UT.AssertEquals Int(-3.67), -4
 UT.AssertEquals Log(1), 0
 UT.AssertEquals Log(2.1), 0.7419373447293773   ' QB64: .7419373
 
+UT.AssertEquals Sgn(-23.45), -1
+UT.AssertEquals Sgn(0.000023), 1
+UT.AssertEquals Sgn(1298), 1
+UT.AssertEquals Sgn(0), 0
+
 ' More digits of precision than QB64
 UT.AssertEquals Sin(0), 0
 UT.AssertEquals Sin(1), 0.8414709848078965     ' QB64: .841471

@@ -58,12 +58,28 @@ UT.AssertEquals s$, "The slow ape took a nap."
 Mid$(s$, 10, 3) = "catalog"
 UT.AssertEquals s$, "The slow cat took a nap."
 
-' TODO: implement tests for the remaining keywords
-'MKD$
-''MKDMBF$ (function) - not implemented
-'MKI$
-'MKL$
-'MKS$
+'MKD$ | CVD
+UT.AssertEquals MKD$(23495.239810983), "M*YÏñÖ@"
+UT.AssertEquals CVD("M*YÏñÖ@"), 23495.239810983
+
+'MKDMBF$ | CVDMBF - not implemented
+
+'MKI$ | CVI
+UT.AssertEquals MKI$(12345), "90"
+UT.AssertEquals CVI("90"), 12345
+UT.AssertEquals CVI(MKI$(78.23)), 78
+
+'MKL$ | CVL
+UT.AssertEquals CVL(MKL$(33)), 33
+UT.AssertEquals CVL(MKL$(398029890)), 398029890
+
+'MKS$ | CVS
+UT.AssertEquals CVS(MKS$(-1034)), -1034
+sval = CVS(MKS$(27.432))
+UT.AssertEquals _Round(sval * 1000) / 1000, 27.432
+' slight difference in precision vs QB64
+' QB64: 27.432  QBJS: 27.43199920654297
+
 ''MKSMBF$ (function) - not implemented
 
 'OCT$
@@ -123,15 +139,28 @@ UT.AssertEquals Val("&B0110010"), 50
 'UT.AssertEquals Val("32.456", Integer), 32
 'UT.AssertEquals Val("32.456", Long), 32
 
-' TODO: implement tests for the remaining keywords
-'_CLIPBOARD$ (function) returns the current STRING contents of the system Clipboard.
-'_CLIPBOARD$ (statement) sets the STRING contents of the current system Clipboard.
-'_CONTROLCHR (statement) OFF allows the control characters to be used as text characters. ON(default) can use them as commands.
-'_CONTROLCHR (function) returns the current state of _CONTROLCHR as 1 when OFF and 0 when ON.
-'_CV (function) used to convert _MK$ ASCII string values to numerical values.
-'_MK$ (function) converts any numerical type into an ASCII string value that must be converted back using _CV.
-'_STRCMP (function) compares the relationship between two strings.
-'_STRICMP (function) compares the relationship between two strings, without regard for case-sensitivity.
+
+' QB64 Keywords
+' -----------------------------------------------------------------
+_Clipboard$ = "clipboard test text"
+UT.AssertEquals _Clipboard$, "clipboard test text"
+
+'_CONTROLCHR (statement) - not implemented
+'_CONTROLCHR (function) - not implemented
+'_CV (function) - not implemented
+'_MK$ (function) - not implemented
+
+'_STRCMP
+UT.AssertEquals _StrCmp("ABCDE", "abcde"), -1
+UT.AssertEquals _StrCmp("ABCDE", "12345"), 1
+UT.AssertEquals _StrCmp("same", "same"), 0
+UT.AssertEquals _StrCmp("XYZ", "ABC"), 1
+
+'_STRICMP
+UT.AssertEquals _StriCmp("ABCDE", "abcde"), 0 
+UT.AssertEquals _StriCmp("ABCDE", "12345"), 1
+UT.AssertEquals _StriCmp("same", "same"), 0
+UT.AssertEquals _StriCmp("XYZ", "ABC"), 1
 
 '_TRIM
 UT.AssertEquals _Trim$("  Test string  "), "Test string"
