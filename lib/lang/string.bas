@@ -1,5 +1,5 @@
-Import Sys From "lib/lang/system.bas"
-Import JSArray From "lib/lang/array.bas"
+Import Sys From "./system.bas"
+Import JSArray From "./array.bas"
 Option Explicit
 
 Export EndsWith, Includes, Match, PadEnd, PadStart, Replace

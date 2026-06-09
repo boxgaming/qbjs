@@ -2,7 +2,7 @@ Option Explicit
 Const ALL = 0, FILE = 1, DIRECTORY = 2
 
 Export ALL, FILE, DIRECTORY
-Export ListDirectory, DownloadFile, UploadFile, ReadText, WriteText, GetFilename, GetParentPath
+Export ListDirectory, DownloadFile, UploadFile, ReadText, WriteText, GetFilename, GetParentPath, NormalizePath
 
 Function ListDirectory (dirpath As String, listMode As Integer)
     If dirpath = undefined Then dirpath = ""
@@ -142,5 +142,36 @@ Function GetParentPath (filepath As String)
     $If Javascript Then
         var vfs = QB.vfs();
         return vfs.getParentPath(filepath);
+    $End If
+End Function
+
+Function NormalizePath (filepath As String)
+    $If Javascript Then
+        filepath = filepath.replaceAll("\\", "/"); 
+
+        var prefix = "";
+        if      (filepath.startsWith("http://"))  { prefix = "http://" }
+        else if (filepath.startsWith("https://")) { prefix = "https://" }
+        else if (filepath.startsWith("//"))       { prefix = "//" }
+        else if (filepath.startsWith("/"))        { prefix = "/" }
+        filepath = filepath.substring(prefix.length);
+
+        var parts = filepath.split("/"); 
+        var stack = [];
+
+        for (var part of parts) {
+            if (part === "" || part === ".") {
+                continue;
+            }
+            if (part === "..") {
+                if (stack.length > 0) {
+                    stack.pop();
+                }
+            } else {
+                stack.push(part);
+            }
+        }
+
+        return prefix + stack.join("/");
     $End If
 End Function

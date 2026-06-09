@@ -1,2 +1,2 @@
-Import MathTests From "test/qb-math.bas"
-Import StringTests From "test/qb-string.bas"
+Import MathTests From "./qb-math.bas"
+Import StringTests From "./qb-string.bas"

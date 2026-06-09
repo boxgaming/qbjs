@@ -1,2 +1,2 @@
-Import ObjectTest From "test/lib/lang/object.bas"
-Import StringTest From "test/lib/lang/string.bas"
+Import ObjectTest From "./object.bas"
+Import StringTest From "./string.bas"

@@ -1,2 +1,2 @@
-Import QBTests From "test/qb-all-tests.bas"
-Import LibTests From "test/lib/all-tests.bas"
+Import QBTests From "./qb-all-tests.bas"
+Import LibTests From "./lib/all-tests.bas"

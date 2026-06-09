@@ -1,3 +1,4 @@
+Import FS From "lib/io/fs.bas"
 Import OBJ From "lib/lang/object.bas"
 Option _Explicit
 
@@ -2865,7 +2866,7 @@ Sub RegisterImports (sourceText As String, parentModule As Object)
             If pcount = 4 Then
                 Dim sourceUrl As String
                 Dim importRes As FetchResponse
-                sourceUrl = Mid$(parts(4), 2, Len(parts(4)) - 2)
+                sourceUrl = NormalizeImportPath(Mid$(parts(4), 2, Len(parts(4)) - 2), parentModule)
                 Dim m As Module
                 m.path = sourceUrl
                 m.name = Replace(LCase$(sourceUrl), "://", "_")
@@ -2882,7 +2883,6 @@ Sub RegisterImports (sourceText As String, parentModule As Object)
                     m.exportConsts = mconsts
                     moduleMap(m.path) = m
                     Dim importRes As FetchResponse
-                    sourceUrl = Mid$(parts(4), 2, Len(parts(4)) - 2)
                     Fetch sourceUrl, importRes
                     If importRes.status <> 200 Then
                         AddError i, "File not found: " + sourceUrl
@@ -2900,6 +2900,20 @@ Sub RegisterImports (sourceText As String, parentModule As Object)
         End If
     Next i
 End Sub
+
+Function NormalizeImportPath (sourceUrl, parentModule)
+    If Left$(sourceUrl, 1) = "." Then
+        Dim ppath As String
+        If parentModule <> undefined Then 
+            ppath = FS.GetParentPath(parentModule.path)
+            If Mid$(parentModule.path, 1, 1) <> "/" Then ppath = Mid$(ppath, 2)
+        End If
+        If ppath <> "" Then ppath = ppath + "/"
+        sourceUrl = FS.NormalizePath(ppath + sourceUrl)
+    End If
+
+    NormalizeImportPath = sourceUrl
+End Function
 
 Sub ReadLinesFromText (sourceText As String)
     ReDim As String sourceLines(0)
@@ -2924,7 +2938,8 @@ Sub ReadLinesFromText (sourceText As String)
                     Dim moduleName As String
                     Dim sourceUrl As String
                     Dim importRes As FetchResponse
-                    sourceUrl = Mid$(parts(4), 2, Len(parts(4)) - 2)
+                    'If activeModule <> undefined Then AddWarning 0, "current module: " + activeModule.path
+                    sourceUrl = NormalizeImportPath(Mid$(parts(4), 2, Len(parts(4)) - 2), activeModule)
                     moduleName = parts(2)
                     modLevel = modLevel + 1
 

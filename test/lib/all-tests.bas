@@ -1,1 +1,2 @@
-Import LangTests From "test/lib/lang/all-tests.bas"
+Import IOTests From "./io/fs.bas"
+Import LangTests From "./lang/all-tests.bas"
