@@ -34,6 +34,7 @@ End Type
 
 Type Method
     line As Integer
+    lastLine As Integer
     type As String
     returnType As String
     name As String
@@ -248,6 +249,19 @@ Sub Compile (source As String, moduleName As String, selfConvert)
     InitData
 
     ConvertLines 1, MainEnd, ""
+    ' Convert any lines found between method definitions
+    Dim As Integer i, j, startLine, endLine, lastLine
+    For i = 2 To UBound(methods)
+        If methods(i).line <> 0 And methods(i).line <> 0 Then
+            startLine = methods(i-1).lastLine + 1
+            endLine = methods(i).line - 1
+            If endLine >= startLine Then ConvertLines startLine, endLine, ""
+            lastLine = methods(i).lastLine + 1
+        End If
+    Next i
+    ' Convert any lines found after the last method definition
+    If lastLine <= UBound(lines) Then ConvertLines lastLine, UBound(lines), ""
+
     If Not selfConvert And Not isGX And moduleName = "" Then AddJSLine 0, "QB.end();"
     AddJSLine 0, "} await main();"
 
@@ -2757,8 +2771,11 @@ Sub ConvertMethods ()
             'currentMethod = methods(i).name
 
             Dim lastLine As Integer
-            lastLine = methods(i + 1).line - 1
-            If lastLine < 0 Then lastLine = UBound(lines)
+            lastLine = methods(i).lastLine
+            If lastLine = -1 Then
+                lastLine = methods(i + 1).line - 1
+                If lastLine < 0 Then lastLine = UBound(lines)
+            End If
 
             ' clear the local variables and methods
             ReDim As Method localMethods(0)
@@ -3169,6 +3186,7 @@ Sub FindMethods
 
             Dim m As Method
             m.line = i
+            m.lastLine = -1
             m.type = word
             m.name = mname
             m.argc = ListSplit(argstr, arga())
@@ -3211,6 +3229,13 @@ Sub FindMethods
             End If
 
             AddMethod m, "", True
+        ElseIf word = "END" AndAlso UBound(parts) > 1 Then
+            word = UCase$(parts(2))
+            If word = "FUNCTION" Or word = "SUB" Then
+                If UBound(methods) > 0 Then
+                    methods(UBound(methods)).lastLine = i
+                End If
+            End If
         End If
     Next i
 End Sub
