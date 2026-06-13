@@ -1,5 +1,7 @@
 Import FS From "lib/io/fs.bas"
 Import OBJ From "lib/lang/object.bas"
+Import JSArray From "lib/lang/array.bas"
+
 Option _Explicit
 
 '1) Edit this file as needed.
@@ -29,7 +31,7 @@ Type CodeLine
     text As String
     mtype As Integer
     moduleId As Integer
-    module As Integer
+    module As Single
 End Type
 
 Type Method
@@ -250,17 +252,25 @@ Sub Compile (source As String, moduleName As String, selfConvert)
 
     ConvertLines 1, MainEnd, ""
     ' Convert any lines found between method definitions
-    Dim As Integer i, j, startLine, endLine, lastLine
-    For i = 2 To UBound(methods)
-        If methods(i).line <> 0 And methods(i).line <> 0 Then
-            startLine = methods(i-1).lastLine + 1
-            endLine = methods(i).line - 1
-            If endLine >= startLine Then ConvertLines startLine, endLine, ""
-            lastLine = methods(i).lastLine + 1
-        End If
+    Dim As Object mlist
+    mlist = JSArray.Create
+    Dim As Integer i, j, startLine, endLine
+    For i = 1 To UBound(methods)
+        If methods(i).line <> 0 Then JSArray.Push mlist, methods(i)
+    Next i
+    Dim as Object pm, m
+    For i = 1 To mlist.length - 1
+        pm = JSArray.Item(mlist, i-1)
+        m = JSArray.Item(mlist, i)
+        startLine = pm.lastLine + 1
+        endLine = m.line - 1
+        If endLine >= startLine Then ConvertLines startLine, endLine, ""
     Next i
     ' Convert any lines found after the last method definition
-    If lastLine <= UBound(lines) Then ConvertLines lastLine, UBound(lines), ""
+    If mlist.length > 0 Then
+        m = JSArray.Item(mlist, mlist.length-1)
+        ConvertLines m.lastLine + 1, UBound(lines), ""
+    End If
 
     If Not selfConvert And Not isGX And moduleName = "" Then AddJSLine 0, "QB.end();"
     AddJSLine 0, "} await main();"
@@ -2914,6 +2924,24 @@ Sub RegisterImports (sourceText As String, parentModule As Object)
                     OBJ.SetProperty parentModule.imports, m.path, m.path
                 End If
             End If
+
+        ElseIf InStr(UCase$(fline), "$INCLUDE") Then
+            ReDim cparts(0) As String
+            Dim As Integer ccount
+            ccount = Split(fline, ":", cparts)
+            If UBound(cparts) = 2 Then
+                Dim includePath As String
+                includePath = NormalizeImportPath(Replace$(_Trim$(cparts(2)), "'", ""))
+
+                Dim importRes As FetchResponse
+                Fetch includePath, importRes
+                If importRes.status <> 200 Then
+                    AddError i, "File not found: " + includePath
+                    _Continue
+                End If
+
+                RegisterImports importRes.text, parentModule 
+            End If
         End If
     Next i
 End Sub
@@ -2933,6 +2961,7 @@ Function NormalizeImportPath (sourceUrl, parentModule)
 End Function
 
 Sub ReadLinesFromText (sourceText As String)
+'AddWarning 0, "ReadLinesFromText: " + Chr$(10) + sourceText
     ReDim As String sourceLines(0)
     Dim rawJS
     Dim lcount As Integer
@@ -3013,7 +3042,7 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
     quoteDepth = 0
     Dim i As Integer
     For i = 1 To Len(fline)
-        Dim As String c, c4
+        Dim As String c, c4, comment
         c = Mid$(fline, i, 1)
         c4 = UCase$(Mid$(fline, i, 4))
         If c = Chr$(34) Then
@@ -3024,6 +3053,44 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
             End If
         End If
         If quoteDepth = 0 And (c = "'" Or c4 = "REM ") Then
+
+            ' Look inside the comment for an $Include directive
+            If c = "'" Then comment = Mid$(fline, i+1) Else comment = Mid$(fline, i+4)
+            Dim cidx As Integer
+            cidx = InStr(UCase$(comment), "$INCLUDE")
+            If cidx Then 
+                ReDim cparts(0) As String
+                Dim As Integer ccount
+                ccount = Split(comment, ":", cparts)
+                If UBound(cparts) = 2 Then
+                    If UCase$(_Trim$(cparts(1))) = "$INCLUDE" Then
+                        Dim includePath As String
+                        includePath = NormalizeImportPath(Replace$(_Trim$(cparts(2)), "'", ""))
+
+                        Dim importRes As FetchResponse
+                        Fetch includePath, importRes
+                        If importRes.status <> 200 Then
+                            AddError lineIndex, "File not found: " + includePath
+                            '_Continue
+                        End If
+
+                        Dim tempModule As Module
+                        If activeModule <> undefined Then
+                            OBJ.Assign tempModule, activeModule
+                            activeModule.path = includePath
+                        Else
+                            tempModule.path = includePath
+                            activeModule = tempModule
+                            tempModule = undefined
+                        End If
+
+                        ReadLinesFromText importRes.text
+                        
+                        activeModule = tempModule
+                    End If
+                End If
+            End If
+
             fline = Left$(fline, i - 1)
             Exit For
         End If
