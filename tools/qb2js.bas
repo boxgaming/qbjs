@@ -940,9 +940,10 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     End If
                 Next j
 
-                Dim asnVarIndex
-                asnVarIndex = 1
+                Dim asnVarIndex: asnVarIndex = 1
                 If first = "LET" Then asnVarIndex = 2
+
+                If assignment > 0 AndAlso GetParenDepth(Join(parts(), asnVarIndex, assignment)) > 0 Then assignment = 0
 
                 If assignment > 0 Then
                     ' This is a variable assignment
@@ -996,6 +997,35 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
     End If
 
 End Sub
+
+Function GetParenDepth (text As String)
+    Dim As Long p, curpos, arrpos, dpos
+    Dim cstr As String
+    cstr = _Trim$(text)
+
+    Dim quoteMode As Integer
+    Dim paren As Integer
+    Dim i As Integer
+    For i = 1 To Len(cstr)
+        Dim c As String
+        c = Mid$(cstr, i, 1)
+
+        If c = Chr$(34) Then
+            quoteMode = Not quoteMode
+
+        ElseIf quoteMode Then
+            ' ignore character
+
+        ElseIf c = "(" Then
+            paren = paren + 1
+
+        ElseIf c = ")" Then
+            paren = paren - 1
+        End If
+    Next i
+
+     GetParenDepth = paren
+End Function
 
 Function IsIntegerVar (text As String)
     Dim typeName As String
@@ -2961,7 +2991,6 @@ Function NormalizeImportPath (sourceUrl, parentModule)
 End Function
 
 Sub ReadLinesFromText (sourceText As String)
-'AddWarning 0, "ReadLinesFromText: " + Chr$(10) + sourceText
     ReDim As String sourceLines(0)
     Dim rawJS
     Dim lcount As Integer
@@ -2984,7 +3013,6 @@ Sub ReadLinesFromText (sourceText As String)
                     Dim moduleName As String
                     Dim sourceUrl As String
                     Dim importRes As FetchResponse
-                    'If activeModule <> undefined Then AddWarning 0, "current module: " + activeModule.path
                     sourceUrl = NormalizeImportPath(Mid$(parts(4), 2, Len(parts(4)) - 2), activeModule)
                     moduleName = parts(2)
                     modLevel = modLevel + 1

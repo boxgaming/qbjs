@@ -19,7 +19,7 @@ UT.AssertEquals _DecodeURL(url$), "http://somewhere.com?foo=two words&bar=more s
 
 UT.AssertEquals _IIF(9 > 8, "nine", "eight"), "nine"
 UT.AssertEquals _IIF("same" <> "same", "YES!", "NO!"), "NO!"
-'UT.AssertEquals _IFF(1 = 1, "identity", "fail"), "identity"
+UT.AssertEquals _IIF(1 = 1, "identity", "fail"), "identity"
 
 UT.AssertEquals _LogMinLevel, 2
 '_LogError "This is an error"
