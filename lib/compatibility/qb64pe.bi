@@ -23,7 +23,7 @@ End Function
 ' _CLAMP - forces the given numeric value into a specific range, returning either the given value as is,
 '          or the closest boundary if the range is exceeded.
 Function _Clamp (value, minVal, maxVal)
-    _Clamp = Sys.Call(Math.min, , Sys.Call(Math.max, , value, minVal), maxVal)
+    _Clamp = __Sys.Call(Math.min, , __Sys.Call(Math.max, , value, minVal), maxVal)
 End Function
 
 ' _ColorChooserDialog - displays a standard color picker dialog box.
