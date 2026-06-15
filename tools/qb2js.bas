@@ -103,6 +103,7 @@ ReDim Shared As Variable exportConsts(0)
 ReDim Shared As Method exportMethods(0)
 ReDim Shared As String dataArray(0)
 ReDim Shared As Label dataLabels(0)
+ReDim Shared As Integer includeOnceMap()
 Dim Shared As String jsReservedWords(55)
 Dim Shared modLevel As Integer
 Dim Shared As String currentMethod
@@ -123,6 +124,7 @@ Sub QBToJS (source As String, sourceType As Integer, moduleName As String)
     condWords(1) = "IF": condWords(2) = "ELSEIF": condWords(3) = "WHILE": condWords(4) = "UNTIL"
     ReDim As CodeLine jsLines(0)
     ReDim As Module moduleMap()
+    ReDim As Integer includeOnceMap()
     ReDim As CodeLine warnings(0)
     RegisterImports source
 
@@ -3065,6 +3067,12 @@ Sub ReadLinesFromText (sourceText As String)
 End Sub
 
 Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
+    ' Step 0: If this is an IncludeOnce directive, add it to the map and continue
+    If _Trim$(UCase$(fline)) = "$INCLUDEONCE" Then
+        If activeModule <> undefined Then includeOnceMap(activeModule.path) = 1
+        Exit Function
+    End If
+
     ' Step 1: Remove any comments from the line
     Dim quoteDepth As Integer
     quoteDepth = 0
@@ -3095,6 +3103,8 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
                         Dim includePath As String
                         includePath = NormalizeImportPath(Replace$(_Trim$(cparts(2)), "'", ""))
 
+                        If includeOnceMap(includePath) Then _Continue
+
                         Dim importRes As FetchResponse
                         Fetch includePath, importRes
                         If importRes.status <> 200 Then
@@ -3117,7 +3127,7 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
                         activeModule = tempModule
                     End If
                 End If
-            End If
+           End If
 
             fline = Left$(fline, i - 1)
             Exit For

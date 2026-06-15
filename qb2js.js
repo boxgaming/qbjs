@@ -607,7 +607,7 @@ var FS = await __qblib_lib_io_fs_bas();
 var OBJ = await __qblib_lib_lang_object_bas();
 var JSArray = await __qblib_lib_lang_array_bas();
 /* global constants: */ const FILE  =    1 ; const   TEXT  =    2; const MWARNING  =    0 ; const   MERROR  =    1; const False  =    0; const True  =   ~ False; const PrintDataTypes  =    True; const PrintLineMapping  =    False; const PrintTokenizedLine  =    False; 
-/* shared variables: */ var moduleMap = QB.initArray([0], {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}); var modules = QB.initArray([0], {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}); var lines = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0,module:0}); var jsLines = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0,module:0}); var methods = QB.initArray([0], {line:0,lastLine:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}); var localMethods = QB.initArray([0], {line:0,lastLine:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}); var types = QB.initArray([0], {line:0,name:'',argc:0,args:''}); var typeVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var globalVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var localVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var warnings = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0,module:0}); var importLines = QB.initArray([0], ''); var exportLines = QB.initArray([0], ''); var exportConsts = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var exportMethods = QB.initArray([0], {line:0,lastLine:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}); var dataArray = QB.initArray([0], ''); var dataLabels = QB.initArray([0], {text:'',index:0}); var jsReservedWords = QB.initArray([0], ''); var modLevel = 0; var currentMethod = ''; var activeModule = {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}; var currentModule = ''; var currentModuleId = 0; var programMethods = 0; var constVarLine = 0; var sharedVarLine = 0; var staticVarLine = 0; var implicitVarLine = 0; var condWords = QB.initArray([0], ''); var forceSelfConvert = 0; var optionExplicit = 0; var optionExplicitArray = 0; 
+/* shared variables: */ var moduleMap = QB.initArray([0], {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}); var modules = QB.initArray([0], {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}); var lines = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0,module:0}); var jsLines = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0,module:0}); var methods = QB.initArray([0], {line:0,lastLine:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}); var localMethods = QB.initArray([0], {line:0,lastLine:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}); var types = QB.initArray([0], {line:0,name:'',argc:0,args:''}); var typeVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var globalVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var localVars = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var warnings = QB.initArray([0], {line:0,text:'',mtype:0,moduleId:0,module:0}); var importLines = QB.initArray([0], ''); var exportLines = QB.initArray([0], ''); var exportConsts = QB.initArray([0], {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0}); var exportMethods = QB.initArray([0], {line:0,lastLine:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}); var dataArray = QB.initArray([0], ''); var dataLabels = QB.initArray([0], {text:'',index:0}); var includeOnceMap = QB.initArray([0], 0); var jsReservedWords = QB.initArray([0], ''); var modLevel = 0; var currentMethod = ''; var activeModule = {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}; var currentModule = ''; var currentModuleId = 0; var programMethods = 0; var constVarLine = 0; var sharedVarLine = 0; var staticVarLine = 0; var implicitVarLine = 0; var condWords = QB.initArray([0], ''); var forceSelfConvert = 0; var optionExplicit = 0; var optionExplicitArray = 0; 
 /* static method variables: */ 
 async function main() {
 
@@ -629,6 +629,7 @@ async function main() {
    QB.resizeArray(exportMethods, [{l:0,u: 0}], {line:0,lastLine:0,type:'',returnType:'',name:'',uname:'',argc:0,args:'',jsname:'',sync:0,builtin:0,dynamic:0}, false);  /* METHOD */ 
    QB.resizeArray(dataArray, [{l:0,u: 0}], '', false);  /* STRING */ 
    QB.resizeArray(dataLabels, [{l:0,u: 0}], {text:'',index:0}, false);  /* LABEL */ 
+   QB.resizeArray(includeOnceMap, [], 0, false);  /* INTEGER */ 
    QB.resizeArray(jsReservedWords, [{l:0,u: 55}], '', false);  /* STRING */ 
    modLevel = 0;  /* INTEGER */ 
    currentMethod = '';  /* STRING */ 
@@ -656,6 +657,7 @@ if (QB.halted()) { return; }; sourceType = Math.round(sourceType);
    QB.arrayValue(condWords, [ 4]).value = "UNTIL";
    QB.resizeArray(jsLines, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0,module:0}, false);  /* CODELINE */ 
    QB.resizeArray(moduleMap, [], {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0}, false);  /* MODULE */ 
+   QB.resizeArray(includeOnceMap, [], 0, false);  /* INTEGER */ 
    QB.resizeArray(warnings, [{l:0,u: 0}], {line:0,text:'',mtype:0,moduleId:0,module:0}, false);  /* CODELINE */ 
    await sub_RegisterImports(  source);
    var i = 0;  /* INTEGER */ 
@@ -3565,6 +3567,12 @@ async function func_ReadLine(lineIndex/*INTEGER*/,fline/*STRING*/,rawJS/*INTEGER
 if (QB.halted()) { return; }; lineIndex = Math.round(lineIndex); rawJS = Math.round(rawJS); 
 var ReadLine = null;
 /* implicit variables: */ 
+   if ((QB.func__Trim( (QB.func_UCase(  fline))))  ==  "$INCLUDEONCE"  ) {
+      if ( activeModule !=   undefined ) {
+         QB.arrayValue(includeOnceMap, [ activeModule.path]).value =  1;
+      }
+      return ReadLine;
+   }
    var quoteDepth = 0;  /* INTEGER */ 
    quoteDepth = Math.round(  0 );
    var i = 0;  /* INTEGER */ 
@@ -3595,6 +3603,9 @@ var ReadLine = null;
                if ((QB.func_UCase( (QB.func__Trim( QB.arrayValue(cparts, [ 1]).value))))  ==  "$INCLUDE"  ) {
                   var includePath = '';  /* STRING */ 
                   includePath = (await func_NormalizeImportPath( (await func_Replace( (QB.func__Trim( QB.arrayValue(cparts, [ 2]).value))  ,   "'"  ,   ""))));
+                  if (QB.arrayValue(includeOnceMap, [ includePath]).value  ) {
+                     continue;
+                  }
                   var importRes = {ok:0,status:0,statusText:'',text:''};  /* FETCHRESPONSE */ 
                   await QB.sub_Fetch(  includePath,    importRes);
                   if ( importRes.status !=   200 ) {

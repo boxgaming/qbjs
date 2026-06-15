@@ -1,4 +1,5 @@
 $If WEB Then
+$IncludeOnce
 Import __FS From "lib/io/fs.bas"
 Import __Sys From "lib/lang/system.bas"
 Import __Dom From "lib/web/dom.bas"

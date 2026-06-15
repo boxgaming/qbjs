@@ -93,7 +93,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                          'gxentity_render_default', 'gxentity_render_topdown',
                          'local', 'session'];
 
-    var builtinObjsWords = ['\\$if', '\\$end if', '\\$endif', '\\$elseif', '\\$else', '\\$noprefix'];
+    var builtinObjsWords = ['\\$if', '\\$end if', '\\$endif', '\\$elseif', '\\$else', '\\$noprefix', '\\$include', '\\$includeonce'];
 
     // TODO: adjust for QB
     var knownProperties = ['description', 'firstindex', 'global', 'helpcontext', 'helpfile', 'ignorecase', 'length', 'number', 'pattern', 'value', 'count'];
