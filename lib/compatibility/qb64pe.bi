@@ -31,6 +31,32 @@ Function _Clamp (value, minVal, maxVal)
 End Function
 
 ' _ColorChooserDialog - displays a standard color picker dialog box.
+Function _ColorChooserDialog (stitle As String, defaultColor As Unsigned Long)
+    __PEUI.dialogMode = "colorpicker"
+    __PEUI.inputPanel.style.display = "none"
+    __PEUI.dlgMsgPanel.style.display = "none"
+    __PEUI.colorPanel.style.display = "block"
+    __PEUI.btnOk.style.display = "inline-block"
+    __PEUI.btnYes.style.display = "none"
+    __PEUI.btnNo.style.display = "none"
+    __PEUI.btnCancel.style.display = "inline-block"
+
+    If stitle = undefined Then stitle = "Color"
+    __PEUI.dlgTitle.innerHTML = stitle
+    __Dom.Focus __PEUI.ctrlColor
+    __Dom.DialogShowModal __PEUI.dialog
+
+    If defaultColor <> undefined Then
+        Dim hex As String
+        hex = "#" + __String.PadStart(Hex$(_Red(defaultColor), 2, "0")) + __String.PadStart(Hex$(_Green(defaultColor), 2, "0")) + __String.PadStart(Hex$(_Blue(defaultColor), 2, "0"))
+        __PEUI.ctrlColor.value = hex
+        __PEUI.txtHex.value = hex
+    End If
+
+    While __PEUI.dialogMode <> "": Limit 30: WEnd
+    _ColorChooserDialog = __PEUI.dialogResult
+End Function
+
 ' _CompileDate$ - returns the date when a program was compiled.	
 ' _CompileTime$ - returns the time in the day when a program was compiled.	
 ' _CompilerVersion$ - returns the compiler version used to compile a program.	
@@ -67,11 +93,12 @@ Function _InputBox$ (stitle As String, message As String, defaultValue As String
     If defaultValue = "" Then passwordMode = -1
     If defaultValue = undefined Then defaultValue = ""
 
-    If dialogType = undefined Then dialogType = "ok"
-    dialogType = LCase$(dialogType)
+'    If dialogType = undefined Then dialogType = "ok"
+'    dialogType = LCase$(dialogType)
     __PEUI.dialogMode = "inputbox"
     __PEUI.inputPanel.style.display = "block"
     __PEUI.dlgMsgPanel.style.display = "none"
+    __PEUI.colorPanel.style.display = "none"
     __PEUI.btnOk.style.display = "inline-block"
     __PEUI.btnYes.style.display = "none"
     __PEUI.btnNo.style.display = "none"
@@ -158,6 +185,7 @@ Function _MessageBox (stitle As String, message As String, dialogType As String,
     __PEUI.dialogMode = dialogType
     __PEUI.inputPanel.style.display = "none"
     __PEUI.dlgMsgPanel.style.display = "grid"
+    __PEUI.colorPanel.style.display = "none"
     __PEUI.btnOk.style.display = "none"
     __PEUI.btnYes.style.display = "none"
     __PEUI.btnNo.style.display = "none"
@@ -214,8 +242,32 @@ Function _Min (value1, value2)
 End Function
 
 ' _MOUSEHIDDEN - returns a boolean value according to the current mouse cursor state (hidden or visible).	
-' _MIDISOUNDBANK - enables _SNDOPEN to use an external FM Bank or SoundFont when playing MIDI files.	
+' _MIDISOUNDBANK - enables _SNDOPEN to use an external FM Bank or SoundFont when playing MIDI files.
+
 ' _NOTIFYPOPUP - shows a system notification.	
+Sub _NotifyPopup (title As String, message As String, iconType As String)
+    Dim iconUrl As String
+    If iconType = "warning" Then
+        iconUrl = __PEUI.imgWarning.src
+    ElseIf iconType = "error" Then
+        iconUrl = __PEUI.imgError.src
+    Else
+        iconUrl = __PEUI.imgInfo.src
+    End If
+
+$If Javascript Then
+    if (Notification.permission != "granted") {
+        await Notification.requestPermission();
+    }
+    if (Notification.permission == "granted") {
+        new Notification(title, {
+            body: message,
+            icon: iconUrl
+        });
+    }
+$End If
+End Sub
+
 ' _OPENFILEDIALOG$ - displays a standard dialog box that prompts the user to open a file.	
 
 ' _READFILE$ - returns the complete contents of a file in a single string, but without the usual overhead.	
@@ -277,6 +329,7 @@ Sub __InitPEUI
     __PEUI.dlgTitle = __Dom.Create("div", __PEUI.dialog)
     __PEUI.dlgTitle.style.textAlign = "left"
     __PEUI.dlgTitle.style.padding = "10px"
+    
     __PEUI.dlgMsgPanel = __Dom.Create("div", __PEUI.dialog)
     __PEUI.dlgMsgPanel.style.display = "grid"
     __PEUI.dlgMsgPanel.style.gridTemplateColumns = "70px auto"
@@ -292,6 +345,7 @@ Sub __InitPEUI
     __PEUI.dlgMsg.style.paddingTop = "25px"
     __PEUI.dlgMsg.style.paddingRight = "20px"
     __PEUI.dlgMsg.style.maxWidth = "330px"
+
     __PEUI.inputPanel = __Dom.Create("div", __PEUI.dialog)
     __PEUI.inputPanel.style.padding = "10px"
     __PEUI.inputPanel.style.backgroundColor = "#efefef"
@@ -301,6 +355,19 @@ Sub __InitPEUI
     __PEUI.inputPrompt.style.marginBottom = "10px"
     __PEUI.txtInput = __Dom.Create("input", __PEUI.inputPanel)
     __PEUI.txtInput.style.width = "310px"
+
+    __PEUI.colorPanel = __Dom.Create("div", __PEUI.dialog)
+    __PEUI.colorPanel.style.padding = "10px"
+    __PEUI.colorPanel.style.backgroundColor = "#efefef"
+    __PEUI.ctrlColor = __Dom.Create("input", __PEUI.colorPanel)
+    __PEUI.ctrlColor.type = "color"
+    __PEUI.ctrlColor.style.verticalAlign = "middle"
+    __PEUI.txtHex = __Dom.Create("input", __PEUI.colorPanel)
+    __PEUI.txtHex.style.verticalAlign = "middle"
+    __PEUI.txtHex.readOnly = true
+    __PEUI.txtHex.style.height = "20px"
+    __PEUI.txtHex.style.width = "60px"
+
     __PEUI.btnPanel =  __Dom.Create("div", __PEUI.dialog)
     __PEUI.btnPanel.style.padding = "10px"
     __PEUI.btnPanel.style.textAlign = "right"
@@ -308,8 +375,9 @@ Sub __InitPEUI
     __PEUI.btnYes =    __PE_CreateButton("Yes")
     __PEUI.btnNo =     __PE_CreateButton("No")
     __PEUI.btnCancel = __PE_CreateButton("Cancel")
-    
+
     __Dom.Event __PEUI.txtInput, "keydown", @__PE_AcceptKeydown
+    __Dom.Event __PEUI.ctrlColor, "input", @__PE_OnChangeColor
 End Sub
 
 Function __PE_CreateImage(url As String)
@@ -333,6 +401,14 @@ Sub __PE_CloseDialog (event As Object)
     If __PEUI.dialogMode = "inputbox" Then
         __PEUI.dialogResult = ""
         If event.target = __PEUI.btnOk Then __PEUI.dialogResult = __PEUI.txtInput.value
+
+    ElseIf __PEUI.dialogMode = "colorpicker" Then
+        __PEUI.dialogResult = 0
+        If event.target = __PEUI.btnOk Then
+            Dim c As Object
+            c = __PE_HexToRGB(__PEUI.ctrlColor.value)
+            __PEUI.dialogResult = _RGB(c.r, c.g, c.b)
+        End If
     Else 'msgbox logic
         If event.target = __PEUI.btnOk OrElse event.target = __PEUI.btnYes Then
             __PEUI.dialogResult = 1
@@ -346,9 +422,26 @@ Sub __PE_CloseDialog (event As Object)
     __Sys.Call __PEUI.dialog.close, __PEUI.dialog
 End Sub
 
+Sub __PE_OnChangeColor (event)
+    __PEUI.txtHex.value = __PEUI.ctrlColor.value
+End Sub
+
 Sub __PE_AcceptKeydown (event As Object)
     __Dom.StopPropagation event
     If event.target = __PEUI.txtInput Then
         If event.key = "Enter" Then __Sys.Call __PEUI.btnOk.click, __PEUI.btnOk
     End If
 End Sub
+
+Function __PE_HexToRGB (hex As String)
+$If Javascript Then
+    hex = hex.replace(/^#/, "");
+
+    let bigint = parseInt(hex, 16);
+    let r = (bigint >> 16) & 255;
+    let g = (bigint >> 8) & 255;
+    let b = bigint & 255;
+
+    return { r, g, b };
+$End If
+End Function
