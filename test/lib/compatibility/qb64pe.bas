@@ -17,6 +17,14 @@ url$ = _EncodeURL("http://somewhere.com?foo=two words&bar=more spaces here")
 UT.AssertEquals url$, "http://somewhere.com?foo=two%20words&bar=more%20spaces%20here"
 UT.AssertEquals _DecodeURL(url$), "http://somewhere.com?foo=two words&bar=more spaces here"
 
+UT.AssertEquals _FullPath$("test.txt"), "/test.txt"
+MkDir "testdir"
+ChDir "testdir"
+UT.AssertEquals _FullPath$("test.txt"), "/testdir/test.txt"
+UT.AssertEquals _FullPath$("../test.txt"), "/test.txt"
+ChDir "/"
+RmDir "testdir"
+
 UT.AssertEquals _IIF(9 > 8, "nine", "eight"), "nine"
 UT.AssertEquals _IIF("same" <> "same", "YES!", "NO!"), "NO!"
 UT.AssertEquals _IIF(1 = 1, "identity", "fail"), "identity"
@@ -34,6 +42,12 @@ UT.AssertEquals _Max(23, 54), 54
 UT.AssertEquals _Max(82.5, -3.129), 82.5
 UT.AssertEquals _Min(23, 54), 23
 UT.AssertEquals _Min(82.5, -3.129), -3.129
+
+UT.AssertFalse _MouseHidden
+_MouseHide 
+UT.AssertTrue _MouseHidden
+_MouseShow
+UT.AssertFalse _MouseHidden
 
 For i = 100 To 50 Step -10: Circle (200, 200), i, 14: Next i
 _SaveImage "test.png"
