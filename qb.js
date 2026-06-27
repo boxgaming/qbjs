@@ -3412,7 +3412,7 @@ var QB = new function() {
 
     this.sub_RmDir = function(path) {
         _assertParam(path);
-        vfs.removeDirectory(path, vfsCwd);
+        GX.vfs().removeDirectory(path, GX.vfsCwd());
     };
 
     this.func_Rnd = function(n) {
