@@ -2249,10 +2249,7 @@ var QB = new function() {
 
     this.func_Cdbl = function(value) {
         value = _assertNumber(value);
-        const buffer = new ArrayBuffer(16);
-        const view = new DataView(buffer);
-        view.setFloat32(1, value);
-        return view.getFloat32(1);
+        return value.toPrecision(16);
     };
 
     this.func_Cint = function(value) {
@@ -2269,7 +2266,8 @@ var QB = new function() {
     };
 
     this.func_Csng = function(value) {
-        return value; // TODO: Implement this.
+        value = _assertNumber(value);
+        return value.toPrecision(7);
     };
 
     this.sub_Circle = function(step, x, y, radius, color, startAngle, endAngle, aspect) {
