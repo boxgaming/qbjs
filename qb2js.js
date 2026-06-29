@@ -1069,7 +1069,7 @@ if (QB.halted()) { return; }; firstLine = Math.round(firstLine); lastLine = Math
             } else if ( second ==  "_EXPLICITARRAY"  |  second ==  "EXPLICITARRAY"  ) {
                optionExplicitArray = Math.round(  True );
             }
-         } else if ( first ==  "DIM"  |  first ==  "REDIM"  |  first ==  "STATIC"  |  first ==  "SHARED"  ) {
+         } else if ( first ==  "DIM"  |  first ==  "REDIM"  |  first ==  "STATIC"  |  first ==  "SHARED"  |  first ==  "COMMON"  ) {
             js = (await func_DeclareVar( parts  ,    i));
          } else if ( first ==  "SELECT"  ) {
             cindex = Math.round(  cindex +  1 );
@@ -2721,7 +2721,7 @@ var DeclareVar = null;
       var ___v4216568 = 0; ___l2369846: for ( i=  1 ;  i <= (QB.func_UBound(  parts));  i= i + 1) { if (QB.halted()) { return; } ___v4216568++;   if (___v4216568 % 100 == 0) { await QB.autoLimit(); }
          var p = '';  /* STRING */ 
          p = (QB.func_UCase( QB.arrayValue(parts, [ i]).value));
-         if ( p ==  "DIM"  |  p ==  "REDIM"  |  p ==  "SHARED"  |  p ==  "_PRESERVE"  |  p ==  "PRESERVE"  |  p ==  "STATIC"  ) {
+         if ( p ==  "DIM"  |  p ==  "REDIM"  |  p ==  "SHARED"  |  p ==  "_PRESERVE"  |  p ==  "PRESERVE"  |  p ==  "STATIC"  |  p ==  "COMMON"  ) {
             nextIdx = Math.round(  i +  1 );
          }
       } 
@@ -3357,10 +3357,6 @@ if (QB.halted()) { return; };
                var v = 0;  /* INTEGER */ 
                var parts = QB.initArray([{l:0,u: 0}], '');  /* STRING */ 
                v = Math.round( (await func_Split( QB.arrayValue(args, [ a]).value  ,   ":"  ,   parts)) );
-               methodDec =  methodDec + (await func_RemoveSuffix( QB.arrayValue(parts, [ 1]).value))  + "/*"  + QB.arrayValue(parts, [ 2]).value  + "*/";
-               if ( a < c) {
-                  methodDec =  methodDec + ",";
-               }
                var bvar = {type:'',name:'',jsname:'',isConst:0,isArray:0,arraySize:0,typeId:0};  /* VARIABLE */ 
                bvar.name = (await func_RemoveSuffix( QB.arrayValue(parts, [ 1]).value));
                bvar.type = (await func_NormalizeType( QB.arrayValue(parts, [ 2]).value));
@@ -3370,6 +3366,10 @@ if (QB.halted()) { return; };
                }
                bvar.jsname = "";
                await sub_AddVariable(  bvar,   localVars);
+               methodDec =  methodDec +  bvar.jsname + "/*"  + QB.arrayValue(parts, [ 2]).value  + "*/";
+               if ( a < c) {
+                  methodDec =  methodDec + ",";
+               }
                if (~ bvar.isArray ) {
                   var typeName = '';  /* STRING */ 
                   typeName = (QB.func_UCase(  bvar.type));

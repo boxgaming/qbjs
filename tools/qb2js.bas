@@ -560,7 +560,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                     optionExplicitArray = True
                 End If
 
-            ElseIf first = "DIM" Or first = "REDIM" Or first = "STATIC" Or first = "SHARED" Then
+            ElseIf first = "DIM" Or first = "REDIM" Or first = "STATIC" Or first = "SHARED" Or first = "COMMON" Then
                 js = DeclareVar(parts(), i)
 
 
@@ -2207,7 +2207,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
         For i = 1 To UBound(parts)
             Dim p As String
             p = UCase$(parts(i))
-            If p = "DIM" Or p = "REDIM" Or p = "SHARED" Or p = "_PRESERVE" Or p = "PRESERVE" Or p = "STATIC" Then
+            If p = "DIM" Or p = "REDIM" Or p = "SHARED" Or p = "_PRESERVE" Or p = "PRESERVE" Or p = "STATIC" Or p = "COMMON" Then
                 nextIdx = i + 1
             End If
         Next i
@@ -2838,8 +2838,6 @@ Sub ConvertMethods ()
                     Dim v As Integer
                     ReDim As String parts(0)
                     v = Split(args(a), ":", parts())
-                    methodDec = methodDec + RemoveSuffix(parts(1)) + "/*" + parts(2) + "*/"
-                    If a < c Then methodDec = methodDec + ","
 
                     ' add the parameter to the local variables
                     Dim bvar As Variable
@@ -2851,6 +2849,9 @@ Sub ConvertMethods ()
                     End If
                     bvar.jsname = ""
                     AddVariable bvar, localVars()
+
+                    methodDec = methodDec + bvar.jsname + "/*" + parts(2) + "*/"
+                    If a < c Then methodDec = methodDec + ","
 
                     ' convert integer parameters from floating point (or string)
                     If Not bvar.isArray Then
