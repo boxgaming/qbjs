@@ -1,3 +1,4 @@
+"export/3rd-party-licenses.txt", "3rd-party-licenses.txt"
 "export/fullscreen.svg", "fullscreen.svg"
 "export/fullscreen-hover.svg", "fullscreen-hover.svg"
 "export/logo.png", "logo.png"
