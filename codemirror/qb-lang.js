@@ -62,7 +62,7 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              'str', 'swap', 'tan', 'time', 'timer', 'ubound', 'ucase',
                              'val', 'varptr', 'window',
                              'mkdir', 'chdir', 'rmdir', 'kill', 'name', 'files', 'open', 'close', 'lof', 'eof', 'put', 'get', 'freefile',
-                             'seek', 'write', 'option',
+                             'seek', 'write', 'option', 'using',
                              // QBJS-specific
                              'export', 'from', 'import']
 
