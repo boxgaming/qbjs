@@ -3008,6 +3008,188 @@ var QB = new function() {
         }
     };
 
+    this.formatUsing = function(format, ...args) {
+        let argIndex = 0;
+        let result = "";
+        let i = 0;
+
+        while (i < format.length) {
+            let char = format[i];
+
+            // handle underscore escape character
+            if (char === "_") {
+                if (i + 1 < format.length) {
+                    result += format[i + 1];
+                    i += 2;
+                } else {
+                    result += "_";
+                    i++;
+                }
+                continue;
+            }
+
+            // handle backslash string fields
+            if (char === "\\") {
+                let start = i;
+                i++; // move past first backslash
+                while (i < format.length && format[i] !== "\\") {
+                    // Account for escaped characters inside the string format field
+                    if (format[i] === "_") i += 2;
+                    else i++;
+                }
+                if (format[i] === "\\") {
+                    let len = (i - start) + 1;
+                    let val = String(args[argIndex++] ?? "");
+                    result += val.padEnd(len, " ").substring(0, len);
+                    i++;
+                } else {
+                    // malformed template, treat as literal
+                    result += "\\";
+                    i = start + 1;
+                }
+            } 
+            // handle single character string field
+            else if (char === "!") {
+                let val = String(args[argIndex++] ?? "");
+                result += val.charAt(0) || " ";
+                i++;
+            } 
+            // handle variable length string field
+            else if (char === "&") {
+                result += String(args[argIndex++] ?? "");
+                i++;
+            } 
+            // handle numeric formats
+            else if ("#.*+$".includes(char) || (char === "-" && i + 1 < format.length && "#.*$".includes(format[i+1]))) {
+                let numFormat = "";
+                while (i < format.length) {
+                    let nextChar = format[i];
+                    if (nextChar === "_") {
+                        break;
+                    }
+                    if ("0123456789#.,+$*^^-".includes(nextChar)) {
+                        numFormat += nextChar;
+                        i++;
+                    } else {
+                        break;
+                    }
+                }
+
+                let num = args[argIndex++];
+                if (num === undefined) {
+                    result += " ".repeat(numFormat.length);
+                } else {
+                    result += formatNumeric(num, numFormat);
+                }
+            } 
+            else {
+                result += char;
+                i++;
+            }
+        }
+        return result;
+
+        function formatNumeric(num, mask) {
+            let originalMaskLength = mask.length;
+            let isNegative = num < 0;
+            let absNum = Math.abs(num);
+
+            let hasPlus = mask.startsWith("+") || mask.endsWith("+");
+            let hasTrailingMinus = mask.endsWith("-");
+            let hasDollar = mask.includes("$");
+            let hasAsterisks = mask.startsWith("**");
+            let hasCheckPrereq = mask.startsWith("**$");
+            let hasComma = mask.includes(",");
+            let hasExponential = mask.endsWith("^^^^");
+
+            let cleanMask = mask;
+            if (hasPlus) cleanMask = cleanMask.replace(/\+/g, "");
+            if (hasTrailingMinus) cleanMask = cleanMask.slice(0, -1);
+            if (hasExponential) cleanMask = cleanMask.slice(0, -4);
+            if (hasCheckPrereq) cleanMask = cleanMask.slice(3);
+            else if (hasAsterisks) cleanMask = cleanMask.slice(2);
+            else if (hasDollar) cleanMask = cleanMask.replace(/\$/g, "");
+            
+            let maskParts = cleanMask.split(".");
+            let intMask = maskParts[0].replace(/,/g, ""); // strip commas for sizing calculations
+            let decMask = maskParts[1] || "";
+
+            let finalStr = "";
+
+            // exponential notation (^^^^)
+            if (hasExponential) {
+                let expValue = 0;
+                let baseNum = absNum;
+                if (baseNum !== 0) {
+                    expValue = Math.floor(Math.log10(baseNum));
+                    // QBasic adjusts mantissa so that one digit is to the left of the decimal
+                    baseNum = baseNum / Math.pow(10, expValue);
+                }
+                
+                let roundedBase = Math.round(baseNum * Math.pow(10, decMask.length)) / Math.pow(10, decMask.length);
+                let baseParts = roundedBase.toFixed(decMask.length).split(".");
+                
+                let intPart = baseParts[0].padStart(intMask.length, " ");
+                let decPart = baseParts[1] || "";
+                
+                let signChar = isNegative ? "-" : (hasPlus ? "+" : " ");
+                let expSign = expValue >= 0 ? "+" : "-";
+                let expStr = "E" + expSign + String(Math.abs(expValue)).padStart(2, "0");
+                
+                finalStr = signChar + intPart + (decMask ? "." + decPart : "") + expStr;
+                return finalStr.padStart(originalMaskLength, " ");
+            }
+
+            // round to the number of decimal positions requested
+            let decPlaces = decMask.length;
+            let roundedNum = Math.round(absNum * Math.pow(10, decPlaces)) / Math.pow(10, decPlaces);
+            let numParts = roundedNum.toFixed(decPlaces).split(".");
+            
+            let intPart = numParts[0];
+            let decPart = numParts[1] || "";
+
+            // error overflow: value contains more integer digits than the mask template allows
+            if (intPart.length > intMask.length) {
+                return "%" + mask; 
+            }
+
+            // apply comma formatting
+            if (hasComma) {
+                let commaSplit = intPart.split("");
+                for (let i = commaSplit.length - 3; i > 0; i -= 3) {
+                    commaSplit.splice(i, 0, ",");
+                }
+                intPart = commaSplit.join("");
+            }
+
+            // determine target padding length for the left side of the decimal point
+            let totalLeftWidth = maskParts[0].length;
+            if (hasCheckPrereq) totalLeftWidth += 3;
+            else if (hasAsterisks) totalLeftWidth += 2;
+            else if (hasDollar) totalLeftWidth += 1;
+
+            let signPrefix = "";
+            if (!hasTrailingMinus) {
+                if (isNegative) signPrefix = "-";
+                else if (hasPlus) signPrefix = "+";
+            }
+
+            let currencyPrefix = hasDollar || hasCheckPrereq ? "$" : "";
+            let mainIntStr = signPrefix + currencyPrefix + intPart;
+
+            if (hasCheckPrereq || hasAsterisks) {
+                mainIntStr = mainIntStr.padStart(totalLeftWidth, "*");
+            } else {
+                mainIntStr = mainIntStr.padStart(totalLeftWidth, " ");
+            }
+
+            let trailingSign = (hasTrailingMinus) ? (isNegative ? "-" : (hasPlus ? "+" : " ")) : "";
+            let decimalPointStr = decPlaces > 0 ? "." + decPart : "";
+
+            return mainIntStr + decimalPointStr + trailingSign;
+        }
+    };
+
     function _fitLines(startX, line, ctx) {
         // TODO: could be optimized for fixed width fonts which would not require measureText
         var lines = [];

@@ -2,12 +2,18 @@ Import Sys From "./system.bas"
 Import JSArray From "./array.bas"
 Option Explicit
 
-Export EndsWith, Includes, Match, PadEnd, PadStart, Replace
-Export Search, Split, StartsWith, TrimEnd, TrimStart
+Export FormatUsing, EndsWith, Includes, Match, PadEnd, PadStart
+Export Replace, Search, Split, StartsWith, TrimEnd, TrimStart
 
 Function EndsWith (s As String, searchStr As String)
     s = Sys.ToString(s)
     EndsWith = Sys.ToBoolean(Sys.Call(s.endsWith, s, searchStr))
+End Function
+
+Function FormatUsing
+$If Javascript Then
+    return QB.formatUsing.apply(QB, arguments);
+$End If
 End Function
 
 Function Includes (s As String, searchStr As String)

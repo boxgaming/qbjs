@@ -52,4 +52,14 @@ UT.AssertEquals results(4), "test"
 UT.AssertTrue String.StartsWith("foobar", "foo")
 UT.AssertFalse String.StartsWith("foobar", "bar")
 
+UT.AssertEquals String.FormatUsing("$###,###.##", 5621.2341), "  $5,621.23"
+UT.AssertEquals String.FormatUsing("**###.##", 1.23), "****1.23"
+UT.AssertEquals String.FormatUsing("**$###.##", 14.5), "***$14.50"
+UT.AssertEquals String.FormatUsing("_#_#_# ##", 12), "### 12"
+UT.AssertEquals String.FormatUsing("The total is _$$##", 5), "The total is $ $5"
+UT.AssertEquals String.FormatUsing("First Name: [\    \]", "Doug"), "First Name: [Doug  ]"
+UT.AssertEquals String.FormatUsing("First Name: [\    \]", "Thomas"), "First Name: [Thomas]"
+UT.AssertEquals String.FormatUsing("First Name: [\    \]", "Bernard"), "First Name: [Bernar]"
+UT.AssertEquals String.FormatUsing("Initials - First: [!], Last: [!]", "Doug", "Smith"), "Initials - First: [D], Last: [S]"
+
 Console.Echo "lib/lang/string - tests completed with no errors in " + (Sys.TimeInMillis - ts) + " millisecond(s)"

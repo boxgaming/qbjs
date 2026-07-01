@@ -1749,20 +1749,45 @@ Function ConvertPrint$ (m As Method, args As String, lineNumber As Integer)
     End If
 
     js = js + "["
-    Dim i As Integer
+    Dim As Integer i, usingMode
     For i = startIdx To pcount
-        If i > startIdx Then js = js + ","
+        If i > startIdx AndAlso Not usingMode Then js = js + ","
+
+        If UCase$(parts(i)) = "USING" Then
+            usingMode = True
+            js = js + " QB.formatUsing("
+            Continue
+        End If
 
         If parts(i) = "," Then
-            js = js + "QB.COLUMN_ADVANCE"
+            If usingMode Then 
+                If i = UBound(parts) Then
+                    usingMode = False
+                    js = js + "), QB.COLUMN_ADVANCE, QB.PREVENT_NEWLINE"
+                Else
+                    js = js + ","
+                End If 
+            Else 
+                js = js + "QB.COLUMN_ADVANCE"
+            End If
 
         ElseIf parts(i) = ";" Then
-            js = js + "QB.PREVENT_NEWLINE"
+            If usingMode Then 
+                If i = UBound(parts) Then
+                    usingMode = False
+                    js = js + "), QB.PREVENT_NEWLINE"
+                Else
+                    js = js + ","
+                End If 
+            Else 
+                js = js + "QB.PREVENT_NEWLINE"
+            End If
 
         Else
             js = js + ConvertExpression(parts(i), lineNumber)
         End If
     Next i
+    If usingMode Then js = js + ")"
 
     ConvertPrint = js + "]);"
 End Function
@@ -3704,6 +3729,13 @@ Function PrintSplit (sourceString As String, results() As String)
             results(count) = c
         Else
             result = result + c
+            ' Handle the special case for the USING keyword
+            If UCase(Trim$(result)) = "USING" Then
+                count = UBound(results) + 1
+                ReDim _Preserve As String results(count)
+                results(count) = "USING"
+                result = ""
+            End If
         End If
 
     Next i

@@ -2250,19 +2250,45 @@ var ConvertPrint = null;
       js =  js +  fh + ", ";
    }
    js =  js + "[";
-   var i = 0;  /* INTEGER */ 
+   var i = 0;  /* INTEGER */ var usingMode = 0;  /* INTEGER */ 
    var ___v5059488 = 0; ___l1660812: for ( i=  startIdx;  i <=  pcount;  i= i + 1) { if (QB.halted()) { return; } ___v5059488++;   if (___v5059488 % 100 == 0) { await QB.autoLimit(); }
-      if ( i > startIdx) {
+      if ( i > startIdx && ~ usingMode) {
          js =  js + ",";
       }
+      if ((QB.func_UCase( QB.arrayValue(parts, [ i]).value))  ==  "USING"  ) {
+         usingMode = Math.round(  True );
+         js =  js + " QB.formatUsing(";
+         continue;
+      }
       if (QB.arrayValue(parts, [ i]).value  ==  ","  ) {
-         js =  js + "QB.COLUMN_ADVANCE";
+         if ( usingMode) {
+            if ( i ==  (QB.func_UBound(  parts))  ) {
+               usingMode = Math.round(  False );
+               js =  js + "), QB.COLUMN_ADVANCE, QB.PREVENT_NEWLINE";
+            } else {
+               js =  js + ",";
+            }
+         } else {
+            js =  js + "QB.COLUMN_ADVANCE";
+         }
       } else if (QB.arrayValue(parts, [ i]).value  ==  ";"  ) {
-         js =  js + "QB.PREVENT_NEWLINE";
+         if ( usingMode) {
+            if ( i ==  (QB.func_UBound(  parts))  ) {
+               usingMode = Math.round(  False );
+               js =  js + "), QB.PREVENT_NEWLINE";
+            } else {
+               js =  js + ",";
+            }
+         } else {
+            js =  js + "QB.PREVENT_NEWLINE";
+         }
       } else {
          js =  js + (await func_ConvertExpression( QB.arrayValue(parts, [ i]).value  ,    lineNumber));
       }
    } 
+   if ( usingMode) {
+      js =  js + ")";
+   }
    ConvertPrint =  js + "]);";
 return ConvertPrint;
 }
@@ -4127,6 +4153,12 @@ var PrintSplit = null;
          QB.arrayValue(results, [ count]).value =  c;
       } else {
          result =  result +  c;
+         if ((QB.func_UCase( (QB.func__Trim(  result))))  ==  "USING"  ) {
+            count = Math.round( (QB.func_UBound(  results))  +  1 );
+            QB.resizeArray(results, [{l:0,u: count}], '', true);  /* STRING */ 
+            QB.arrayValue(results, [ count]).value = "USING";
+            result = "";
+         }
       }
    } 
    if ( result !=  ""  ) {
