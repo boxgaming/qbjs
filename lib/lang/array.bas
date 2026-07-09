@@ -1,7 +1,7 @@
-Export At,  Clear, Concat,  Create, Every, Fill, Filter, ForEach
-Export IsJSArray, IsQBArray, IndexOf, Item, Join, LastIndexOf, Length 
+Export At,  Clear, Concat,  Create, Every, Fill, Filter, IndexOf,
+Export Insert, Item, IsJSArray, IsQBArray, Join, LastIndexOf, Length 
 Export Pop, Push As Add, Push, Reduce, ReduceRight, Remove, Reverse
-Export Shift, Slice, Sort, Unshift, ToQBArray 
+Export Shift, Slice, Sort, Splice, Unshift, ToQBArray 
 
 Function At (a As Object, index As Integer)
 $If Javascript Then
@@ -13,16 +13,13 @@ Sub Clear (a As Object)
     a.length = 0
 End Sub
 
-Sub Concat (a As Object)
+Function Concat (a As Object)
     Dim As Integer i, j, isArray
     For j = 1 To arguments.length - 1
         a2 = arguments[j]
+        If IsJSArray(a2) Then
 $If Javascript Then
-        isArray = Array.isArray(a2);
-$End If
-        If IsArray Then
-$If Javascript Then
-            a.concat(a2);
+            a = a.concat(a2);
 $End If
         ElseIf a2._dimensions Then
             Dim i As Integer
@@ -33,14 +30,15 @@ $End If
             Push a, a2
         End If
     Next i
-End Sub
+    Concat = a
+End Function
 
 Function Create 
     Dim i As Integer
     Dim a As Object: a = []
     For i = 0 To arguments.length-1
         a2 = arguments[i];
-        Concat a, a2
+        a = Concat(a, a2)
     Next i
     Create = a
 End Function
@@ -52,23 +50,16 @@ $If Javascript Then
 $End If
 End Function
 
-Sub Fill (a As Object, value, start, end)
+Function Fill (a As Object, value, start, end)
 $If Javascript Then
-    a.fill(value, start, end);
+    return a.fill(value, start, end);
 $End If
-End Sub
+End Function
 
 Function Filter (a As Object, fn As Function)
     fn = PrepareCallback(fn)
 $If Javascript Then
     return a.filter(fn);
-$End If
-End Function
-
-Sub ForEach (a As Object, fn As Function)
-    fn = PrepareCallback(fn)
-$If Javascript Then
-    a.forEach(fn);
 $End If
 End Function
 
@@ -90,6 +81,13 @@ Function IsQBArray (a)
     IsQBArray = result
 End Function
 
+Sub Insert (a As Object, index As Integer)
+$If Javascript Then
+    var values = Array.from(arguments).slice(2);
+    a.splice(index, 0, values);
+$End If
+End Sub
+
 Function Item (a As Object, index As Integer)
 $If Javascript Then
     return a[index];
@@ -104,6 +102,7 @@ End Function
 
 Function LastIndexOf (a As Object, searchElement, fromIndex)
 $If Javascript Then
+    if (fromIndex == undefined) { fromIndex = a.length; }
     return a.lastIndexOf(searchElement, fromIndex);
 $End If
 End Function
@@ -128,17 +127,27 @@ $End If
     Next i
 End Sub
 
-Function Reduce (a As Object, fn As Function)
+Function Reduce (a As Object, fn As Function, initialValue)
     fn = PrepareCallback(fn)
 $If Javascript Then
-    return a.reduce(fn);
+    if (initialValue == undefined) { 
+        return a.reduce(fn);
+    }
+    else {
+        return a.reduce(fn, initialValue);
+    }
 $End If
 End Function
 
-Function ReduceRight (a As Object, fn As Function)
+Function ReduceRight (a As Object, fn As Function, initialValue)
     fn = PrepareCallback(fn)
 $If Javascript Then
-    return a.reduceRight(fn);
+    if (initialValue == undefined) { 
+        return a.reduceRight(fn);
+    }
+    else {
+        return a.reduceRight(fn, initialValue);
+    }
 $End If
 End Function
 
@@ -163,14 +172,21 @@ End Function
 
 Function Slice (a, start, end)
 $If Javascript Then
-    return array.slice(start, end);
+    return a.slice(start, end);
 $End If
 End Function
 
 Sub Sort (a As Object, sortFn As Function)
-    sortFn = PrepareCallback(sortFn)
+    If sortFn <> undefined Then sortFn = PrepareCallback(sortFn)
 $If Javascript Then
     a.sort(sortFn);
+$End If
+End Sub
+
+Sub Splice (a As Object, index As Integer, deleteCount)
+$If Javascript Then
+    var values = Array.from(arguments).slice(3);
+    a.splice(index, deleteCount, values);
 $End If
 End Sub
 
