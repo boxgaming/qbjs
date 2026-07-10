@@ -1,5 +1,5 @@
 Option Explicit
-Export Assign, GetProperty, HasProperty, Keys, SetProperty, DeleteProperty
+Export Assign, GetProperty, HasProperty, Keys, SetProperty, RemoveProperty
 
 Sub Assign (target As Object, source As Object)
 $If Javascript Then
@@ -38,7 +38,7 @@ $If Javascript Then
 $End If
 End Sub
 
-Sub DeleteProperty (obj As Object, pname As String)
+Sub RemoveProperty (obj As Object, pname As String)
 $If Javascript Then
     delete obj[pname];
 $End If

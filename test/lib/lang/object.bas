@@ -41,7 +41,7 @@ UT.AssertEquals OBJ.GetProperty(o2, "favorite color"), "blue"
 UT.AssertEquals OBJ.GetProperty(o, "firstName"), "Bob"
 UT.AssertEquals OBJ.GetProperty(o, "favorite color"), "red"
 
-OBJ.DeleteProperty o2, "lastName"
+OBJ.RemoveProperty o2, "lastName"
 UT.AssertFalse OBJ.HasProperty(o2, "lastName")
 props = OBJ.Keys(o2)
 UT.AssertEquals UBound(props), 2
