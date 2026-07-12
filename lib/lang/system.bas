@@ -1,5 +1,5 @@
 Option Explicit
-Export Await, Call, InstanceOf, IsRunning, SetTimeout, TypeOf, TimeInMillis
+Export Await, Call, Construct, IsRunning, SetTimeout, TypeOf, TimeInMillis
 Export ToFloat, ToInteger, ToBoolean, ToString
 
 Function Await (fn, thisArg)
@@ -26,7 +26,7 @@ $If Javascript Then
 $End If
 End Sub
 
-Function InstanceOf (className)
+Function Construct (className)
 $If Javascript Then
     return Reflect.construct(globalThis[className], Array.prototype.slice.call(arguments, 1));
 $End If
