@@ -64,7 +64,7 @@ End Function
 
 Function Search (s As String, regex As String)
     s = Sys.ToString(s)
-    Search = Sys.Call(s.search, s, Sys.Contstruct("RegExp", regex, "g")) + 1
+    Search = Sys.Call(s.search, s, Sys.Construct("RegExp", regex, "g")) + 1
 End Function
 
 Function Split (s As String, delimiter As String, regex As Integer)
