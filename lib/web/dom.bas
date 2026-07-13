@@ -165,7 +165,7 @@ Sub Focus (element As Object)
 End Sub
 
 Function HasFocus (element As Object)
-    HasFocus = Sys.Call(element.hasFocus, element)
+    HasFocus = Sys.ToBoolean(document.activeElement = element)
 End Function
 
 Sub SelectAll (element As Object)
@@ -181,5 +181,5 @@ Sub StopPropagation (e As Object)
 End Sub
 
 Sub RequestAnimationFrame (fnCallback As Sub)
-    Sys.Call requestAnimationFrame, , fnCallback
+    Sys.Call window.requestAnimationFrame, , fnCallback
 End Sub
