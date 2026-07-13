@@ -4846,7 +4846,7 @@ var QB = new function() {
         addEventListener("keydown", function(event) { 
             if (!_runningFlag) { return; }
             if (!_inputMode) { event.preventDefault(); }
-            //_lastKey = event.key;
+            _lastKey = event.key;
             if (!_inputMode) {
                 _addInkeyPress(event);
                 var kh = _getKeyHit(event);
