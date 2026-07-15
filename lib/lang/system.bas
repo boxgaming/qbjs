@@ -26,9 +26,10 @@ $If Javascript Then
 $End If
 End Sub
 
-Function Construct (className)
+Function Construct (className, thisArg)
 $If Javascript Then
-    return Reflect.construct(globalThis[className], Array.prototype.slice.call(arguments, 1));
+    if (thisArg == undefined) { thisArg = globalThis; }
+    return Reflect.construct(thisArg[className], Array.prototype.slice.call(arguments, 2));
 $End If
 End Function
 

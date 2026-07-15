@@ -56,7 +56,7 @@ End Function
 Function Replace (s As String, searchStr As String, replaceStr As String, regex As Integer)
     s = Sys.ToString(s)
     If regex Then
-        Replace = Sys.Call(s.replace, s, Sys.Construct("RegExp", searchStr, "g"), replaceStr)
+        Replace = Sys.Call(s.replace, s, Sys.Construct("RegExp", , searchStr, "g"), replaceStr)
     Else
         Replace = Sys.Call(s.replaceAll, s, searchStr, replaceStr)
     End If
@@ -64,7 +64,7 @@ End Function
 
 Function Search (s As String, regex As String)
     s = Sys.ToString(s)
-    Search = Sys.Call(s.search, s, Sys.Construct("RegExp", regex, "g")) + 1
+    Search = Sys.Call(s.search, s, Sys.Construct("RegExp", , regex, "g")) + 1
 End Function
 
 Function Split (s As String, delimiter As String, regex As Integer)
@@ -72,7 +72,7 @@ Function Split (s As String, delimiter As String, regex As Integer)
     If delimiter = undefined Then delimiter = ","
     Dim jsresult As Object
     If regex Then
-        jsresult = Sys.Call(s.split, s, Sys.Construct("RegExp", delimiter, "g"))
+        jsresult = Sys.Call(s.split, s, Sys.Construct("RegExp", , delimiter, "g"))
     Else
         jsresult = Sys.Call(s.split, s, delimiter)
     End If

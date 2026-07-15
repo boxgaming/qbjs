@@ -168,12 +168,7 @@ Type Person
 End Type
 
 Dim people As Object
-people = JSArray.Create( _
-            CreatePerson("John", "Doe", 23), _
-            CreatePerson("Andrew", "Jones", 45), _
-            CreatePerson("Mary", "Barnes", 19), _
-            CreatePerson("Betty", "Doe", 38), _
-            CreatePerson("Howard", "Anderson", 28))
+people = JSArray.Create(CreatePerson("John", "Doe", 23), CreatePerson("Andrew", "Jones", 45), CreatePerson("Mary", "Barnes", 19), CreatePerson("Betty", "Doe", 38), CreatePerson("Howard", "Anderson", 28))
 
 UT.AssertEquals JSArray.Reduce(people, @ToString, ""), "|Doe, John - 23|Jones, Andrew - 45|Barnes, Mary - 19|Doe, Betty - 38|Anderson, Howard - 28"
 
