@@ -175,7 +175,7 @@ Function SortModules
                 For k = 1 To UBound(moduleNames)
                     mm = moduleMap(moduleNames(k))
                     If Not mm.processed Then
-                        If OBJ.HasProperty(mm.imports, m.path) Then OBJ.DeleteProperty mm.imports, m.path
+                        If OBJ.HasProperty(mm.imports, m.path) Then OBJ.RemoveProperty mm.imports, m.path
                     End If
                 Next k
             Else
@@ -2988,8 +2988,11 @@ Sub RegisterImports (sourceText As String, parentModule As Object)
             Dim As Integer ccount
             ccount = Split(fline, ":", cparts)
             If UBound(cparts) = 2 Then
-                Dim includePath As String
+                Dim As String includePath, includeFilename
                 includePath = NormalizeImportPath(Replace$(_Trim$(cparts(2)), "'", ""))
+                includeFilename = LCase$(FS.GetFilename(includePath))
+
+                If includeFilename = "gx.bi" Or includeFilename = "gx.bm" Then _Continue
 
                 Dim importRes As FetchResponse
                 Fetch includePath, importRes
@@ -3126,10 +3129,15 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
                 ccount = Split(comment, ":", cparts)
                 If UBound(cparts) = 2 Then
                     If UCase$(_Trim$(cparts(1))) = "$INCLUDE" Then
-                        Dim includePath As String
+                        Dim As String includePath, includeFilename
                         includePath = NormalizeImportPath(Replace$(_Trim$(cparts(2)), "'", ""))
+                        includeFilename = LCase$(FS.GetFilename(includePath))
 
                         If includeOnceMap(includePath) Then _Continue
+                        If includeFilename = "gx.bi" OrElse includeFilename = "gx.bm" Then
+                            AddWarning lineIndex, "Skipping GX $Include '" + includePath + "', using built-in version."
+                            _Continue
+                        End If
 
                         Dim importRes As FetchResponse
                         Fetch includePath, importRes

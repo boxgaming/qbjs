@@ -265,7 +265,7 @@ if (QB.halted()) { return; };
     obj[pname] = pvalue;
 //-------- END JS native code block --------
 }
-async function sub_DeleteProperty(obj/*OBJECT*/,pname/*STRING*/) {
+async function sub_RemoveProperty(obj/*OBJECT*/,pname/*STRING*/) {
 if (QB.halted()) { return; }; 
 /* implicit variables: */ 
    //-------- BEGIN JS native code block --------
@@ -278,7 +278,7 @@ func_GetProperty: func_GetProperty,
 func_HasProperty: func_HasProperty,
 func_Keys: func_Keys,
 sub_SetProperty: sub_SetProperty,
-sub_DeleteProperty: sub_DeleteProperty,
+sub_RemoveProperty: sub_RemoveProperty,
 };
 }
 async function __qblib_lib_lang_array_bas() {
@@ -305,18 +305,16 @@ if (QB.halted()) { return; };
 /* implicit variables: */ 
    a.length =  0;
 }
-async function sub_Concat(a/*OBJECT*/) {
+async function func_Concat(a/*OBJECT*/) {
 if (QB.halted()) { return; }; 
+var Concat = null;
 /* implicit variables: */ var a2 = 0;  /* SINGLE */ var a2 = QB.initArray([{l:0,u: 10}], 0);  /* SINGLE */ 
    var i = 0;  /* INTEGER */ var j = 0;  /* INTEGER */ var isArray = 0;  /* INTEGER */ 
    var ___v5364588 = 0; ___l480418: for ( j=  1 ;  j <=  arguments.length -  1;  j= j + 1) { if (QB.halted()) { return; } ___v5364588++;   if (___v5364588 % 100 == 0) { await QB.autoLimit(); }
       a2 =  arguments[j];
-      //-------- BEGIN JS native code block --------
-        isArray = Array.isArray(a2);
-//-------- END JS native code block --------
-      if ( isArray) {
+      if ((await func_IsJSArray(  a2))  ) {
          //-------- BEGIN JS native code block --------
-            a.concat(a2);
+            a = a.concat(a2);
 //-------- END JS native code block --------
       } else if ( a2._dimensions ) {
          var i = 0;  /* INTEGER */ 
@@ -327,6 +325,8 @@ if (QB.halted()) { return; };
          await sub_Push(  a,    a2);
       }
    } 
+   Concat =  a;
+return Concat;
 }
 async function func_Create() {
 if (QB.halted()) { return; }; 
@@ -337,7 +337,7 @@ var Create = null;
    a =  [];
    var ___v4082566 = 0; ___l2480838: for ( i=  0 ;  i <=  arguments.length - 1;  i= i + 1) { if (QB.halted()) { return; } ___v4082566++;   if (___v4082566 % 100 == 0) { await QB.autoLimit(); }
       a2 =  arguments[i];;
-      await sub_Concat(  a,    a2);
+      a = (await func_Concat(  a,    a2));
    } 
    Create =  a;
 return Create;
@@ -352,12 +352,14 @@ var Every = null;
 //-------- END JS native code block --------
 return Every;
 }
-async function sub_Fill(a/*OBJECT*/,value/*SINGLE*/,start/*SINGLE*/,end/*SINGLE*/) {
+async function func_Fill(a/*OBJECT*/,value/*SINGLE*/,start/*SINGLE*/,end/*SINGLE*/) {
 if (QB.halted()) { return; }; 
+var Fill = null;
 /* implicit variables: */ 
    //-------- BEGIN JS native code block --------
-    a.fill(value, start, end);
+    return a.fill(value, start, end);
 //-------- END JS native code block --------
+return Fill;
 }
 async function func_Filter(a/*OBJECT*/,fn/*FUNCTION*/) {
 if (QB.halted()) { return; }; 
@@ -368,14 +370,6 @@ var Filter = null;
     return a.filter(fn);
 //-------- END JS native code block --------
 return Filter;
-}
-async function sub_ForEach(a/*OBJECT*/,fn/*FUNCTION*/) {
-if (QB.halted()) { return; }; 
-/* implicit variables: */ 
-   fn = (await func_PrepareCallback(  fn));
-   //-------- BEGIN JS native code block --------
-    a.forEach(fn);
-//-------- END JS native code block --------
 }
 async function func_IndexOf(a/*OBJECT*/,searchElement/*SINGLE*/,fromIndex/*SINGLE*/) {
 if (QB.halted()) { return; }; 
@@ -406,6 +400,14 @@ var IsQBArray = null;
    IsQBArray =  result;
 return IsQBArray;
 }
+async function sub_Insert(a/*OBJECT*/,index/*INTEGER*/) {
+if (QB.halted()) { return; }; index = Math.round(index); 
+/* implicit variables: */ 
+   //-------- BEGIN JS native code block --------
+    var values = Array.from(arguments).slice(2);
+    a.splice(index, 0, values);
+//-------- END JS native code block --------
+}
 async function func_Item(a/*OBJECT*/,index/*INTEGER*/) {
 if (QB.halted()) { return; }; index = Math.round(index); 
 var Item = null;
@@ -429,6 +431,7 @@ if (QB.halted()) { return; };
 var LastIndexOf = null;
 /* implicit variables: */ 
    //-------- BEGIN JS native code block --------
+    if (fromIndex == undefined) { fromIndex = a.length; }
     return a.lastIndexOf(searchElement, fromIndex);
 //-------- END JS native code block --------
 return LastIndexOf;
@@ -462,23 +465,33 @@ if (QB.halted()) { return; };
 //-------- END JS native code block --------
    } 
 }
-async function func_Reduce(a/*OBJECT*/,fn/*FUNCTION*/) {
+async function func_Reduce(a/*OBJECT*/,fn/*FUNCTION*/,initialValue/*SINGLE*/) {
 if (QB.halted()) { return; }; 
 var Reduce = null;
 /* implicit variables: */ 
    fn = (await func_PrepareCallback(  fn));
    //-------- BEGIN JS native code block --------
-    return a.reduce(fn);
+    if (initialValue == undefined) { 
+        return a.reduce(fn);
+    }
+    else {
+        return a.reduce(fn, initialValue);
+    }
 //-------- END JS native code block --------
 return Reduce;
 }
-async function func_ReduceRight(a/*OBJECT*/,fn/*FUNCTION*/) {
+async function func_ReduceRight(a/*OBJECT*/,fn/*FUNCTION*/,initialValue/*SINGLE*/) {
 if (QB.halted()) { return; }; 
 var ReduceRight = null;
 /* implicit variables: */ 
    fn = (await func_PrepareCallback(  fn));
    //-------- BEGIN JS native code block --------
-    return a.reduceRight(fn);
+    if (initialValue == undefined) { 
+        return a.reduceRight(fn);
+    }
+    else {
+        return a.reduceRight(fn, initialValue);
+    }
 //-------- END JS native code block --------
 return ReduceRight;
 }
@@ -513,16 +526,26 @@ if (QB.halted()) { return; };
 var Slice = null;
 /* implicit variables: */ 
    //-------- BEGIN JS native code block --------
-    return array.slice(start, end);
+    return a.slice(start, end);
 //-------- END JS native code block --------
 return Slice;
 }
 async function sub_Sort(a/*OBJECT*/,sortFn/*FUNCTION*/) {
 if (QB.halted()) { return; }; 
 /* implicit variables: */ 
-   sortFn = (await func_PrepareCallback(  sortFn));
+   if ( sortFn !=   undefined ) {
+      sortFn = (await func_PrepareCallback(  sortFn));
+   }
    //-------- BEGIN JS native code block --------
     a.sort(sortFn);
+//-------- END JS native code block --------
+}
+async function sub_Splice(a/*OBJECT*/,index/*INTEGER*/,deleteCount/*SINGLE*/) {
+if (QB.halted()) { return; }; index = Math.round(index); 
+/* implicit variables: */ 
+   //-------- BEGIN JS native code block --------
+    var values = Array.from(arguments).slice(3);
+    a.splice(index, deleteCount, values);
 //-------- END JS native code block --------
 }
 async function sub_Unshift(a/*OBJECT*/) {
@@ -574,16 +597,16 @@ return PrepareCallback;
 return {
 func_At: func_At,
 sub_Clear: sub_Clear,
-sub_Concat: sub_Concat,
+func_Concat: func_Concat,
 func_Create: func_Create,
 func_Every: func_Every,
-sub_Fill: sub_Fill,
+func_Fill: func_Fill,
 func_Filter: func_Filter,
-sub_ForEach: sub_ForEach,
+func_IndexOf: func_IndexOf,
+sub_Insert: sub_Insert,
+func_Item: func_Item,
 func_IsJSArray: func_IsJSArray,
 func_IsQBArray: func_IsQBArray,
-func_IndexOf: func_IndexOf,
-func_Item: func_Item,
 func_Join: func_Join,
 func_LastIndexOf: func_LastIndexOf,
 func_Length: func_Length,
@@ -597,6 +620,7 @@ sub_Reverse: sub_Reverse,
 func_Shift: func_Shift,
 func_Slice: func_Slice,
 sub_Sort: sub_Sort,
+sub_Splice: sub_Splice,
 sub_Unshift: sub_Unshift,
 func_ToQBArray: func_ToQBArray,
 };
@@ -703,7 +727,7 @@ var SortModules = null;
                mm = QB.arrayValue(moduleMap, [QB.arrayValue(moduleNames, [ k]).value]).value;
                if (~ mm.processed ) {
                   if ((await OBJ.func_HasProperty(  mm.imports ,    m.path))  ) {
-                     await OBJ.sub_DeleteProperty(  mm.imports ,    m.path);
+                     await OBJ.sub_RemoveProperty(  mm.imports ,    m.path);
                   }
                }
             } 
@@ -3492,8 +3516,12 @@ if (QB.halted()) { return; };
          var ccount = 0;  /* INTEGER */ 
          ccount = Math.round( (await func_Split(  fline,   ":"  ,    cparts)) );
          if ((QB.func_UBound(  cparts))  ==   2 ) {
-            var includePath = '';  /* STRING */ 
+            var includePath = '';  /* STRING */ var includeFilename = '';  /* STRING */ 
             includePath = (await func_NormalizeImportPath( (await func_Replace( (QB.func__Trim( QB.arrayValue(cparts, [ 2]).value))  ,   "'"  ,   ""))));
+            includeFilename = (QB.func_LCase( (await FS.func_GetFilename(  includePath))));
+            if ( includeFilename ==  "gx.bi"  |  includeFilename ==  "gx.bm"  ) {
+               continue;
+            }
             var importRes = {ok:0,status:0,statusText:'',text:''};  /* FETCHRESPONSE */ 
             await QB.sub_Fetch(  includePath,    importRes);
             if ( importRes.status !=   200 ) {
@@ -3627,9 +3655,14 @@ var ReadLine = null;
             ccount = Math.round( (await func_Split(  comment,   ":"  ,    cparts)) );
             if ((QB.func_UBound(  cparts))  ==   2 ) {
                if ((QB.func_UCase( (QB.func__Trim( QB.arrayValue(cparts, [ 1]).value))))  ==  "$INCLUDE"  ) {
-                  var includePath = '';  /* STRING */ 
+                  var includePath = '';  /* STRING */ var includeFilename = '';  /* STRING */ 
                   includePath = (await func_NormalizeImportPath( (await func_Replace( (QB.func__Trim( QB.arrayValue(cparts, [ 2]).value))  ,   "'"  ,   ""))));
+                  includeFilename = (QB.func_LCase( (await FS.func_GetFilename(  includePath))));
                   if (QB.arrayValue(includeOnceMap, [ includePath]).value  ) {
+                     continue;
+                  }
+                  if ( includeFilename ==  "gx.bi"  ||  includeFilename ==  "gx.bm"  ) {
+                     await sub_AddWarning(  lineIndex,   "Skipping GX $Include '"  +  includePath + "', using built-in version.");
                      continue;
                   }
                   var importRes = {ok:0,status:0,statusText:'',text:''};  /* FETCHRESPONSE */ 
