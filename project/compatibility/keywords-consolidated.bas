@@ -1,7 +1,9 @@
+IncludeJS "/qbjs/util/showdown.min.js"
 Import Dom From "lib/web/dom.bas"
 Import Console From "lib/web/console.bas"
 Import String From "lib/lang/string.bas"
 Import JSArray From "lib/lang/array.bas"
+Import Sys From "lib/lang/system.bas"
 Option Explicit
 
 Type Keyword
@@ -9,7 +11,9 @@ Type Keyword
     As Integer qb, qbjs, qb64, qbpe
 End Type
 
-Dim Shared As Object keywords, tbody, filter
+Dim Shared As Object keywords, tbody, filter, sconverter
+sconverter = Sys.Construct("Converter", globalThis.showdown)
+Sys.Call sconverter.setFlavor, sconverter, "github"
 keywords = JSArray.Create
 
 Dim Shared As String imgQBJS, imgQB, imgQB64, imgQBPE
@@ -131,20 +135,22 @@ Sub LoadSupported
     Dim As Integer idx
     Dim As String raw, tables(2)
     raw = DownloadText("https://raw.githubusercontent.com/wiki/boxgaming/qbjs/Supported-Keywords.md")
-    
+
     Dim i As Integer
-    For i = 1 To 3
+    For i = 1 To 5
         idx = InStr(raw, "--|" + Chr$(10))
         raw = Mid$(raw, idx+4)
         
         idx = InStr(raw, "|" + Chr$(10) + Chr$(10))
         tables(i) = Mid$(raw, 1, idx-1)
+
+        If i = 3 Then idx = InStr(raw, "## QB64PE Keywords")
         raw = Mid$(raw, idx+2)
     Next i
     
-    For i = 1 To 3
+    For i = 1 To 5
         Dim lines(0) As String
-        String.Split tables(i), Chr$(10), lines
+        lines = String.Split(tables(i), Chr$(10))
         Dim j As Integer
         For j = 1 To UBound(lines)
             Dim parts(0) As String
@@ -160,10 +166,10 @@ Sub LoadSupported
             firstChar = Mid$(k.sname, 1, 1)
             If firstChar = "_" Or firstChar = "$" Then k.sname = UCase$(Mid$(k.sname, 2))
             If i = 1 Then k.qb = -1
-            If i < 3 Then
+            If i <> 3 Then
                 k.level = parts(3)
-                k.levelDetail = parts(4)
-                k.qb64 = -1
+                k.levelDetail = Sys.Call(sconverter.makeHtml, sconverter, parts(4))
+                If i < 3 Then k.qb64 = -1
                 k.qbpe = -1
             End If
             k.qbjs = -1
@@ -221,13 +227,8 @@ Sub LoadUnsupported
             Dim As String issue, issueUrl
             issue = Trim$(parts(3))
             If Mid$(issue, 1, 1) = "[" Then
-                Dim As String url
-                idx = InStr(issue, "(")
-                issueUrl = Mid$(issue, idx+1, Len(issue)-idx-1)
-                idx = InStr(2, issue, "]")
-                issue = Mid$(issue, 2, idx-2)
                 k.level = "<i>Planned</i>"
-                k.levelDetail = "<a href='" + issueUrl + "' target=_blank>" + issue + "</a>"
+                k.levelDetail = Sys.Call(sconverter.makeHtml, sconverter, issue)
             End If
             JSArray.Push keywords, k
         Next j
