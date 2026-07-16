@@ -4061,14 +4061,20 @@ var QB = new function() {
 
     // QBJS-only methods
     // ---------------------------------------------------------------------------------
-    this.sub_IncludeJS = async function(url) {
+    this.sub_IncludeJS = async function(url, callbackFn) {
         var vfs = GX.vfs();
         var vfsCwd = GX.vfsCwd();
+        var loaded = false;
 
         var script = document.createElement("script")
         document.body.appendChild(script);
         script.id = url;
         script.async = false;
+
+        script.addEventListener("load", function() {
+            loaded = true;
+            if (callbackFn) { callbackFn(); }
+        });
 
         var file = vfs.getNode(url, vfsCwd);
         if (file && file.type == vfs.FILE) {
@@ -4076,6 +4082,10 @@ var QB = new function() {
         }
         else {
             script.src = url;
+        }
+
+        if (callbackFn == undefined) {
+            while (!loaded) { await GX.sleep(10); }
         }
     };
     
