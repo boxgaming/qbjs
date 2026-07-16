@@ -80,8 +80,14 @@ Function Split (s As String, delimiter As String, regex As Integer)
 End Function
 
 Sub Split (s As String, delimiter As String, result() As String, regex As Integer)
-    s = Sys.ToString(s)
-    Split = Split(s, delimiter, regex)
+    ReDim temp(0)
+    temp = Split(s, delimiter, regex)
+
+    Dim i As Integer
+    ReDim result(UBound(temp))
+    For i = 1 To UBound(temp)
+        result(i) = temp(i)
+    Next i
 End Sub
 
 Function StartsWith (s As String, searchStr As String)
