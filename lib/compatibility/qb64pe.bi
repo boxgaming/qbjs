@@ -428,6 +428,8 @@ End Sub
 
 ' _MESSAGEBOX (function) - displays a message dialog box, which presents a message and returns the button ID clicked by the user.	
 Function _MessageBox (stitle As String, message As String, dialogType As String, iconType As String, defaultButton As Integer)
+    If stitle = undefined Then stitle = "&nbsp;"
+    If message = undefined Then message = "&nbsp;"
     message = __String.Replace(message, Chr$(10), "<br>")
     If dialogType = undefined Then dialogType = "ok"
     dialogType = LCase$(dialogType)
@@ -553,17 +555,8 @@ End Function
 
 ' _UCHARPOS - calculates the starting pixel positions of every codepoint of the text string (0 being the starting pixel position of the first codepoint).	
 ' _UFONTHEIGHT - returns the global glyph height (incl. ascender/descender) of a font loaded by _LOADFONT.	
-Function _UFontHeight (fontHandle As Integer)
-    _UFontHeight = _FontHeight(fontHandle)
-End Function
-
 ' _ULINESPACING - returns the vertical line spacing (distance between two consecutive baselines) in pixels.	
-
 ' _UPRINTWIDTH - returns the width in pixels of the text string specified.	
-Function _UPrintWidth (text As String utfEncoding As Integer, fontHandle As Integer)
-    _UPrintWidth = _PrintWidth(text, fontHandle)
-End Function
-
 ' _UPRINTSTRING - prints ASCII / UNICODE text strings using graphic column and row coordinate positions.	
 ' _WAVE - defines the waveform shape for a specified audio channel when used with SOUND or PLAY.	
 
