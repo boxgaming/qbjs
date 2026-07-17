@@ -4064,7 +4064,7 @@ var QB = new function() {
     this.sub_IncludeJS = async function(url, callbackFn) {
         var vfs = GX.vfs();
         var vfsCwd = GX.vfsCwd();
-        var loaded = false;
+        var complete = false;
 
         var script = document.createElement("script")
         document.body.appendChild(script);
@@ -4072,8 +4072,12 @@ var QB = new function() {
         script.async = false;
 
         script.addEventListener("load", function() {
-            loaded = true;
+            complete = true;
             if (callbackFn) { callbackFn(); }
+        });
+        script.addEventListener("error", function() {
+            complete = true;
+            console.log("IncludeJS: Error loading '" + url + "'");
         });
 
         var file = vfs.getNode(url, vfsCwd);
@@ -4085,7 +4089,7 @@ var QB = new function() {
         }
 
         if (callbackFn == undefined) {
-            while (!loaded) { await GX.sleep(10); }
+            while (!complete) { await GX.sleep(10); }
         }
     };
     
