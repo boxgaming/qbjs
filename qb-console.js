@@ -2,6 +2,48 @@ function _QB() {
     // mininimal console-only implementation of the qb.js runtime library
     // initially used only for the qbc.js command line compiler
     var _rndSeed;
+    var _vfs = {
+        tokenizePath: function(path) {
+            path = path.replaceAll("\\","/");
+            let parts = path.split("/");
+            parts.isFullpath = false;
+            if (path.indexOf("/") == 0) {
+                parts.isFullpath = true;
+            }
+            if (parts[0].match(/[A-Z|a-z]:/)) {
+                parts.shift();
+                parts.isFullpath = true;
+            }
+            if (parts[0] == "") {
+                while (parts.length > 0 && parts[0] == "") {
+                    parts.shift();
+                }
+            }
+            if (parts.isFullpath && parts.length == 0) {
+                parts.isRoot = true;
+            }
+            else {
+                parts.isRoot = false;
+            }
+            return parts;
+        },
+        getParentPath: function(path) {
+            var parts = this.tokenizePath(path);
+            var path = "";
+            if (parts.length < 2) {
+                if (parts.isFullpath) { return "/"; }
+                else { return ""; }
+            }
+            for (var i=0; i < parts.length-1; i++) {
+                path += "/" + parts[i];
+            }
+            return path;
+        },
+        getFileName: function(path) {
+            var parts = this.tokenizePath(path);
+            return parts[parts.length-1];
+        }
+    }
 
     // Runtime Assertions
     function _assertParam(param, arg) {
@@ -311,6 +353,7 @@ function _QB() {
         autoLimit: autoLimit,
         halt: halt,
         halted: halted,
+        vfs: function() { return _vfs; },
         func_Asc: func_Asc,
         func_Chr: func_Chr,
         func_Command: func_Command,
