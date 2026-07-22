@@ -130,6 +130,11 @@ function _QB() {
         }*/
     }
 
+    function func_Abs(value) {
+        value = _assertNumber(value);
+        return Math.abs(value);
+    }
+
     function func_Asc(value, pos) {
         _assertParam(value);
         if (pos == undefined) {
@@ -354,6 +359,7 @@ function _QB() {
         halt: halt,
         halted: halted,
         vfs: function() { return _vfs; },
+        func_Abs: func_Abs,
         func_Asc: func_Asc,
         func_Chr: func_Chr,
         func_Command: func_Command,
