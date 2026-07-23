@@ -53,7 +53,11 @@ function _QB() {
 
     function _assertNumber(param, arg) {
         if (arg == undefined) { arg = 1; }
+        if (param && param.rgba && typeof param.rgba == "function") {
+            param = QB.func_Val(param);
+        }
         if (isNaN(param)) { throw new Error("Number required for method argument " + arg); }
+        return param;
     }
 
     // Array handling methods
@@ -141,20 +145,16 @@ function _QB() {
             pos = 0;
         }
         else {
-            _assertNumber(pos, 2);
+            pos = _assertNumber(pos, 2);
             pos--; 
         }
 
         var c = String(value).charCodeAt(pos);
-        //var uc = _ccharMap[c];
-        //if (uc) { c = uc; }
         return c;
     }
 
     function func_Chr(charCode) {
-        _assertNumber(charCode);
-        //var uc = _ucharMap[charCode];
-        //if (uc) { charCode = uc; }
+        charCode = _assertNumber(charCode);
         return String.fromCharCode(charCode);
     }
 
@@ -203,7 +203,7 @@ function _QB() {
 
     function func_Left(value, n) {
         _assertParam(value, 1);
-        _assertNumber(n, 2);
+        n = _assertNumber(n, 2);
         return String(value).substring(0, n);
     }
 
@@ -250,7 +250,7 @@ function _QB() {
 
     function func_Left(value, n) {
         _assertParam(value, 1);
-        _assertNumber(n, 2);
+        n = _assertNumber(n, 2);
         return String(value).substring(0, n);
     }
 
@@ -266,7 +266,7 @@ function _QB() {
 
     function func_Mid(value, n, len) {
         _assertParam(value, 1);
-        _assertNumber(n, 2);
+        n = _assertNumber(n, 2);
         if (len == undefined) {
             return String(value).substring(n-1);
         }
@@ -277,7 +277,7 @@ function _QB() {
  
     function func_Right(value, n) {
         _assertParam(value, 1);
-        _assertNumber(n, 2);
+        n = _assertNumber(n, 2);
         if (value == undefined) {
             return "";
         }
@@ -286,7 +286,7 @@ function _QB() {
     }
 
     function func__Round(value) {
-        _assertNumber(value);
+        value = _assertNumber(value);
         if (value < 0) {
             return -Math.round(-value);
         } else {
@@ -319,7 +319,7 @@ function _QB() {
     }
 
     function func_String(ccount, s) {
-        _assertNumber(ccount, 1);
+        ccount = _assertNumber(ccount, 1);
         _assertParam(s, 2);
         if (typeof s === "string") {
             s = s.substring(0, 1);
@@ -341,7 +341,7 @@ function _QB() {
             dimension = 1;
         }
         else {
-            _assertNumber(dimension, 2);
+            dimension = _assertNumber(dimension, 2);
         }
         return a._dimensions[dimension-1].u;
     }
