@@ -646,7 +646,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 Dim eqIdx As Integer
                 Dim toIdx As Integer
                 Dim stepIdx As Integer
-                Dim fcond As String: fcond = " <= "
+                'Dim fcond As String: fcond = " <= "
                 stepIdx = 0
                 Dim fi As Integer
                 For fi = 2 To UBound(parts)
@@ -668,7 +668,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 Dim uval As String
                 uval = ConvertExpression(Join(parts(), toIdx + 1, stepIdx - 1, " "), i)
 
-                If Left$(_Trim$(fstep), 1) = "-" Then fcond = " >= "
+                'If Left$(_Trim$(fstep), 1) = "-" Then fcond = " >= "
 
                 cindex = cindex + 1
                 containers(cindex).type = "FOR"
@@ -677,7 +677,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
                 loopIndex = GenJSVar
                 js = "var " + loopIndex + " = 0; " + containers(cindex).label + ":"
-                js = js + " for (" + fvar + "=" + sval + "; " + fvar + fcond + uval + "; " + fvar + "=" + fvar + " + " + fstep + ") {"
+                js = js + " for (" + fvar + "=" + sval + "; (" + fstep + " > 0) ? (" + fvar + " <= " + uval + ") : (" + fvar + " >= " + uval + "); " + fvar + "+=" + fstep + ") {"
                 js = js + " if (QB.halted()) { return; } "
                 js = js + loopIndex + "++; "
                 js = js + "  if (" + loopIndex + " % 100 == 0) { await QB.autoLimit(); }"
