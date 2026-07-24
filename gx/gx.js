@@ -2089,13 +2089,18 @@ var GX = new function() {
             // With a bit more math I'm sure we could avoid some extra loops here.
             tcount = 0;
             ty0 = 0;
+            i = 0;
             for (y = GX.entityY(entity) + GX.entityCollisionOffsetTop(entity); y <= GX.entityY(entity) + GX.entityHeight(entity) - 1 - GX.entityCollisionOffsetBottom(entity); y++) {
                 ty = Math.floor(y / GX.tilesetHeight());
-                if (tcount == 0) { ty0 = ty; }
+                if (tcount == 0) { 
+                    ty0 = ty; 
+                    if (i == 0) { tcount++; }
+                }
                 if (ty != tyn) {
                     tcount = tcount + 1;
                 }
                 tyn = ty;
+                i++;
             }
 
             // Add the range of detected tile positions to the return list
@@ -2120,13 +2125,20 @@ var GX = new function() {
             // With a bit more math I'm sure we could avoid some extra loops here.
             tcount = 0;
             tx0 = 0;
+            i = 0;
             for (x = GX.entityX(entity) + GX.entityCollisionOffsetLeft(entity); x <= GX.entityX(entity) + GX.entityWidth(entity) - 1 - GX.entityCollisionOffsetRight(entity); x++) {
                 tx = Math.floor(x / GX.tilesetWidth());
-                if (tcount == 0) { tx0 = tx; }
+                if (tcount == 0) { 
+                    tx0 = tx;
+                    if (tx == 0) {
+                        tcount++;
+                    } 
+                }
                 if (tx != txn) {
                     tcount = tcount + 1;
                 }
                 txn = tx;
+                i++;
             }
 
             for (tx = tx0; tx <= txn; tx++) {
@@ -2317,8 +2329,8 @@ var GX = new function() {
     }
 
     function _deviceInputTest(di) {
-        if (di.deviceType = GX.DEVICE_KEYBOARD) {
-            if (di.inputType = GX.DEVICE_BUTTON) {
+        if (di.deviceType == GX.DEVICE_KEYBOARD) {
+            if (di.inputType == GX.DEVICE_BUTTON) {
                 return GX.keyDown(di.inputId);
             }
         }
