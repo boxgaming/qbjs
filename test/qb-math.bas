@@ -17,6 +17,8 @@ UT.AssertEquals CDbl(3.1256487985479845621), 3.125648798547985
 
 UT.AssertEquals CInt(3980.39020883), 3980
 UT.AssertEquals CInt(3980.59020883), 3981
+UT.AssertEquals CInt(1.5), 2
+UT.AssertEquals CInt(2.5), 2
 UT.AssertEquals CLng(3980.39020883), 3980
 UT.AssertEquals CLng(3980.59020883), 3981
 
@@ -65,6 +67,7 @@ UT.AssertEquals Tan(3.4), 0.26431690086742515  ' QB64: .2643169
 
 UT.AssertEquals _Round(1.49), 1
 UT.AssertEquals _Round(1.5), 2
+UT.AssertEquals _Round(2.5), 2
 UT.AssertEquals _Round(-1.49), -1
 UT.AssertEquals _Round(-1.5), -2
 

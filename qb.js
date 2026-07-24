@@ -1347,12 +1347,13 @@ var QB = new function() {
     }
 
     this.func__Round = function(value) {
-        value = _assertNumber(value);
+        return QB.func_Cint(value);
+        /*value = _assertNumber(value);
         if (value < 0) {
             return -Math.round(-value);
         } else {
             return Math.round(value);
-        }
+        }*/
     };
 
     this.func__ScreenExists = function() {
