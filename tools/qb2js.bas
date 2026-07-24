@@ -3003,7 +3003,8 @@ Sub RegisterImports (sourceText As String, parentModule As Object)
                 Dim importRes As FetchResponse
                 Fetch includePath, importRes
                 If importRes.status <> 200 Then
-                    AddError i, "File not found: " + includePath
+                    'AddError i, "File not found: " + includePath
+                    ' This will be reported in ReadLine
                     _Continue
                 End If
 
@@ -3111,6 +3112,7 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
     ' Step 1: Remove any comments from the line
     Dim quoteDepth As Integer
     quoteDepth = 0
+    Dim includeExit As Integer
     Dim i As Integer
     For i = 1 To Len(fline)
         Dim As String c, c4, comment
@@ -3139,17 +3141,17 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
                         includePath = NormalizeImportPath(Replace$(_Trim$(cparts(2)), "'", ""))
                         includeFilename = LCase$(FS.GetFilename(includePath))
 
-                        If includeOnceMap(includePath) Then _Continue
+                        If includeOnceMap(includePath) Then Exit Function
                         If includeFilename = "gx.bi" OrElse includeFilename = "gx.bm" Then
                             AddWarning lineIndex, "Skipping GX $Include '" + includePath + "', using built-in version."
-                            _Continue
+                            Exit Function
                         End If
 
                         Dim importRes As FetchResponse
                         Fetch includePath, importRes
                         If importRes.status <> 200 Then
                             AddError lineIndex, "File not found: " + includePath
-                            '_Continue
+                            Exit Function
                         End If
 
                         Dim tempModule As Module

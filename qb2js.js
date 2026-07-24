@@ -3531,7 +3531,6 @@ if (QB.halted()) { return; };
             var importRes = {ok:0,status:0,statusText:'',text:''};  /* FETCHRESPONSE */ 
             await QB.sub_Fetch(  includePath,    importRes);
             if ( importRes.status !=   200 ) {
-               await sub_AddError(  i,   "File not found: "  +  includePath);
                continue;
             }
             await sub_RegisterImports(  importRes.text ,    parentModule);
@@ -3635,6 +3634,7 @@ var ReadLine = null;
    }
    var quoteDepth = 0;  /* INTEGER */ 
    quoteDepth = Math.round(  0 );
+   var includeExit = 0;  /* INTEGER */ 
    var i = 0;  /* INTEGER */ 
    var ___v637532 = 0; ___l1396109: for ( i=  1 ;  i <= (QB.func_Len(  fline));  i= i + 1) { if (QB.halted()) { return; } ___v637532++;   if (___v637532 % 100 == 0) { await QB.autoLimit(); }
       var c = '';  /* STRING */ var c4 = '';  /* STRING */ var comment = '';  /* STRING */ 
@@ -3665,16 +3665,17 @@ var ReadLine = null;
                   includePath = (await func_NormalizeImportPath( (await func_Replace( (QB.func__Trim( QB.arrayValue(cparts, [ 2]).value))  ,   "'"  ,   ""))));
                   includeFilename = (QB.func_LCase( (await FS.func_GetFilename(  includePath))));
                   if (QB.arrayValue(includeOnceMap, [ includePath]).value  ) {
-                     continue;
+                     return ReadLine;
                   }
                   if ( includeFilename ==  "gx.bi"  ||  includeFilename ==  "gx.bm"  ) {
                      await sub_AddWarning(  lineIndex,   "Skipping GX $Include '"  +  includePath + "', using built-in version.");
-                     continue;
+                     return ReadLine;
                   }
                   var importRes = {ok:0,status:0,statusText:'',text:''};  /* FETCHRESPONSE */ 
                   await QB.sub_Fetch(  includePath,    importRes);
                   if ( importRes.status !=   200 ) {
                      await sub_AddError(  lineIndex,   "File not found: "  +  includePath);
+                     return ReadLine;
                   }
                   var tempModule = {name:'',path:'',source:'',exportMethods:{},exportConsts:{},imports:{},processed:0};  /* MODULE */ 
                   if ( activeModule !=   undefined ) {
