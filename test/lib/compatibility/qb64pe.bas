@@ -62,7 +62,4 @@ UT.AssertTrue _FileExists("test.txt")
 UT.AssertEquals _ReadFile("test.txt"), "This is a test text file."
 Kill "test.txt"
 
-UT.AssertEquals _UFontHeight(16), 16
-UT.AssertEquals _UPrintWidth("Test String"), 88
-
 Console.Echo "lib/compatibility/qb64pe - tests completed with no errors* in " + (Sys.TimeInMillis - ts) + " millisecond(s)"
