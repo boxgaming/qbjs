@@ -3010,6 +3010,12 @@ var ConvertExpression = null;
                js =  js + " % ";
             } else if ( uword ==  "XOR"  ) {
                js =  js + " ^ ";
+            } else if ( uword ==  "EQV"  ) {
+               js =  js + " === ";
+               await sub_AddWarning(  lineNumber,   "EQV bitwise operator is unsupported, replaced with boolean equivalence '==='");
+            } else if ( uword ==  "IMP"  ) {
+               js =  js + " | ";
+               await sub_AddError(  lineNumber,   "IMP operator is unsupported");
             } else if ( uword ==  "="  ) {
                js =  js + " == ";
             } else if ( uword ==  "<>"  ) {

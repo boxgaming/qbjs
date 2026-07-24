@@ -2470,6 +2470,12 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                     js = js + " % "
                 ElseIf uword = "XOR" Then
                     js = js + " ^ "
+                ElseIf uword = "EQV" Then
+                    js = js + " === "
+                    AddWarning lineNumber, "EQV bitwise operator is unsupported, replaced with boolean equivalence '==='"
+                ElseIf uword = "IMP" Then
+                    js = js + " | "
+                    AddError lineNumber, "IMP operator is unsupported"
                 ElseIf uword = "=" Then
                     js = js + " == "
                 ElseIf uword = "<>" Then
