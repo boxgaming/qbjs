@@ -27,4 +27,15 @@ Close #1
 UT.AssertEquals FS.ReadText("test.txt"), "n= 42 "
 Kill "test.txt"
 
+Open "test.txt" For Output As #1
+Print #1, "This is the first line."
+Print #1, "This is the second line."
+Close #1
+Dim st As String
+Open "test.txt" For Input As #1
+Line Input #1, st
+Close #1
+UT.AssertEquals st, "This is the first line."
+Kill "test.txt"
+
 Console.Echo "QB File I/O - tests completed with no errors* in " + (Sys.TimeInMillis - ts) + " millisecond(s)"

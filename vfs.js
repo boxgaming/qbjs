@@ -99,6 +99,9 @@ let VFS = function() {
             }
             offset++;
         }
+        if (str.charAt(str.length-1) == "\r") {
+            str = str.substring(0, str.length-1);
+        }
         return str;
     };
 
