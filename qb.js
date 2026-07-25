@@ -2502,8 +2502,8 @@ var QB = new function() {
 
     this.sub_Locate = function(row, col) {
         // TODO: implement cursor positioning/display parameters
-        if (row == undefined) { row = 1; } else { row = _assertNumber(row); row = parseInt(row); }
-        if (col == undefined) { col = 1; } else { col = _assertNumber(col); col = parseInt(col); }
+        if (row == undefined) { row = _locY + 1; } else { row = _assertNumber(row); row = parseInt(row); }
+        if (col == undefined) { col = _locX + 1; } else { col = _assertNumber(col); col = parseInt(col); }
         if (row && row > 0 && row <= _textRows()) {
             _locY = row-1;
         }
