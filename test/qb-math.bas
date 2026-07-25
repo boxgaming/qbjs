@@ -14,6 +14,7 @@ UT.AssertEquals Atn(2), 1.1071487177940904     ' QB64: 1.107149
 UT.AssertEquals Atn(-1.5), -0.982793723247329  ' QB64: -.9827937
 
 UT.AssertEquals CDbl(3.1256487985479845621), 3.125648798547985
+UT.AssertEquals CDbl(45.291) + 5, 50.291
 
 UT.AssertEquals CInt(3980.39020883), 3980
 UT.AssertEquals CInt(3980.59020883), 3981
@@ -29,6 +30,7 @@ UT.AssertEquals Cos(-1.25), 0.3153223623952687 ' QB64: .3153224
 UT.AssertEquals CSng(975.341222), 975.3412
 UT.AssertEquals CSng(1975.341222), 1975.341
 UT.AssertEquals CSng(5531975.341222), 5531975
+UT.AssertEquals CSng(23.459892) + 3, 26.45989
 
 ' More digits of precision than QB64
 UT.AssertEquals Exp(7), 1096.6331584284585     ' QB64: 1096.633    

@@ -2250,7 +2250,7 @@ var QB = new function() {
 
     this.func_Cdbl = function(value) {
         value = _assertNumber(value);
-        return value.toPrecision(16);
+        return value.toPrecision(16) * 1;
     };
 
     this.func_Cint = function(value) {
@@ -2268,7 +2268,7 @@ var QB = new function() {
 
     this.func_Csng = function(value) {
         value = _assertNumber(value);
-        return value.toPrecision(7);
+        return value.toPrecision(7) * 1;
     };
 
     this.sub_Circle = function(step, x, y, radius, color, startAngle, endAngle, aspect) {
