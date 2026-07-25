@@ -2900,8 +2900,16 @@ var QB = new function() {
                 locX += chars;
             }
             else {
-                locX = args[ai].length;
-                GX.vfs().writeText(file, args[ai]);
+                var str = args[ai];
+                // non-negative numbers are prefixed with a space
+                if (typeof str != "string" && !isNaN(str)) {
+                    if (str >= 0) {
+                        str = " " + str;
+                    }
+                    str = str + " "; //a space is added to the end numbers when printing
+                }
+                locX = str.length;
+                GX.vfs().writeText(file, str);
             }
         }
 
