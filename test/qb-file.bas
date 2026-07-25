@@ -38,4 +38,16 @@ Close #1
 UT.AssertEquals st, "This is the first line."
 Kill "test.txt"
 
+Open "test.txt" For Output As #1
+Print #1, ""
+Print #1, "second line"
+Close #1
+Dim st As String
+Open "test.txt" For Input As #1
+Input #1, st
+Print st
+UT.AssertEquals st, ""
+Close #1
+Kill "test.txt"
+
 Console.Echo "QB File I/O - tests completed with no errors* in " + (Sys.TimeInMillis - ts) + " millisecond(s)"

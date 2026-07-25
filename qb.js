@@ -2176,7 +2176,7 @@ var QB = new function() {
         fh = _fileHandles[fh];
         var text = GX.vfs().readLine(fh.file, fh.offset);
         fh.offset += text.length + 1;
-        var values = text.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+        var values = text.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
         for (var i=0; i < returnValues.length; i++) {
             if (i < values.length) {
                 var v = values[i];
@@ -2185,6 +2185,9 @@ var QB = new function() {
                     v = v.substring(1, v.length-1);
                 }
                 returnValues[i] = v;
+            }
+            else {
+                returnValues[i] = "";
             }
         }
     };
