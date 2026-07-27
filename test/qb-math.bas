@@ -73,4 +73,7 @@ UT.AssertEquals _Round(2.5), 2
 UT.AssertEquals _Round(-1.49), -1
 UT.AssertEquals _Round(-1.5), -2
 
+UT.AssertEquals _R2G(_PI), 200
+UT.AssertEquals _R2G(_PI/2), 100
+
 Console.Echo "QB Math Keyword - tests completed with no errors* in " + (Sys.TimeInMillis - ts) + " millisecond(s)"

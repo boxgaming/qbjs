@@ -1265,7 +1265,7 @@ var QB = new function() {
 
     this.func__R2G = function(x) {
         x = _assertNumber(x);
-        return (x*(9/10))*180/Math.PI;
+        return (x*200)/Math.PI;
     };
 
     this.func__Readbit = function(x, y) {
