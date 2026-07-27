@@ -2919,7 +2919,7 @@ Sub ConvertMethods ()
                 fvar.type = DataTypeFromName(methods(i).name)
                 AddVariable fvar, localVars()
             End If
-            currentMethod = methods(i).name
+            currentMethod = RemoveSuffix(methods(i).name)
 
 
             ConvertLines methods(i).line + 1, lastLine - 1, methods(i).name

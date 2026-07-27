@@ -3448,7 +3448,7 @@ if (QB.halted()) { return; };
             fvar.type = (await func_DataTypeFromName( QB.arrayValue(methods, [ i]).value .name));
             await sub_AddVariable(  fvar,   localVars);
          }
-         currentMethod = QB.arrayValue(methods, [ i]).value .name;
+         currentMethod = (await func_RemoveSuffix( QB.arrayValue(methods, [ i]).value .name));
          await sub_ConvertLines( QB.arrayValue(methods, [ i]).value .line +  1,    lastLine -  1,   QB.arrayValue(methods, [ i]).value .name);
          if (QB.arrayValue(methods, [ i]).value .type ==  "FUNCTION" ) {
             await sub_AddJSLine(  lastLine,   "return "  + (await func_RemoveSuffix( QB.arrayValue(methods, [ i]).value .name))  + ";");
