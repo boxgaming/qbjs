@@ -135,6 +135,12 @@ UT.AssertEquals Val("&O123"), 83
 UT.AssertEquals Val("&HF3B8"), 62392
 UT.AssertEquals Val("&hf3b8"), 62392
 UT.AssertEquals Val("&B0110010"), 50
+UT.AssertEquals Val("abc"), 0
+UT.AssertEquals Val("asdf123"), 0
+UT.AssertEquals Val("2.345xyz"), 2.345
+UT.AssertEquals Val("2.37d3"), 2370
+UT.AssertEquals Val("7.51e-2"), .0751
+
 ' QBJS ignores the second type parameter
 'UT.AssertEquals Val("32.456", Integer), 32
 'UT.AssertEquals Val("32.456", Long), 32

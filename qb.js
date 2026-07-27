@@ -3972,13 +3972,27 @@ var QB = new function() {
         var ret;
         value = value.toString().toUpperCase();
         value = value.replaceAll(/\s/g, "");
-        if (value.substring(0, 2) == "&H") {
+        var prefix = value.substring(0, 2);
+        if (prefix == "&H") {
             ret = parseInt(value.slice(2), 16);
-        } else if (value.substring(0, 2) == "&O") {
+        } else if (prefix == "&O") {
             ret = parseInt(value.slice(2), 8);
-        } else if (value.substring(0, 2) == "&B") {
+        } else if (prefix == "&B") {
             ret = parseInt(value.slice(2), 2);
         } else {
+            var lastDigit = -1;
+            for (var i=value.length-1; i >= 0; i--) {
+                if (lastDigit != -1) { break; }
+                var c = value.charCodeAt(i);
+                if (c >= 48 && c <= 59) {
+                    lastDigit = i;
+                }
+            }
+            console.log(lastDigit);
+            if (lastDigit < value.length-1) {
+                value = value.substring(0, lastDigit+1);
+            }
+            value = value.replaceAll("D", "E");
             ret = Number(value);
         }
         if (isNaN(ret)) { ret = 0; }
