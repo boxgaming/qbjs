@@ -2532,7 +2532,7 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                                         End If
                                     End If
                                 Else
-                                    js = js + " " + word
+                                    js = js + " " + RemoveSuffix(word)
                                 End If
                             End If
                         End If
