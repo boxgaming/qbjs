@@ -27,4 +27,10 @@ UT.AssertEquals count, 4
 st = -10: count = 0: For i = 20 To 1 Step st: count = count + 1: Next i
 UT.AssertEquals count, 2
 
+' value literal suffixes
+UT.AssertEquals 5#, 5
+UT.AssertEquals 100000&, 100000
+UT.AssertEquals 3.5!, 3.5
+UT.AssertEquals 42%, 42
+
 Console.Echo "QB Language - tests completed with no errors* in " + (Sys.TimeInMillis - ts) + " millisecond(s)"
