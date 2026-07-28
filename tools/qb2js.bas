@@ -1,6 +1,7 @@
 Import FS From "lib/io/fs.bas"
 Import OBJ From "lib/lang/object.bas"
 Import JSArray From "lib/lang/array.bas"
+Import String From "lib/lang/string.bas"
 
 Option _Explicit
 
@@ -11,6 +12,9 @@ Const FILE = 1, TEXT = 2
 Const MWARNING = 0, MERROR = 1
 Const False = 0
 Const True = Not False
+Const LF = Chr$(10)
+Const CR = Chr$(13)
+Const CRLF = CR + LF
 Const PrintDataTypes = True
 ' Additional Debugging output - should be set to false for final build
 Const PrintLineMapping = False
@@ -470,7 +474,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
         indent = 0
         tempIndent = 0
         Dim l As String
-        l = _Trim$(lines(i).text)
+        l = String.Trim(lines(i).text)
         'Handle ? shorthand for print
         If Left$(l, 1) = "?" And Mid$(l, 2, 1) <> " " Then
             l = "Print " + Mid$(l, 2)
@@ -548,12 +552,12 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                         Else
                             js = js + "const " + cleft + " = " + ConvertExpression(cright, i) + "; "
                         End If
-                        AddConst _Trim$(cleft), functionName
+                        AddConst String.Trim(cleft), functionName
                     End If
                 Next constIdx
 
             ElseIf first = "OPTION" Then
-                second = UCase$(_Trim$(parts(2)))
+                second = UCase$(String.Trim(parts(2)))
                 If second = "_EXPLICIT" Or second = "EXPLICIT" Then
                     optionExplicit = True
                 ElseIf second = "_EXPLICITARRAY" Or second = "EXPLICITARRAY" Then
@@ -667,8 +671,6 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 sval = ConvertExpression(Join(parts(), eqIdx + 1, toIdx - 1, " "), i)
                 Dim uval As String
                 uval = ConvertExpression(Join(parts(), toIdx + 1, stepIdx - 1, " "), i)
-
-                'If Left$(_Trim$(fstep), 1) = "-" Then fcond = " >= "
 
                 cindex = cindex + 1
                 containers(cindex).type = "FOR"
@@ -902,7 +904,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
 
             ElseIf first = "CALL" Then
                 Dim subline As String
-                subline = _Trim$(Join(parts(), 2, -1, " "))
+                subline = String.Trim(Join(parts(), 2, -1, " "))
 
                 Dim subend As Integer
                 subend = InStr(subline, "(")
@@ -950,8 +952,8 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                 If assignment > 0 Then
                     ' This is a variable assignment
                     Dim As String leftSide, rightSide, leftConverted, rightConverted
-                    leftSide = _Trim$(Join(parts(), asnVarIndex, assignment - 1, " "))
-                    rightSide = _Trim$(Join(parts(), assignment + 1, -1, " "))
+                    leftSide = String.Trim(Join(parts(), asnVarIndex, assignment - 1, " "))
+                    rightSide = String.Trim(Join(parts(), assignment + 1, -1, " "))
                     leftConverted = ConvertExpression(leftSide, i)
                     rightConverted = ConvertExpression(rightSide, i)
                     If IsIntegerVar(leftSide) Then rightConverted = "Math.round( " + rightConverted + " )"
@@ -987,7 +989,7 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
             End If
 
             If (indent < 0) Then totalIndent = totalIndent + indent
-            If js <> "" Then AddJSLine i, LPad("", " ", (totalIndent + tempIndent) * 3) + js
+            If js <> "" Then AddJSLine i, String.PadStart("", (totalIndent + tempIndent) * 3, " ") + js
             If (indent > 0) Then totalIndent = totalIndent + indent
 
         End If
@@ -1003,7 +1005,7 @@ End Sub
 Function GetParenDepth (text As String)
     Dim As Long p, curpos, arrpos, dpos
     Dim cstr As String
-    cstr = _Trim$(text)
+    cstr = String.Trim(text)
 
     Dim quoteMode As Integer
     Dim paren As Integer
@@ -1045,7 +1047,7 @@ Function IsValidVarname (varname As String)
     Dim As String vname, s
     Dim As Integer i, c, valid
     valid = True
-    vname = _Trim$(varname)
+    vname = String.Trim(varname)
     ' Check for reserved words
     If vname = "true" Or vname = "false" Then IsValidVarname = False: Exit Function
     vname = UCase$(RemoveSuffix(vname))
@@ -1245,13 +1247,13 @@ Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
         js = CallMethod(m) + "(" + ConvertOpen(args, lineNumber) + ");"
 
     ElseIf m.name = "Close" Then
-        js = CallMethod(m) + "(" + Replace(args, "#", "") + ");"
+        js = CallMethod(m) + "(" + String.Replace(args, "#", "") + ");"
 
         'ElseIf m.name = "Get" Then
         '    js = ConvertGet(m, args, lineNumber)
 
     ElseIf m.name = "Input" Then
-        If StartsWith(_Trim$(args), "#") Then
+        If String.StartsWith(String.Trim(args), "#") Then
             m.jsname = "QB.sub_InputFromFile"
             js = ConvertFileInput(m, args, lineNumber)
         Else
@@ -1260,7 +1262,7 @@ Function ConvertSub$ (m As Method, args As String, lineNumber As Integer)
         End If
 
     ElseIf m.name = "Line Input" Then
-        If StartsWith(_Trim$(args), "#") Then
+        If String.StartsWith(String.Trim(args), "#") Then
             m.jsname = "QB.sub_LineInputFromFile"
             js = ConvertFileLineInput(m, args, lineNumber)
             m.name = "Line"
@@ -1334,12 +1336,12 @@ Function ConvertPut$ (m As Method, args As String, lineNumber As Integer)
     End If
 
     Dim As String fh, position, vname
-    fh = _Trim$(parts(1))
-    position = _Trim$(parts(2))
-    vname = _Trim$(parts(3))
-    vname = Replace(vname, "()", "")
+    fh = String.Trim(parts(1))
+    position = String.Trim(parts(2))
+    vname = String.Trim(parts(3))
+    vname = String.Replace(vname, "()", "")
 
-    fh = Replace(fh, "#", "")
+    fh = String.Replace(fh, "#", "")
     If position = "" Then position = "undefined"
 
     Dim v As Variable
@@ -1410,7 +1412,7 @@ Function ConvertOpen$ (args As String, lineNumber As Integer)
 
     filename = parts(1)
     mode = "QB." + UCase$(parts(3))
-    handle = Replace(parts(5), "#", "")
+    handle = String.Replace(parts(5), "#", "")
 
     ConvertOpen = filename + ", " + mode + ", " + handle
 End Function
@@ -1426,9 +1428,9 @@ Function ConvertLine$ (args As String, lineNumber As Integer)
 
     argc = ListSplit(args, parts())
     If argc >= 1 Then coord = ConvertCoordParam(parts(1), True, lineNumber)
-    If argc >= 2 And _Trim$(parts(2)) <> "" Then lcolor = ConvertExpression(parts(2), lineNumber)
-    If argc >= 3 And _Trim$(parts(3)) <> "" Then mode = "'" + UCase$(_Trim$(parts(3))) + "'"
-    If argc >= 4 And _Trim$(parts(4)) <> "" Then style = ConvertExpression(parts(4), lineNumber)
+    If argc >= 2 And String.Trim(parts(2)) <> "" Then lcolor = ConvertExpression(parts(2), lineNumber)
+    If argc >= 3 And String.Trim(parts(3)) <> "" Then mode = "'" + UCase$(String.Trim(parts(3))) + "'"
+    If argc >= 4 And String.Trim(parts(4)) <> "" Then style = ConvertExpression(parts(4), lineNumber)
 
     ConvertLine = coord + ", " + lcolor + ", " + mode + ", " + style
 End Function
@@ -1443,20 +1445,20 @@ Function ConvertPutImage$ (args As String, lineNumber As Integer)
     destImage = "undefined"
 
     doSmooth = "false"
-    If EndsWith(_Trim$(UCase$(args)), "_SMOOTH") Or EndsWith(_Trim$(UCase$(args)), "SMOOTH") Then
+    If String.EndsWith(String.Trim(UCase$(args)), "_SMOOTH") Or String.EndsWith(String.Trim(UCase$(args)), "SMOOTH") Then
         doSmooth = "true"
-        args = Left$(_Trim$(args), Len(_Trim$(args)) - 7)
+        args = Left$(String.Trim(args), Len(String.Trim(args)) - 7)
     End If
 
     argc = ListSplit(args, parts())
     If argc >= 1 Then startCoord = ConvertCoordParam(parts(1), True, lineNumber)
     If argc >= 2 Then sourceImage = ConvertExpression(parts(2), lineNumber)
     If argc >= 3 Then
-        If _Trim$(parts(3)) <> "" Then destImage = ConvertExpression(parts(3), lineNumber)
+        If String.Trim(parts(3)) <> "" Then destImage = ConvertExpression(parts(3), lineNumber)
     End If
     If argc >= 4 Then destCoord = ConvertCoordParam(parts(4), True, lineNumber)
     If argc >= 5 Then
-        If _Trim$(UCase$(parts(5))) = "_SMOOTH" Or _Trim$(UCase$(parts(5))) = "SMOOTH" Then doSmooth = "true"
+        If String.Trim(UCase$(parts(5))) = "_SMOOTH" Or String.Trim(UCase$(parts(5))) = "SMOOTH" Then doSmooth = "true"
     End If
 
     ConvertPutImage = startCoord + ", " + sourceImage + ", " + destImage + ", " + destCoord + ", " + doSmooth
@@ -1477,7 +1479,7 @@ Function ConvertWindow$ (args As String, lineNumber As Integer)
         args = Right$(args, Len(args) - Len(kwd))
         invertFlag = "true"
     End If
-    args = _Trim$(args)
+    args = String.Trim(args)
 
     sstep = "false"
     estep = "false"
@@ -1506,7 +1508,7 @@ Function ConvertWindow$ (args As String, lineNumber As Integer)
     idx = _InStrRev(startCord, ")")
     startCord = Left$(startCord, idx - 1)
     startCord = ConvertExpression(startCord, lineNumber)
-    If (_Trim$(startCord) = "") Then startCord = "undefined, undefined"
+    If (String.Trim(startCord) = "") Then startCord = "undefined, undefined"
 
     idx = InStr(endCord, "(")
     endCord = Right$(endCord, Len(endCord) - idx)
@@ -1527,7 +1529,7 @@ Function ConvertCls$ (args As String, lineNumber As Integer)
     bgcolor = "undefined"
 
     If argc >= 1 Then
-        If _Trim$(parts(1)) <> "" Then method = ConvertExpression(parts(1), lineNumber)
+        If String.Trim(parts(1)) <> "" Then method = ConvertExpression(parts(1), lineNumber)
     End If
     If argc >= 2 Then bgcolor = ConvertExpression(parts(2), lineNumber)
 
@@ -1543,7 +1545,7 @@ Function ConvertSubMid$ (m As Method, args As String, lineNumber As Integer)
     args = Right$(args, Len(args) - idx)
     idx = _InStrRev(args, ")")
     args = Left$(args, idx-1) + Right$(args, Len(args) - idx)
-    args = Replace(args, "=", ",")
+    args = String.Replace(args, "=", ",")
 
     Dim argc As Integer
     argc = ListSplit(args, midArgs())
@@ -1599,12 +1601,12 @@ Function ConvertRandomize$ (m As Method, args As String, lineNumber As Integer)
     Dim theseed As String
     uusing = "false"
     theseed = args
-    If _Trim$(args) = "" Then
+    If String.Trim(args) = "" Then
         theseed = "undefined"
     Else
-        If (UCase$(_Trim$(Left$(args, 5))) = "USING") Then
+        If (UCase$(String.Trim(Left$(args, 5))) = "USING") Then
             uusing = "true"
-            theseed = _Trim$(Right$(args, Len(args) - 5))
+            theseed = String.Trim(Right$(args, Len(args) - 5))
         End If
         theseed = ConvertExpression(theseed, lineNumber)
     End If
@@ -1622,7 +1624,7 @@ Function ConvertRead$ (m As Method, args As String, lineNumber As Integer)
     pcount = ListSplit(args, parts())
     Dim i As Integer
     For i = 1 To pcount
-        p = _Trim$(parts(i))
+        p = String.Trim(parts(i))
         vcount = UBound(vars) + 1
         ReDim _Preserve As String vars(vcount)
         vars(vcount) = p
@@ -1637,7 +1639,7 @@ Function ConvertRead$ (m As Method, args As String, lineNumber As Integer)
 End Function
 
 Function ConvertCoordParam$ (param As String, hasEndCoord As Integer, lineNumber As Integer)
-    If _Trim$(param) = "" Then
+    If String.Trim(param) = "" Then
         If hasEndCoord Then
             ConvertCoordParam = "false, undefined, undefined, false, undefined, undefined"
         Else
@@ -1658,10 +1660,10 @@ Function ConvertCoordParam$ (param As String, hasEndCoord As Integer, lineNumber
             endCoord = Right$(param, Len(param) - idx)
         End If
 
-        If UCase$(Left$(_Trim$(startCoord), 4)) = "STEP" Then
+        If UCase$(Left$(String.Trim(startCoord), 4)) = "STEP" Then
             sstep = "true"
         End If
-        If UCase$(Left$(_Trim$(endCoord), 4)) = "STEP" Then
+        If UCase$(Left$(String.Trim(endCoord), 4)) = "STEP" Then
             estep = "true"
         End If
 
@@ -1670,7 +1672,7 @@ Function ConvertCoordParam$ (param As String, hasEndCoord As Integer, lineNumber
         idx = _InStrRev(startCoord, ")")
         startCoord = Left$(startCoord, idx - 1)
         startCoord = ConvertExpression(startCoord, lineNumber)
-        If (_Trim$(startCoord) = "") Then startCoord = "undefined, undefined"
+        If (String.Trim(startCoord) = "") Then startCoord = "undefined, undefined"
 
         If hasEndCoord Then
             idx = InStr(endCoord, "(")
@@ -1678,7 +1680,7 @@ Function ConvertCoordParam$ (param As String, hasEndCoord As Integer, lineNumber
             idx = _InStrRev(endCoord, ")")
             endCoord = Left$(endCoord, idx - 1)
             endCoord = ConvertExpression(endCoord, lineNumber)
-            If (_Trim$(endCoord) = "") Then endCoord = "undefined, undefined"
+            If (String.Trim(endCoord) = "") Then endCoord = "undefined, undefined"
 
             ConvertCoordParam$ = sstep + ", " + startCoord + ", " + estep + ", " + endCoord
         Else
@@ -1704,7 +1706,7 @@ Function ConvertPSet$ (args As String, lineNumber As Integer)
         theRest = Right$(args, Len(args) - idx)
     End If
 
-    If UCase$(_Trim$(Left$(firstParam, 4))) = "STEP" Then
+    If UCase$(String.Trim(Left$(firstParam, 4))) = "STEP" Then
         sstep = "true"
     End If
 
@@ -1713,7 +1715,7 @@ Function ConvertPSet$ (args As String, lineNumber As Integer)
     idx = _InStrRev(firstParam, ")")
     firstParam = Left$(firstParam, idx - 1)
     firstParam = ConvertExpression(firstParam, lineNumber)
-    If (_Trim$(firstParam) = "") Then firstParam = "undefined, undefined"
+    If (String.Trim(firstParam) = "") Then firstParam = "undefined, undefined"
 
     theRest = ConvertExpression(theRest, lineNumber)
 
@@ -1730,11 +1732,11 @@ Function ConvertPrint$ (m As Method, args As String, lineNumber As Integer)
 
     m.jsname = "QB.sub_Print"
     If pcount > 0 Then
-        If StartsWith(_Trim$(parts(1)), "#") Then
-            fh = Replace(_Trim$(parts(1)), "#", "")
+        If String.StartsWith(String.Trim(parts(1)), "#") Then
+            fh = String.Replace(String.Trim(parts(1)), "#", "")
             m.jsname = "QB.sub_PrintToFile"
             startIdx = 3
-            If _Trim$(parts(2)) <> "," Then
+            If String.Trim(parts(2)) <> "," Then
                 AddWarning lineNumber, "Syntax error, missing expected ','"
                 startIdx = 2
             End If
@@ -1802,8 +1804,8 @@ Function ConvertWrite$ (m As Method, args As String, lineNumber As Integer)
 
     m.jsname = "QB.sub_Write"
     If pcount > 0 Then
-        If StartsWith(_Trim$(parts(1)), "#") Then
-            fh = Replace(_Trim$(parts(1)), "#", "")
+        If String.StartsWith(String.Trim(parts(1)), "#") Then
+            fh = String.Replace(String.Trim(parts(1)), "#", "")
             m.jsname = "QB.sub_WriteToFile"
             startIdx = 2
         End If
@@ -1828,14 +1830,14 @@ Function ConvertWrite$ (m As Method, args As String, lineNumber As Integer)
         isVar = FindVariable(parts(i), v, False)
         If isVar Then
             t = v.type
-        ElseIf StartsWith(parts(i), Chr$(34)) Then
+        ElseIf String.StartsWith(parts(i), Chr$(34)) Then
             t = "STRING"
         End If
 
         If isVar Then
-            js = js + "{ type:'" + t + "', value:" + _Trim$(ConvertExpression(parts(i), lineNumber)) + "}"
+            js = js + "{ type:'" + t + "', value:" + String.Trim(ConvertExpression(parts(i), lineNumber)) + "}"
         Else
-            js = js + "{ type:'" + t + "', value:'" + Replace(_Trim$(ConvertExpression(parts(i), lineNumber)), "'", "\'") + "'}"
+            js = js + "{ type:'" + t + "', value:'" + String.Replace(String.Trim(ConvertExpression(parts(i), lineNumber)), "'", "\'") + "'}"
         End If
     Next i
 
@@ -1879,8 +1881,8 @@ Function ConvertFileLineInput$ (m As Method, args As String, lineNumber As Integ
         Exit Function
     End If
 
-    fh = Replace(_Trim$(parts(1)), "#", "")
-    retvar = _Trim$(parts(2))
+    fh = String.Replace(String.Trim(parts(1)), "#", "")
+    retvar = String.Trim(parts(2))
 
     vname = GenJSVar
     js = "var " + vname + " = new Array(1); "
@@ -1906,14 +1908,14 @@ Function ConvertInput$ (m As Method, args As String, lineNumber As Integer)
     pcount = PrintSplit(args, parts())
     Dim i As Integer
     For i = 1 To pcount
-        p = _Trim$(parts(i))
+        p = String.Trim(parts(i))
         If p = ";" Then
             If i = 1 Then
                 preventNewline = "true"
             Else
                 addQuestionPrompt = "true"
             End If
-        ElseIf StartsWith(p, Chr$(34)) Then
+        ElseIf String.StartsWith(p, Chr$(34)) Then
             promptStr = p
         ElseIf p <> "," Then
             vcount = UBound(vars) + 1
@@ -1957,8 +1959,8 @@ Function ConvertFileInput$ (m As Method, args As String, lineNumber As Integer)
         Exit Function
     End If
 
-    fh = Replace(_Trim$(parts(1)), "#", "")
-    retvar = _Trim$(parts(2))
+    fh = String.Replace(String.Trim(parts(1)), "#", "")
+    retvar = String.Trim(parts(2))
 
     vname = GenJSVar
     js = "var " + vname + " = new Array(" + Str$(UBound(parts) - 1) + "); "
@@ -2057,7 +2059,7 @@ Function GenJSLabel$
 End Function
 
 Function GenJSName$
-    GenJSName$ = _Trim$(Str$(_Round(Rnd * 10000000)))
+    GenJSName$ = String.Trim(Str$(_Round(Rnd * 10000000)))
 End Function
 
 Function FindParamChar (s As String, ch As String)
@@ -2122,7 +2124,7 @@ Sub DeclareTypeVar (parts() As String, typeId As Integer, lineNumber As Integer)
 
         vnamecount = ListSplit(Join(parts(), nextIdx, -1, " "), varnames())
         For i = 1 To vnamecount
-            vname = _Trim$(varnames(i))
+            vname = String.Trim(varnames(i))
             pstart = InStr(vname, "(")
             If pstart > 0 Then
                 bvar.isArray = True
@@ -2208,7 +2210,7 @@ Function DeclareVar$ (parts() As String, lineNumber As Integer)
 
         vnamecount = ListSplit(Join(parts(), nextIdx, -1, " "), varnames())
         For i = 1 To vnamecount
-            vname = _Trim$(varnames(i))
+            vname = String.Trim(varnames(i))
             pstart = InStr(vname, "(")
             If pstart > 0 Then
                 bvar.isArray = True
@@ -2453,7 +2455,7 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
         Else
             If c = " " Or c = "," Or i = Len(ex) Then ' isOperator Or i = Len(ex) Then
                 If i = Len(ex) Then word = word + c
-                Dim uword As String: uword = UCase$(_Trim$(word))
+                Dim uword As String: uword = UCase$(String.Trim(word))
                 If uword = "NOT" Then
                     js = js + "~"
                 ElseIf uword = "NEGATE" Or uword = "_NEGATE" Then
@@ -2486,14 +2488,14 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                     js = js + " \ " ' mark this expression as containing an integer division
                     intdiv = True ' we'll handle the necessary adjustments at the end of the loop
 
-                ElseIf StartsWith(uword, "&H") Or StartsWith(uword, "&O") Or StartsWith(uword, "&B") Then
+                ElseIf String.StartsWith(uword, "&H") Or String.StartsWith(uword, "&O") Or String.StartsWith(uword, "&B") Then
                     js = js + " QB.func_Val('" + uword + "') "
 
-                ElseIf StartsWith(uword, "@") Then
+                ElseIf String.StartsWith(uword, "@") Then
                     ' Handle method pointer references
                     Dim mref As String
                     Dim fres As Integer
-                    mref = Mid$(_Trim$(word), 2)
+                    mref = Mid$(String.Trim(word), 2)
                     fres = FindMethod(mref, m, "FUNCTION", False)
                     If fres < 1 Then fres = FindMethod(mref, m, "SUB", False)
                     If fres Then
@@ -2517,7 +2519,7 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                                 js = js + " " + bvar.jsname
                             Else
                                 Dim varname As String
-                                varname = _Trim$(word)
+                                varname = String.Trim(word)
                                 If IsValidVarname(varname) Then
                                     Dim dt As String
                                     dt = DataTypeFromName(varname)
@@ -2583,7 +2585,7 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                     End If
                 End If
                 If FindVariable(word, bvar, True) Then
-                    If _Trim$(ex2) = "" Then
+                    If String.Trim(ex2) = "" Then
                         ' This is the case where the array variable is being passed as a parameter
                         js = js + fneg + bvar.jsname
                     Else
@@ -2593,7 +2595,7 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                 ElseIf FindMethod(word, m, "FUNCTION", True) Then
                     js = js + fneg + "(" + CallMethod(m) + "(" + ConvertMethodParams(ex2, lineNumber) + "))"
                 Else
-                    varname = _Trim$(word)
+                    varname = String.Trim(word)
                     If varname <> "" Then
                         If optionExplicit Or optionExplicitArray Then
                             AddError lineNumber, "Missing function or array [" + word + "]"
@@ -2610,7 +2612,7 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                             dt = DataTypeFromName(varname)
                             RegisterImplicitVar varname, dt, arraySize, lineNumber
                             If FindVariable(varname, bvar, True) Then
-                                If _Trim$(ex2) = "" Then
+                                If String.Trim(ex2) = "" Then
                                     ' This is the case where the array variable is being passed as a parameter
                                     js = js + fneg + bvar.jsname
                                 Else
@@ -2721,7 +2723,7 @@ Function ConvertMethodParams$ (args As String, lineNumber As Integer)
     Dim i As Integer
     For i = 1 To argc
         If i > 1 Then js = js + ","
-        If _Trim$(params(i)) = "" Then
+        If String.Trim(params(i)) = "" Then
             js = js + " undefined"
         Else
             js = js + " " + ConvertExpression(params(i), lineNumber)
@@ -2741,7 +2743,7 @@ Function FindVariable (varname As String, bvar As Variable, isArray As Integer)
     Dim found As Integer: found = False
     Dim i As Integer
     Dim fvarname As String
-    fvarname = _Trim$(UCase$(RemoveSuffix(varname)))
+    fvarname = String.Trim(UCase$(RemoveSuffix(varname)))
     For i = 1 To UBound(localVars)
         If localVars(i).isArray = isArray And UCase$(localVars(i).name) = fvarname Then
             found = True
@@ -2775,7 +2777,7 @@ Function FindVariable (varname As String, bvar As Variable, isArray As Integer)
 End Function
 
 Function FindMethod (mname As String, m As Method, t As String, includeBuiltIn As Integer)
-    Dim umname As String: umname = _Trim$(UCase$(RemoveSuffix(mname)))
+    Dim umname As String: umname = String.Trim(UCase$(RemoveSuffix(mname)))
     Dim found As Integer: found = 0
     Dim i As Integer
     For i = 1 To UBound(localMethods)
@@ -2950,7 +2952,7 @@ Sub RegisterImports (sourceText As String, parentModule As Object)
     For i = 1 To lcount
         Dim fline As String
         fline = sourceLines(i)
-        If StartsWith(LTrim$(UCase$(fline)), "IMPORT ") Then
+        If String.StartsWith(LTrim$(UCase$(fline)), "IMPORT ") Then
             ReDim parts(0) As String
             Dim pcount As Integer
             pcount = SLSplit(fline, parts(), False)
@@ -2960,11 +2962,11 @@ Sub RegisterImports (sourceText As String, parentModule As Object)
                 sourceUrl = NormalizeImportPath(Mid$(parts(4), 2, Len(parts(4)) - 2), parentModule)
                 Dim m As Module
                 m.path = sourceUrl
-                m.name = Replace(LCase$(sourceUrl), "://", "_")
-                m.name = Replace(m.name, "/", "_")
-                m.name = Replace(m.name, "\", "_")
-                m.name = Replace(m.name, ".", "_")
-                m.name = Replace(m.name, "-", "_")
+                m.name = String.Replace(LCase$(sourceUrl), "://", "_")
+                m.name = String.Replace(m.name, "/", "_")
+                m.name = String.Replace(m.name, "\", "_")
+                m.name = String.Replace(m.name, ".", "_")
+                m.name = String.Replace(m.name, "-", "_")
                 Dim mm As Module
                 mm = moduleMap(m.path)
                 If mm.name = "" Then
@@ -2995,7 +2997,7 @@ Sub RegisterImports (sourceText As String, parentModule As Object)
             ccount = Split(fline, ":", cparts)
             If UBound(cparts) = 2 Then
                 Dim As String includePath, includeFilename
-                includePath = NormalizeImportPath(Replace$(_Trim$(cparts(2)), "'", ""))
+                includePath = NormalizeImportPath(String.Replace(String.Trim(cparts(2)), "'", ""))
                 includeFilename = LCase$(FS.GetFilename(includePath))
 
                 If includeFilename = "gx.bi" Or includeFilename = "gx.bm" Then _Continue
@@ -3038,12 +3040,12 @@ Sub ReadLinesFromText (sourceText As String)
         Dim fline As String
         fline = sourceLines(i)
 
-        If _Trim$(fline) <> "" Then ' remove all blank lines
+        If String.Trim(fline) <> "" Then ' remove all blank lines
 
             Dim lineIndex As Integer
             lineIndex = i
 
-            If StartsWith(LTrim$(UCase$(fline)), "IMPORT ") Then
+            If String.StartsWith(LTrim$(UCase$(fline)), "IMPORT ") Then
                 ReDim parts(0) As String
                 Dim pcount As Integer
                 pcount = SLSplit(fline, parts(), False)
@@ -3089,11 +3091,11 @@ Sub ReadLinesFromText (sourceText As String)
                 End If
             End If
 
-            fline = Replace(fline, CR, "")
-            While EndsWith(fline, " _")
+            fline = String.Replace(fline, CR, "")
+            While String.EndsWith(fline, " _")
                 i = i + 1
                 Dim nextLine As String
-                nextLine = Replace(sourceLines(i), CR, "")
+                nextLine = String.Replace(sourceLines(i), CR, "")
                 fline = Left$(fline, Len(fline) - 1) + nextLine
             Wend
 
@@ -3104,7 +3106,7 @@ End Sub
 
 Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
     ' Step 0: If this is an IncludeOnce directive, add it to the map and continue
-    If _Trim$(UCase$(fline)) = "$INCLUDEONCE" Then
+    If String.Trim(UCase$(fline)) = "$INCLUDEONCE" Then
         If activeModule <> undefined Then includeOnceMap(activeModule.path) = 1
         Exit Function
     End If
@@ -3136,9 +3138,9 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
                 Dim As Integer ccount
                 ccount = Split(comment, ":", cparts)
                 If UBound(cparts) = 2 Then
-                    If UCase$(_Trim$(cparts(1))) = "$INCLUDE" Then
+                    If UCase$(String.Trim(cparts(1))) = "$INCLUDE" Then
                         Dim As String includePath, includeFilename
-                        includePath = NormalizeImportPath(Replace$(_Trim$(cparts(2)), "'", ""))
+                        includePath = NormalizeImportPath(String.Replace(String.Trim(cparts(2)), "'", ""))
                         includeFilename = LCase$(FS.GetFilename(includePath))
 
                         If includeOnceMap(includePath) Then Exit Function
@@ -3178,7 +3180,7 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
 
     ReadLine = rawJS
 
-    If _Trim$(fline) = "" Then Exit Function
+    If String.Trim(fline) = "" Then Exit Function
 
     Dim word As String
     Dim words(0) As String
@@ -3208,7 +3210,7 @@ Function ReadLine (lineIndex As Integer, fline As String, rawJS As Integer)
     ' Step 3: Determine whether this line contains a data statement or line label
     Dim index As Integer
     If wcount = 1 Then
-        If EndsWith(words(1), ":") Then
+        If String.EndsWith(words(1), ":") Then
             index = UBound(dataLabels) + 1
             ReDim _Preserve As Label dataLabels(index)
             dataLabels(index).text = Left$(UCase$(words(1)), Len(words(1)) - 1)
@@ -3323,7 +3325,7 @@ Sub FindMethods
                 argstr = ""
                 mname = mstr
             Else
-                mname = _Trim$(Left$(mstr, pstart - 1))
+                mname = String.Trim(Left$(mstr, pstart - 1))
                 mstr = Mid$(mstr, pstart + 1)
                 pend = _InStrRev(mstr, ")")
                 argstr = Left$(mstr, pend - 1)
@@ -3351,7 +3353,7 @@ Sub FindMethods
                     Dim isArray As String: isArray = "false"
                     apcount = Split(arga(a), " ", aparts())
                     argname = aparts(1)
-                    If EndsWith(argname, "()") Then
+                    If String.EndsWith(argname, "()") Then
                         isArray = "true"
                         argname = Left$(argname, Len(argname) - 2)
                     End If
@@ -3429,7 +3431,7 @@ Function SLSplit (sourceString As String, results() As String, escapeStrings As 
     Dim cstr As String
     Dim As Long p, curpos, arrpos, dpos
 
-    cstr = _Trim$(sourceString)
+    cstr = String.Trim(sourceString)
 
     ReDim As String results(0)
 
@@ -3453,7 +3455,7 @@ Function SLSplit (sourceString As String, results() As String, escapeStrings As 
             ' This is not the most intuitive place for this...
             ' If we find a string then escape any backslashes
             If Not quoteMode And escapeStrings Then
-                result = Replace(result, "\", "\\")
+                result = String.Replace(result, "\", "\\")
             End If
 
         ElseIf c = " " Then
@@ -3575,7 +3577,7 @@ Function SLSplit2 (sourceString As String, results() As String)
     Dim cstr As String
     Dim As Long p, curpos, arrpos, dpos
 
-    cstr = _Trim$(sourceString)
+    cstr = String.Trim(sourceString)
 
     ReDim As String results(0)
 
@@ -3639,7 +3641,7 @@ Function ListSplit (sourceString As String, results() As String)
     Dim cstr As String
     Dim As Long p, curpos, arrpos, dpos
 
-    cstr = _Trim$(sourceString)
+    cstr = String.Trim(sourceString)
 
     ReDim As String results(0)
 
@@ -3699,7 +3701,7 @@ Function PrintSplit (sourceString As String, results() As String)
     Dim cstr As String
     Dim As Long p, curpos, arrpos, dpos
 
-    cstr = _Trim$(sourceString)
+    cstr = String.Trim(sourceString)
 
     ReDim As String results(0)
 
@@ -3765,8 +3767,6 @@ Function PrintSplit (sourceString As String, results() As String)
 
     PrintSplit = UBound(results)
 End Function
-
-
 
 Sub PrintMethods
     Print ""
@@ -4144,7 +4144,7 @@ Function RemoveSuffix$ (vname As String)
     Dim i As Integer
     Dim done As Integer
     Dim c As String
-    vname = _Trim$(vname)
+    vname = String.Trim(vname)
     i = Len(vname)
     While Not done
         c = Mid$(vname, i, 1)
@@ -4170,63 +4170,39 @@ End Function
 
 Function DataTypeFromName$ (vname As String)
     Dim dt As String
-    If EndsWith(vname, "$") Then
+    If String.EndsWith(vname, "$") Then
         dt = "STRING"
-    ElseIf EndsWith(vname, "`") Then
+    ElseIf String.EndsWith(vname, "`") Then
         dt = "_BIT"
-    ElseIf EndsWith(vname, "%%") Then
+    ElseIf String.EndsWith(vname, "%%") Then
         dt = "_BYTE"
-    ElseIf EndsWith(vname, "~%") Then
+    ElseIf String.EndsWith(vname, "~%") Then
         dt = "_UNSIGNED INTEGER"
-    ElseIf EndsWith(vname, "%") Then
+    ElseIf String.EndsWith(vname, "%") Then
         dt = "INTEGER"
-    ElseIf EndsWith(vname, "~&&") Then
+    ElseIf String.EndsWith(vname, "~&&") Then
         dt = "_UNSIGNED INTEGER64"
-    ElseIf EndsWith(vname, "&&") Then
+    ElseIf String.EndsWith(vname, "&&") Then
         dt = "_INTEGER64"
-    ElseIf EndsWith(vname, "~&") Then
+    ElseIf String.EndsWith(vname, "~&") Then
         dt = "_UNSIGNED LONG"
-    ElseIf EndsWith(vname, "##") Then
+    ElseIf String.EndsWith(vname, "##") Then
         dt = "_FLOAT"
-    ElseIf EndsWith(vname, "#") Then
+    ElseIf String.EndsWith(vname, "#") Then
         dt = "DOUBLE"
-    ElseIf EndsWith(vname, "~%&") Then
+    ElseIf String.EndsWith(vname, "~%&") Then
         dt = "_UNSIGNED _OFFSET"
-    ElseIf EndsWith(vname, "%&") Then
+    ElseIf String.EndsWith(vname, "%&") Then
         dt = "_OFFSET"
-    ElseIf EndsWith(vname, "&") Then
+    ElseIf String.EndsWith(vname, "&") Then
         dt = "LONG"
-    ElseIf EndsWith(vname, "!") Then
+    ElseIf String.EndsWith(vname, "!") Then
         dt = "SINGLE"
     Else
         dt = "SINGLE"
     End If
 
     DataTypeFromName = dt
-End Function
-
-Function EndsWith (s As String, finds As String)
-    If Len(finds) > Len(s) Then
-        EndsWith = False
-        Exit Function
-    End If
-    If _InStrRev(s, finds) = Len(s) - (Len(finds) - 1) Then
-        EndsWith = True
-    Else
-        EndsWith = False
-    End If
-End Function
-
-Function StartsWith (s As String, finds As String)
-    If Len(finds) > Len(s) Then
-        StartsWith = False
-        Exit Function
-    End If
-    If InStr(s, finds) = 1 Then
-        StartsWith = True
-    Else
-        StartsWith = False
-    End If
 End Function
 
 Function Join$ (parts() As String, startIndex As Integer, endIndex As Integer, delimiter As String)
@@ -4254,37 +4230,6 @@ Function GetMapKeys (map)
     Next i 
     GetMapKeys = results
 End Function
-
-Function LPad$ (s As String, padChar As String, swidth As Integer)
-    Dim padding As String
-    padding = String$(swidth - Len(s), padChar)
-    LPad = padding + s
-End Function
-
-Function Replace$ (s As String, searchString As String, newString As String)
-    Dim ns As String
-    Dim i As Integer
-
-    Dim slen As Integer
-    slen = Len(searchString)
-
-    For i = 1 To Len(s) '- slen + 1
-        If Mid$(s, i, slen) = searchString Then
-            ns = ns + newString
-            i = i + slen - 1
-        Else
-            ns = ns + Mid$(s, i, 1)
-        End If
-    Next i
-
-    Replace = ns
-End Function
-
-' Pseudo-constants
-Function LF$: LF = Chr$(10): End Function
-Function CR$: CR = Chr$(13): End Function
-Function CRLF$: CRLF = CR + LF: End Function
-
 
 Function MethodJS$ (m As Method, prefix As String)
     Dim jsname As String

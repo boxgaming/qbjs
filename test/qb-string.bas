@@ -41,6 +41,8 @@ UT.AssertEquals Len("This is a test string"), 21
 
 'LTRIM$
 UT.AssertEquals LTrim$("  Test string  "), "Test string  "
+' should only trim spaces, not all whitespace
+UT.AssertEquals LTrim$(Chr$(9) + " Test"), Chr$(9) + " Test" 
 
 'MID$ (function)
 UT.AssertEquals Mid$("The quick brown fox...", 1, 3), "The"
@@ -101,6 +103,8 @@ UT.AssertEquals Right$("The quick brown fox...", 0), ""
 
 'RTRIM$
 UT.AssertEquals RTrim$("  Test string  "), "  Test string"
+' should only trim spaces, not all whitespace
+UT.AssertEquals RTrim$("Test " + Chr$(9) + "   "), "Test " + Chr$(9) 
 
 'SPACE$
 UT.AssertEquals Space$(10), "          "
@@ -140,7 +144,6 @@ UT.AssertEquals Val("asdf123"), 0
 UT.AssertEquals Val("2.345xyz"), 2.345
 UT.AssertEquals Val("2.37d3"), 2370
 UT.AssertEquals Val("7.51e-2"), .0751
-
 ' QBJS ignores the second type parameter
 'UT.AssertEquals Val("32.456", Integer), 32
 'UT.AssertEquals Val("32.456", Long), 32
@@ -149,10 +152,15 @@ UT.AssertEquals Val("7.51e-2"), .0751
 ' QB64 Keywords
 ' -----------------------------------------------------------------
 _Clipboard$ = "clipboard test text"
+' should only trim spaces, not all whitespace
 UT.AssertEquals _Clipboard$, "clipboard test text"
 
-'_CONTROLCHR (statement) - not implemented
-'_CONTROLCHR (function) - not implemented
+UT.AssertTrue _ControlChr
+_ControlChr OFF
+UT.AssertFalse _ControlChr
+_ControlChr ON
+UT.AssertTrue _ControlChr
+
 '_CV (function) - not implemented
 '_MK$ (function) - not implemented
 
@@ -170,5 +178,6 @@ UT.AssertEquals _StriCmp("XYZ", "ABC"), 1
 
 '_TRIM
 UT.AssertEquals _Trim$("  Test string  "), "Test string"
+UT.AssertEquals _Trim$(Chr$(9) + "Test" + Chr$(10)), Chr$(9) + "Test" + Chr$(10)
 
 Console.Echo "QB String Keyword - tests completed with no errors* in " + (Sys.TimeInMillis - ts) + " millisecond(s)"

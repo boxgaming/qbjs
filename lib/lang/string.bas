@@ -3,7 +3,7 @@ Import JSArray From "./array.bas"
 Option Explicit
 
 Export FormatUsing, EndsWith, Includes, Match, PadEnd, PadStart
-Export Replace, Search, Split, StartsWith, TrimEnd, TrimStart
+Export Replace, Search, Split, StartsWith, Trim, TrimEnd, TrimStart
 
 Function EndsWith (s As String, searchStr As String)
     s = Sys.ToString(s)
@@ -93,6 +93,11 @@ End Sub
 Function StartsWith (s As String, searchStr As String)
     s = Sys.ToString(s)
     StartsWith = Sys.ToBoolean(Sys.Call(s.startsWith, s, searchStr))
+End Function
+
+Function Trim (s As String)
+    s = Sys.ToString(s)
+    Trim = Sys.Call(s.trim, s)
 End Function
 
 Function TrimEnd (s As String)

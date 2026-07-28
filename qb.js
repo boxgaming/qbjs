@@ -1504,7 +1504,7 @@ var QB = new function() {
 
     this.func__Trim = function(value) {
         _assertParam(value);
-        return value.trim();
+        return String(value).replace(/^[ ]+|[ ]+$/g, "");
     };
 
     this.func__Togglebit = function(x, y) {
@@ -2532,7 +2532,7 @@ var QB = new function() {
 
     this.func_LTrim = function(value) {
         _assertParam(value);
-        return String(value).trimStart();
+        return String(value).replace(/^[ ]+/g, "");
     };
 
     this.sub_Kill = function(path) {
@@ -3592,7 +3592,7 @@ var QB = new function() {
 
     this.func_RTrim = function(value) {
         _assertParam(value);
-        return String(value).trimEnd();
+        return String(value).replace(/[ ]+$/g, "");
     }
 
     this.sub_Randomize = function(using, n) {
