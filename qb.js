@@ -182,6 +182,8 @@ var QB = new function() {
     this.INPUT = Symbol("INPUT");
     this.OUTPUT = Symbol("OUTPUT");
     this.RANDOM = Symbol("RANDOM");
+    this.OFF = Symbol("OFF");
+    this.ON = Symbol("ON");
 
     var _activeImage = 0;
     var _bgColor = null; 
@@ -232,6 +234,7 @@ var QB = new function() {
     var _ccharMap = {};
     var _player = null;
     var _soundCtx = null;
+    var _controlChr = -1;
     
     // Array handling methods
     // ----------------------------------------------------
@@ -354,6 +357,7 @@ var QB = new function() {
         _strokeLineThickness = 2;
         _player = new QBasicSound();
         _soundCtx = new AudioContext();
+        _controlChr = -1;
         // initialize the default fonts
         _nextFontId = 1000;
         _font = 16;
@@ -577,6 +581,14 @@ var QB = new function() {
     this.func__CommandCount = function() {
         return 0;
     };
+
+    this.func__ControlChr = function() {
+        return _controlChr;
+    }
+
+    this.sub__ControlChr = function(enabled) {
+        _controlChr = (enabled == QB.ON) ? -1 : 0;
+    }
 
     this.func__CopyImage = function(srcImageId) {
         srcImageId = _assertNumber(srcImageId);
@@ -1568,8 +1580,10 @@ var QB = new function() {
 
     this.func_Chr = function(charCode) {
         charCode = _assertNumber(charCode);
-        var uc = _ucharMap[charCode];
-        if (uc) { charCode = uc; }
+        if (!_controlChr || charCode > 31) {
+            var uc = _ucharMap[charCode];
+            if (uc) { charCode = uc; }
+        }
         return String.fromCharCode(charCode);
     };
 
@@ -4696,7 +4710,7 @@ var QB = new function() {
         _mapChar(7, 0x2022);
         _mapChar(8, 0x25D8);
         _mapChar(9, 0x25CB);
-        //_mapChar(10, 0x25D9);
+        _mapChar(10, 0x25D9);
         _mapChar(11, 0x2642);
         _mapChar(12, 0x2640);
         _mapChar(13, 0x266A);

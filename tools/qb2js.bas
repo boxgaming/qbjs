@@ -4738,6 +4738,7 @@ Sub InitQBMethods
     AddQBConst "_ONLYBACKGROUND"
     AddQBConst "_FILLBACKGROUND"
     AddQBConst "_OFF"
+    AddQBConst "ON"
     AddQBConst "_STRETCH"
     AddQBConst "_SQUAREPIXELS"
     AddQBConst "_SMOOTH"
@@ -4767,6 +4768,8 @@ Sub InitQBMethods
     AddQBMethod "FUNCTION", "_ClipboardImage", True
     AddQBMethod "SUB", "_ClipboardImage", True
     AddQBMethod "FUNCTION", "_CommandCount", False
+    AddQBMethod "FUNCTION", "_ControlChr", False
+    AddQBMethod "SUB", "_ControlChr", False
     AddQBMethod "FUNCTION", "_CopyImage", False
     AddQBMethod "FUNCTION", "_Cosh", False
     AddQBMethod "FUNCTION", "_Cot", False

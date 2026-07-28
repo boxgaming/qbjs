@@ -4,10 +4,7 @@ Import FS From "lib/io/fs.bas"
 Import UT From "lib/test/unit-test.bas"
 
 Dim ts: ts = Sys.TimeInMillis
-Dim CRLF As String
-$If JavaScript Then
-    CRLF = "\r\n"
-$End If
+Dim CRLF As String: CRLF = Chr$(13) + Chr$(10)
 
 Open "test.txt" For Output As #1
 Print #1, "This is a test"; "."

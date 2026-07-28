@@ -37,8 +37,8 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
 
     var builtinFuncsWords = ['_?acos', '_?acosh', '_?alpha', '_?alpha32', '_?arccot', '_?arccsc', '_?arcsec',
                              '_?asin', '_?asinh', '_?atan2', '_?atanh', '_?autodisplay',
-                             '_?backgroundcolor', '_?blue', '_?blue32', '_?capslock', '_?ceil', '_?clipboard','_?clipboardimage', '_?commandcount', '_?continue', '_?copyimage',
-                             '_?cosh', '_?cot', '_?coth', '_?csc', '_?csch', '_?cwd', 
+                             '_?backgroundcolor', '_?blue', '_?blue32', '_?capslock', '_?ceil', '_?clipboard','_?clipboardimage', '_?commandcount', 
+                             '_?continue', '_?controlchr', '_?copyimage', '_?cosh', '_?cot', '_?coth', '_?csc', '_?csch', '_?cwd', 
                              '_?defaultcolor', '_?d2g', '_?d2r', '_?deflate', '_?desktopwidth', '_?desktopheight',
                              '_?delay', '_?dest', '_?dir', '_?direxists', '_?display', 
                              '_?echo', '_?environcount', '_?fileexists', '_?font', '_?fontwidth', '_?fontheight', '_?freefont',
@@ -66,8 +66,8 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              // QBJS-specific
                              'export', 'from', 'import']
 
-    var builtinConsts = ['append', 'binary', 'input', 'output', 'random', '_?explicit', '_?explicitarray',
-                         '_?off', '_?smooth', '_?stretch', '_?squarepixels', '_?keepbackground', '_?onlybackground', '_?fillbackground',
+    var builtinConsts = ['append', 'binary', 'input', 'output', 'random', '_?explicit', '_?explicitarray', 'on', '_?off',
+                         '_?smooth', '_?stretch', '_?squarepixels', '_?keepbackground', '_?onlybackground', '_?fillbackground',
                          'gx_true', 'gx_false', 'gxevent_init', 'gxevent_update', 'gxevent_drawbg', 'gxevent_drawmap', 'gxevent_drawscreen',
                          'gxevent_mouseinput', 'gxevent_paintbefore', 'gxevent_paintafter', 'gxevent_collision_tile', 'gxevent_collision_entity',
                          'gxevent_player_action', 'gxevent_animate_complete', 'gxanimate_loop', 'gxanimate_single', 'gxbg_stretch',
