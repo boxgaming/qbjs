@@ -3162,7 +3162,7 @@ var QB = new function() {
 
             // error overflow: value contains more integer digits than the mask template allows
             if (intPart.length > intMask.length) {
-                return "%" + mask; 
+                return "%" + num;
             }
 
             // apply comma formatting

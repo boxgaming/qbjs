@@ -61,5 +61,6 @@ UT.AssertEquals String.FormatUsing("First Name: [\    \]", "Doug"), "First Name:
 UT.AssertEquals String.FormatUsing("First Name: [\    \]", "Thomas"), "First Name: [Thomas]"
 UT.AssertEquals String.FormatUsing("First Name: [\    \]", "Bernard"), "First Name: [Bernar]"
 UT.AssertEquals String.FormatUsing("Initials - First: [!], Last: [!]", "Doug", "Smith"), "Initials - First: [D], Last: [S]"
+UT.AssertEquals String.FormatUsing("##", 123), "%123"
 
 Console.Echo "lib/lang/string - tests completed with no errors in " + (Sys.TimeInMillis - ts) + " millisecond(s)"
