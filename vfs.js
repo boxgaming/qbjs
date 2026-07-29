@@ -269,6 +269,11 @@ let VFS = function() {
                 parts.shift();
             }
         }
+        if (parts.length > 1 && parts[parts.length-1] == "") {
+            while (parts.length > 0 && parts[parts.length-1] == "") {
+                parts.pop();
+            }
+        }
         if (parts.isFullpath && parts.length == 0) {
             parts.isRoot = true;
         }

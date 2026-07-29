@@ -47,4 +47,13 @@ UT.AssertEquals st, ""
 Close #1
 Kill "test.txt"
 
+MkDir "foo"
+UT.AssertTrue _DirExists("foo")
+UT.AssertTrue _DirExists("foo/")
+RmDir "foo"
+MkDir "test/"
+UT.AssertTrue _DirExists("test")
+UT.AssertTrue _DirExists("test///")
+RmDir "test"
+
 Console.Echo "QB File I/O - tests completed with no errors* in " + (Sys.TimeInMillis - ts) + " millisecond(s)"
