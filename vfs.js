@@ -150,7 +150,7 @@ let VFS = function() {
                 // move along, nothing to see here
             }
             else if (parts[i] == "..") {
-                if (node.parent == undefined) {
+                if (node == null || node.parent == undefined) {
                     node = _root;
                 }
                 else {

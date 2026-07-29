@@ -56,4 +56,7 @@ UT.AssertTrue _DirExists("test")
 UT.AssertTrue _DirExists("test///")
 RmDir "test"
 
+Sub OpenFail: Open "../data.txt" For Input As #1: Close #1: End Sub
+UT.AssertError(@OpenFail, "File not found")
+
 Console.Echo "QB File I/O - tests completed with no errors* in " + (Sys.TimeInMillis - ts) + " millisecond(s)"
