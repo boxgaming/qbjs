@@ -216,7 +216,7 @@ let VFS = function() {
     this.renameNode = function(node, newName) {
         // TODO: move the file if the newName includes a path
         var parent = node.parent;
-        parent[node.name] = undefined;
+        delete parent[node.name];
         node.name = newName;
         parent[node.name] = node;
     };

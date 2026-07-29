@@ -2130,9 +2130,7 @@ var GX = new function() {
                 tx = Math.floor(x / GX.tilesetWidth());
                 if (tcount == 0) { 
                     tx0 = tx;
-                    if (tx == 0) {
-                        tcount++;
-                    } 
+                    if (i == 0) { tcount++; } 
                 }
                 if (tx != txn) {
                     tcount = tcount + 1;
