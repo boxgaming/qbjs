@@ -1250,9 +1250,10 @@ var QB = new function() {
 
     function _rgb(r, g, b, a) {
         if (a == undefined) { a = 1; }
-        r = parseInt(r);
-        g = parseInt(g);
-        b = parseInt(b);
+        r = clamp(parseInt(r), 0, 255);
+        g = clamp(parseInt(g), 0, 255);
+        b = clamp(parseInt(b), 0, 255);
+        a = clamp(a, 0, 1);
         return {
             r: r,
             g: g,
@@ -1260,14 +1261,12 @@ var QB = new function() {
             a: a,
             rgba: function() { return "rgba(" + this.r + "," + this.g + "," + this.b + "," + this.a + ")"; },
             toNumber: function () {
-                var hexrep = ("00" + (255*a).toString(16)).slice(-2) +
-                             ("00" + r.toString(16)).slice(-2) +
-                             ("00" + g.toString(16)).slice(-2) +
-                             ("00" + b.toString(16)).slice(-2);
-                return parseInt(hexrep, 16);
+                return ((Math.round(a*255) << 24) | (r << 16) | (g << 8) | b) >>> 0;
             },
             toString: function() { return this.toNumber(); }
         }
+
+        function clamp(num, min, max) { return Math.min(Math.max(num, min), max); }
     }
 
     this.func__R2D = function(x) {
@@ -1629,12 +1628,11 @@ var QB = new function() {
             return _colormap[parseInt(c)];
         }
         else if (!isNaN(c) && c > 255) {
-            var hexstr = QB.func_Right('00000000' + c.toString(16), 8);
-            var a = hexstr.slice(0, 2);
-            var r = hexstr.slice(2, 4);
-            var g = hexstr.slice(4, 6);
-            var b = hexstr.slice(6, 8);
-            return _rgb(parseInt(r, 16), parseInt(g, 16), parseInt(b, 16), parseInt(a, 16)/255);
+            var a = (c >>> 24) & 0xFF;
+            var r = (c >> 16) & 0xFF;
+            var g = (c >> 8) & 0xFF;
+            var b = c & 0xFF;
+            return _rgb(r, g, b, a/255);
         }
         return _rgb(0,0,0);
     }
