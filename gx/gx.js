@@ -1428,12 +1428,12 @@ var GX = new function() {
         var colOffset;
 
         var xoffset = GX.sceneX() % GX.tilesetWidth();
-        var pcol = Math.floor(GX.sceneX() / GX.tilesetWidth());
+        var pcol = Math.trunc(GX.sceneX() / GX.tilesetWidth());
         if (GX.mapIsometric()) {
-            prow = Math.floor(GX.sceneY() / (GX.tilesetWidth() / 4));
+            prow = Math.trunc(GX.sceneY() / (GX.tilesetWidth() / 4));
             yoffset = GX.sceneY() % (GX.tilesetWidth() / 4);
         } else {
-            prow = Math.floor(GX.sceneY() / GX.tilesetHeight());
+            prow = Math.trunc(GX.sceneY() / GX.tilesetHeight());
             yoffset = GX.sceneY() % GX.tilesetHeight();
         }
 
@@ -1483,8 +1483,8 @@ var GX = new function() {
 
     function _mapTilePosAt (x, y, tpos) {
         if (!GX.mapIsometric()) {
-            tpos.x = Math.floor((x + GX.sceneX()) / GX.tilesetWidth());
-            tpos.y = Math.floor((y + GX.sceneY()) / GX.tilesetHeight());
+            tpos.x = Math.trunc((x + GX.sceneX()) / GX.tilesetWidth());
+            tpos.y = Math.trunc((y + GX.sceneY()) / GX.tilesetHeight());
         } else {
             var tileWidthHalf = GX.tilesetWidth() / 2;
             var tileHeightHalf = GX.tilesetHeight() / 2;
@@ -2895,6 +2895,7 @@ var GX = new function() {
     this.mapResize = _mapResize;
     this.mapRows = _mapRows;
     this.mapTile = _mapTile;
+    this.mapTilePosAt = _mapTilePosAt;
 
     this.tilesetColumns = _tilesetColumns;
     this.tilesetCreate = _tilesetCreate;
