@@ -235,7 +235,7 @@ var QB = new function() {
     var _player = null;
     var _soundCtx = null;
     var _controlChr = -1;
-    var _physicalKeyboard = (navigator.keyboard != undefined);
+    var _physicalKeyboard = window.matchMedia("(pointer: fine) and (hover: hover)").matches;
     
     // Array handling methods
     // ----------------------------------------------------
@@ -4931,7 +4931,6 @@ var QB = new function() {
         });
 
         addEventListener("keydown", function(event) {
-            _physicalKeyboard = true; 
             if (!_runningFlag) { return; }
             if (_physicalKeyboard || !_inputMode) { event.preventDefault(); }
             _lastKey = event.key;
