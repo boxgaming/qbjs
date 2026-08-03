@@ -235,6 +235,7 @@ var QB = new function() {
     var _player = null;
     var _soundCtx = null;
     var _controlChr = -1;
+    var _physicalKeyboard = (navigator.keyboard != undefined);
     
     // Array handling methods
     // ----------------------------------------------------
@@ -2113,47 +2114,81 @@ var QB = new function() {
 
         var beginTextX = _lastTextX;
 
-        var canvas = GX.canvas();
-        var vkb = document.getElementById("__qbjs_vkb");
-        if (!vkb) { vkb = document.createElement("textarea"); }
-        vkb.id = "__qbjs_vkb";
-        vkb.style.position = "absolute";
-        vkb.style.display = "block";
-        canvas.parentNode.appendChild(vkb);
-        var prect = canvas.parentNode.getBoundingClientRect();
-        var brect = canvas.getBoundingClientRect();
-        vkb.style.left = (brect.left - prect.left /* + beginTextX*/) + "px";
-        vkb.style.top = (brect.top - prect.top /* + _locY * QB.func__FontHeight() */) + "px";
-        vkb.style.width = brect.width + "px";
-        vkb.style.height = brect.height + "px"
-        vkb.style.opacity = "0"
-        vkb.focus();
-        vkb.addEventListener("input", function(event) {
-            if (event.target.value.indexOf("\n") > -1) {
-                _locX += str.length;
-                _lastKey = "Enter";
-            }
-            else {
-                toggleCursor(true);
-                ctx.clearRect(0, 0, copy.width, copy.height);
-                ctx.drawImage(copy, 0, 0);
-                QB.sub__PrintString(beginTextX, _locY * QB.func__FontHeight(), vkb.value);
-                _lastTextX = beginTextX + ctx.measureText(vkb.value).width;
-                str = vkb.value;
-            }
-        });
+        var vkb = null;
+        if (!_physicalKeyboard) {
+            var canvas = GX.canvas();
+            vkb = document.getElementById("__qbjs_vkb");
+            if (!vkb) { vkb = document.createElement("textarea"); }
+            vkb.id = "__qbjs_vkb";
+            vkb.style.position = "absolute";
+            vkb.style.display = "block";
+            canvas.parentNode.appendChild(vkb);
+            var prect = canvas.parentNode.getBoundingClientRect();
+            var brect = canvas.getBoundingClientRect();
+            vkb.style.left = (brect.left - prect.left /* + beginTextX*/) + "px";
+            vkb.style.top = (brect.top - prect.top /* + _locY * QB.func__FontHeight() */) + "px";
+            vkb.style.width = brect.width + "px";
+            vkb.style.height = brect.height + "px"
+            vkb.style.opacity = "0"
+            vkb.focus();
+            vkb.addEventListener("input", function(event) {
+                if (event.target.value.indexOf("\n") > -1) {
+                    _locX += str.length;
+                    _lastKey = "Enter";
+                }
+                else {
+                    toggleCursor(true);
+                    ctx.clearRect(0, 0, copy.width, copy.height);
+                    ctx.drawImage(copy, 0, 0);
+                    QB.sub__PrintString(beginTextX, _locY * QB.func__FontHeight(), vkb.value);
+                    _lastTextX = beginTextX + ctx.measureText(vkb.value).width;
+                    str = vkb.value;
+                }
+            });
 
-        while (_lastKey != "Enter" && _inputMode) {
-            _lastKey = null;
-            await GX.sleep(5);
+            while (_lastKey != "Enter" && _inputMode) {
+                _lastKey = null;
+                await GX.sleep(5);
+            }
+
+            vkb.remove();
+            delete vkb;
+        }
+        else {
+            while (_lastKey != "Enter" && _inputMode) {
+                if (_lastKey == "Backspace" && str.length > 0) {
+                    toggleCursor(true);
+                    _locX--;
+                    
+                    var tm = ctx.measureText(str);
+                    str = str.substring(0, str.length-1);
+                    var tm = ctx.measureText(str);
+                    _lastTextX = beginTextX + tm.width;
+                    ctx.clearRect(0, 0, copy.width, copy.height);
+                    ctx.drawImage(copy, 0, 0);
+                    QB.sub__PrintString(beginTextX, _locY * QB.func__FontHeight(), str);
+                }
+
+                else if (_lastKey && _lastKey.length < 2) {
+                    toggleCursor(true);
+                    str += _lastKey;
+                    var tm = ctx.measureText(str);
+                    ctx.clearRect(0, 0, copy.width, copy.height);
+                    ctx.drawImage(copy, 0, 0);
+                    QB.sub__PrintString(beginTextX, _locY * QB.func__FontHeight(), str);
+                    _locX++;
+                    _lastTextX = beginTextX + tm.width;
+                }
+
+                _lastKey = null;
+                await GX.sleep(5);
+            }
         }
         if (!_inputMode) { return; }
 
         _inputMode = false;
         toggleCursor(true);
 
-        vkb.remove();
-        delete vkb;
 
         if (!preventNewline) {
             _locX = 0;
@@ -4895,9 +4930,10 @@ var QB = new function() {
             _images[0].mode = 32;
         });
 
-        addEventListener("keydown", function(event) { 
+        addEventListener("keydown", function(event) {
+            _physicalKeyboard = true; 
             if (!_runningFlag) { return; }
-            if (!_inputMode) { event.preventDefault(); }
+            if (_physicalKeyboard || !_inputMode) { event.preventDefault(); }
             _lastKey = event.key;
             if (!_inputMode) {
                 _addInkeyPress(event);
