@@ -1483,8 +1483,8 @@ var GX = new function() {
 
     function _mapTilePosAt (x, y, tpos) {
         if (!GX.mapIsometric()) {
-            tpos.x = Math.trunc((x + GX.sceneX()) / GX.tilesetWidth());
-            tpos.y = Math.trunc((y + GX.sceneY()) / GX.tilesetHeight());
+            tpos.x = Math.trunc(x / GX.tilesetWidth());
+            tpos.y = Math.trunc(y / GX.tilesetHeight());
         } else {
             var tileWidthHalf = GX.tilesetWidth() / 2;
             var tileHeightHalf = GX.tilesetHeight() / 2;
