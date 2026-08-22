@@ -51,14 +51,14 @@ UT.AssertEquals Mid$("The quick brown fox...", 17), "fox..."
 
 'MID$ (statement)
 s$ = "The quick brown fox jumped over the lazy dog."
-Mid$(s$, 5, 5) = "slow" 
-UT.AssertEquals s$, "The slow brown fox jumped over the lazy dog."
-Mid$(s$, 20) = "took a nap."
-UT.AssertEquals s$, "The slow brown fox took a nap."
-Mid$(s$, 10, 9) = "ape"
-UT.AssertEquals s$, "The slow ape took a nap."
-Mid$(s$, 10, 3) = "catalog"
-UT.AssertEquals s$, "The slow cat took a nap."
+Mid$(s$, 5, 5) = "swift"
+UT.AssertEquals s$, "The swift brown fox jumped over the lazy dog."
+Mid$(s$, 21) = "dunked upon"
+UT.AssertEquals s$, "The swift brown fox dunked upon the lazy dog."
+Mid$(s$, 17, 9) = "ape"
+UT.AssertEquals s$, "The swift brown ape dunked upon the lazy dog."
+Mid$(s$, 42, 3) = "catalog"
+UT.AssertEquals s$, "The swift brown ape dunked upon the lazy cat."
 
 'MKD$ | CVD
 UT.AssertEquals MKD$(23495.239810983), "M*YÏñÖ@"
