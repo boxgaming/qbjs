@@ -4570,7 +4570,7 @@ Sub InitGX
     AddGXMethod "SUB", "GXBackgroundClear", False
     AddGXMethod "SUB", "GXSceneEmbedded", False
     AddGXMethod "FUNCTION", "GXSceneEmbedded", False
-    AddGXMethod "SUB", "GXSceneCreate", False
+    AddGXMethod "SUB", "GXSceneCreate", True
     AddGXMethod "SUB", "GXSceneWindowSize", False
     AddGXMethod "SUB", "GXSceneScale", False
     AddGXMethod "SUB", "GXSceneResize", False
@@ -4580,7 +4580,7 @@ Sub InitGX
     AddGXMethod "SUB", "GXFrameRate", False
     AddGXMethod "FUNCTION", "GXFrameRate", False
     AddGXMethod "FUNCTION", "GXFrame", False
-    AddGXMethod "SUB", "GXSceneDraw", False
+    AddGXMethod "SUB", "GXSceneDraw", True
     AddGXMethod "SUB", "GXSceneMove", False
     AddGXMethod "SUB", "GXScenePos", False
     AddGXMethod "FUNCTION", "GXSceneX", False
@@ -4612,7 +4612,7 @@ Sub InitGX
     AddGXMethod "SUB", "GXMapTileAdd", False
     AddGXMethod "SUB", "GXMapTileRemove", False
     AddGXMethod "FUNCTION", "GXMapVersion", False
-    AddGXMethod "SUB", "GXMapSave", False
+    AddGXMethod "SUB", "GXMapSave", True
     AddGXMethod "SUB", "GXMapLoad", True
     AddGXMethod "FUNCTION", "GXMapIsometric", False
     AddGXMethod "SUB", "GXMapIsometric", False

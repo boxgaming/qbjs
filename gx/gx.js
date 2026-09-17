@@ -110,7 +110,7 @@ var GX = new function() {
 
     // Scene Functions
     // -----------------------------------------------------------------
-    function _sceneCreate(width, height, supressEvents) {
+    async function _sceneCreate(width, height, supressEvents) {
         _canvas = document.getElementById("gx-canvas");
         if (!_canvas) {
 		    _canvas = document.createElement("canvas");
@@ -314,7 +314,7 @@ var GX = new function() {
     // This method is called automatically when GX is managing the event/game loop.
     // Call this method for each page draw event when the event/game loop is being
     // handled externally.
-    function _sceneDraw() {
+    async function _sceneDraw() {
         if (_map_loading) { return; }
         var frame = _scene.frame % GX.frameRate() + 1;
 
@@ -334,7 +334,7 @@ var GX = new function() {
         }
 
         // Call out to any custom screen drawing
-        _customDrawEvent(GX.EVENT_DRAWBG);
+        await _customDrawEvent(GX.EVENT_DRAWBG);
 
         // Initialize the renderable entities
         _entities_active = [];
@@ -358,7 +358,7 @@ var GX = new function() {
         GX.mapDraw();
 
         // Call out to any custom screen drawing
-        _customDrawEvent(GX.EVENT_DRAWMAP);
+        await _customDrawEvent(GX.EVENT_DRAWMAP);
 
         // Draw the entities
         _drawEntityLayer(0);
@@ -376,15 +376,15 @@ var GX = new function() {
         }
 
         // Call out to any custom screen drawing
-        _customDrawEvent(GX.EVENT_DRAWSCREEN);
+        await _customDrawEvent(GX.EVENT_DRAWSCREEN);
         if (GX.debug()) { _debugFrameRate(); }
 
         // Copy the background image to the screen
-        _customEvent(GX.EVENT_PAINTBEFORE);
+        await _customEvent(GX.EVENT_PAINTBEFORE);
         //_DontBlend
         //_PutImage , __gx_scene.image
         //_Blend
-        _customEvent(GX.EVENT_PAINTAFTER);
+        await _customEvent(GX.EVENT_PAINTAFTER);
     }
     
     async function _sceneUpdate() {
@@ -392,7 +392,7 @@ var GX = new function() {
         if (_map_loading) { return; }
 
         // Call custom game update logic
-        _customEvent(GX.EVENT_UPDATE);
+        await _customEvent(GX.EVENT_UPDATE);
 
         // Check for entity movement and collisions
         // TODO: filter out non-moving entities
@@ -404,7 +404,7 @@ var GX = new function() {
             _scene.followMode == GX.SCENE_FOLLOW_ENTITY_CENTER_X ||
             _scene.followMode == GX.SCENE_FOLLOW_ENTITY_CENTER_X_POS ||
             _scene.followMode == GX.SCENE_FOLLOW_ENTITY_CENTER_X_NEG) {
-            sx = (GX.entityX(_scene.followEntity) + GX.entityWidth(_scene.followEntity) / 2) - GX.sceneWidth() / 2;
+            sx = (GX.entityX(_scene.followEntity) + GX.entityCollisionOffsetLeft(_scene.followEntity) + (GX.entityWidth(_scene.followEntity) - GX.entityCollisionOffsetLeft(_scene.followEntity) - GX.entityCollisionOffsetRight(_scene.followEntity)) / 2) - GX.sceneWidth() / 2;
             if (sx < GX.sceneX() && _scene.followMode == GX.SCENE_FOLLOW_ENTITY_CENTER_X_POS ||
                 sx > GX.sceneX() && _scene.followMode == GX.SCENE_FOLLOW_ENTITY_CENTER_X_NEG) {
                 // don't move the scene
@@ -480,7 +480,7 @@ var GX = new function() {
         if (lastTimestamp == 0) { lastTimestamp = timestamp; }
         if (timestamp - lastTimestamp >= _millisPerFrame) {
             await GX.sceneUpdate();
-            GX.sceneDraw();
+            await GX.sceneDraw();
             if (_scene.frame % 10 == 0) {
                 if (_scene.frame > 10) {
                     _framerate = Math.round(10 / (timestamp - fpsSnapshot) * 1000);
@@ -537,14 +537,14 @@ var GX = new function() {
 
     // Event functions
     // --------------------------------------------------------------------
-    function _customEvent (eventType) {
+    async function _customEvent (eventType) {
         var e = {};
         e.event = eventType
-        _onGameEvent(e);
+        await _onGameEvent(e);
     }
 
-    function _customDrawEvent (eventType) {
-        _customEvent(eventType)
+    async function _customDrawEvent (eventType) {
+        await _customEvent(eventType)
     }
 
 
@@ -557,7 +557,7 @@ var GX = new function() {
     // Gets or sets the current frame rate (expressed in frames-per-second or FPS).
     function _frameRate (fps) {
         if (fps != undefined) {
-            _millisPerFrame = Math.trunc(1000 / (fps + .1));
+            _millisPerFrame = Math.trunc(1000 / (fps + 5));//.1));
             _framerate = fps;
         }
         return _framerate;
@@ -721,10 +721,12 @@ var GX = new function() {
         if (file && file.type == _vfs.FILE) {
             var dataUrl = await _vfs.getDataURL(file);
             var a = new Audio(dataUrl);
+            a.preload = "auto";
             _sounds.push(a);
         }
         else {
             var a = new Audio(filename);
+            a.preload = "auto";
             _sounds.push(a);
         }
 
@@ -833,7 +835,7 @@ var GX = new function() {
             x = ent.x - GX.sceneX()
             y = ent.y - GX.sceneY()
     	}
-        GX.spriteDraw(ent.image, x, y, ent.spriteSeq, ent.spriteFrame, ent.width, ent.height); //, __gx_scene.image)
+        GX.spriteDraw(ent.image, Math.trunc(x), Math.trunc(y), ent.spriteSeq, ent.spriteFrame, ent.width, ent.height); //, __gx_scene.image)
     }    
 
     function _entityAnimate (eid, seq, a) {
