@@ -2593,7 +2593,9 @@ var QB = new function() {
         }
         if (n + len > String(value).length) len = String(value).length - n + 1;
         var str = String(value);
-        var newStr = str.substring(0, n-1) + String(newValue).substring(0,len) + str.substring(n-1+len);
+        var insert = String(newValue).substring(0,len);
+        // MID$ never resizes the target: tail must resume after the actual inserted length, not len
+        var newStr = str.substring(0, n-1) + insert + str.substring(n-1+insert.length);
         return newStr;
     }
 
