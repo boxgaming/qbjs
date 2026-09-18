@@ -5459,7 +5459,7 @@ if (QB.halted()) { return; };
    await sub_AddGXMethod( "SUB" ,   "GXDebugEntityCollisionColor" ,    False);
    await sub_AddGXMethod( "SUB" ,   "GXKeyInput" ,    False);
    await sub_AddGXMethod( "FUNCTION" ,   "GXKeyDown" ,    False);
-   await sub_AddGXMethod( "SUB" ,   "GXDeviceInputDetect" ,    False);
+   await sub_AddGXMethod( "SUB" ,   "GXDeviceInputDetect" ,    True);
    await sub_AddGXMethod( "FUNCTION" ,   "GXDeviceInputTest" ,    False);
    await sub_AddGXMethod( "FUNCTION" ,   "GXDeviceName" ,    False);
    await sub_AddGXMethod( "FUNCTION" ,   "GXDeviceTypeName" ,    False);

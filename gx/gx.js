@@ -2197,13 +2197,7 @@ var GX = new function() {
 
         return fid;
     }
-/*
-    Sub GXFontCreate (filename As String, charWidth As Integer, charHeight As Integer, charref As String, uid As String)
-        Dim fid As Integer
-        fid = GXFontCreate(filename, charWidth, charHeight, charref)
-        __GX uid, fid, GXTYPE_FONT
-    End Sub
-*/
+
     function _fontWidth (fid) {
         return GX.entityWidth(_fonts[fid-1].eid);
     }
@@ -2283,8 +2277,6 @@ var GX = new function() {
     // Input Device Methods
     // -----------------------------------------------------------------
     function _mouseInput() {
-        // TODO: need to decide whether to keep this here
-        //       it is not needed for GX - only to support QB64
         var mi = _mouseInputFlag;
         _mouseInputFlag = false;
         return mi;
@@ -2299,8 +2291,6 @@ var GX = new function() {
     }
 
     function _mouseButton(button) {
-        // TODO: need to decide whether to keep this here
-        //       it is not needed for GX - only to support QB64
         return _mouseButtons[button-1];
     }
 
@@ -2328,70 +2318,42 @@ var GX = new function() {
         _bindTouchToMouse = enable;
     }
 
-    function _deviceInputTest(di) {
+    function _deviceInputTest (di) {
+        // handle keyboard button state
         if (di.deviceType == GX.DEVICE_KEYBOARD) {
             if (di.inputType == GX.DEVICE_BUTTON) {
                 return GX.keyDown(di.inputId);
             }
         }
-        return _qbBoolean(false);
+
+        // handle mouse state
+        else if (di.deviceType == GX.DEVICE_MOUSE) {
+            if (di.inputType == GX.DEVICE_BUTTON) {
+                return GX.mouseButton(di.inputId);
+            }
+            else if (di.inputType == GX.DEVICE_WHEEL) {
+                return _qbBoolean(GX.mouseWheel() == di.inputValue);
+            }
+        }
+
+        // handle game controller state
+        else if (di.deviceType == GX.DEVICE_CONTROLLER) {
+            try {
+                var gp = navigator.getGamepads()[di.deviceId-3];
+                if (di.inputType == GX.DEVICE_BUTTON) {
+                    return _qbBoolean(gp.buttons[di.inputId].pressed);
+                }
+                else if (di.inputType == GX.DEVICE_AXIS) {
+                    return _qbBoolean(gp.axes[di.inputId] == di.inputValue);
+                }
+            }
+            catch (e) {
+                console.log(e);
+            }
+        }
+        return GX.FALSE;
     }
 
-/*
-    Function GXDeviceInputTest% (di As GXDeviceInput)
-        Dim dcount As Integer
-        dcount = _Devices
-
-        If di.deviceId < 1 Or di.deviceId > dcount Then
-            GXDeviceInputTest = GX_FALSE
-            Exit Function
-        End If
-
-        Dim result As Integer
-        Dim dactive As Integer
-        dactive = _DeviceInput(di.deviceId)
-
-        If di.inputType = GXDEVICE_BUTTON Then
-            $If WIN Then
-                If _Button(di.inputId) = di.inputValue Then
-                    result = GX_TRUE
-                End If
-            $Else
-                If di.deviceType = GXDEVICE_KEYBOARD Then
-                result = __GX_DeviceKeyDown(di.inputId)
-                Else
-                If _Button(di.inputId) = di.inputValue Then
-                result = GX_TRUE
-                End If
-                End If
-            $End If
-
-        ElseIf di.inputType = GXDEVICE_AXIS Then
-            If _Axis(di.inputId) = di.inputValue Then
-                result = GX_TRUE
-            End If
-        End If
-
-        GXDeviceInputTest = result
-    End Function
-
-    $If LINUX OR MAC Then
-        Function __GX_DeviceKeyDown% (inputId As Integer)
-        Dim k As KeyEntry
-        k = __gx_keymap(inputId)
-
-        Dim result As Integer
-        result = GX_FALSE
-        If _KeyDown(k.value) Then
-        result = GX_TRUE
-        ElseIf k.shift <> 0 Then
-        If _KeyDown(k.shift) Then result = GX_TRUE
-        End If
-
-        __GX_DeviceKeyDown = result
-        End Function
-    $End If
-*/
     function _keyInput (k, di) {
         di.deviceId = GX.DEVICE_KEYBOARD;
         di.deviceType = GX.DEVICE_KEYBOARD;
@@ -2399,159 +2361,122 @@ var GX = new function() {
         di.inputId = k;
         di.inputValue = -1;
     }
-/*
-    Function GXKeyDown% (k As Long)
-        Dim di As GXDeviceInput
-        GXKeyInput k, di
-        GXKeyDown = GXDeviceInputTest(di)
-    End Function
 
-    Sub GXDeviceInputDetect (di As GXDeviceInput)
-        Dim found As Integer
-        Dim dcount As Integer
-        dcount = _Devices
+    async function _deviceInputDetect (di) {
+        var found = 0;
+        while (!found) {
+            await GX.sleep(10);
+            
+            // test for gamepad input
+            var gamepads = navigator.getGamepads();
+            for (var i=0; i < gamepads.length; i++) {
+                var gp = gamepads[i];
+                if (gp === null) { continue; }
+                
+                // check for game controller button press
+                for (var j=0; j < gp.buttons.length; j++) {
+                    if (gp.buttons[j].pressed) {
+                        di.deviceId = i + 3;
+                        di.deviceType = GX.DEVICE_CONTROLLER;
+                        di.inputType = GX.DEVICE_BUTTON;
+                        di.inputId = j;
+                        di.inputValue = GX.TRUE;
+                        return;
+                    }
+                }
 
-        While _DeviceInput
-            ' Flush the input buffer
-        Wend
+                // check for game controller full axis movement
+                for (var j=0; j < gp.axes.length; j++) {
+                    if (Math.abs(gp.axes[j]) == 1) {
+                        di.deviceId = i + 3;
+                        di.deviceType = GX.DEVICE_CONTROLLER;
+                        di.inputType = GX.DEVICE_AXIS;
+                        di.inputId = j;
+                        di.inputValue = gp.axes[j];
+                        return;
+                    }
+                }
+            }
 
-        Do
-            _Limit 90
-            Dim x As Integer
-            x = _DeviceInput
-            If x Then
-                Dim i As Integer
-                For i = 1 To _LastButton(x)
-                    If _Button(i) Then
-                        di.deviceId = x
-                        di.deviceType = __GX_DeviceTypeName(x)
-                        di.inputType = GXDEVICE_BUTTON
-                        di.inputId = i
-                        di.inputValue = _Button(i)
-                        found = 1
-                        Exit Do
-                    End If
-                Next i
+            // check for mouse button press
+            for (var i=1; i <= 3; i++) {
+                if (_mouseButton(i)) {
+                    di.deviceId = GX.DEVICE_MOUSE;
+                    di.deviceType = GX.DEVICE_MOUSE;
+                    di.inputType = GX.DEVICE_BUTTON;
+                    di.inputId = i;
+                    di.inputValue = GX.TRUE;
+                    return;
+                }
+            }
 
-                For i = 1 To _LastAxis(x)
-                    If _Axis(i) And Abs(_Axis(i)) = 1 Then
-                        di.deviceId = x
-                        di.deviceType = __GX_DeviceTypeName(x)
-                        di.inputType = GXDEVICE_AXIS
-                        di.inputId = i
-                        di.inputValue = _Axis(i)
-                        found = 1
-                        Exit Do
-                    End If
-                Next i
+            // check for mouse wheel movement
+            var mw = _mouseWheel();
+            if (mw) {
+                di.deviceId = GX.DEVICE_MOUSE;
+                di.deviceType = GX.DEVICE_MOUSE;
+                di.inputType = GX.DEVICE_WHEEL;
+                di.inputId = i;
+                di.inputValue = mw;
+                return;
+            }
 
-                For i = 1 To _LastWheel(x)
-                    If _Wheel(i) Then
-                        di.deviceId = x
-                        di.deviceType = __GX_DeviceTypeName(x)
-                        di.inputType = GXDEVICE_WHEEL
-                        di.inputId = i
-                        di.inputValue = _Wheel(i)
-                        found = 1
-                        Exit Do
-                    End If
-                Next i
-            End If
+            // loop through the key map looking for a keydown
+            var keyCodes = Object.keys(_pressedKeys);
+            for (var i=0; i < keyCodes.length; i++) {
+                if (_pressedKeys[keyCodes[i]]) {
+                    di.deviceId = GX.DEVICE_KEYBOARD;
+                    di.deviceType = GX.DEVICE_KEYBOARD;
+                    di.inputType = GX.DEVICE_BUTTON;
+                    di.inputId = keyCodes[i];
+                    di.inputValue = GX.TRUE;
+                    return;
+                }
+            }
+        }
+    }
 
-            $If LINUX OR MAC Then
-                ' No device input found, as a workaround let's loop through the key map looking for a keydown
-                For i = UBound(__gx_keymap) To 1 Step -1
-                Dim keyIsDown As Integer, inputId As Integer
-                keyIsDown = GX_FALSE
-                If __gx_keymap(i).value <> 0 Then
-                'If i > 29 Then
-                '    Print i; __gx_keymap(i).value
-                '    Dim x: Input x
-                'End If
-                If _KeyDown(__gx_keymap(i).value) Then
-                keyIsDown = GX_TRUE
-                inputId = i
-                ElseIf __gx_keymap(i).shift <> 0 Then
-                If _KeyDown(__gx_keymap(i).shift) Then
-                keyIsDown = GX_TRUE
-                inputId = i
-                End If
-                End If
-                End If
-                If keyIsDown Then
-                di.deviceId = GXDEVICE_KEYBOARD
-                di.deviceType = __GX_DeviceTypeName(GXDEVICE_KEYBOARD)
-                di.inputType = GXDEVICE_BUTTON
-                di.inputId = inputId
-                di.inputValue = GX_TRUE
-                found = 1
-                Exit Do
-                End If
-                Next i
-            $End If
-        Loop Until found
+    function _deviceName (deviceId) {
+        if (deviceId == GX.DEVICE_KEYBOARD) {
+            return "Keyboard";
+        }
+        else if (deviceId == GX.DEVICE_MOUSE) {
+            return "Mouse";
+        }
+        else {
+            // assume it's a game controller
+            try {
+                var gamepads = navigator.getGamepads();
+                var gp = gamepads[deviceId-3];
+                return gp.id;
+            }
+            catch (e) {
+                console.log(e);
+                return "";
+            }
+        }
+    }
 
-        While _DeviceInput
-            '    Flush the device input buffer
-        Wend
-        _KeyClear
+    function _deviceTypeName (dtype) {
+        var dtypename = "";
+        switch (dtype) {
+            case GX.DEVICE_KEYBOARD: dtypename = "KEYBOARD"; break;
+            case GX.DEVICE_MOUSE: dtypename = "MOUSE"; break;
+            case GX.DEVICE_CONTROLLER: dtypename = "CONTROLLER"; break;
+        }
+        return dtypename;
+    }
 
-    End Sub
+    function _inputTypeName (itype) {
+        var itypename = "";
+        switch (itype) {
+            case GX.DEVICE_BUTTON: itypename = "BUTTON"; break;
+            case GX.DEVICE_AXIS: itypename = "AXIS"; break;
+            case GX.DEVICE_WHEEL: itypename = "WHEEL"; break;
+        }
+        return itypename
+    }
 
-    Function __GX_DeviceTypeName% (deviceId)
-        Dim dname As String
-        dname = _Device$(deviceId)
-
-        If InStr(dname, "[KEYBOARD]") Then
-            __GX_DeviceTypeName = GXDEVICE_KEYBOARD
-        ElseIf InStr(dname, "[MOUSE]") Then
-            __GX_DeviceTypeName = GXDEVICE_MOUSE
-        ElseIf InStr(dname, "[CONTROLLER]") Then
-            __GX_DeviceTypeName = GXDEVICE_CONTROLLER
-        End If
-    End Function
-
-    Function GXDeviceName$ (deviceId As Integer)
-        Dim nstart As Integer, nend As Integer
-        Dim dname As String
-        dname = _Device$(deviceId)
-        If InStr(dname, "[CONTROLLER]") Then
-            nstart = InStr(dname, "[NAME]")
-            If nstart = 0 Then
-                dname = "Controller"
-            Else
-                nstart = nstart + 7
-                nend = InStr(nstart, dname, "]]")
-                dname = _Trim$(Mid$(dname, nstart, nend - nstart))
-            End If
-        ElseIf InStr(dname, "[MOUSE]") Then
-            dname = "Mouse"
-        ElseIf InStr(dname, "[KEYBOARD]") Then
-            dname = "Keyboard"
-        End If
-        GXDeviceName = dname
-    End Function
-
-    Function GXDeviceTypeName$ (dtype As Integer)
-        Dim dtypename As String
-        Select Case dtype
-            Case GXDEVICE_KEYBOARD: dtypename = "KEYBOARD"
-            Case GXDEVICE_MOUSE: dtypename = "MOUSE"
-            Case GXDEVICE_CONTROLLER: dtypename = "CONTROLLER"
-        End Select
-        GXDeviceTypeName = dtypename
-    End Function
-
-    Function GXInputTypeName$ (itype As Integer)
-        Dim itypename As String
-        Select Case itype
-            Case GXDEVICE_BUTTON: itypename = "BUTTON"
-            Case GXDEVICE_AXIS: itypename = "AXIS"
-            Case GXDEVICE_WHEEL: itypename = "WHEEL"
-        End Select
-        GXInputTypeName = itypename
-    End Function
-*/
     function _keyButtonName (inputId ) {
         var k;
         switch (inputId) {
@@ -2797,6 +2722,25 @@ var GX = new function() {
             }
             _pressedKeys[event.code] = true;
         });
+        
+        // gamepad event initialization
+        window.addEventListener("gamepadconnected", (e) => {
+            console.log(
+                "Gamepad connected at index %d: %s. %d buttons, %d axes.",
+                e.gamepad.index,
+                e.gamepad.id,
+                e.gamepad.buttons.length,
+                e.gamepad.axes.length,
+            );
+        });
+
+        window.addEventListener("gamepaddisconnected", (e) => {
+            console.log(
+                "Gamepad disconnected from index %d: %s",
+                e.gamepad.index,
+                e.gamepad.id,
+            );
+        });
     }
 
     this.ctx = function() { return _ctx; };
@@ -2922,6 +2866,10 @@ var GX = new function() {
     this.drawText = _drawText;
 
     this.deviceInputTest = _deviceInputTest;
+    this.deviceInputDetect = _deviceInputDetect;
+    this.deviceName = _deviceName;
+    this.deviceTypeName = _deviceTypeName;
+    this.inputTypeName = _inputTypeName;
     this.keyInput = _keyInput;
     this.keyButtonName = _keyButtonName;
     this.mouseX = _mouseX;

@@ -4658,7 +4658,7 @@ Sub InitGX
     AddGXMethod "SUB", "GXDebugEntityCollisionColor", False
     AddGXMethod "SUB", "GXKeyInput", False
     AddGXMethod "FUNCTION", "GXKeyDown", False
-    AddGXMethod "SUB", "GXDeviceInputDetect", False
+    AddGXMethod "SUB", "GXDeviceInputDetect", True
     AddGXMethod "FUNCTION", "GXDeviceInputTest", False
     AddGXMethod "FUNCTION", "GXDeviceName", False
     AddGXMethod "FUNCTION", "GXDeviceTypeName", False
