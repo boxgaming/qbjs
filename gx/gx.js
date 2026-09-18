@@ -2381,6 +2381,7 @@ var GX = new function() {
                         di.inputType = GX.DEVICE_BUTTON;
                         di.inputId = j;
                         di.inputValue = GX.TRUE;
+                        await waitForRelease();
                         return;
                     }
                 }
@@ -2393,6 +2394,7 @@ var GX = new function() {
                         di.inputType = GX.DEVICE_AXIS;
                         di.inputId = j;
                         di.inputValue = gp.axes[j];
+                        await waitForRelease();
                         return;
                     }
                 }
@@ -2406,6 +2408,7 @@ var GX = new function() {
                     di.inputType = GX.DEVICE_BUTTON;
                     di.inputId = i;
                     di.inputValue = GX.TRUE;
+                    await waitForRelease();
                     return;
                 }
             }
@@ -2418,6 +2421,7 @@ var GX = new function() {
                 di.inputType = GX.DEVICE_WHEEL;
                 di.inputId = i;
                 di.inputValue = mw;
+                await waitForRelease();
                 return;
             }
 
@@ -2430,8 +2434,14 @@ var GX = new function() {
                     di.inputType = GX.DEVICE_BUTTON;
                     di.inputId = keyCodes[i];
                     di.inputValue = GX.TRUE;
+                    await waitForRelease();
                     return;
                 }
+            }
+        }
+        async function waitForRelease() {
+            while (_deviceInputTest(di)) {
+                await GX.sleep(10);
             }
         }
     }
