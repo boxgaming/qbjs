@@ -41,5 +41,5 @@ End Sub
 
 Function GetStorage(stype As String)
     Dim storage As Object
-    If stype = SESSION Then GetStorage = sessionStorage Else GetStorage = localStorage
+    If stype = SESSION Then GetStorage = window.sessionStorage Else GetStorage = window.localStorage
 End Function
