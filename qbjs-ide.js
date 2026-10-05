@@ -1307,7 +1307,12 @@ var IDE = new function() {
             var dataArray = new Uint8Array(node.data);
             var cdiv = document.createElement("div");
             cdiv.className = "hexview";
-            cdiv.innerHTML = QB.convertToUTF(hexy(dataArray, { extendedChs: true }));
+            var lines = hexy(dataArray, { extendedChs: true }).split("\n");
+            var html = "";
+            for (var l = 0; l < lines.length; l++) {
+                html += QB.convertToUTF(lines[l]) + "\n";
+            }
+            cdiv.innerHTML = html;
             div.style.overflow = "auto";
             div.appendChild(cdiv);
 
