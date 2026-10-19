@@ -474,13 +474,13 @@ var QB = new function() {
     this.func__Alpha = function(rgb, imageHandle) {
         _assertParam(rgb);
         // TODO: implement corresponding logic when an image handle is supplied (maybe)
-        return _color(rgb).a;
+        return Math.round(_color(rgb).a * 255);
     };
 
     this.func__Alpha32 = function(rgb) {
         _assertParam(rgb);
         // TODO: implement corresponding logic when an image handle is supplied (maybe)
-        return _color(rgb).a;
+        return this.func__Alpha(rgb);
     };
 
     this.func__Asin = function(x) {
@@ -2334,6 +2334,7 @@ var QB = new function() {
             color = _color(color);
         }
 
+        if (radius < 0) { radius = 0; }
         if (startAngle == undefined) { startAngle = 0; }
         if (endAngle == undefined) { endAngle = 2 * Math.PI; }
 
