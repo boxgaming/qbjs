@@ -594,7 +594,7 @@ var QB = new function() {
     this.func__CopyImage = function(srcImageId) {
         srcImageId = _assertNumber(srcImageId);
         var srcCanvas = _images[srcImageId].canvas;
-        var destImageId = QB.func__NewImage(srcCanvas.width, srcCanvas.height);
+        var destImageId = QB.func__NewImage(srcCanvas.width, srcCanvas.height, 32);
         var ctx = _images[destImageId].ctx;
         ctx.drawImage(srcCanvas, 0, 0);
 
@@ -983,7 +983,7 @@ var QB = new function() {
             }
         }
 
-        var imgId = QB.func__NewImage(img.width, img.height);
+        var imgId = QB.func__NewImage(img.width, img.height, 32);
         var ctx = _images[imgId].ctx;
         ctx.drawImage(img, 0, 0);
 
@@ -1190,6 +1190,8 @@ var QB = new function() {
             dx1 = destImage.lastX + dx1;
             dy1 = destImage.lastY + dy1;
         }
+        destImage.lastX = dx1;
+        destImage.lastY = dy1;
 
         if (dx2 == undefined) {
             if (dxu) {
@@ -1218,6 +1220,8 @@ var QB = new function() {
             sx1 = sourceImage.lastX + sx1;
             sy1 = sourceImage.lastY + sy1;
         }
+        sourceImage.lastX = sx1;
+        sourceImage.lastY = sy1;
 
         if (sx2 == undefined) {
             sw = sourceImage.canvas.width;
