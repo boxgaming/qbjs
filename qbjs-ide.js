@@ -1559,8 +1559,16 @@ var IDE = new function() {
     }
 
     function _convert437ToUTF() {
-        var str = editor.getValue();
-        editor.setValue(QB.convertToUTF(str));
+        if (codeTabMap[activeCodeTab].editor) {
+            var str = codeTabMap[activeCodeTab].editor.getValue();
+            var nstr = "";
+            var lines = str.split(/\r?\n/);
+            for (var i=0; i < lines.length; i++) {
+                if (i > 0) { nstr += "\n"; }
+                nstr += QB.convertToUTF(lines[i]);
+            }
+            codeTabMap[activeCodeTab].editor.setValue(nstr);
+        }
     }
 
     function _convertUTFTo437() {
