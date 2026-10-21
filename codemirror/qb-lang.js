@@ -50,8 +50,8 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
                              '_?resizeheight', '_?rgb', '_?rgba', '_?rgb32', '_?rgba32', '_?round',
                              '_?screenexists', '_?screenmove', '_?screenx', '_?screeny', '_?scrolllock',  
                              '_?sec', '_?sech', '_?setbit', '_?shl', '_?shr', '_?sinh',
-                             '_?source', '_?sndclose', '_?sndopen', '_?sndplay', '_?sndloop', '_?sndpause', '_?sndstop', '_?sndvol', '_?startdir',
-                             '_?strcmp', '_?stricmp', '_?tanh', '_?title', '_?trim', '_?togglebit', '_?width',
+                             '_?source', '_?sndclose', '_?sndopen', '_?sndplay', '_?sndplaycopy', '_?sndplaying', '_?sndloop', '_?sndpause', '_?sndstop', '_?sndvol',
+                             '_?startdir', '_?strcmp', '_?stricmp', '_?tanh', '_?title', '_?trim', '_?togglebit', '_?width',
                              'abs', 'asc', 'atn', 'beep',
                              'chr', 'cdbl', 'cint', 'clng', 'csng', 'circle', 'cls', 'color', 'command', 'cos', 'cvi', 'cvl', 'cvs', 'cvd',
                              'data', 'date', 'draw', 'environ', 'error', 'exp', 'fix', 'hex', 'input', 'inkey', 'instr', 'int',
@@ -98,7 +98,8 @@ CodeMirror.defineMode("qbjs", function(conf, parserConf) {
     // TODO: adjust for QB
     var knownProperties = ['description', 'firstindex', 'global', 'helpcontext', 'helpfile', 'ignorecase', 'length', 'number', 'pattern', 'value', 'count'];
 
-    var knownMethods = ['gxongameevent', 'gxmousex', 'gxmousey', 'gxsoundload', 'gxsoundplay', 'gxsoundrepeat', 'gxsoundvolume', 'gxsoundpause', 'gxsoundstop',
+    var knownMethods = ['gxongameevent', 'gxmousex', 'gxmousey', 'gxsoundload', 
+                        'gxsoundplay', 'gxsoundplaycopy', 'gxsoundplaying', 'gxsoundrepeat', 'gxsoundvolume', 'gxsoundpause', 'gxsoundstop',
                         'gxsoundmuted', 'gxsoundmuted', 'gxentityanimate', 'gxentityanimatestop', 'gxentityanimatemode', 'gxentityanimatemode',
                         'gxscreenentitycreate', 'gxentitycreate', 'gxentityvisible', 'gxentitymaplayer', 'gxentitymove', 'gxentitypos', 
                         'gxentityvx', 'gxentityvy', 'gxentityx', 'gxentityy', 'gxentitywidth', 'gxentityheight', 'gxentityrendermode',

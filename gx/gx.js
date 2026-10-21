@@ -740,6 +740,25 @@ var GX = new function() {
         }
     }
 
+    function _soundPlayCopy (sid, volume) {
+        var snd = _sounds[sid-1];
+        if (snd && !GX.soundMuted()) {
+            var copy = snd.cloneNode();
+            if (volume == undefined) {
+                copy.volume = snd.volume;
+            }
+            else {
+                copy.volume = Math.min(Math.max(volume, 0), 1);
+            }
+            copy.play().catch(function() {});
+        }
+    }
+
+    function _soundPlaying (sid) {
+        var snd = _sounds[sid-1];
+        return _qbBoolean(snd && !snd.paused && !snd.ended);
+    }
+
     function _soundRepeat (sid) {
         if (!GX.soundMuted()) {
             _sounds[sid-1].loop = true;
@@ -2796,6 +2815,8 @@ var GX = new function() {
     this.soundClose = _soundClose;
     this.soundLoad = _soundLoad;
     this.soundPlay = _soundPlay;
+    this.soundPlayCopy = _soundPlayCopy;
+    this.soundPlaying = _soundPlaying;
     this.soundRepeat = _soundRepeat;
     this.soundPause = _soundPause;
     this.soundStop = _soundStop;

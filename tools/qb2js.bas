@@ -4515,6 +4515,8 @@ Sub InitGX
     AddGXMethod "FUNCTION", "GXMouseY", False
     AddGXMethod "FUNCTION", "GXSoundLoad", True
     AddGXMethod "SUB", "GXSoundPlay", False
+    AddGXMethod "SUB", "GXSoundPlayCopy", False
+    AddGXMethod "FUNCTION", "GXSoundPlaying", False
     AddGXMethod "SUB", "GXSoundRepeat", False
     AddGXMethod "SUB", "GXSoundVolume", False
     AddGXMethod "SUB", "GXSoundPause", False
@@ -4807,6 +4809,8 @@ Sub InitQBMethods
     AddQBMethod "SUB", "_SndClose", False
     AddQBMethod "FUNCTION", "_SndOpen", True
     AddQBMethod "SUB", "_SndPlay", False
+    AddQBMethod "SUB", "_SndPlayCopy", False
+    AddQBMethod "FUNCTION", "_SndPlaying", False
     AddQBMethod "SUB", "_SndLoop", False
     AddQBMethod "SUB", "_SndPause", False
     AddQBMethod "SUB", "_SndStop", False

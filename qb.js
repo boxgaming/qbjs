@@ -1450,6 +1450,16 @@ var QB = new function() {
         GX.soundPlay(sid);
     };
 
+    this.func__SndPlaying = function(sid) {
+        sid = _assertNumber(sid);
+        return GX.soundPlaying(sid);
+    }
+
+    this.sub__SndPlayCopy = function(sid) {
+        sid = _assertNumber(sid);
+        GX.soundPlayCopy(sid);
+    }
+
     this.sub__SndLoop = function(sid) {
         sid = _assertNumber(sid);
         GX.soundRepeat(sid);
@@ -4042,7 +4052,6 @@ var QB = new function() {
                     lastDigit = i;
                 }
             }
-            console.log(lastDigit);
             if (lastDigit < value.length-1) {
                 value = value.substring(0, lastDigit+1);
             }
