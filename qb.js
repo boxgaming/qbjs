@@ -412,9 +412,9 @@ var QB = new function() {
     this.vfs = function() { return GX.vfs(); }
     this.vfsCwd = function() { return GX.vfsCwd(); }
 
-    this.downloadFile = async function(data, defaultName) {
+    this.downloadFile = async function(data, defaultName, types) {
         if (window.showSaveFilePicker) {
-            const handle = await showSaveFilePicker({ suggestedName: defaultName });
+            const handle = await showSaveFilePicker({ suggestedName: defaultName, types: types });
             const writable = await handle.createWritable();
             await writable.write(data);
             writable.close();

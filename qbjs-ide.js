@@ -636,7 +636,7 @@ var IDE = new function() {
         // save a single .bas file
         if (count == 0) {
             var progFile = new Blob([ editor.getValue() ]);
-            QB.downloadFile(progFile, "program.bas");
+            QB.downloadFile(progFile, "program.bas", [{ description: "QBJS Source File", accept: { "text/x-basic": [".bas"] }}]);
         }
 
         // save a project .zip file
@@ -649,7 +649,7 @@ var IDE = new function() {
             addVFSFiles(vfs, zip, node);
             
             zip.generateAsync({type:"blob",compression:"DEFLATE"}).then(function(content) {
-                QB.downloadFile(content, "project.zip");
+                QB.downloadFile(content, "project.zip", [{ description: "QBJS Project File", accept: { "application/zip": [".zip"] }}]);
             });
         }
     }
