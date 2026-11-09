@@ -547,10 +547,12 @@ Sub ConvertLines (firstLine As Integer, lastLine As Integer, functionName As Str
                         Dim As String cleft, cright
                         cleft = Left$(constParts(constIdx), eqi - 1)
                         cright = Mid$(constParts(constIdx), eqi + 1)
+                        Dim cjsname As String
+                        cjsname = String.Replace(cleft, ".", "$_")
                         If functionName = "" Then
-                            jsLines(constVarLine).text = jsLines(constVarLine).text + "const " + cleft + " = " + ConvertExpression(cright, i) + "; "
+                            jsLines(constVarLine).text = jsLines(constVarLine).text + "const " + cjsname + " = " + ConvertExpression(cright, i) + "; "
                         Else
-                            js = js + "const " + cleft + " = " + ConvertExpression(cright, i) + "; "
+                            js = js + "const " + cjsname + " = " + ConvertExpression(cright, i) + "; "
                         End If
                         AddConst String.Trim(cleft), functionName
                     End If
@@ -1062,12 +1064,16 @@ Function IsValidVarname (varname As String)
         Exit Function
     End If
     ' Check to see if the name contains valid characters
+    ' Periods are allowed after the first character (e.g. a.x, a.b.c), but not
+    ' doubled (a..b) or trailing (a.)
     c = Asc(Mid$(vname, 1, 1))
     If (c >= 65 And c <= 90) Or c = 95 Then
         For i = 2 To Len(vname)
             c = Asc(Mid$(vname, i, 1))
             If (c >= 65 And c <= 90) Or (c >= 48 And c <= 57) Or c = 95 Then
                 ' valid character
+            ElseIf c = 46 And i < Len(vname) AndAlso Mid$(vname, i - 1, 1) <> "." Then
+                ' valid period
             Else
                 valid = False
                 Exit For
@@ -1077,6 +1083,56 @@ Function IsValidVarname (varname As String)
         valid = False
     End If
     IsValidVarname = valid
+End Function
+
+' Returns the javascript name for a variable. Periods are valid in variable names
+' (e.g. a.x) so they are replaced with "$_", which can never appear in a valid
+' variable name ("$" may only be followed by a number, as in a$5).
+Function VarJSName$ (vname As String)
+    VarJSName = String.Replace(RemoveSuffix(vname), ".", "$_")
+End Function
+
+' Returns true if the specified name is a reference to an element of an
+' existing variable (e.g. p.x where p is declared As MyType) or to a member
+' of an imported module. Any variable type counts, not only custom types,
+' since variables can also hold javascript objects (e.g. s.length).
+' Otherwise, a name with periods in it is a regular variable name.
+Function IsMemberRef (vname As String)
+    Dim As String prefix
+    Dim As Integer didx, pidx, found, i
+    Dim v As Variable
+    IsMemberRef = False
+    prefix = String.Trim(vname)
+    didx = InStr(prefix, ".")
+    If didx = 0 Then Exit Function
+    If didx = 1 Then
+        ' Continuation of a member reference (e.g. the ".x" in a(1).x)
+        IsMemberRef = True
+        Exit Function
+    End If
+    prefix = Left$(prefix, didx - 1)
+    pidx = InStr(prefix, "(")
+    If pidx Then prefix = Left$(prefix, pidx - 1)
+    found = FindVariable(prefix, v, False)
+    If Not found Then found = FindVariable(prefix, v, True)
+    If found Then
+        IsMemberRef = True
+        Exit Function
+    End If
+    For i = 1 To UBound(modules)
+        If UCase$(modules(i).name) = UCase$(prefix) Then
+            IsMemberRef = True
+            Exit Function
+        End If
+    Next i
+    ' Javascript reserved words and globals (e.g. arguments.length, QB._domElements).
+    ' These are case sensitive so that names like math.x remain regular variables.
+    If IsJSReservedWord(prefix) Then IsMemberRef = True
+    Select Case prefix
+        Case "QB", "GX", "globalThis", "window", "document", "navigator", "location", _
+             "console", "Math", "JSON", "Date", "Number", "Object", "Array", "Promise"
+            IsMemberRef = True
+    End Select
 End Function
 
 Function BeginPhraseFor$ (endPhrase As String)
@@ -1995,7 +2051,7 @@ Function GetVarType$ (vname As String)
     Dim v As Variable
     Dim pidx As Integer
     pcount = Split(vname, ".", parts())
-    If pcount = 1 Then
+    If pcount = 1 Or Not IsMemberRef(vname) Then
         pidx = InStr(vname, "(")
         If pidx Then vname = Left$(vname, pidx - 1)
         found = FindVariable(vname, v, False)
@@ -2285,7 +2341,7 @@ Function RegisterVar$ (bvar As Variable, js As String, isGlobal As Integer, isSt
     Dim findVar As Variable
     Dim varExists As Integer
 
-    bvar.jsname = RemoveSuffix(bvar.name)
+    bvar.jsname = VarJSName(bvar.name)
     If isStatic Then
         bvar.jsname = "$" + currentMethod + "__" + bvar.jsname
     End If
@@ -2504,7 +2560,11 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                         AddError lineNumber, "Missing or invalid method reference (" + mref + ")"
                     End If
                 Else
-                    If FindVariable(word, bvar, False) Then
+                    ' A reference to a custom type element (e.g. p.x) takes precedence
+                    ' over a variable whose name contains a period
+                    Dim memberRef As Integer
+                    memberRef = IsMemberRef(word)
+                    If Not memberRef AndAlso FindVariable(word, bvar, False) Then
                         js = js + " " + bvar.jsname
                     Else
                         If FindMethod(word, m, "FUNCTION", True) Then
@@ -2515,12 +2575,12 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                             End If
                         Else
                             ' Check for implicit variable declaration
-                            If FindVariable(word, bvar, True) Then
+                            If Not memberRef AndAlso FindVariable(word, bvar, True) Then
                                 js = js + " " + bvar.jsname
                             Else
                                 Dim varname As String
                                 varname = String.Trim(word)
-                                If IsValidVarname(varname) Then
+                                If Not memberRef AndAlso IsValidVarname(varname) Then
                                     Dim dt As String
                                     dt = DataTypeFromName(varname)
                                     If optionExplicit Then
@@ -2584,7 +2644,8 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                         word = Mid$(word, 2)
                     End If
                 End If
-                If FindVariable(word, bvar, True) Then
+                memberRef = IsMemberRef(word)
+                If Not memberRef AndAlso FindVariable(word, bvar, True) Then
                     If String.Trim(ex2) = "" Then
                         ' This is the case where the array variable is being passed as a parameter
                         js = js + fneg + bvar.jsname
@@ -2600,6 +2661,9 @@ Function ConvertExpression$ (ex As String, lineNumber As Integer)
                         If optionExplicit Or optionExplicitArray Then
                             AddError lineNumber, "Missing function or array [" + word + "]"
                             js = js + fneg + "(" + ConvertExpression(ex2, lineNumber) + ")"
+                        ElseIf memberRef Then
+                            ' Array stored in an element of an existing variable, don't declare it as a new variable
+                            js = js + fneg + "QB.arrayValue(" + varname + ", [" + ConvertExpression(ex2, lineNumber) + "]).value"
                         Else
                             ' determine how many dimensions are referenced in ex2
                             ReDim params(0) As String
@@ -4045,7 +4109,7 @@ Sub AddVariable (bvar As Variable, vlist() As Variable)
     nvar.typeId = bvar.typeId
 
     If nvar.jsname = "" Then
-        nvar.jsname = RemoveSuffix(nvar.name)
+        nvar.jsname = VarJSName(nvar.name)
         bvar.jsname = nvar.jsname
     End If
     If IsJSReservedWord(nvar.jsname) Then
