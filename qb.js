@@ -1175,43 +1175,11 @@ var QB = new function() {
         }
         var destImage = _images[destImageId];
         var sourceImage = _images[sourceImageId];
-        var sw = 0;
-        var sh = 0;
-        var dw = 0;
-        var dh = 0;
+        var srcW = sourceImage.canvas.width;
+        var srcH = sourceImage.canvas.height;
 
-        var dxu = false;
-        if (dx1 == undefined) {
-            dx1 = 0;
-            dy1 = 0;
-            dxu = true;
-        }
-        else if (dstep1) {
-            dx1 = destImage.lastX + dx1;
-            dy1 = destImage.lastY + dy1;
-        }
-        destImage.lastX = dx1;
-        destImage.lastY = dy1;
-
-        if (dx2 == undefined) {
-            if (dxu) {
-                dw = destImage.canvas.width;
-                dh = destImage.canvas.height;
-            }
-            else {
-                dw = sourceImage.canvas.width;
-                dh = sourceImage.canvas.height;
-            }
-        }
-        else {
-            if (dstep2) {
-                dx2 = destImage.lastX + dx2;
-                dy2 = destImage.lastY + dy2;
-            }
-            dw = dx2-dx1;
-            dh = dy2-dy1;
-        }
-
+        // Source rectangle.  Corners are inclusive, as in QB64: (0,0)-(3,3) covers 4x4 pixels.
+        // Swapped corners (sx1 > sx2 or sy1 > sy2) mirror the image.
         if (sx1 == undefined) {
             sx1 = 0;
             sy1 = 0;
@@ -1223,34 +1191,92 @@ var QB = new function() {
         sourceImage.lastX = sx1;
         sourceImage.lastY = sy1;
 
-        if (sx2 == undefined) {
-            sw = sourceImage.canvas.width;
-            sh = sourceImage.canvas.height;
-        }
-        else {
+        var sLeft = sx1;
+        var sTop = sy1;
+        var sw = srcW;
+        var sh = srcH;
+        var sFlipX = false;
+        var sFlipY = false;
+        if (sx2 != undefined) {
             if (sstep2) {
                 sx2 = sourceImage.lastX + sx2;
                 sy2 = sourceImage.lastY + sy2;
             }
-            sw = sx2-sx1;
-            sh = sy2-sy1;
+            sLeft = Math.min(sx1, sx2);
+            sTop = Math.min(sy1, sy2);
+            sw = Math.abs(sx2 - sx1) + 1;
+            sh = Math.abs(sy2 - sy1) + 1;
+            sFlipX = sx2 < sx1;
+            sFlipY = sy2 < sy1;
+            sourceImage.lastX = sx2;
+            sourceImage.lastY = sy2;
+        }
+        else {
+            sourceImage.lastX = sx1 + sw;
+            sourceImage.lastY = sy1 + sh;
         }
 
-        if (sw > sourceImage.canvas.width) {
-            sw = sourceImage.canvas.width;
+        // Destination rectangle.  Same rules: inclusive corners, swapped corners mirror.
+        // With only the first corner, the image is drawn unscaled; with no corners it
+        // is stretched over the whole destination image.
+        var dLeft, dTop, dw, dh;
+        var dFlipX = false;
+        var dFlipY = false;
+        if (dx1 == undefined) {
+            dLeft = 0;
+            dTop = 0;
+            dw = destImage.canvas.width;
+            dh = destImage.canvas.height;
+            destImage.lastX = dw;
+            destImage.lastY = dh;
         }
-        if (sh > sourceImage.canvas.height) {
-            sh = sourceImage.canvas.height;
+        else {
+            if (dstep1) {
+                dx1 = destImage.lastX + dx1;
+                dy1 = destImage.lastY + dy1;
+            }
+            if (dx2 == undefined) {
+                dLeft = dx1;
+                dTop = dy1;
+                dw = sw;
+                dh = sh;
+                destImage.lastX = dx1 + dw;
+                destImage.lastY = dy1 + dh;
+            }
+            else {
+                if (dstep2) {
+                    dx2 = dx1 + dx2;
+                    dy2 = dy1 + dy2;
+                }
+                dLeft = Math.min(dx1, dx2);
+                dTop = Math.min(dy1, dy2);
+                dw = Math.abs(dx2 - dx1) + 1;
+                dh = Math.abs(dy2 - dy1) + 1;
+                dFlipX = dx2 < dx1;
+                dFlipY = dy2 < dy1;
+                destImage.lastX = dx2;
+                destImage.lastY = dy2;
+            }
         }
 
-        destImage.lastX = dx1 + dw;
-        destImage.lastY = dy1 + dh;
-        sourceImage.lastX = sx1 + sw;
-        sourceImage.lastY = sy2 + sh;
+        // A source rectangle that extends past the source image is clipped by drawImage,
+        // which shrinks the destination rectangle in the same proportion (as QB64 does).
+        var flipX = dFlipX != sFlipX;
+        var flipY = dFlipY != sFlipY;
 
-        _flushScreenCache(_images[destImageId]);
-        destImage.ctx.imageSmoothingEnabled = smooth;
-        destImage.ctx.drawImage(sourceImage.canvas, sx1, sy1, sw, sh, dx1, dy1, dw, dh);
+        _flushScreenCache(destImage);
+        var ctx = destImage.ctx;
+        ctx.imageSmoothingEnabled = smooth;
+        if (flipX || flipY) {
+            ctx.save();
+            ctx.translate(flipX ? dLeft + dw : dLeft, flipY ? dTop + dh : dTop);
+            ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+            ctx.drawImage(sourceImage.canvas, sLeft, sTop, sw, sh, 0, 0, dw, dh);
+            ctx.restore();
+        }
+        else {
+            ctx.drawImage(sourceImage.canvas, sLeft, sTop, sw, sh, dLeft, dTop, dw, dh);
+        }
     }
 
     function _rgb(r, g, b, a) {
