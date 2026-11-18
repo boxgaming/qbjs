@@ -473,14 +473,12 @@ var QB = new function() {
 
     this.func__Alpha = function(rgb, imageHandle) {
         _assertParam(rgb);
-        // TODO: implement corresponding logic when an image handle is supplied (maybe)
-        return Math.round(_color(rgb).a * 255);
+        return Math.round(_color(rgb, imageHandle).a * 255);
     };
 
     this.func__Alpha32 = function(rgb) {
         _assertParam(rgb);
-        // TODO: implement corresponding logic when an image handle is supplied (maybe)
-        return this.func__Alpha(rgb);
+        return Math.round(_color32(rgb).a * 255);
     };
 
     this.func__Asin = function(x) {
@@ -514,14 +512,12 @@ var QB = new function() {
 
     this.func__Blue = function(rgb, imageHandle) {
         _assertParam(rgb);
-        // TODO: implement corresponding logic when an image handle is supplied (maybe)
-        return _color(rgb).b;
+        return _color(rgb, imageHandle).b;
     };
 
     this.func__Blue32 = function(rgb) {
         _assertParam(rgb);
-        // TODO: implement corresponding logic when an image handle is supplied (maybe)
-        return _color(rgb).b;
+        return _color32(rgb).b;
     };
 
     this.func__CapsLock = function() {
@@ -790,14 +786,12 @@ var QB = new function() {
 
     this.func__Green = function(rgb, imageHandle) {
         _assertParam(rgb);
-        // TODO: implement corresponding logic when an image handle is supplied (maybe)
-        return _color(rgb).g;
+        return _color(rgb, imageHandle).g;
     };
 
     this.func__Green32 = function(rgb) {
         _assertParam(rgb);
-        // TODO: implement corresponding logic when an image handle is supplied (maybe)
-        return _color(rgb).g;
+        return _color32(rgb).g;
     };
 
     this.func__Height = function(imageId) {
@@ -1108,7 +1102,7 @@ var QB = new function() {
     };
 
     this.sub__PaletteColor = function(x, y) {
-        _colormap[x] = _color(y);
+        _colormap[x] = _color32(y);
     };
 
     this.func__PrintMode = function(imageHandle) {
@@ -1297,14 +1291,12 @@ var QB = new function() {
 
     this.func__Red = function(rgb, imageHandle) {
         _assertParam(rgb);
-        // TODO: implement corresponding logic when an image handle is supplied (maybe)
-        return _color(rgb).r;
+        return _color(rgb, imageHandle).r;
     };
 
     this.func__Red32 = function(rgb) {
         _assertParam(rgb);
-        // TODO: implement corresponding logic when an image handle is supplied (maybe)
-        return _color(rgb).r;
+        return _color32(rgb).r;
     };
 
     this.func__Resetbit = function(x, y) {
@@ -1635,21 +1627,49 @@ var QB = new function() {
         _locY = 0;
     };
 
-    function _color(c) {
+    // Returns true when the image uses palette indexes (SCREEN 0-13 or _NewImage(..., 256))
+    // rather than 32-bit &HAARRGGBB colors.
+    function _isPaletteImage(img) {
+        if (!img) { return false; }
+        var m = img.mode;
+        return m == 256 || (m >= 0 && m <= 13);
+    }
+
+    // Converts a color value to a color object.  On palette images, values 0-255 are
+    // palette indexes; on 32-bit images every number is a packed &HAARRGGBB value.
+    // imageId defaults to the current destination image (_Dest).
+    function _color(c, imageId) {
         if (c != undefined && c.r != undefined) {
             return c;
         }
-        else if (!isNaN(c) && c >= 0 && c <= 255) {
-            return _colormap[parseInt(c)];
+        if (c == undefined || isNaN(c)) {
+            return _rgb(0,0,0);
         }
-        else if (!isNaN(c) && c > 255) {
-            var a = (c >>> 24) & 0xFF;
-            var r = (c >> 16) & 0xFF;
-            var g = (c >> 8) & 0xFF;
-            var b = c & 0xFF;
-            return _rgb(r, g, b, a/255);
+        if (_isPaletteImage(_images[imageId == undefined ? _activeImage : imageId])) {
+            if (c >= 0 && c <= 255) {
+                return _colormap[parseInt(c)];
+            }
+            else if (c < 0) {
+                return _rgb(0,0,0);
+            }
         }
-        return _rgb(0,0,0);
+        return _color32(c);
+    }
+
+    // Converts a packed &HAARRGGBB value (signed or unsigned) to a color object.
+    function _color32(c) {
+        if (c != undefined && c.r != undefined) {
+            return c;
+        }
+        if (c == undefined || isNaN(c)) {
+            return _rgb(0,0,0);
+        }
+        c = c >>> 0;
+        var a = (c >>> 24) & 0xFF;
+        var r = (c >> 16) & 0xFF;
+        var g = (c >> 8) & 0xFF;
+        var b = c & 0xFF;
+        return _rgb(r, g, b, a/255);
     }
 
     this.sub_Color = function(fg, bg) {
