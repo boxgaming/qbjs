@@ -7,10 +7,6 @@ Dim ts: ts = Sys.TimeInMillis
 Dim c As Unsigned Integer
 c = _RGBA(100, 200, 255, 100)
 
-Circle (100, 100), 50, c
-UT.AssertEquals _Alpha(c), 100
-UT.AssertEquals _Alpha32(c), 100
-
 ' Colors on 32-bit images are &HAARRGGBB values, not palette indexes (expected values from QB64-PE)
 Dim As Long colImg, colPal, colSigned
 colImg = _NewImage(4, 1, 32)
@@ -38,5 +34,9 @@ PSet (0, 0), 4
 UT.AssertEquals Hex$(Point(0, 0)), "FFA80000"
 _Dest 0: _Source 0
 _FreeImage colImg: _FreeImage colPal
+
+Circle (100, 100), 50, c
+UT.AssertEquals _Alpha(c), 100
+UT.AssertEquals _Alpha32(c), 100
 
 Console.Echo "QB Graphics - tests completed with no errors* in " + (Sys.TimeInMillis - ts) + " millisecond(s)"
