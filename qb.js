@@ -3787,6 +3787,9 @@ var QB = new function() {
         if (mode < 2) {
             _fgColor = _color(7); 
         }
+        else if (mode > 256) {
+            _fgColor = _rgb(255, 255, 255);
+        }
         else {
             _fgColor = _color(15); 
         }
