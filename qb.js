@@ -3784,16 +3784,19 @@ var QB = new function() {
         _screenDiagInv = 1/Math.sqrt(_images[0].canvas.width*_images[0].canvas.width + _images[0].canvas.height*_images[0].canvas.height);
         
         // initialize the graphics
-        if (mode < 2) {
-            _fgColor = _color(7); 
-        }
-        else if (mode > 256) {
-            _fgColor = _rgb(255, 255, 255);
+        if (screenMode <= 13 || screenMode == 256) {
+            if (screenMode < 2) {
+                _fgColor = _color(7);
+            }
+            else {
+                _fgColor = _color(15);
+            } 
+            _bgColor = _color(0);
         }
         else {
-            _fgColor = _color(15); 
+            _fgColor = _rgb(255, 255, 255);
+            _bgColor = _rgb(0, 0, 0);
         }
-        _bgColor = _color(0);
         _lastTextX = 0;
         _locX = 0;
         _locY = 0;
